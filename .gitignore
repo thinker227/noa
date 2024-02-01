@@ -1,0 +1,6 @@
+bin/
+obj/
+package/
+.vs/
+.idea/
+.sln.DotSettings.user
