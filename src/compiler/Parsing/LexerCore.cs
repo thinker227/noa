@@ -2,7 +2,6 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer(Source source)
 {
-    private readonly Source source = source;
     private readonly string text = source.Text;
     private int position = 0;
 
