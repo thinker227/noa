@@ -8,17 +8,23 @@ internal sealed partial class Lexer
 
         while (!lexer.AtEnd)
         {
-            yield return lexer.NextToken();
+            var token = lexer.NextToken();
+            if (token is not null) yield return token.Value;
         }
 
         var endLocation = Location.FromLength(source.Name, source.Text.Length, 0);
         yield return new(TokenKind.EndOfFile, null, endLocation);
     }
 
-    private Token NextToken()
+    private Token? NextToken()
     {
         // Whitespace
         while (SyntaxFacts.IsWhitespace(Current)) Progress(1);
+
+        // If there is trailing whitespace before the end of the source,
+        // the previous step has eaten all the whitespace, and we need to return null
+        // to avoid choking on the end.
+        if (AtEnd) return null;
 
         // Symbol clusters
         if (TrySymbol() is var (kind, tokenLength)) return ConstructToken(kind, tokenLength);
