@@ -6,7 +6,7 @@ namespace Noa.Compiler;
 /// <param name="SourceName">The name of the source.</param>
 /// <param name="Start">The start position in the source.</param>
 /// <param name="End">The end position in the source.</param>
-public readonly struct Location(string SourceName, int Start, int End)
+public readonly record struct Location(string SourceName, int Start, int End)
 {
     /// <summary>
     /// The length of the location in the source.
