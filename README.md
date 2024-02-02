@@ -14,6 +14,18 @@
 - Runtime implemented in Rust
 - Language server
 
+## Status 
+
+- [x] AST
+- [x] Lexer
+- [ ] Parser
+- [ ] Scope/symbol resolution
+- [ ] Optimization
+- [ ] Bytecode
+- [ ] Runtime
+- [ ] CLI
+- [ ] Language server
+
 ## Samples
 
 ```js
