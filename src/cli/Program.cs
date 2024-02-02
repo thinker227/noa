@@ -1,4 +1,5 @@
-﻿using Cocona;
+﻿using Noa.Compiler;
+using Cocona;
 using Cocona.Lite;
 using Spectre.Console;
 
@@ -19,6 +20,13 @@ app.AddCommand((
         return 1;
     }
 
+    var text = File.ReadAllText(inputFile);
+    var file = new FileInfo(inputFile);
+    var name = file.Name;
+    var source = new Source(text, name);
+
+    var ast = Ast.Create(source);
+    
     return 0;
 });
 
