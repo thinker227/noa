@@ -8,7 +8,7 @@ namespace Noa.Compiler;
 /// </summary>
 public sealed class Ast
 {
-    private IReadOnlyDictionary<Node, Node>? parents;
+    private IReadOnlyDictionary<Node, Node>? parents = null;
 
     /// <summary>
     /// The root of the syntax tree.
@@ -23,7 +23,6 @@ public sealed class Ast
     private Ast(Source source)
     {
         Root = Parser.Parse(source, this);
-        parents = null;
     }
 
     /// <summary>
