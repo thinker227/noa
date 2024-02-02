@@ -31,6 +31,15 @@ public abstract class Node
     /// The semantic scope of the node.
     /// </summary>
     public Scope Scope { get; internal set; } = null!;
+
+    /// <summary>
+    /// Returns an empty collection if the passed in node is null,
+    /// otherwise returns a singleton collection containing the node.
+    /// </summary>
+    protected IEnumerable<Node> EmptyIfNull(Node? node) =>
+        node is not null
+            ? [node]
+            : [];
 }
 
 public sealed class Root : Node
@@ -85,7 +94,7 @@ public sealed class BlockExpression : Expression
     
     public required Expression? TrailingExpression { get; init; }
 
-    public override IEnumerable<Node> Children => [..Statements, TrailingExpression];
+    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
 }
 
 public sealed class CallExpression : Expression
