@@ -1,5 +1,15 @@
 namespace Noa.Compiler.Parsing;
 
+/// <summary>
+/// A syntax token, a single unit of syntax.
+/// </summary>
+/// <param name="Kind">The kind of the token.</param>
+/// <param name="Text">
+/// The text of the token.
+/// If not specified, <see cref="TokenKindExtensions.ConstantString"/> will be used,
+/// or an expect will be thrown if the kind does not have a constant string.
+/// </param>
+/// <param name="Location">The location of the token in source.</param>
 internal readonly record struct Token(TokenKind Kind, string? Text, Location Location)
 {
     public string Text { get; } =
@@ -10,6 +20,9 @@ internal readonly record struct Token(TokenKind Kind, string? Text, Location Loc
     public override string ToString() => $"{Kind} '{Text}' at {Location}";
 }
 
+/// <summary>
+/// The kind of a syntax token.
+/// </summary>
 internal enum TokenKind
 {
     // Meta
