@@ -147,9 +147,9 @@ public sealed class IfExpression : Expression
 {
     public required Expression Condition { get; init; }
     
-    public required Expression IfTrue { get; init; }
+    public required BlockExpression IfTrue { get; init; }
     
-    public required Expression IfFalse { get; init; }
+    public required BlockExpression IfFalse { get; init; }
 
     public override IEnumerable<Node> Children => [Condition, IfTrue, IfFalse];
 }
