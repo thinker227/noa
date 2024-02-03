@@ -63,6 +63,7 @@ internal sealed partial class Lexer
             "," => TokenKind.Comma,
             ";" => TokenKind.Semicolon,
             "=" => TokenKind.Equals,
+            "!" => TokenKind.Bang,
             "+" => TokenKind.Plus,
             "-" => TokenKind.Dash,
             "*" => TokenKind.Star,
