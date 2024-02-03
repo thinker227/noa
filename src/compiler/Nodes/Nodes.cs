@@ -62,16 +62,44 @@ public sealed class Statement : Node
     
     public Expression? Expression { get; init; }
 
-    public override IEnumerable<Node> Children => (Declaration, Expression) switch
-    {
-        (null, null) => [],
-        (not null, null) => [Declaration],
-        (null, not null) => [Expression],
-        (not null, not null) => [Declaration, Expression],
-    };
+    public override IEnumerable<Node> Children => [
+        ..EmptyIfNull(Declaration),
+        ..EmptyIfNull(Expression)
+    ];
+}
+
+public sealed class Parameter : Node
+{
+    public required bool IsMutable { get; init; }
+    
+    public required Identifier Identifier { get; init; }
+
+    public ParameterSymbol Symbol { get; internal set; } = null!;
+
+    public override IEnumerable<Node> Children => [Identifier];
 }
 
 public abstract class Declaration : Node;
+
+public sealed class FunctionDeclaration : Declaration
+{
+    public required Identifier Identifier { get; init; }
+    
+    public required ImmutableArray<Parameter> Parameters { get; init; }
+    
+    public required Expression? ExpressionBody { get; init; }
+    
+    public required BlockExpression? BlockBody { get; init; }
+
+    public FunctionSymbol Symbol { get; internal set; } = null!; 
+
+    public override IEnumerable<Node> Children => [
+        Identifier,
+        ..Parameters,
+        ..EmptyIfNull(ExpressionBody),
+        ..EmptyIfNull(BlockBody)
+    ];
+}
 
 public sealed class LetDeclaration : Declaration
 {
@@ -106,24 +134,13 @@ public sealed class CallExpression : Expression
     public override IEnumerable<Node> Children => [Target, ..Arguments];
 }
 
-public sealed class FunctionExpression : Expression
+public sealed class LambdaExpression : Expression
 {
     public required ImmutableArray<Parameter> Parameters { get; init; }
     
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
-}
-
-public sealed class Parameter : Node
-{
-    public required bool IsMutable { get; init; }
-    
-    public required Identifier Identifier { get; init; }
-
-    public ParameterSymbol Symbol { get; internal set; } = null!;
-
-    public override IEnumerable<Node> Children => [Identifier];
 }
 
 public sealed class IfExpression : Expression

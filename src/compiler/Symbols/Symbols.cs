@@ -14,6 +14,24 @@ public interface ISymbol
 }
 
 /// <summary>
+/// Represents a function declared by a function declaration.
+/// </summary>
+public sealed class FunctionSymbol : ISymbol
+{
+    public required string Name { get; init; }
+    
+    /// <summary>
+    /// The parameters of the function.
+    /// </summary>
+    public required ImmutableArray<ParameterSymbol> Parameters { get; init; }
+    
+    /// <summary>
+    /// The declaration of the function.
+    /// </summary>
+    public required FunctionDeclaration Declaration { get; init; }
+}
+
+/// <summary>
 /// Represents a variable declared by a let declaration.
 /// </summary>
 public sealed class VariableSymbol : ISymbol
@@ -46,14 +64,15 @@ public sealed class ParameterSymbol : ISymbol
     public bool IsMutable => Declaration.IsMutable;
     
     /// <summary>
+    /// The function symbol which the parameter belongs to,
+    /// or null if the parameter belongs to a lambda expression.
+    /// </summary>
+    public FunctionSymbol? Function { get; init; }
+    
+    /// <summary>
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
-
-    /// <summary>
-    /// The function which declares the parameter.
-    /// </summary>
-    public FunctionExpression DeclaringFunction => (FunctionExpression)Declaration.Parent;
     
     public override string ToString() => $"Parameter {Name} declared at {Declaration.Location}";
 }
