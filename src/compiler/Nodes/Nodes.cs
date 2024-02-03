@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.Nodes;
@@ -58,6 +59,14 @@ public sealed class Identifier : Node
 
 public sealed class Statement : Node
 {
+    [MemberNotNullWhen(true, nameof(Declaration))]
+    [MemberNotNullWhen(false, nameof(Expression))]
+    public required bool IsDeclaration { get; init; }
+
+    [MemberNotNullWhen(false, nameof(Declaration))]
+    [MemberNotNullWhen(true, nameof(Expression))]
+    public bool IsExpression => !IsDeclaration;
+    
     public Declaration? Declaration { get; init; }
     
     public Expression? Expression { get; init; }
@@ -115,6 +124,11 @@ public sealed class LetDeclaration : Declaration
 }
 
 public abstract class Expression : Node;
+
+public sealed class ErrorExpression : Expression
+{
+    public override IEnumerable<Node> Children => [];
+}
 
 public sealed class BlockExpression : Expression
 {
