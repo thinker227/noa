@@ -35,10 +35,8 @@ internal sealed partial class Parser
             }
             
             // An unexpected token was encountered.
-            diagnostics.Add(new(
-                $"Unexpected {current.Kind.ToDisplayString()} token",
-                Severity.Error,
-                current.Location));
+            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
+            diagnostics.Add(diagnostic);
             
             // Try synchronize with the next statement.
             while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(current.Kind)) Advance();

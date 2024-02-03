@@ -275,10 +275,8 @@ internal sealed partial class Parser
             if (declarationOrExpression is not var (declaration, expression))
             {
                 // An unexpected token was encountered.
-                diagnostics.Add(new(
-                    $"Unexpected {current.Kind.ToDisplayString()} token",
-                    Severity.Error,
-                    current.Location));
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
+                diagnostics.Add(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
                 while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(current.Kind)) Advance();
@@ -320,11 +318,9 @@ internal sealed partial class Parser
                 }
 
                 // If the current token is not a closing brace, then there's an unexpected token here.
-                
-                diagnostics.Add(new(
-                    $"Unexpected {current.Kind.ToDisplayString()} token",
-                    Severity.Error,
-                    current.Location));
+
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
+                diagnostics.Add(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
                 while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(current.Kind)) Advance();
@@ -502,8 +498,9 @@ internal sealed partial class Parser
         if (expressions.Length == 0)
         {
             // () has no syntactic meaning.
-            // Todo: report an error expecting any expression starter here.
-            throw new NotImplementedException();
+            
+            var diagnostic = ParseDiagnostics.ExpectedKinds.Format(SyntaxFacts.CanBeginExpression, closeParen.Location);
+            diagnostics.Add(diagnostic);
         }
 
         // This is just (expr).

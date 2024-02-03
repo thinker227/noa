@@ -7,7 +7,7 @@ internal sealed partial class Parser
     private readonly Source source;
     private readonly Ast ast;
     private readonly IEnumerator<Token> tokens;
-    private readonly List<Diagnostic> diagnostics = [];
+    private readonly List<IDiagnostic> diagnostics = [];
     private Token current;
 
     public bool AtEnd => current.Kind is TokenKind.EndOfFile;
@@ -34,10 +34,8 @@ internal sealed partial class Parser
         // Loop through and skip any erroneous tokens
         while (next.Kind is TokenKind.Error)
         {
-            diagnostics.Add(new(
-                $"Unexpected token '{next.Text}'",
-                Severity.Error,
-                next.Location));
+            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(next, next.Location);
+            diagnostics.Add(diagnostic);
                 
             // This should never occur because there should always be an end of file token
             // at the very end of the input, but just in case.
@@ -55,11 +53,9 @@ internal sealed partial class Parser
     {
         if (current.Kind == kind) return Advance();
 
-        diagnostics.Add(new(
-            $"Expected {kind.ToDisplayString()}",
-            Severity.Error,
-            current.Location));
-
+        var diagnostic = ParseDiagnostics.ExpectedKinds.Format([kind], current.Location);
+        diagnostics.Add(diagnostic);
+        
         var location = Location.FromLength(source.Name, current.Location.Start, 0);
         return new(TokenKind.Error, "", location);
     }
@@ -68,15 +64,9 @@ internal sealed partial class Parser
     {
         if (kinds.Contains(current.Kind)) return current;
 
-        var kindsString = Formatting.JoinOxfordOr(kinds
-            .Select(kind => kind.ToDisplayString()));
-
-        var message = kinds.Count == 1
-            ? $"Expected {kindsString}"
-            : $"Expected either {kindsString}";
-
-        diagnostics.Add(new(message, Severity.Error, current.Location));
-
+        var diagnostic = ParseDiagnostics.ExpectedKinds.Format(kinds, current.Location);
+        diagnostics.Add(diagnostic);
+        
         return null;
     }
 
@@ -109,10 +99,8 @@ internal sealed partial class Parser
             // Check whether the parser parsed anything at all to prevent it from getting stuck.
             if (current == previousToken)
             {
-                diagnostics.Add(new(
-                    $"Unexpected {current.Kind.ToDisplayString()} token",
-                    Severity.Error,
-                    current.Location));
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
+                diagnostics.Add(diagnostic);
 
                 Advance();
             }
