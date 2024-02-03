@@ -54,4 +54,10 @@ internal static class SyntaxFacts
         RootSynchronize
             .Append(TokenKind.CloseBrace)
             .ToFrozenSet();
+
+    public static FrozenSet<TokenKind> CanBeginParameter { get; } = new[]
+    {
+        TokenKind.Name,
+        TokenKind.Mut
+    }.ToFrozenSet();
 }
