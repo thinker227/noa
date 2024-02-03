@@ -26,6 +26,17 @@ app.AddCommand((
     var source = new Source(text, name);
 
     var ast = Ast.Create(source);
+
+    foreach (var diagnostic in ast.Diagnostics)
+    {
+        var color = diagnostic.Severity switch
+        {
+            Severity.Warning => Color.Yellow,
+            Severity.Error => Color.Red,
+            _ => Color.White
+        };
+        console.Write(new Text($"{diagnostic.Message} ({diagnostic.Location})\n", color));
+    }
     
     return 0;
 });
