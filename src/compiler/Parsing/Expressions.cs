@@ -387,11 +387,14 @@ internal sealed partial class Parser
             IfFalse = ifFalse
         };
     }
-    
+
     /// <summary>
     /// Parses an expression or returns an error.
     /// </summary>
-    private Expression ParseExpressionOrError(int precedence = 0) => precedence switch
+    private Expression ParseExpressionOrError() =>
+        ParseExpressionOrError(0);
+    
+    private Expression ParseExpressionOrError(int precedence) => precedence switch
     {
         0 => equalityExpressionParser(this, precedence),
         1 => relationalExpressionParser(this, precedence),
