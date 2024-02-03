@@ -16,13 +16,18 @@ public sealed class Ast
     public Root Root { get; }
 
     /// <summary>
+    /// The diagnostics in the AST.
+    /// </summary>
+    public IReadOnlyCollection<IDiagnostic> Diagnostics { get; }
+    
+    /// <summary>
     /// The global scope in which all top-level symbols are declared.
     /// </summary>
     public Scope GlobalScope { get; internal set; } = null!;
 
     private Ast(Source source)
     {
-        Root = Parser.Parse(source, this);
+        (Root, Diagnostics) = Parser.Parse(source, this);
     }
 
     /// <summary>

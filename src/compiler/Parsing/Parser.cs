@@ -13,11 +13,15 @@ internal sealed partial class Parser
     /// </summary>
     /// <param name="source">The source file to parse.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
-    public static Root Parse(Source source, Ast ast)
+    public static (Root, IReadOnlyCollection<IDiagnostic>) Parse(Source source, Ast ast)
     {
         var tokens = Lexer.Lex(source);
         var parser = new Parser(source, ast, tokens);
-        return parser.ParseRoot();
+        
+        var root = parser.ParseRoot();
+        var diagnostics = parser.diagnostics;
+        
+        return (root, diagnostics);
     }
 
     private Root ParseRoot()
