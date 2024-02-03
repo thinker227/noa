@@ -249,6 +249,7 @@ public enum BinaryKind
     Minus,
     Mult,
     Div,
+    Equal,
     LessThan,
     GreaterThan,
     LessThanOrEqual,
