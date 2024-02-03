@@ -1,3 +1,5 @@
+using Noa.Compiler.Nodes;
+
 namespace Noa.Compiler.Parsing;
 
 /// <summary>
@@ -130,5 +132,37 @@ internal static class TokenKindExtensions
         TokenKind.Number => "number",
         
         _ => kind.ConstantString() ?? throw new UnreachableException()
+    };
+    
+    /// <summary>
+    /// Tries to convert a <see cref="TokenKind"/> into a <see cref="UnaryKind"/>.
+    /// Returns null if the token kind cannot be converted.
+    /// </summary>
+    /// <param name="kind">The kind to try convert.</param>
+    public static UnaryKind? ToUnaryKind(this TokenKind kind) => kind switch
+    {
+        TokenKind.Plus => UnaryKind.Identity,
+        TokenKind.Dash => UnaryKind.Negate,
+        TokenKind.Bang => UnaryKind.Not,
+        _ => null
+    };
+
+    /// <summary>
+    /// Tries to convert a <see cref="TokenKind"/> into a <see cref="BinaryKind"/>.
+    /// Returns null if the token kind cannot be converted.
+    /// </summary>
+    /// <param name="kind">The kind to try convert.</param>
+    public static BinaryKind? ToBinaryKind(this TokenKind kind) => kind switch
+    {
+        TokenKind.Plus => BinaryKind.Plus,
+        TokenKind.Dash => BinaryKind.Minus,
+        TokenKind.Star => BinaryKind.Mult,
+        TokenKind.Slash => BinaryKind.Div,
+        TokenKind.EqualsEquals => BinaryKind.Equal,
+        TokenKind.LessThan => BinaryKind.LessThan,
+        TokenKind.GreaterThan => BinaryKind.GreaterThan,
+        TokenKind.LessThanEquals => BinaryKind.LessThanOrEqual,
+        TokenKind.GreaterThanEquals => BinaryKind.GreaterThanOrEqual,
+        _ => null
     };
 }
