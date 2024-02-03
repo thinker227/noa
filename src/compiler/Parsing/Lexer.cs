@@ -92,6 +92,7 @@ internal sealed partial class Lexer
 
     private static TokenKind? KeywordKind(ReadOnlySpan<char> name) => name switch
     {
+        "func" => TokenKind.Func,
         "let" => TokenKind.Let,
         "mut" => TokenKind.Mut,
         "if" => TokenKind.If,

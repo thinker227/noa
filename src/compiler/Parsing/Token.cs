@@ -49,6 +49,7 @@ internal enum TokenKind
     EqualsEquals,
     
     // Keywords
+    Func,
     Let,
     Mut,
     If,
@@ -96,6 +97,7 @@ internal static class TokenKindExtensions
         TokenKind.EqualsGreaterThan => "=>",
         TokenKind.EqualsEquals => "==",
         
+        TokenKind.Func => "func",
         TokenKind.Let => "let",
         TokenKind.Mut => "mut",
         TokenKind.If => "if",
