@@ -48,6 +48,7 @@ internal enum TokenKind
     GreaterThanEquals,
     EqualsGreaterThan,
     EqualsEquals,
+    BangEquals,
     
     // Keywords
     Func,
@@ -98,6 +99,7 @@ internal static class TokenKindExtensions
         TokenKind.GreaterThanEquals => ">=",
         TokenKind.EqualsGreaterThan => "=>",
         TokenKind.EqualsEquals => "==",
+        TokenKind.BangEquals => "!=",
         
         TokenKind.Func => "func",
         TokenKind.Let => "let",

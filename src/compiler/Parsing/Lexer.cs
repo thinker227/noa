@@ -49,6 +49,7 @@ internal sealed partial class Lexer
             ">=" => TokenKind.GreaterThanEquals,
             "=>" => TokenKind.EqualsGreaterThan,
             "==" => TokenKind.EqualsEquals,
+            "!=" => TokenKind.BangEquals,
             _ => null as TokenKind?
         };
 
