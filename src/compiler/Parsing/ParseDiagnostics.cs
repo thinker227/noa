@@ -19,4 +19,9 @@ internal static class ParseDiagnostics
                     : $"Expected either {kindsString}";
             },
             Severity.Error);
+    
+    public static DiagnosticTemplate<string> LiteralTooLarge { get; } =
+        DiagnosticTemplate.Create<string>(
+            text => $"Number literal '{text}' is too large (> {int.MaxValue})",
+            Severity.Error);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Globalization;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
@@ -243,12 +244,23 @@ internal sealed partial class Parser
             {
                 var number = Advance();
 
-                return new NumberExpression()
+                if (int.TryParse(number.Text, NumberStyles.None, CultureInfo.InvariantCulture, out var value))
+                {
+                    return new NumberExpression()
+                    {
+                        Ast = ast,
+                        Location = number.Location,
+                        Value = value
+                    };
+                }
+
+                var diagnostic = ParseDiagnostics.LiteralTooLarge.Format(number.Text, number.Location);
+                diagnostics.Add(diagnostic);
+                    
+                return new ErrorExpression()
                 {
                     Ast = ast,
-                    Location = number.Location,
-                    // Todo: report an error if the literal is too large.
-                    Value = int.Parse(number.Text)
+                    Location = number.Location
                 };
             }
         
