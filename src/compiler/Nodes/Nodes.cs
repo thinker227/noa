@@ -157,6 +157,13 @@ public sealed class LambdaExpression : Expression
     public override IEnumerable<Node> Children => [..Parameters, Body];
 }
 
+public sealed class TupleExpression : Expression
+{
+    public required ImmutableArray<Expression> Expressions { get; init; }
+
+    public override IEnumerable<Node> Children => Expressions;
+}
+
 public sealed class IfExpression : Expression
 {
     public required Expression Condition { get; init; }
