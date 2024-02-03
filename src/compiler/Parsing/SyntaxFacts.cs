@@ -37,14 +37,21 @@ internal static class SyntaxFacts
     }.ToFrozenSet();
 
     public static FrozenSet<TokenKind> CanBeginExpression { get; } =
-         CanBeginPrimaryExpression
-        .Concat([
-            TokenKind.Plus,
-            TokenKind.Dash
-        ]).ToFrozenSet();
+        CanBeginPrimaryExpression
+            .Concat([
+                TokenKind.Plus,
+                TokenKind.Dash
+            ]).ToFrozenSet();
 
-    public static FrozenSet<TokenKind> CanBeginStatement { get; } =
-         CanBeginDeclaration
-        .Concat(CanBeginExpression)
-        .ToFrozenSet();
+    public static FrozenSet<TokenKind> CanBeginDeclarationOrExpression { get; } =
+        CanBeginDeclaration
+            .Concat(CanBeginExpression)
+            .ToFrozenSet();
+
+    public static FrozenSet<TokenKind> RootSynchronize { get; } = CanBeginDeclarationOrExpression;
+
+    public static FrozenSet<TokenKind> BlockExpressionSynchronize { get; } =
+        RootSynchronize
+            .Append(TokenKind.CloseBrace)
+            .ToFrozenSet();
 }

@@ -1,4 +1,5 @@
 using Noa.Compiler.Nodes;
+using Expression = Noa.Compiler.Nodes.Expression;
 
 namespace Noa.Compiler.Parsing;
 
@@ -22,23 +23,25 @@ internal sealed partial class Parser
     private Root ParseRoot()
     {
         var statements = ImmutableArray.CreateBuilder<Statement>();
-
+        
         while (!AtEnd)
         {
             var statement = ParseStatementOrNull();
-            
-            if (statement is not null) statements.Add(statement);
-            else
+
+            if (statement is not null)
             {
-                // An unexpected token was encountered.
-                diagnostics.Add(new(
-                    $"Unexpected {current.Kind.ToDisplayString()} token",
-                    Severity.Error,
-                    current.Location));
-                
-                // Try synchronize with the next statement.
-                while (!AtEnd && !SyntaxFacts.CanBeginStatement.Contains(current.Kind)) Advance();
+                statements.Add(statement);
+                continue;
             }
+            
+            // An unexpected token was encountered.
+            diagnostics.Add(new(
+                $"Unexpected {current.Kind.ToDisplayString()} token",
+                Severity.Error,
+                current.Location));
+            
+            // Try synchronize with the next statement.
+            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(current.Kind)) Advance();
         }
 
         var endOfFile = Expect(TokenKind.EndOfFile);
@@ -56,41 +59,50 @@ internal sealed partial class Parser
 
     private Statement? ParseStatementOrNull()
     {
-        bool isDeclaration;
-        Declaration? declaration;
-        Expression? expression;
-        int start;
+        var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
-        if (Expect(SyntaxFacts.CanBeginStatement) is not { Kind: var kind }) return null;
-
-        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
-        {
-            isDeclaration = true;
-            expression = null;
-            declaration = ParseDeclaration();
-            start = declaration.Location.Start;
-        }
-        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
-        {
-            isDeclaration = false;
-            declaration = null;
-            // Fine to accept error expressions here because we're gonna synchronize after a statement anyway.
-            expression = ParseExpressionOrError();
-            start = expression.Location.Start;
-        }
-        else throw new UnreachableException(
-            "Kind could begin a statement but neither a declaration nor expression");
-
+        if (declarationOrExpression is not var (declaration, expression)) return null;
+        
         var semicolon = Expect(TokenKind.Semicolon);
+
+        var start = (declaration, expression) switch
+        {
+            (not null, null) => declaration.Location.Start,
+            (null, not null) => expression.Location.Start,
+            // It's impossible for both the declaration and expression to not be null.
+            _ => throw new UnreachableException()
+        };
 
         return new()
         {
             Ast = ast,
             Location = new(source.Name, start, semicolon.Location.End),
-            IsDeclaration = isDeclaration,
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            IsDeclaration = declaration is not null,
             Declaration = declaration,
             Expression = expression
         };
+    }
+    
+    private (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
+    {
+        var declaration = null as Declaration;
+        var expression = null as Expression;
+
+        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
+
+        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
+        {
+            declaration = ParseDeclaration();
+        }
+        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
+        {
+            expression = ParseExpressionOrError();
+        }
+        else throw new UnreachableException(
+            "Kind could begin a statement but neither a declaration nor expression");
+
+        return (declaration, expression);
     }
 
     private Identifier ParseIdentifier()
