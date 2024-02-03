@@ -127,8 +127,22 @@ internal sealed partial class Parser
         if (current.Kind is not TokenKind.OpenParen) return expression;
 
         Advance();
-        
-        throw new NotImplementedException();
+
+        var arguments = ParseSeparatedList(
+            TokenKind.Comma,
+            true,
+            ParseExpressionOrError,
+            TokenKind.CloseParen);
+
+        var closeParen = Expect(TokenKind.CloseParen);
+
+        return new CallExpression()
+        {
+            Ast = ast,
+            Location = new(source.Name, expression.Location.Start, closeParen.Location.End),
+            Target = expression,
+            Arguments = arguments
+        };
     }
 
     private Expression ParsePrimaryExpression()

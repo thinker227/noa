@@ -1,3 +1,5 @@
+using Noa.Compiler.Nodes;
+
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
@@ -76,5 +78,54 @@ internal sealed partial class Parser
         diagnostics.Add(new(message, Severity.Error, current.Location));
 
         return null;
+    }
+
+    /// <summary>
+    /// Parses a token-separated list of nodes.
+    /// </summary>
+    /// <param name="separatorKind">The token kind of the separator between the nodes.</param>
+    /// <param name="allowTrailingSeparator">Whether to allow a trailing separator token at the end of the list.</param>
+    /// <param name="parse">The function to parse a node.</param>
+    /// <param name="stopKinds">The kinds at which to stop parsing the list.</param>
+    /// <typeparam name="T">The type of the nodes to parse.</typeparam>
+    private ImmutableArray<T> ParseSeparatedList<T>(
+        TokenKind separatorKind,
+        bool allowTrailingSeparator,
+        Func<T> parse,
+        params TokenKind[] stopKinds)
+        where T : Node
+    {
+        var stopKindsSet = stopKinds.ToHashSet();
+        if (AtEnd || stopKindsSet.Contains(current.Kind)) return [];
+
+        var nodes = ImmutableArray.CreateBuilder<T>();
+
+        while (!AtEnd)
+        {
+            var previousToken = current;
+
+            var node = parse();
+            
+            // Check whether the parser parsed anything at all to prevent it from getting stuck.
+            if (current == previousToken)
+            {
+                diagnostics.Add(new(
+                    $"Unexpected {current.Kind.ToDisplayString()} token",
+                    Severity.Error,
+                    current.Location));
+
+                Advance();
+            }
+            else nodes.Add(node);
+
+            if (current.Kind != separatorKind && stopKindsSet.Contains(current.Kind)) break;
+
+            Expect(separatorKind);
+
+            // If we allow a trailing separator then check the stopping condition again.
+            if (allowTrailingSeparator && stopKindsSet.Contains(current.Kind)) break;
+        }
+
+        return nodes.ToImmutable();
     }
 }
