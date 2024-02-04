@@ -1,0 +1,88 @@
+root = statement* ;
+
+
+
+statement = (declaration | expression) ';' ;
+
+
+
+declaration = functionDeclaration
+            | letDeclaration
+            ;
+
+functionDeclaration = 'func' NAME '(' parameter* ')' (blockExpression | ('=>' expression)) ;
+
+letDeclaration = 'let' NAME '=' expression ;
+
+parameter = 'mut'? NAME ;
+
+
+
+expression = blockExpression
+           | callExpression
+           | lambdaExpression
+           | tupleExpression
+           | parenthesizedExpression
+           | ifExpression
+           | loopExpression
+           | returnExpression
+           | breakExpression
+           | continueExpression
+           | unaryExpression
+           | binaryExpression
+           | identifierExpression
+           | stringExpression
+           | boolExpression
+           | numberExpression
+           ;
+
+blockExpression = '{' statement* expression? '}' ;
+
+callExpression = expression '(' (expression (',' expression)*)? ')' ;
+
+lambdaExpression = '(' (parameter (',' parameter)*)? ')' '=>' expression ;
+
+tupleExpression = '(' expression ',' expression (',' expression)* ')' ;
+
+parenthesizedExpression = '(' expression ')' ;
+
+ifExpression = 'if' expression blockExpression 'else' blockExpression ;
+
+loopExpression = 'loop' blockExpression ;
+
+returnExpression = 'return' expression? ;
+
+breakExpression = 'break' expression? ;
+
+continueExpression = 'continue' ;
+
+unaryExpression = unaryOperator expression ;
+
+binaryExpression = expression binaryOperator expression ;
+
+identifierExpression = NAME ;
+
+stringExpression = STRING_LITERAL ;
+
+boolExpression = 'true' | 'false' ;
+
+numberExpression = NUMBER_LITERAL ;
+
+
+
+unaryOperator = '+'
+              | '-'
+              | '!'
+              ;
+
+binaryOperator = '+'
+               | '-'
+               | '*'
+               | '/'
+               | '<'
+               | '>'
+               | '<='
+               | '>='
+               | '=='
+               | '!='
+               ;
