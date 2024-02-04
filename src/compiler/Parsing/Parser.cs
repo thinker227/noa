@@ -19,7 +19,7 @@ internal sealed partial class Parser
         var parser = new Parser(source, ast, tokens);
         
         var root = parser.ParseRoot();
-        var diagnostics = parser.state.Diagnostics;
+        var diagnostics = parser.Diagnostics;
         
         return (root, diagnostics);
     }

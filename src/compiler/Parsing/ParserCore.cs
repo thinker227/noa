@@ -5,6 +5,8 @@ namespace Noa.Compiler.Parsing;
 internal sealed partial class Parser
 {
     private ParseState state;
+
+    internal IReadOnlyCollection<IDiagnostic> Diagnostics => state.Diagnostics;
     
     private Source Source => state.Source;
     
@@ -12,7 +14,7 @@ internal sealed partial class Parser
 
     private Token Current => state.Current;
 
-    public bool AtEnd => Current.Kind is TokenKind.EndOfFile;
+    private bool AtEnd => Current.Kind is TokenKind.EndOfFile;
     
     internal Parser(Source source, Ast ast, IEnumerable<Token> tokenSource) =>
         state = new(source, ast, tokenSource);
