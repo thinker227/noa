@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "src/**/bin": true,
+        "src/**/obj": true,
+        "src/**/target": true
+    }
+}
