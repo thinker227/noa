@@ -271,6 +271,7 @@ public enum BinaryKind
     Mult,
     Div,
     Equal,
+    NotEqual,
     LessThan,
     GreaterThan,
     LessThanOrEqual,

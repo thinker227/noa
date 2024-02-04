@@ -159,6 +159,7 @@ internal static class TokenKindExtensions
         TokenKind.Star => BinaryKind.Mult,
         TokenKind.Slash => BinaryKind.Div,
         TokenKind.EqualsEquals => BinaryKind.Equal,
+        TokenKind.BangEquals => BinaryKind.NotEqual,
         TokenKind.LessThan => BinaryKind.LessThan,
         TokenKind.GreaterThan => BinaryKind.GreaterThan,
         TokenKind.LessThanEquals => BinaryKind.LessThanOrEqual,
