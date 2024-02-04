@@ -12,7 +12,7 @@ internal sealed partial class Parser
 
     public bool AtEnd => current.Kind is TokenKind.EndOfFile;
     
-    private Parser(Source source, Ast ast, IEnumerable<Token> tokens)
+    internal Parser(Source source, Ast ast, IEnumerable<Token> tokens)
     {
         this.source = source;
         this.ast = ast;

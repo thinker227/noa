@@ -121,7 +121,7 @@ internal sealed partial class Parser
         TokenKind.Plus,
         TokenKind.Dash);
 
-    private Expression ParseCallExpression(int precedence)
+    internal Expression ParseCallExpression(int precedence)
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
@@ -146,7 +146,7 @@ internal sealed partial class Parser
         };
     }
 
-    private Expression ParsePrimaryExpression()
+    internal Expression ParsePrimaryExpression()
     {
         switch (Expect(SyntaxFacts.CanBeginPrimaryExpression)?.Kind)
         {
@@ -273,7 +273,7 @@ internal sealed partial class Parser
         }
     }
 
-    private IfExpression ParseIfExpression()
+    internal IfExpression ParseIfExpression()
     {
         var @if = Expect(TokenKind.If);
 
@@ -298,10 +298,10 @@ internal sealed partial class Parser
     /// <summary>
     /// Parses an expression or returns an error.
     /// </summary>
-    private Expression ParseExpressionOrError() =>
+    internal Expression ParseExpressionOrError() =>
         ParseExpressionOrError(0);
     
-    private Expression ParseExpressionOrError(int precedence) => precedence switch
+    internal Expression ParseExpressionOrError(int precedence) => precedence switch
     {
         0 => equalityExpressionParser(this, precedence),
         1 => relationalExpressionParser(this, precedence),
@@ -316,7 +316,7 @@ internal sealed partial class Parser
     /// <summary>
     /// Parses an expression or returns null if the current token cannot start an expression.
     /// </summary>
-    private Expression? ParseExpressionOrNull() =>
+    internal Expression? ParseExpressionOrNull() =>
         SyntaxFacts.CanBeginExpression.Contains(current.Kind)
             ? ParseExpressionOrError()
             : null;

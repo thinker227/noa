@@ -15,7 +15,7 @@ internal sealed partial class Parser
     // CreateParenthesizedExpression handles turning a complete set of parens and expressions
     // into an appropriate expression.
     
-    private Expression ParseParenthesizedOrLambdaExpression()
+    internal Expression ParseParenthesizedOrLambdaExpression()
     {
         var openParen = Expect(TokenKind.OpenParen);
 
@@ -109,7 +109,7 @@ internal sealed partial class Parser
         }
     }
 
-    private Expression ContinueParsingParenthesizedExpression(
+    internal Expression ContinueParsingParenthesizedExpression(
         Token openParen,
         ImmutableArray<Expression> expressions)
     {
@@ -125,7 +125,7 @@ internal sealed partial class Parser
         return CreateParenthesizedExpression(openParen, expressions, closeParen);
     }
 
-    private Expression CreateParenthesizedExpression(
+    internal Expression CreateParenthesizedExpression(
         Token openParen,
         ImmutableArray<Expression> expressions,
         Token closeParen)

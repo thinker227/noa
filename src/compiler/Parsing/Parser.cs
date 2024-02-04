@@ -24,7 +24,7 @@ internal sealed partial class Parser
         return (root, diagnostics);
     }
 
-    private Root ParseRoot()
+    internal Root ParseRoot()
     {
         var statements = ImmutableArray.CreateBuilder<Statement>();
         
@@ -59,7 +59,7 @@ internal sealed partial class Parser
         };
     }
 
-    private Statement? ParseStatementOrNull()
+    internal Statement? ParseStatementOrNull()
     {
         var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
@@ -86,7 +86,7 @@ internal sealed partial class Parser
         };
     }
     
-    private (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
+    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
     {
         var declaration = null as Declaration;
         var expression = null as Expression;
@@ -107,7 +107,7 @@ internal sealed partial class Parser
         return (declaration, expression);
     }
 
-    private Identifier ParseIdentifier()
+    internal Identifier ParseIdentifier()
     {
         var name = Expect(TokenKind.Name);
 
@@ -119,7 +119,7 @@ internal sealed partial class Parser
         };
     }
 
-    private Declaration ParseDeclaration() => current.Kind switch
+    internal Declaration ParseDeclaration() => current.Kind switch
     {
         TokenKind.Func => ParseFunctionDeclaration(),
         TokenKind.Let => ParseLetDeclaration(),
@@ -127,12 +127,12 @@ internal sealed partial class Parser
             $"Cannot parse a declaration starting with {current.Kind}.")
     };
 
-    private FunctionDeclaration ParseFunctionDeclaration()
+    internal FunctionDeclaration ParseFunctionDeclaration()
     {
         throw new NotImplementedException();
     }
 
-    private LetDeclaration ParseLetDeclaration()
+    internal LetDeclaration ParseLetDeclaration()
     {
         var let = Expect(TokenKind.Let);
 

@@ -31,6 +31,16 @@ public sealed class Ast
     }
 
     /// <summary>
+    /// This constructor exists for tests only.
+    /// Otherwise <see cref="Ast(Source)"/> should be used.
+    /// </summary>
+    internal Ast()
+    {
+        Root = null!;
+        Diagnostics = [];
+    }
+
+    /// <summary>
     /// Creates a new AST by parsing a source.
     /// This leaves <see cref="GlobalScope"/> as null.
     /// </summary>

@@ -4,7 +4,7 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    private BlockExpression ParseBlockExpression()
+    internal BlockExpression ParseBlockExpression()
     {
         var openBrace = Expect(TokenKind.OpenBrace);
 
