@@ -9,4 +9,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SuperLinq" Version="5.4.0" />
+  </ItemGroup>
+
 </Project>

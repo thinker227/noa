@@ -22,11 +22,11 @@ internal sealed partial class Parser
         var lockedIntoLambda = false;
         var parameters = ImmutableArray.CreateBuilder<Parameter>();
         
-        while (!AtEnd && current.Kind is not TokenKind.CloseParen)
+        while (!AtEnd && Current.Kind is not TokenKind.CloseParen)
         {
             if (!lockedIntoLambda &&
-                !SyntaxFacts.CanBeginParameter.Contains(current.Kind) &&
-                SyntaxFacts.CanBeginExpression.Contains(current.Kind))
+                !SyntaxFacts.CanBeginParameter.Contains(Current.Kind) &&
+                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
             {
                 // We encountered something which cannot begin a parameter but can begin an expression.
                 // Switch into parsing an expression list instead.
@@ -36,7 +36,7 @@ internal sealed partial class Parser
 
             var mutToken = null as Token?;
             var isMutable = false;
-            if (current.Kind is TokenKind.Mut)
+            if (Current.Kind is TokenKind.Mut)
             {
                 mutToken = Advance();
                 isMutable = true;
@@ -51,8 +51,8 @@ internal sealed partial class Parser
             
             parameters.Add(new()
             {
-                Ast = ast,
-                Location = new(source.Name, start, identifier.Location.End),
+                Ast = Ast,
+                Location = new(Source.Name, start, identifier.Location.End),
                 IsMutable = isMutable,
                 Identifier = identifier
             });
@@ -60,8 +60,8 @@ internal sealed partial class Parser
             // If we find the closing paren, we're done parsing the parameter list.
             // Also check for a lambda arrow and any expressions starters
             // to avoid freaking out over a missing closing paren.
-            if (current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan ||
-                SyntaxFacts.CanBeginExpression.Contains(current.Kind))
+            if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan ||
+                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
                 break;
 
             Expect(TokenKind.Comma);
@@ -74,7 +74,7 @@ internal sealed partial class Parser
 
         // If the lambda arrow is missing and we're not locked into a lambda expression,
         // this is a parenthesized expression.
-        if (!lockedIntoLambda && current.Kind is not TokenKind.EqualsGreaterThan)
+        if (!lockedIntoLambda && Current.Kind is not TokenKind.EqualsGreaterThan)
         {
             var expressions = ToExpressionList(parameters);
             return CreateParenthesizedExpression(openParen, expressions, closeParen);
@@ -86,8 +86,8 @@ internal sealed partial class Parser
 
         return new LambdaExpression()
         {
-            Ast = ast,
-            Location = new(source.Name, openParen.Location.Start, body.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, openParen.Location.Start, body.Location.End),
             Parameters = parameters.ToImmutable(),
             Body = body
         };
@@ -135,7 +135,7 @@ internal sealed partial class Parser
             // () has no syntactic meaning.
             
             var diagnostic = ParseDiagnostics.ExpectedKinds.Format(SyntaxFacts.CanBeginExpression, closeParen.Location);
-            diagnostics.Add(diagnostic);
+            ReportDiagnostic(diagnostic);
         }
 
         // This is just (expr).
@@ -143,8 +143,8 @@ internal sealed partial class Parser
         
         return new TupleExpression()
         {
-            Ast = ast,
-            Location = new(source.Name, openParen.Location.Start, closeParen.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, openParen.Location.Start, closeParen.Location.End),
             Expressions = expressions
         };
     }

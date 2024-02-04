@@ -17,7 +17,7 @@ internal sealed partial class Parser
         
         return (parser, precedence) =>
         {
-            if (!kindsSet.Contains(parser.current.Kind)) return parser.ParseExpressionOrError(precedence + 1);
+            if (!kindsSet.Contains(parser.Current.Kind)) return parser.ParseExpressionOrError(precedence + 1);
 
             var kindToken = parser.Advance();
             var kind = kindToken.Kind.ToUnaryKind() 
@@ -28,8 +28,8 @@ internal sealed partial class Parser
 
             return new UnaryExpression()
             {
-                Ast = parser.ast,
-                Location = new(parser.source.Name, kindToken.Location.Start, operand.Location.End),
+                Ast = parser.Ast,
+                Location = new(parser.Source.Name, kindToken.Location.Start, operand.Location.End),
                 Kind = kind,
                 Operand = operand
             };
@@ -47,7 +47,7 @@ internal sealed partial class Parser
         {
             var result = parser.ParseExpressionOrError(precedence + 1);
 
-            while (!parser.AtEnd && kindsSet.Contains(parser.current.Kind))
+            while (!parser.AtEnd && kindsSet.Contains(parser.Current.Kind))
             {
                 var kindToken = parser.Advance();
                 var kind = kindToken.Kind.ToBinaryKind()
@@ -57,8 +57,8 @@ internal sealed partial class Parser
 
                 result = new BinaryExpression()
                 {
-                    Ast = parser.ast,
-                    Location = new(parser.source.Name, result.Location.Start, right.Location.End),
+                    Ast = parser.Ast,
+                    Location = new(parser.Source.Name, result.Location.Start, right.Location.End),
                     Left = result,
                     Kind = kind,
                     Right = right
@@ -80,7 +80,7 @@ internal sealed partial class Parser
         {
             var result = parser.ParseExpressionOrError(precedence + 1);
 
-            if (!kindsSet.Contains(parser.current.Kind)) return result;
+            if (!kindsSet.Contains(parser.Current.Kind)) return result;
             
             var kindToken = parser.Advance();
             var kind = kindToken.Kind.ToBinaryKind()
@@ -90,8 +90,8 @@ internal sealed partial class Parser
 
             return new BinaryExpression()
             {
-                Ast = parser.ast,
-                Location = new(parser.source.Name, result.Location.Start, right.Location.End),
+                Ast = parser.Ast,
+                Location = new(parser.Source.Name, result.Location.Start, right.Location.End),
                 Left = result,
                 Kind = kind,
                 Right = right
@@ -125,7 +125,7 @@ internal sealed partial class Parser
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
-        if (current.Kind is not TokenKind.OpenParen) return expression;
+        if (Current.Kind is not TokenKind.OpenParen) return expression;
 
         Advance();
 
@@ -139,8 +139,8 @@ internal sealed partial class Parser
 
         return new CallExpression()
         {
-            Ast = ast,
-            Location = new(source.Name, expression.Location.Start, closeParen.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, expression.Location.Start, closeParen.Location.End),
             Target = expression,
             Arguments = arguments
         };
@@ -167,8 +167,8 @@ internal sealed partial class Parser
 
                 return new LoopExpression()
                 {
-                    Ast = ast,
-                    Location = new(source.Name, loop.Location.Start, block.Location.End),
+                    Ast = Ast,
+                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
                     Block = block
                 };
             }
@@ -181,9 +181,9 @@ internal sealed partial class Parser
 
                 return new ReturnExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = expression is not null
-                        ? new Location(source.Name, @return.Location.Start, expression.Location.End)
+                        ? new Location(Source.Name, @return.Location.Start, expression.Location.End)
                         : @return.Location,
                     Expression = expression
                 };
@@ -197,9 +197,9 @@ internal sealed partial class Parser
 
                 return new BreakExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = expression is not null
-                        ? new Location(source.Name, @break.Location.Start, expression.Location.End)
+                        ? new Location(Source.Name, @break.Location.Start, expression.Location.End)
                         : @break.Location,
                     Expression = expression
                 };
@@ -211,7 +211,7 @@ internal sealed partial class Parser
 
                 return new ContinueExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = @continue.Location
                 };
             }
@@ -222,7 +222,7 @@ internal sealed partial class Parser
 
                 return new IdentifierExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = identifier.Location,
                     Identifier = identifier.Text
                 };
@@ -234,7 +234,7 @@ internal sealed partial class Parser
 
                 return new BoolExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = @bool.Location,
                     Value = @bool.Kind is TokenKind.True
                 };
@@ -248,18 +248,18 @@ internal sealed partial class Parser
                 {
                     return new NumberExpression()
                     {
-                        Ast = ast,
+                        Ast = Ast,
                         Location = number.Location,
                         Value = value
                     };
                 }
 
                 var diagnostic = ParseDiagnostics.LiteralTooLarge.Format(number.Text, number.Location);
-                diagnostics.Add(diagnostic);
+                ReportDiagnostic(diagnostic);
                     
                 return new ErrorExpression()
                 {
-                    Ast = ast,
+                    Ast = Ast,
                     Location = number.Location
                 };
             }
@@ -267,8 +267,8 @@ internal sealed partial class Parser
         default:
             return new ErrorExpression()
             {
-                Ast = ast,
-                Location = Location.FromLength(source.Name, current.Location.Start, 0)
+                Ast = Ast,
+                Location = Location.FromLength(Source.Name, Current.Location.Start, 0)
             };
         }
     }
@@ -287,8 +287,8 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = ast,
-            Location = new(source.Name, @if.Location.Start, ifFalse.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, @if.Location.Start, ifFalse.Location.End),
             Condition = condition,
             IfTrue = ifTrue,
             IfFalse = ifFalse
@@ -317,7 +317,7 @@ internal sealed partial class Parser
     /// Parses an expression or returns null if the current token cannot start an expression.
     /// </summary>
     internal Expression? ParseExpressionOrNull() =>
-        SyntaxFacts.CanBeginExpression.Contains(current.Kind)
+        SyntaxFacts.CanBeginExpression.Contains(Current.Kind)
             ? ParseExpressionOrError()
             : null;
 }

@@ -19,7 +19,7 @@ internal sealed partial class Parser
         var parser = new Parser(source, ast, tokens);
         
         var root = parser.ParseRoot();
-        var diagnostics = parser.diagnostics;
+        var diagnostics = parser.state.Diagnostics;
         
         return (root, diagnostics);
     }
@@ -39,21 +39,21 @@ internal sealed partial class Parser
             }
             
             // An unexpected token was encountered.
-            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
-            diagnostics.Add(diagnostic);
+            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+            ReportDiagnostic(diagnostic);
             
             // Try synchronize with the next statement.
-            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(current.Kind)) Advance();
+            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(Current.Kind)) Advance();
         }
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
         var start = statements.FirstOrDefault()?.Location.Start ?? endOfFile.Location.Start;
-        var location = new Location(source.Name, start, endOfFile.Location.End);
+        var location = new Location(Source.Name, start, endOfFile.Location.End);
 
         return new()
         {
-            Ast = ast,
+            Ast = Ast,
             Location = location,
             Statements = statements.ToImmutable()
         };
@@ -77,8 +77,8 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = ast,
-            Location = new(source.Name, start, semicolon.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, start, semicolon.Location.End),
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             IsDeclaration = declaration is not null,
             Declaration = declaration,
@@ -113,18 +113,18 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = ast,
+            Ast = Ast,
             Location = name.Location,
             Name = name.Text
         };
     }
 
-    internal Declaration ParseDeclaration() => current.Kind switch
+    internal Declaration ParseDeclaration() => Current.Kind switch
     {
         TokenKind.Func => ParseFunctionDeclaration(),
         TokenKind.Let => ParseLetDeclaration(),
         _ => throw new InvalidOperationException(
-            $"Cannot parse a declaration starting with {current.Kind}.")
+            $"Cannot parse a declaration starting with {Current.Kind}.")
     };
 
     internal FunctionDeclaration ParseFunctionDeclaration()
@@ -137,7 +137,7 @@ internal sealed partial class Parser
         var let = Expect(TokenKind.Let);
 
         bool isMutable;
-        if (current.Kind is TokenKind.Mut)
+        if (Current.Kind is TokenKind.Mut)
         {
             isMutable = true;
             Advance();
@@ -152,8 +152,8 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = ast,
-            Location = new(source.Name, let.Location.Start, expression.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, let.Location.Start, expression.Location.End),
             IsMutable = isMutable,
             Identifier = identifier,
             Expression = expression

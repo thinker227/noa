@@ -11,18 +11,18 @@ internal sealed partial class Parser
         var statements = ImmutableArray.CreateBuilder<Statement>();
         var trailingExpression = null as Expression;
         
-        while (!AtEnd && current.Kind is not TokenKind.CloseBrace)
+        while (!AtEnd && Current.Kind is not TokenKind.CloseBrace)
         {
             var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
             if (declarationOrExpression is not var (declaration, expression))
             {
                 // An unexpected token was encountered.
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
-                diagnostics.Add(diagnostic);
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+                ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(current.Kind)) Advance();
+                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
 
                 continue;
             }
@@ -37,8 +37,8 @@ internal sealed partial class Parser
 
                 statements.Add(new()
                 {
-                    Ast = ast,
-                    Location = new(source.Name, declaration.Location.Start, semicolon.Location.End),
+                    Ast = Ast,
+                    Location = new(Source.Name, declaration.Location.Start, semicolon.Location.End),
                     IsDeclaration = true,
                     Declaration = declaration,
                     Expression = null
@@ -51,10 +51,10 @@ internal sealed partial class Parser
 
             // If the token after the expression is not a semicolon and cannot start another
             // declaration or expression, then it's most likely a trailing expression.
-            if (current.Kind is not TokenKind.Semicolon &&
-                !SyntaxFacts.CanBeginDeclarationOrExpression.Contains(current.Kind))
+            if (Current.Kind is not TokenKind.Semicolon &&
+                !SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
             {
-                if (current.Kind is TokenKind.CloseBrace)
+                if (Current.Kind is TokenKind.CloseBrace)
                 {
                     trailingExpression = expression;
                     break;
@@ -62,20 +62,20 @@ internal sealed partial class Parser
 
                 // If the current token is not a closing brace, then there's an unexpected token here.
 
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(current, current.Location);
-                diagnostics.Add(diagnostic);
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+                ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(current.Kind)) Advance();
+                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
 
                 // If we find a closing brace then the expression was a trailing expression and we're done.
-                if (current.Kind is TokenKind.CloseBrace)
+                if (Current.Kind is TokenKind.CloseBrace)
                 {
                     trailingExpression = expression;
                     break;
                 }
 
-                if (!SyntaxFacts.CanBeginDeclarationOrExpression.Contains(current.Kind))
+                if (!SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
                 {
                     // If we stop on a token which isn't a closing brace and cannot start a statement,
                     // then the synchronization has reached the end of the input.
@@ -93,8 +93,8 @@ internal sealed partial class Parser
 
             statements.Add(new()
             {
-                Ast = ast,
-                Location = new(source.Name, expression.Location.Start, semicolon.Location.End),
+                Ast = Ast,
+                Location = new(Source.Name, expression.Location.Start, semicolon.Location.End),
                 IsDeclaration = false,
                 Declaration = null,
                 Expression = expression
@@ -105,8 +105,8 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = ast,
-            Location = new(source.Name, openBrace.Location.Start, closeBrace.Location.End),
+            Ast = Ast,
+            Location = new(Source.Name, openBrace.Location.Start, closeBrace.Location.End),
             Statements = statements.ToImmutable(),
             TrailingExpression = trailingExpression
         };
