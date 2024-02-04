@@ -7,11 +7,14 @@ internal sealed class ParseAssertion : IDisposable
     private readonly IEnumerator<Node> nodes;
 
     public Source Source { get; }
+    
+    public IReadOnlyCollection<IDiagnostic> Diagnostics { get; }
 
-    private ParseAssertion(IEnumerator<Node> nodes, Source source)
+    private ParseAssertion(IEnumerator<Node> nodes, Source source, IReadOnlyCollection<IDiagnostic> diagnostics)
     {
         this.nodes = nodes;
         Source = source;
+        Diagnostics = diagnostics;
     }
 
     public static ParseAssertion Create(string text, Func<Parser, Node> parse)
@@ -23,10 +26,11 @@ internal sealed class ParseAssertion : IDisposable
         var parser = new Parser(source, ast, tokens);
 
         var root = parse(parser);
+        var diagnostics = parser.Diagnostics;
 
         var nodes = EnumerateNodes(root);
 
-        return new(nodes.GetEnumerator(), source);
+        return new(nodes.GetEnumerator(), source, diagnostics);
     }
 
     private static IEnumerable<Node> EnumerateNodes(Node root) =>
@@ -39,8 +43,8 @@ internal sealed class ParseAssertion : IDisposable
         nodes.MoveNext().ShouldBeTrue();
 
         var node = nodes.Current.ShouldBeOfType<T>();
-        if (assert is not null) assert(node);
-        
+        assert?.Invoke(node);
+
         return node;
     }
 
