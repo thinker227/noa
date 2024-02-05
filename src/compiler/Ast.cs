@@ -27,7 +27,7 @@ public sealed class Ast
     /// <summary>
     /// The global scope in which all top-level symbols are declared.
     /// </summary>
-    public Scope GlobalScope { get; internal set; } = null!;
+    public Semantic<Scope> GlobalScope { get; internal set; }
 
     private Ast(Source source)
     {
