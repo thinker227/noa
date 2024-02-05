@@ -132,15 +132,7 @@ internal static class SyntaxFacts
         TokenKind.Mut,
         TokenKind.Name,
         TokenKind.Comma,
+        TokenKind.CloseParen,
         TokenKind.EqualsGreaterThan
-    }.ToFrozenSet();
-    
-    /// <summary>
-    /// The set of tokens which can begin a parameter.
-    /// </summary>
-    public static FrozenSet<TokenKind> CanBeginParameter { get; } = new[]
-    {
-        TokenKind.Name,
-        TokenKind.Mut
     }.ToFrozenSet();
 }

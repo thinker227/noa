@@ -4,47 +4,68 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    // THE THREE HORSEMETHODS OF PARENTHESIZED EXPRESSIONS:
-    // The syntax (a, b, c) is ambiguous, because it may either be a tuple expression,
-    // or the parameter list of a lambda expression. We solve this using ParseParenthesizedOrLambdaExpression
-    // which assumes what it's parsing may either be a lambda or a parenthesized expression, then depending
-    // on the contents of the parameter list may switch to parsing a parenthesized expression, or continue
-    // parsing a lambda expression. If the method encounters an expression which isn't an identifier,
-    // it will switch to ContinueParsingParenthesizedExpression which takes over from parsing the now expression list,
-    // however if it encounters a mut token, it will lock into parsing a lambda.
-    // CreateParenthesizedExpression handles turning a complete set of parens and expressions
-    // into an appropriate expression.
-    
     internal Expression ParseParenthesizedOrLambdaExpression()
     {
         var openParen = Expect(TokenKind.OpenParen);
 
-        var lockedIntoLambda = false;
+        // Create a state which can be backtracked to in case we fail to parse a lambda.
+        var backtrackState = state;
+        state = state.Branch();
+
+        var lambda = ParseLambdaExpressionOrNull(openParen);
+        if (lambda is not null) return lambda;
+        
+        // We failed to parse a lambda, backtrack to the previous state.
+        state = backtrackState;
+
+        return ParseParenthesizedExpression(openParen);
+    }
+
+    internal LambdaExpression? ParseLambdaExpressionOrNull(Token openParen)
+    {
+        var lockedIn = false;
         var parameters = ImmutableArray.CreateBuilder<Parameter>();
         
-        while (!AtEnd && Current.Kind is not TokenKind.CloseParen)
+        while (!AtEnd)
         {
-            if (!lockedIntoLambda &&
-                !SyntaxFacts.CanBeginParameter.Contains(Current.Kind) &&
-                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
-            {
-                // We encountered something which cannot begin a parameter but can begin an expression.
-                // Switch into parsing an expression list instead.
-                var expressions = ToExpressionList(parameters);
-                return ContinueParsingParenthesizedExpression(openParen, expressions);
-            }
-
+            // Check whether we've hit the end of the parameter list.
+            // Checking this at the start of the loop also permits trailing commas.
+            if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
+            
             var mutToken = null as Token?;
-            var isMutable = false;
             if (Current.Kind is TokenKind.Mut)
             {
                 mutToken = Advance();
-                isMutable = true;
                 
-                // If we encounter a mut token, we know it can only be a lambda we're parsing.
-                lockedIntoLambda = true;
+                // If we've parsed a mut token, then it can only be a lambda that we're parsing.
+                lockedIn = true;
             }
 
+            if (!lockedIn &&
+                Current.Kind is not TokenKind.Name &&
+                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
+            {
+                // We found something which can begin an expression and is not a name.
+                // Return to switch to parsing a parenthesized expression.
+                return null;
+            }
+
+            if (Current.Kind is not TokenKind.Name)
+            {
+                // An unexpected token was encountered.
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+                ReportDiagnostic(diagnostic);
+            
+                // Try synchronize with the next parameter.
+                while (!AtEnd && !SyntaxFacts.LambdaParameterListSynchronize.Contains(Current.Kind)) Advance();
+
+                if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
+                {
+                    // We've synchronized with the end of the parameter list.
+                    break;
+                }
+            }
+            
             var identifier = ParseIdentifier();
 
             var start = mutToken?.Location.Start ?? identifier.Location.Start;
@@ -53,98 +74,72 @@ internal sealed partial class Parser
             {
                 Ast = Ast,
                 Location = new(Source.Name, start, identifier.Location.End),
-                IsMutable = isMutable,
-                Identifier = identifier
+                Identifier = identifier,
+                IsMutable = mutToken is not null
             });
-
-            // If we find the closing paren, we're done parsing the parameter list.
-            // Also check for a lambda arrow and any expressions starters
-            // to avoid freaking out over a missing closing paren.
-            if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan ||
-                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
-                break;
+            
+            // Check whether we've hit the end of the parameter list again before trying to find a comma.
+            if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
 
             Expect(TokenKind.Comma);
-            
-            // Note: because we check for a closing paren in the loop condition,
-            // we're also allowing trailing commas.
         }
 
-        var closeParen = Expect(TokenKind.CloseParen);
+        Expect(TokenKind.CloseParen);
 
-        // If the lambda arrow is missing and we're not locked into a lambda expression,
-        // this is a parenthesized expression.
-        if (!lockedIntoLambda && Current.Kind is not TokenKind.EqualsGreaterThan)
+        if (Current.Kind is not TokenKind.EqualsGreaterThan)
         {
-            var expressions = ToExpressionList(parameters);
-            return CreateParenthesizedExpression(openParen, expressions, closeParen);
+            // Turns out we haven't been parsing a lambda.
+            return null;
         }
-        
-        Expect(TokenKind.EqualsGreaterThan);
+
+        // Skip =>
+        Advance();
 
         var body = ParseExpressionOrError();
 
-        return new LambdaExpression()
+        return new()
         {
             Ast = Ast,
             Location = new(Source.Name, openParen.Location.Start, body.Location.End),
             Parameters = parameters.ToImmutable(),
             Body = body
         };
-
-        static ImmutableArray<Expression> ToExpressionList(ImmutableArray<Parameter>.Builder parameters)
-        {
-            var expressions = ImmutableArray.CreateBuilder<Expression>(parameters.Count);
-            foreach (var parameter in parameters)
-            {
-                expressions.Add(new IdentifierExpression()
-                {
-                    Ast = parameter.Identifier.Ast,
-                    Location = parameter.Identifier.Location,
-                    Identifier = parameter.Identifier.Name
-                });
-            }
-
-            return expressions.ToImmutable();
-        }
     }
 
-    internal Expression ContinueParsingParenthesizedExpression(
-        Token openParen,
-        ImmutableArray<Expression> expressions)
+    internal Expression ParseParenthesizedExpression(Token openParen)
     {
-        var restExpressions = ParseSeparatedList(
+        var expressions = ParseSeparatedList(
             TokenKind.Comma,
             false,
             ParseExpressionOrError,
             TokenKind.CloseParen);
-        expressions = expressions.AddRange(restExpressions);
 
         var closeParen = Expect(TokenKind.CloseParen);
 
-        return CreateParenthesizedExpression(openParen, expressions, closeParen);
-    }
+        var parensLocation = new Location(Source.Name, openParen.Location.Start, closeParen.Location.End);
 
-    internal Expression CreateParenthesizedExpression(
-        Token openParen,
-        ImmutableArray<Expression> expressions,
-        Token closeParen)
-    {
         if (expressions.Length == 0)
         {
-            // () has no syntactic meaning.
+            // () is just invalid syntax.
             
-            var diagnostic = ParseDiagnostics.ExpectedKinds.Format(SyntaxFacts.CanBeginExpression, closeParen.Location);
+            var diagnostic = ParseDiagnostics.ExpectedKinds.Format(
+                SyntaxFacts.CanBeginExpression,
+                closeParen.Location);
             ReportDiagnostic(diagnostic);
+
+            return new ErrorExpression()
+            {
+                Ast = Ast,
+                Location = parensLocation
+            };
         }
 
-        // This is just (expr).
         if (expressions.Length == 1) return expressions[0];
-        
+
         return new TupleExpression()
         {
             Ast = Ast,
-            Location = new(Source.Name, openParen.Location.Start, closeParen.Location.End),
+            Location = parensLocation,
             Expressions = expressions
         };
     }
