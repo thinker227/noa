@@ -16,7 +16,7 @@ public abstract class Node
     /// <summary>
     /// The parent of the node, or null if the node is the root node.
     /// </summary>
-    public Node Parent => Ast.GetParent(this)!;
+    public Semantic<Node> Parent => Ast.GetParent(this)!;
     
     /// <summary>
     /// The source location of the node.
@@ -31,7 +31,7 @@ public abstract class Node
     /// <summary>
     /// The semantic scope of the node.
     /// </summary>
-    public Scope Scope { get; internal set; } = null!;
+    public Semantic<Scope> Scope { get; internal set; }
 
     /// <summary>
     /// Returns an empty collection if the passed in node is null,
@@ -83,7 +83,7 @@ public sealed class Parameter : Node
     
     public required Identifier Identifier { get; init; }
 
-    public ParameterSymbol Symbol { get; internal set; } = null!;
+    public Semantic<ParameterSymbol> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [Identifier];
 }
@@ -100,7 +100,7 @@ public sealed class FunctionDeclaration : Declaration
     
     public required BlockExpression? BlockBody { get; init; }
 
-    public FunctionSymbol Symbol { get; internal set; } = null!; 
+    public Semantic<FunctionSymbol> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [
         Identifier,
@@ -118,7 +118,7 @@ public sealed class LetDeclaration : Declaration
     
     public required Expression Expression { get; init; }
 
-    public VariableSymbol Symbol { get; internal set; } = null!;
+    public Semantic<VariableSymbol> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [Identifier, Expression];
 }
@@ -231,7 +231,7 @@ public sealed class IdentifierExpression : Expression
 {
     public required string Identifier { get; init; }
 
-    public ISymbol ReferencedSymbol { get; internal set; } = null!;
+    public Semantic<ISymbol> ReferencedSymbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [];
 }

@@ -8,12 +8,16 @@ namespace Noa.Compiler;
 /// </summary>
 public sealed class Ast
 {
+    private readonly Root? root;
     private IReadOnlyDictionary<Node, Node>? parents = null;
 
     /// <summary>
     /// The root of the syntax tree.
     /// </summary>
-    public Root Root { get; }
+    // The root is exposed to the public API as non-nullable because it won't be
+    // null when control is returned to the caller, the field is only null
+    // within the constructor.
+    public Root Root => root!;
 
     /// <summary>
     /// The diagnostics in the AST.
@@ -27,7 +31,7 @@ public sealed class Ast
 
     private Ast(Source source)
     {
-        (Root, Diagnostics) = Parser.Parse(source, this);
+        (root, Diagnostics) = Parser.Parse(source, this);
     }
 
     /// <summary>
@@ -36,7 +40,7 @@ public sealed class Ast
     /// </summary>
     internal Ast()
     {
-        Root = null!;
+        root = null;
         Diagnostics = [];
     }
 
@@ -63,9 +67,11 @@ public sealed class Ast
     /// Gets the parent of a node, or null if the node is the root node.
     /// </summary>
     /// <param name="node">The node to get the parent of.</param>
-    internal Node? GetParent(Node node)
+    internal Semantic<Node?> GetParent(Node node)
     {
-        parents ??= ComputeParents(Root);
+        if (root is null) return new();
+
+        parents ??= ComputeParents(root);
         return parents.GetValueOrDefault(node);
     }
 
