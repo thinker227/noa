@@ -4,6 +4,10 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
+    // The syntax (a, b, c) is ambiguous because it could either be a lambda parameter list or a tuple expression.
+    // We solve this by first attempting to parse it as a lambda and backtracking to the start of the list
+    // if we encounter something which looks more like an expression than a parameter.
+    
     internal Expression ParseParenthesizedOrLambdaExpression()
     {
         var openParen = Expect(TokenKind.OpenParen);
