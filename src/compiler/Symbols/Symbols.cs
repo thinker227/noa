@@ -23,12 +23,18 @@ public sealed class FunctionSymbol : ISymbol
     /// <summary>
     /// The parameters of the function.
     /// </summary>
-    public required ImmutableArray<ParameterSymbol> Parameters { get; init; }
+    public required IReadOnlyList<ParameterSymbol> Parameters { get; init; }
     
     /// <summary>
     /// The declaration of the function.
     /// </summary>
     public required FunctionDeclaration Declaration { get; init; }
+
+    public override string ToString()
+    {
+        var parameters = string.Join(", ", Parameters.Select(p => p.Name));
+        return $"{Name}({parameters}) declared at {Declaration.Location}";
+    }
 }
 
 /// <summary>
