@@ -129,7 +129,72 @@ internal sealed partial class Parser
 
     internal FunctionDeclaration ParseFunctionDeclaration()
     {
-        throw new NotImplementedException();
+        var func = Expect(TokenKind.Func);
+
+        var identifier = ParseIdentifier();
+
+        Expect(TokenKind.OpenParen);
+
+        var parameters = ParseSeparatedList(
+            TokenKind.Comma,
+            true,
+            ParseParameter,
+            TokenKind.CloseParen,
+            TokenKind.EqualsGreaterThan,
+            TokenKind.OpenBrace);
+
+        Expect(TokenKind.CloseParen);
+
+        var expressionBody = null as Expression;
+        var blockBody = null as BlockExpression;
+        
+        if (Current.Kind is TokenKind.OpenBrace)
+        {
+            blockBody = ParseBlockExpression();
+        }
+        else
+        {
+            Expect(TokenKind.EqualsGreaterThan);
+
+            expressionBody = ParseExpressionOrError();
+        }
+
+        var end = (blockBody, expressionBody) switch
+        {
+            (not null, null) => blockBody.Location.End,
+            (null, not null) => expressionBody.Location.End,
+            // It's impossible for both the expression body and block body to not be null.
+            _ => throw new UnreachableException()
+        };
+
+        return new()
+        {
+            Ast = Ast,
+            Location = new(Source.Name, func.Location.Start, end),
+            Identifier = identifier,
+            Parameters = parameters,
+            ExpressionBody = expressionBody,
+            BlockBody = blockBody
+        };
+    }
+
+    internal Parameter ParseParameter()
+    {
+        var mutToken = Current.Kind is TokenKind.Mut
+            ? Advance()
+            : null as Token?;
+
+        var identifier = ParseIdentifier();
+
+        var start = mutToken?.Location.Start ?? identifier.Location.Start;
+        
+        return new()
+        {
+            Ast = Ast,
+            Location = new(Source.Name, start, identifier.Location.End),
+            IsMutable = mutToken is not null,
+            Identifier = identifier
+        };
     }
 
     internal LetDeclaration ParseLetDeclaration()
