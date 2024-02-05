@@ -90,7 +90,7 @@ internal sealed partial class Parser
 
         Expect(TokenKind.CloseParen);
 
-        if (Current.Kind is not TokenKind.EqualsGreaterThan)
+        if (!lockedIn && Current.Kind is not TokenKind.EqualsGreaterThan)
         {
             // Turns out we haven't been parsing a lambda.
             return null;

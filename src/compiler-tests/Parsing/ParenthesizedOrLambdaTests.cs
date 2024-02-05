@@ -149,6 +149,25 @@ public class ParenthesizedOrLambdaTests
     }
 
     [Fact]
+    public void Parses_MutName_WithoutArrow_AsLambda()
+    {
+        using var p = ParseAssertion.Create(
+            "(mut x)",
+            p => p.ParseParenthesizedOrLambdaExpression());
+
+        p.N<LambdaExpression>();
+        {
+            p.N<Parameter>(param => param.IsMutable.ShouldBeTrue());
+            {
+                p.N<Identifier>(i => i.Name.ShouldBe("x"));
+            }
+
+            // The body expression should be an error.
+            p.N<ErrorExpression>();
+        }
+    }
+
+    [Fact]
     public void Parses_Expression_ThenMutName_WithoutArrow_AsTuple()
     {
         using var p = ParseAssertion.Create(
