@@ -96,8 +96,7 @@ internal sealed partial class Parser
             return null;
         }
 
-        // Skip =>
-        Advance();
+        Expect(TokenKind.EqualsGreaterThan);
 
         var body = ParseExpressionOrError();
 
