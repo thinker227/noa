@@ -12,7 +12,7 @@ var app = builder.Build();
 
 app.AddCommand((
     IAnsiConsole console,
-    [Argument(Description = "The file to run")] string inputFile) =>
+    [Option("input-file", ['i'], Description = "The file to run")] string inputFile) =>
 {
     if (!File.Exists(inputFile))
     {
@@ -27,18 +27,25 @@ app.AddCommand((
 
     var ast = Ast.Create(source);
 
-    foreach (var diagnostic in ast.Diagnostics)
+    if (ast.Diagnostics.Count > 0)
     {
-        var color = diagnostic.Severity switch
+        foreach (var diagnostic in ast.Diagnostics)
         {
-            Severity.Warning => Color.Yellow,
-            Severity.Error => Color.Red,
-            _ => Color.White
-        };
-        console.Write(new Text($"{diagnostic.Message} ({diagnostic.Location})\n", color));
+            var color = diagnostic.Severity switch
+            {
+                Severity.Warning => Color.Yellow,
+                Severity.Error => Color.Red,
+                _ => Color.White
+            };
+            console.Write(new Text($"{diagnostic.Message} ({diagnostic.Location})\n", color));
+        }
+    }
+    else
+    {
+        console.MarkupLine("[green]Success[/]");
     }
     
     return 0;
-});
+}).WithDescription("Compiles a file");
 
 app.Run();
