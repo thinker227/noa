@@ -14,9 +14,20 @@ public interface ISymbol
 }
 
 /// <summary>
+/// A symbol which is declared in source and has a corresponding AST node.
+/// </summary>
+public interface IDeclaredSymbol : ISymbol
+{
+    /// <summary>
+    /// The declaring node of the symbol.
+    /// </summary>
+    Node Declaration { get; }
+}
+
+/// <summary>
 /// Represents a function declared by a function declaration.
 /// </summary>
-public sealed class FunctionSymbol : ISymbol
+public sealed class FunctionSymbol : IDeclaredSymbol
 {
     public required string Name { get; init; }
     
@@ -30,6 +41,8 @@ public sealed class FunctionSymbol : ISymbol
     /// </summary>
     public required FunctionDeclaration Declaration { get; init; }
 
+    Node IDeclaredSymbol.Declaration => Declaration;
+    
     public override string ToString()
     {
         var parameters = string.Join(", ", Parameters.Select(p => p.Name));
@@ -40,7 +53,7 @@ public sealed class FunctionSymbol : ISymbol
 /// <summary>
 /// Represents a variable declared by a let declaration.
 /// </summary>
-public sealed class VariableSymbol : ISymbol
+public sealed class VariableSymbol : IDeclaredSymbol
 {
     public required string Name { get; init; }
 
@@ -53,6 +66,8 @@ public sealed class VariableSymbol : ISymbol
     /// The declaration of the variable.
     /// </summary>
     public required LetDeclaration Declaration { get; init; }
+    
+    Node IDeclaredSymbol.Declaration => Declaration;
 
     public override string ToString() => $"Variable {Name} declared at {Declaration.Location}";
 }
@@ -60,7 +75,7 @@ public sealed class VariableSymbol : ISymbol
 /// <summary>
 /// Represents a parameter declared by a function expression.
 /// </summary>
-public sealed class ParameterSymbol : ISymbol
+public sealed class ParameterSymbol : IDeclaredSymbol
 {
     public required string Name { get; init; }
 
@@ -79,6 +94,8 @@ public sealed class ParameterSymbol : ISymbol
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
+    
+    Node IDeclaredSymbol.Declaration => Declaration;
     
     public override string ToString() => $"Parameter {Name} declared at {Declaration.Location}";
 }
