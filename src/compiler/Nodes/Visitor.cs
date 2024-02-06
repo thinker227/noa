@@ -11,14 +11,24 @@ public abstract class Visitor<T>
     /// </summary>
     /// <param name="node">The node being visited.</param>
     protected virtual void BeforeVisit(Node node) {}
-    
+
     /// <summary>
     /// Visits a collection of nodes.
     /// </summary>
     /// <param name="nodes">The nodes to visit.</param>
     /// <returns>The results of visiting the nodes.</returns>
-    public ImmutableArray<T> Visit(IEnumerable<Node> nodes) =>
-        nodes.Select(Visit).ToImmutableArray();
+    public ImmutableArray<T> Visit(IEnumerable<Node> nodes)
+    {
+        var builder = ImmutableArray.CreateBuilder<T>();
+
+        foreach (var node in nodes)
+        {
+            var x = Visit(node);
+            builder.Add(x);
+        }
+
+        return builder.ToImmutable();
+    }
     
     /// <summary>
     /// Visits a node.
