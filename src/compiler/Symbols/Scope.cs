@@ -1,80 +1,67 @@
+using Noa.Compiler.Nodes;
+
 namespace Noa.Compiler.Symbols;
 
 /// <summary>
 /// A semantic scope containing named symbols.
 /// </summary>
-/// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
-public class Scope(Scope? parent)
+public interface IScope
 {
-    private readonly Dictionary<string, ISymbol> symbols = new();
-    
     /// <summary>
     /// The parent scope, or null if the scope is the global scope.
     /// </summary>
-    public Scope? Parent { get; } = parent;
+    IScope? Parent { get; }
 
     /// <summary>
-    /// The symbols declared in the scope.
-    /// These symbols are always completely accessible.
-    /// </summary>
-    public IReadOnlyDictionary<string, ISymbol> DeclaredSymbols => symbols;
-
-    /// <summary>
-    /// The symbols accessible within the scope, as well as their accessibility.
-    /// </summary>
-    public virtual IEnumerable<(ISymbol, SymbolAccessibility)> AccessibleSymbols =>
-        DeclaredSymbols.Values
-            .Select(s => (s, SymbolAccessibility.Accessible))
-            .Concat(Parent?.AccessibleSymbols ?? []);
-    
-    /// <summary>
-    /// Looks up a symbol with a specified name in the scope.
+    /// Looks up a symbol with a specified name at a specific point in the scope.
     /// </summary>
     /// <param name="name">The name of the symbol to look up.</param>
+    /// <param name="at">The node to look up the symbol at.</param>
     /// <param name="predicate">
     /// A predicate which determines whether to return a given symbol with the specified name.
     /// </param>
-    /// <returns>The found symbol as well as its accessibility, or null if no symbol could not be found.</returns>
-    public virtual (ISymbol, SymbolAccessibility)? LookupSymbol(string name, Func<ISymbol, bool>? predicate = null)
-    {
-        if (symbols.TryGetValue(name, out var symbol) &&
-            (predicate?.Invoke(symbol) ?? true))
-            return (symbol, SymbolAccessibility.Accessible);
-
-        return Parent?.LookupSymbol(name, predicate);
-    }
+    /// <returns>
+    /// A result containing the symbol as well as its accessibility, or null if no symbol could not be found.
+    /// </returns>
+    LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null);
 
     /// <summary>
-    /// Declares a symbol in the scope.
+    /// Gets the declared symbols within the scope at a specific point.
+    /// </summary>
+    /// <param name="at">The node at which to find the declared symbols.</param>
+    IEnumerable<LookupResult> DeclaredAt(Node at);
+
+    /// <summary>
+    /// Gets the accessible symbols at a specific point in the scope.
+    /// </summary>
+    /// <param name="at">The node at which to find the accessible symbols.</param>
+    IEnumerable<LookupResult> AccessibleAt(Node at);
+}
+
+internal interface IMutableScope : IScope
+{
+    /// <inheritdoc cref="IScope.Parent"/>
+    new IMutableScope? Parent { get; }
+
+    /// <summary>
+    /// Declares a symbol within the scope.
     /// </summary>
     /// <param name="symbol">The symbol to declare.</param>
-    internal void Declare(ISymbol symbol) =>
-        symbols[symbol.Name] = symbol;
+    /// <returns>The result of the declaration.</returns>
+    DeclarationResult Declare(IDeclaredSymbol symbol);
 }
 
 /// <summary>
-/// A scope which returns <see cref="SymbolAccessibility.Blocked"/> for symbols in its parent scope.
+/// The result of looking up a symbol in a scope.
 /// </summary>
-/// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
-public sealed class BlockingScope(Scope? parent) : Scope(parent)
-{
-    public override IEnumerable<(ISymbol, SymbolAccessibility)> AccessibleSymbols =>
-        DeclaredSymbols.Values
-            .Select(s => (s, SymbolAccessibility.Accessible))
-            .Concat(Parent?.AccessibleSymbols
-                .Select(s => (s.Item1, SymbolAccessibility.Blocked))
-                ?? []);
+/// <param name="Symbol">The symbol which was found.</param>
+/// <param name="Accessibility">The found symbol's accessibility.</param>
+public readonly record struct LookupResult(
+    ISymbol Symbol,
+    SymbolAccessibility Accessibility);
 
-    public override (ISymbol, SymbolAccessibility)? LookupSymbol(string name, Func<ISymbol, bool>? predicate = null)
-    {
-        if (DeclaredSymbols.TryGetValue(name, out var symbol) &&
-            (predicate?.Invoke(symbol) ?? true))
-            return (symbol, SymbolAccessibility.Accessible);
-
-        if (Parent?.LookupSymbol(name, predicate) is not var (parentSymbol, _)) return null;
-        return (parentSymbol, SymbolAccessibility.Blocked);
-    }
-}
+public readonly record struct DeclarationResult(
+    ISymbol? ConflictingSymbol);
 
 /// <summary>
 /// Defines how a symbol is accessible.
