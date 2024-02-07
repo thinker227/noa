@@ -19,6 +19,12 @@ internal static class ParseDiagnostics
                     : $"Expected either {kindsString}";
             },
             Severity.Error);
+
+    public static DiagnosticTemplate InvalidExpressionStatement { get; } =
+        DiagnosticTemplate.Create(
+            "Only block, call, if, loop, return, break, and continue expressions " +
+            "may be used as statements",
+            Severity.Error);
     
     public static DiagnosticTemplate<string> LiteralTooLarge { get; } =
         DiagnosticTemplate.Create<string>(

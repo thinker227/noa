@@ -22,5 +22,12 @@ public readonly record struct Location(string SourceName, int Start, int End)
     public static Location FromLength(string sourceName, int start, int length) =>
         new(sourceName, start, start + length);
 
+    /// <summary>
+    /// Returns whether a position is within the location.
+    /// </summary>
+    /// <param name="position">The position to check.</param>
+    public bool Contains(int position) =>
+        position >= Start && position < End;
+
     public override string ToString() => $"{Start} to {End} in '{SourceName}'";
 }

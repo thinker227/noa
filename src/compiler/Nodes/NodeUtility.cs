@@ -51,4 +51,27 @@ public static class NodeUtility
     /// <param name="node">The node to get the descendants of.</param>
     public static IEnumerable<Node> DescendantsAndSelf(this Node node) =>
         node.Descendants().Prepend(node);
+    
+    /// <summary>
+    /// Finds a node at a specified position in source.
+    /// </summary>
+    /// <param name="node">The node to find the node at the position within.</param>
+    /// <param name="position">The position to find the node at.</param>
+    /// <returns>
+    /// The node at <paramref name="position"/>, or null if the position is outside the node.
+    /// </returns>
+    public static Node? FindNodeAt(this Node node, int position)
+    {
+        // This node doesn't contain the position.
+        if (!node.Location.Contains(position)) return null;
+
+        foreach (var child in node.Children)
+        {
+            // If the child contains the position, search the child.
+            if (child.Location.Contains(position)) return child.FindNodeAt(position);
+        }
+
+        // If no child contains the position, it must be in this node.
+        return node;
+    }
 }

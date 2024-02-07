@@ -88,6 +88,12 @@ internal sealed partial class Parser
             }
             
             // The expression is an expression statement.
+
+            if (!expression.IsExpressionStatement())
+            {
+                var diagnostic = ParseDiagnostics.InvalidExpressionStatement.Format(expression.Location);
+                ReportDiagnostic(diagnostic);
+            }
             
             semicolon = Expect(TokenKind.Semicolon);
 

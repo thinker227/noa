@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
 
@@ -135,4 +136,18 @@ internal static class SyntaxFacts
         TokenKind.CloseParen,
         TokenKind.EqualsGreaterThan
     }.ToFrozenSet();
+
+    /// <summary>
+    /// Returns whether an expression is an expression statement.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool IsExpressionStatement(this Expression expression) => expression
+        is BlockExpression
+        or CallExpression
+        or IfExpression
+        or LoopExpression
+        or ReturnExpression
+        or BreakExpression
+        or ContinueExpression
+        ;
 }
