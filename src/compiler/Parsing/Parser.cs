@@ -65,6 +65,14 @@ internal sealed partial class Parser
 
         if (declarationOrExpression is not var (declaration, expression)) return null;
         
+        if (expression is not null && !expression.IsExpressionStatement())
+        {
+            // Only expression *statements* are allowed here.
+
+            var diagnostic = ParseDiagnostics.InvalidExpressionStatement.Format(expression.Location);
+            ReportDiagnostic(diagnostic);
+        }
+
         var semicolon = Expect(TokenKind.Semicolon);
 
         var start = (declaration, expression) switch

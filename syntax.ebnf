@@ -2,7 +2,7 @@ root = statement* ;
 
 
 
-statement = (declaration | expression) ';' ;
+statement = (declaration | expressionStatement) ';' ;
 
 
 
@@ -17,6 +17,14 @@ letDeclaration = 'let' NAME '=' expression ;
 parameter = 'mut'? NAME ;
 
 
+
+expressionStatement = blockExpression
+                    | callExpression
+                    | ifExpression
+                    | loopExpression
+                    | returnExpression
+                    | breakExpression
+                    | continueExpression ;
 
 expression = blockExpression
            | callExpression
