@@ -77,3 +77,27 @@ public enum SymbolAccessibility
     /// </summary>
     Blocked,
 }
+
+/// <summary>
+/// A scope for block-like nodes.
+/// </summary>
+/// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
+/// <param name="block">The block which declares the scope.</param>
+/// <param name="variableTimeline">A timeline of variables declared in the scope.</param>
+/// <param name="indexMap">A dictionary mapping statements to their index in the block.</param>
+internal sealed class BlockScope(
+    IScope? parent,
+    IBlockNode block,
+    IReadOnlyDictionary<string, FunctionSymbol> functions,
+    IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
+    IReadOnlyDictionary<Statement, int> indexMap)
+    : IScope
+{
+    public IScope? Parent { get; } = parent;
+    
+    public LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null) => throw new NotImplementedException();
+
+    public IEnumerable<LookupResult> DeclaredAt(Node at) => throw new NotImplementedException();
+
+    public IEnumerable<LookupResult> AccessibleAt(Node at) => throw new NotImplementedException();
+}
