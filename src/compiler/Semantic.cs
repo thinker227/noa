@@ -1,4 +1,4 @@
-namespace Noa.Compiler.Nodes;
+namespace Noa.Compiler;
 
 /// <summary>
 /// A semantic value which may not be resolved.
