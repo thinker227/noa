@@ -1,6 +1,4 @@
-using Noa.Compiler.Symbols;
-
-namespace Noa.Compiler;
+namespace Noa.Compiler.Symbols;
 
 /// <summary>
 /// A semantic scope containing named symbols.
