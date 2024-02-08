@@ -6,10 +6,12 @@ public static class SymbolResolution
 {
     public static IReadOnlyCollection<IDiagnostic> ResolveSymbols(Ast ast)
     {
-        var visitor = new Visitor();
+        var globalScope = new MapScope(null, ast.Root);
         
+        var visitor = new Visitor(globalScope);
         visitor.Visit(ast.Root);
 
+        ast.GlobalScope = globalScope;
         var diagnostics = visitor.Diagnostics;
         
         return diagnostics;
@@ -17,9 +19,9 @@ public static class SymbolResolution
 }
 
 // Int here is just used as a useless type.
-file sealed class Visitor : Visitor<int>
+file sealed class Visitor(IScope globalScope) : Visitor<int>
 {
-    private IScope currentScope = null!;
+    private IScope currentScope = globalScope;
     
     public List<IDiagnostic> Diagnostics { get; } = [];
 
@@ -116,8 +118,9 @@ file sealed class Visitor : Visitor<int>
     
     protected override int VisitRoot(Root node)
     {
+        // Note: the root is in the global scope, not the block scope it itself declares.
+        
         var blockScope = DeclareBlock(node);
-
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -169,7 +172,6 @@ file sealed class Visitor : Visitor<int>
     protected override int VisitBlockExpression(BlockExpression node)
     {
         var blockScope = DeclareBlock(node);
-
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
