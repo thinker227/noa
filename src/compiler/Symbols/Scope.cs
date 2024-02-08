@@ -85,4 +85,8 @@ public enum SymbolAccessibility
     /// The symbol is accessible in a parent scope but access to it is blocked.
     /// </summary>
     Blocked,
+    /// <summary>
+    /// The symbol is declared later in the scope as is only accessible thereafter.
+    /// </summary>
+    DeclaredLater,
 }

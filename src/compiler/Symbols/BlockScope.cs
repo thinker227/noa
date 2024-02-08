@@ -100,7 +100,22 @@ internal sealed class BlockScope(
 
         // We can't find the symbol in this scope.
 
-        return Parent?.LookupSymbol(name, statement, predicate);
+        // Check if the symbol can be found in a parent scope.
+        if (Parent?.LookupSymbol(name, statement, predicate) is { } parentLookup) return parentLookup;
+        
+        // We know at this point that the symbol is not accessible, but to provide better error reporting
+        // we also check future points in the variable timeline to see if the symbol is accessible there.
+        for (var i = timelineIndex; i < variableTimeline.Count; i++)
+        {
+            var futureVariables = variableTimeline[i];
+
+            if (futureVariables.TryGetValue(name, out var futureSymbol))
+            {
+                return new(futureSymbol, SymbolAccessibility.DeclaredLater);
+            }
+        }
+
+        return null;
     }
 
     public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at)
