@@ -1,3 +1,5 @@
+using Noa.Compiler.Diagnostics;
+
 namespace Noa.Compiler.Parsing;
 
 internal static class ParseDiagnostics

@@ -1,6 +1,7 @@
 ﻿using Noa.Compiler;
 using Cocona;
 using Cocona.Lite;
+using Noa.Compiler.Diagnostics;
 using Spectre.Console;
 
 var builder = CoconaLiteApp.CreateBuilder();
