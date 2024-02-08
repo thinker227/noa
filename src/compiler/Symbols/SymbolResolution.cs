@@ -26,6 +26,16 @@ file sealed class Visitor : Visitor<int>
     protected override void BeforeVisit(Node node) =>
         node.Scope = new(currentScope);
 
+    private void InScope(IScope scope, Action action)
+    {
+        var parent = currentScope;
+        currentScope = scope;
+        
+        action();
+
+        currentScope = parent;
+    }
+
     private IScope DeclareBlock(IBlockNode node)
     {
         // Begin by declaring all functions in the block
@@ -37,12 +47,10 @@ file sealed class Visitor : Visitor<int>
         {
             if (statement.Declaration is not FunctionDeclaration func) continue;
             
-            var parameters = new List<ParameterSymbol>();
             var functionSymbol = new FunctionSymbol()
             {
                 Name = func.Identifier.Name,
-                Declaration = func,
-                Parameters = parameters
+                Declaration = func
             };
 
             foreach (var param in func.Parameters)
@@ -53,8 +61,6 @@ file sealed class Visitor : Visitor<int>
                     Declaration = param,
                     Function = functionSymbol
                 };
-                
-                parameters.Add(parameterSymbol);
 
                 param.Symbol = parameterSymbol;
             }
@@ -116,4 +122,76 @@ file sealed class Visitor : Visitor<int>
 
         return default;
     }
+    
+    // No need to visit let declarations because they've already been fully declared
+    // and their bodies don't need additional scopes.
+
+    protected override int VisitFunctionDeclaration(FunctionDeclaration node)
+    {
+        // All symbols here *should* already have been set by DeclareBlock.
+        
+        var functionSymbol = node.Symbol.Value;
+        
+        Visit(node.Identifier);
+        
+        var paramScope = new MapScope(currentScope, node);
+        foreach (var param in node.Parameters)
+        {
+            var parameterSymbol = param.Symbol.Value;
+            
+            // Todo: Report an error if the parameter is already declared.
+            paramScope.Declare(parameterSymbol);
+            functionSymbol.AddParameter(parameterSymbol);
+            
+            Visit(param);
+        }
+
+        var bodyScope = new BlockingScope(paramScope, node);
+        InScope(bodyScope, () =>
+        {
+            Visit(node.ExpressionBody);
+            Visit(node.BlockBody);
+        });
+
+        return default;
+    }
+
+    protected override int VisitBlockExpression(BlockExpression node)
+    {
+        DeclareBlock(node);
+
+        Visit(node.Statements);
+
+        return default;
+    }
+
+    protected override int VisitLambdaExpression(LambdaExpression node)
+    {
+        var paramScope = new MapScope(currentScope, node);
+        foreach (var param in node.Parameters)
+        {
+            var symbol = new ParameterSymbol()
+            {
+                Name = param.Identifier.Name,
+                Declaration = param,
+                Function = null
+            };
+
+            param.Symbol = symbol;
+            
+            // Todo: Report an error if the parameter is already declared.
+            paramScope.Declare(symbol);
+            
+            Visit(param);
+        }
+        
+        InScope(paramScope, () =>
+        {
+            Visit(node.Body);
+        });
+
+        return default;
+    }
+
+    protected override int VisitIdentifierExpression(IdentifierExpression node) => throw new NotImplementedException();
 }

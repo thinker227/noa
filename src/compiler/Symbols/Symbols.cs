@@ -29,12 +29,14 @@ public interface IDeclaredSymbol : ISymbol
 /// </summary>
 public sealed class FunctionSymbol : IDeclaredSymbol
 {
-    public required string Name { get; init; }
+    private readonly List<ParameterSymbol> parameters = [];
     
+    public required string Name { get; init; }
+
     /// <summary>
     /// The parameters of the function.
     /// </summary>
-    public required IReadOnlyList<ParameterSymbol> Parameters { get; init; }
+    public IReadOnlyList<ParameterSymbol> Parameters => parameters;
     
     /// <summary>
     /// The declaration of the function.
@@ -42,6 +44,13 @@ public sealed class FunctionSymbol : IDeclaredSymbol
     public required FunctionDeclaration Declaration { get; init; }
 
     Node IDeclaredSymbol.Declaration => Declaration;
+
+    /// <summary>
+    /// Adds a parameter to the function.
+    /// </summary>
+    /// <param name="parameter">The parameter to add.</param>
+    internal void AddParameter(ParameterSymbol parameter) =>
+        parameters.Add(parameter);
     
     public override string ToString()
     {
