@@ -27,16 +27,14 @@ public class SymbolResolutionTests
         x1.Declaration.ShouldBe(x1Decl);
         x2.Declaration.ShouldBe(x2Decl);
 
-        var scope = ast.Root.Scope.Value;
+        var scope = x1Decl.Scope.Value;
 
-        scope.LookupSymbol("x", x1Decl).ShouldBeNull();
-
-        var x1Lookup = scope.LookupSymbol("x", x2Decl).ShouldNotBeNull();
-        x1Lookup.Symbol.ShouldBe(x1);
-        x1Lookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
-
-        var x2Lookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
-        x2Lookup.Symbol.ShouldBe(x2);
+        var x2Lookup = scope.LookupSymbol("x", x2Decl).ShouldNotBeNull();
+        x2Lookup.Symbol.ShouldBe(x1);
         x2Lookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
+
+        var endLookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
+        endLookup.Symbol.ShouldBe(x2);
+        endLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
     }
 }
