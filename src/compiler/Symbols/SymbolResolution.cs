@@ -116,9 +116,12 @@ file sealed class Visitor : Visitor<int>
     
     protected override int VisitRoot(Root node)
     {
-        DeclareBlock(node);
+        var blockScope = DeclareBlock(node);
 
-        Visit(node.Statements);
+        InScope(blockScope, () =>
+        {
+            Visit(node.Statements);
+        });
 
         return default;
     }
@@ -139,9 +142,16 @@ file sealed class Visitor : Visitor<int>
         {
             var parameterSymbol = param.Symbol.Value;
             
-            // Todo: Report an error if the parameter is already declared.
-            paramScope.Declare(parameterSymbol);
+            var result = paramScope.Declare(parameterSymbol);
             functionSymbol.AddParameter(parameterSymbol);
+
+            if (result.ConflictingSymbol is not null)
+            {
+                var diagnostic = SymbolDiagnostics.SymbolAlreadyDeclared.Format(
+                    parameterSymbol.Name,
+                    param.Location);
+                Diagnostics.Add(diagnostic);
+            }
             
             Visit(param);
         }
@@ -158,9 +168,12 @@ file sealed class Visitor : Visitor<int>
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        DeclareBlock(node);
+        var blockScope = DeclareBlock(node);
 
-        Visit(node.Statements);
+        InScope(blockScope, () =>
+        {
+            Visit(node.Statements);
+        });
 
         return default;
     }
@@ -179,8 +192,15 @@ file sealed class Visitor : Visitor<int>
 
             param.Symbol = symbol;
             
-            // Todo: Report an error if the parameter is already declared.
-            paramScope.Declare(symbol);
+            var result = paramScope.Declare(symbol);
+            
+            if (result.ConflictingSymbol is not null)
+            {
+                var diagnostic = SymbolDiagnostics.SymbolAlreadyDeclared.Format(
+                    symbol.Name,
+                    param.Location);
+                Diagnostics.Add(diagnostic);
+            }
             
             Visit(param);
         }
@@ -193,5 +213,35 @@ file sealed class Visitor : Visitor<int>
         return default;
     }
 
-    protected override int VisitIdentifierExpression(IdentifierExpression node) => throw new NotImplementedException();
+    protected override int VisitIdentifierExpression(IdentifierExpression node)
+    {
+        var identifier = node.Identifier;
+
+        IDiagnostic? diagnostic;
+        
+        if (currentScope.LookupSymbol(identifier, node) is not { } lookup)
+        {
+            Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(identifier, node.Location));
+
+            node.ReferencedSymbol = new ErrorSymbol();
+            
+            return default;
+        }
+
+        var symbol = lookup.Symbol;
+        node.ReferencedSymbol = new(symbol);
+
+        switch (lookup.Accessibility)
+        {
+        case SymbolAccessibility.Blocked:
+            Diagnostics.Add(SymbolDiagnostics.BlockedByFunction.Format(symbol, node.Location));
+            break;
+        
+        case SymbolAccessibility.DeclaredLater:
+            Diagnostics.Add(SymbolDiagnostics.DeclaredLater.Format(symbol, node.Location));
+            break;
+        }
+
+        return default;
+    }
 }
