@@ -17,26 +17,35 @@ public interface IScope
     /// Looks up a symbol with a specified name at a specific point in the scope.
     /// </summary>
     /// <param name="name">The name of the symbol to look up.</param>
-    /// <param name="at">The node to look up the symbol at.</param>
+    /// <param name="at">
+    /// The node to look up the symbol at.
+    /// If not specified, will look up symbols at the end of the scope.
+    /// </param>
     /// <param name="predicate">
     /// A predicate which determines whether to return a given symbol with the specified name.
     /// </param>
     /// <returns>
     /// A result containing the symbol as well as its accessibility, or null if no symbol could not be found.
     /// </returns>
-    LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null);
+    LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null);
 
     /// <summary>
     /// Gets the declared symbols within the scope at a specific point.
     /// </summary>
-    /// <param name="at">The node at which to find the declared symbols.</param>
-    IEnumerable<IDeclaredSymbol> DeclaredAt(Node at);
+    /// <param name="at">
+    /// The node at which to find the declared symbols.
+    /// If not specified, will get the declared symbols at the end of the scope.
+    /// </param>
+    IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at);
 
     /// <summary>
     /// Gets the accessible symbols at a specific point in the scope.
     /// </summary>
-    /// <param name="at">The node at which to find the accessible symbols.</param>
-    IEnumerable<LookupResult> AccessibleAt(Node at);
+    /// <param name="at">
+    /// The node at which to find the accessible symbols.
+    /// If not specified, will get the accessible symbols at the end of the scope.
+    /// </param>
+    IEnumerable<LookupResult> AccessibleAt(Node? at);
 }
 
 internal interface IMutableScope : IScope
@@ -91,6 +100,7 @@ public enum SymbolAccessibility
 /// </param>
 internal sealed class BlockScope(
     IScope? parent,
+    Node block,
     IReadOnlyDictionary<string, FunctionSymbol> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
     IReadOnlyDictionary<Statement, int> timelineIndexMap)
@@ -102,22 +112,33 @@ internal sealed class BlockScope(
     /// Tries to get the timeline index of a node.
     /// </summary>
     private bool TryGetTimelineIndex(
-        Node node,
+        Node? node,
         [NotNullWhen(true)] out Statement? statement,
         out int timelineIndex)
     {
-        // Find the closest statement.
-        var stmt = node as Statement ?? node.FindAncestor<Statement>();
+        var stmt = node is not null
+            // Find the closest statement.
+            ? node as Statement ?? node.FindAncestor<Statement>()
+            // If the node is null, try find the parent statement of the block itself.
+            : block.FindAncestor<Statement>();
 
-        // If we can't find a statement, we can't really do anything useful.
         if (stmt is null)
         {
+            // If we can't find a statement, we can't really do anything useful.
             statement = null;
             timelineIndex = -1;
             return false;
         }
 
         statement = stmt;
+
+        if (node is null)
+        {
+            // If the node is null, we're looking for the last step of the timeline.
+            timelineIndex = variableTimeline.Count - 1;
+            return true;
+        }
+
         if (timelineIndexMap.TryGetValue(stmt, out timelineIndex)) return true;
 
         // If the statement doesn't belong to this block, check its ancestors to find one which does.
@@ -142,7 +163,7 @@ internal sealed class BlockScope(
         return false;
     }
     
-    public LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null)
+    public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null)
     {
         // If there is a function with the name then we don't need to look up anything else.
         if (functions.TryGetValue(name, out var function) &&
@@ -166,7 +187,7 @@ internal sealed class BlockScope(
         return Parent?.LookupSymbol(name, statement, predicate);
     }
 
-    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node at)
+    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at)
     {
         if (!TryGetTimelineIndex(at, out _, out var timelineIndex)) return [];
 
@@ -176,7 +197,7 @@ internal sealed class BlockScope(
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
     }
 
-    public IEnumerable<LookupResult> AccessibleAt(Node at)
+    public IEnumerable<LookupResult> AccessibleAt(Node? at)
     {
         if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return [];
 
