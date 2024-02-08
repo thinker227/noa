@@ -47,6 +47,9 @@ public interface IScope
     IEnumerable<LookupResult> AccessibleAt(Node? at);
 }
 
+/// <summary>
+/// A scope which can have new symbols declared in it.
+/// </summary>
 internal interface IMutableScope : IScope
 {
     /// <summary>

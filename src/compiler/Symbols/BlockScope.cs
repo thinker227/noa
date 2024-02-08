@@ -4,7 +4,8 @@ using Noa.Compiler.Nodes;
 namespace Noa.Compiler.Symbols;
 
 /// <summary>
-/// A scope for block-like nodes.
+/// A scope for block-like nodes which declares variables in sequential order
+/// while providing global access to functions.
 /// </summary>
 /// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
 /// <param name="block">The block which declares the scope.</param>
