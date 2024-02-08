@@ -49,9 +49,6 @@ public interface IScope
 
 internal interface IMutableScope : IScope
 {
-    /// <inheritdoc cref="IScope.Parent"/>
-    new IMutableScope? Parent { get; }
-
     /// <summary>
     /// Declares a symbol within the scope.
     /// </summary>
