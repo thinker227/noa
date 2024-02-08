@@ -71,17 +71,16 @@ file sealed class Visitor : Visitor<int>
         }
         
         // After all functions have been declared, declare all variables sequentially on a timeline
-        // such that variables may shadow previously declared ones.
+        // so that variables may shadow previously declared ones.
         
-        var index = 0;
-        var indexMap = new Dictionary<Statement, int>();
+        var timelineIndex = 0;
+        var timelineIndexMap = new Dictionary<Statement, int>();
         var variables = ImmutableDictionary.Create<string, VariableSymbol>();
         var variableTimeline = new List<ImmutableDictionary<string, VariableSymbol>>() { variables };
         
         foreach (var statement in node.Statements)
         {
-            indexMap[statement] = index;
-            index++;
+            timelineIndexMap[statement] = timelineIndex;
 
             if (statement.Declaration is not LetDeclaration let) continue;
             
@@ -93,7 +92,8 @@ file sealed class Visitor : Visitor<int>
 
             let.Symbol = variableSymbol;
 
-            variables = variables.Add(variableSymbol.Name, variableSymbol);
+            timelineIndex++;
+            variables = variables.SetItem(variableSymbol.Name, variableSymbol);
             variableTimeline.Add(variables);
 
             if (functions.TryGetValue(variableSymbol.Name, out var func))
@@ -105,7 +105,7 @@ file sealed class Visitor : Visitor<int>
             }
         }
 
-        return new BlockScope(currentScope, node, functions, variableTimeline, indexMap);
+        return new BlockScope(currentScope, functions, variableTimeline, timelineIndexMap);
     }
     
     protected override int VisitRoot(Root node)

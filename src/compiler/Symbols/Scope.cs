@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -29,7 +30,7 @@ public interface IScope
     /// Gets the declared symbols within the scope at a specific point.
     /// </summary>
     /// <param name="at">The node at which to find the declared symbols.</param>
-    IEnumerable<LookupResult> DeclaredAt(Node at);
+    IEnumerable<IDeclaredSymbol> DeclaredAt(Node at);
 
     /// <summary>
     /// Gets the accessible symbols at a specific point in the scope.
@@ -83,21 +84,110 @@ public enum SymbolAccessibility
 /// </summary>
 /// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
 /// <param name="block">The block which declares the scope.</param>
+/// <param name="functions">The functions declared in the scope.</param>
 /// <param name="variableTimeline">A timeline of variables declared in the scope.</param>
-/// <param name="indexMap">A dictionary mapping statements to their index in the block.</param>
+/// <param name="timelineIndexMap">
+/// A mapping between statements and their indices in the variable timeline.
+/// </param>
 internal sealed class BlockScope(
     IScope? parent,
-    IBlockNode block,
     IReadOnlyDictionary<string, FunctionSymbol> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
-    IReadOnlyDictionary<Statement, int> indexMap)
+    IReadOnlyDictionary<Statement, int> timelineIndexMap)
     : IScope
 {
     public IScope? Parent { get; } = parent;
+
+    /// <summary>
+    /// Tries to get the timeline index of a node.
+    /// </summary>
+    private bool TryGetTimelineIndex(
+        Node node,
+        [NotNullWhen(true)] out Statement? statement,
+        out int timelineIndex)
+    {
+        // Find the closest statement.
+        var stmt = node as Statement ?? node.FindAncestor<Statement>();
+
+        // If we can't find a statement, we can't really do anything useful.
+        if (stmt is null)
+        {
+            statement = null;
+            timelineIndex = -1;
+            return false;
+        }
+
+        statement = stmt;
+        if (timelineIndexMap.TryGetValue(stmt, out timelineIndex)) return true;
+
+        // If the statement doesn't belong to this block, check its ancestors to find one which does.
+        return TryGetAncestorTimelineIndex(stmt, out statement, out timelineIndex);
+    }
+
+    private bool TryGetAncestorTimelineIndex(
+        Node node,
+        [NotNullWhen(true)] out Statement? statement,
+        out int timelineIndex)
+    {
+        foreach (var ancestor in node.Ancestors())
+        {
+            if (ancestor is not Statement stmt) continue;
+            
+            statement = stmt;
+            if (timelineIndexMap.TryGetValue(stmt, out timelineIndex)) return true;
+        }
+
+        statement = null;
+        timelineIndex = -1;
+        return false;
+    }
     
-    public LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null) => throw new NotImplementedException();
+    public LookupResult? LookupSymbol(string name, Node at, Func<ISymbol, bool>? predicate = null)
+    {
+        // If there is a function with the name then we don't need to look up anything else.
+        if (functions.TryGetValue(name, out var function) &&
+            (predicate?.Invoke(function) ?? true))
+        {
+            return new(function, SymbolAccessibility.Accessible);
+        }
 
-    public IEnumerable<LookupResult> DeclaredAt(Node at) => throw new NotImplementedException();
+        // If we can't find the timeline index for the node, we can't do anything.
+        if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return null;
 
-    public IEnumerable<LookupResult> AccessibleAt(Node at) => throw new NotImplementedException();
+        var variables = variableTimeline[timelineIndex];
+        if (variables.TryGetValue(name, out var variable) &&
+            (predicate?.Invoke(variable) ?? true))
+        {
+            return new(variable, SymbolAccessibility.Accessible);
+        }
+
+        // We can't find the symbol in this scope.
+
+        return Parent?.LookupSymbol(name, statement, predicate);
+    }
+
+    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node at)
+    {
+        if (!TryGetTimelineIndex(at, out _, out var timelineIndex)) return [];
+
+        var variables = variableTimeline[timelineIndex];
+
+        return functions.Values
+            .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
+    }
+
+    public IEnumerable<LookupResult> AccessibleAt(Node at)
+    {
+        if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return [];
+
+        var variables = variableTimeline[timelineIndex];
+
+        var declared = functions.Values
+            .Concat((IEnumerable<IDeclaredSymbol>)variables.Values)
+            .Select(s => new LookupResult(s, SymbolAccessibility.Accessible));
+
+        var parentAccessible = Parent?.AccessibleAt(statement) ?? [];
+
+        return declared.Concat(parentAccessible);
+    }
 }
