@@ -5,7 +5,7 @@ namespace Noa.Compiler.Diagnostics;
 /// </summary>
 /// <param name="Message">The message of the diagnostic.</param>
 /// <param name="Severity">The severity of the diagnostic.</param>
-public sealed record DiagnosticTemplate(string Message, Severity Severity)
+public sealed record DiagnosticTemplate(DiagnosticId Id, string Message, Severity Severity)
 {
     /// <summary>
     /// Formats the template into a diagnostic.
@@ -13,14 +13,16 @@ public sealed record DiagnosticTemplate(string Message, Severity Severity)
     /// <param name="location">The location of the diagnostic.</param>
     public IDiagnostic Format(Location location) =>
         Diagnostic.Create(this, location);
+
+    public override string ToString() => Id.ToString();
     
     /// <summary>
     /// Creates a simple diagnostic template.
     /// </summary>
     /// <param name="message">The message of the diagnostic.</param>
     /// <param name="severity">The severity of the diagnostic.</param>
-    public static DiagnosticTemplate Create(string message, Severity severity) =>
-        new(message, severity);
+    public static DiagnosticTemplate Create(DiagnosticId id, string message, Severity severity) =>
+        new(id, message, severity);
 
     /// <summary>
     /// Creates a diagnostic template with an argument used to format its message.
@@ -28,8 +30,11 @@ public sealed record DiagnosticTemplate(string Message, Severity Severity)
     /// <param name="createMessage">A function to create the message for a diagnostic.</param>
     /// <param name="severity">The severity of the diagnostic.</param>
     /// <typeparam name="TArg">The type of the argument to the template.</typeparam>
-    public static DiagnosticTemplate<TArg> Create<TArg>(Func<TArg, string> createMessage, Severity severity) =>
-        new(createMessage, severity);
+    public static DiagnosticTemplate<TArg> Create<TArg>(
+        DiagnosticId id,
+        Func<TArg, string> createMessage,
+        Severity severity) =>
+        new(id, createMessage, severity);
 }
 
 /// <summary>
@@ -38,7 +43,10 @@ public sealed record DiagnosticTemplate(string Message, Severity Severity)
 /// <param name="CreateMessage">A function to create the message for a diagnostic.</param>
 /// <param name="Severity">The severity of the diagnostic.</param>
 /// <typeparam name="TArg">The type of the argument to the template.</typeparam>
-public sealed record DiagnosticTemplate<TArg>(Func<TArg, string> CreateMessage, Severity Severity)
+public sealed record DiagnosticTemplate<TArg>(
+    DiagnosticId Id,
+    Func<TArg, string> CreateMessage,
+    Severity Severity)
 {
     /// <summary>
     /// Formats the template into a diagnostic.
@@ -47,4 +55,6 @@ public sealed record DiagnosticTemplate<TArg>(Func<TArg, string> CreateMessage, 
     /// <param name="location">The location of the diagnostic.</param>
     public IDiagnostic Format(TArg argument, Location location) =>
         Diagnostic.Create(this, argument, location);
+
+    public override string ToString() => Id.ToString();
 }

@@ -23,7 +23,7 @@ public static class Diagnostic
     public static IDiagnostic Create<TArg>(DiagnosticTemplate<TArg> template, TArg argument, Location location) =>
         new ArgumentDiagnostic<TArg>(template, argument, location);
 
-    private static string DisplayDiagnostic(string message, Severity severity, Location location)
+    private static string DisplayDiagnostic(DiagnosticId id, string message, Severity severity, Location location)
     {
          var severityString = severity switch
          {
@@ -32,18 +32,20 @@ public static class Diagnostic
              _ => throw new UnreachableException()
          };
 
-         return $"\"{message}\" ({severityString}) at {location}";
+         return $"{id}: \"{message}\" ({severityString}) at {location}";
     }
     
     private sealed class SimpleDiagnostic(DiagnosticTemplate template, Location location) : IDiagnostic
     {
+        public DiagnosticId Id { get; } = template.Id;
+        
         public string Message { get; } = template.Message;
     
         public Severity Severity { get; } = template.Severity;
     
         public Location Location { get; } = location;
 
-        public override string ToString() => DisplayDiagnostic(Message, Severity, Location);
+        public override string ToString() => DisplayDiagnostic(Id, Message, Severity, Location);
     }
     
     private sealed class ArgumentDiagnostic<TArg>(
@@ -51,12 +53,14 @@ public static class Diagnostic
         TArg argument,
         Location location) : IDiagnostic
     {
+        public DiagnosticId Id { get; } = template.Id;
+        
         public string Message => template.CreateMessage(argument);
 
         public Severity Severity { get; } = template.Severity;
 
         public Location Location { get; } = location;
 
-        public override string ToString() => DisplayDiagnostic(Message, Severity, Location);
+        public override string ToString() => DisplayDiagnostic(Id, Message, Severity, Location);
     }
 }

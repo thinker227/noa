@@ -6,6 +6,11 @@ namespace Noa.Compiler.Diagnostics;
 public interface IDiagnostic
 {
     /// <summary>
+    /// The ID of the diagnostic.
+    /// </summary>
+    DiagnosticId Id { get; }
+    
+    /// <summary>
     /// The message describing the diagnostic.
     /// </summary>
     string Message { get; }

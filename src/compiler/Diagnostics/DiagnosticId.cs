@@ -2,12 +2,24 @@ using System.Globalization;
 
 namespace Noa.Compiler.Diagnostics;
 
-public sealed class DiagnosticId : ISpanParsable<DiagnosticId>
+/// <summary>
+/// The ID of a diagnostic.
+/// </summary>
+public sealed record DiagnosticId : ISpanParsable<DiagnosticId>
 {
+    /// <summary>
+    /// The major name of the diagnostic.
+    /// </summary>
     public string Major { get; }
     
+    /// <summary>
+    /// The category of the diagnostic.
+    /// </summary>
     public string Category { get; }
     
+    /// <summary>
+    /// The numeric ID of the diagnostic.
+    /// </summary>
     public int Numeric { get; }
 
     private DiagnosticId(string major, string category, int numeric)
@@ -74,5 +86,9 @@ public sealed class DiagnosticId : ISpanParsable<DiagnosticId>
             ? id
             : throw new FormatException($"Cannot parse '{s}' into a diagnostic ID.");
 
+    /// <summary>
+    /// Implicitly converts a string into a diagnostic ID.
+    /// </summary>
+    /// <param name="s">The string to convert.</param>
     public static implicit operator DiagnosticId(string s) => Parse(s, null);
 }

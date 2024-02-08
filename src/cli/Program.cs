@@ -38,7 +38,7 @@ app.AddCommand((
                 Severity.Error => Color.Red,
                 _ => Color.White
             };
-            console.Write(new Text($"{diagnostic.Message} ({diagnostic.Location})\n", color));
+            console.Write(new Text($"{diagnostic.Id}: {diagnostic.Message} ({diagnostic.Location})\n", color));
         }
     }
     else
