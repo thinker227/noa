@@ -105,7 +105,7 @@ internal sealed class BlockScope(
         
         // We know at this point that the symbol is not accessible, but to provide better error reporting
         // we also check future points in the variable timeline to see if the symbol is accessible there.
-        for (var i = timelineIndex; i < variableTimeline.Count; i++)
+        for (var i = timelineIndex + 1; i < variableTimeline.Count; i++)
         {
             var futureVariables = variableTimeline[i];
 
