@@ -222,7 +222,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
     {
         var identifier = node.Identifier;
         
-        if (currentScope.LookupSymbol(identifier, node) is not { } lookup)
+        if (currentScope.LookupSymbol(identifier, node) is not var (symbol, accessibility))
         {
             Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(identifier, node.Location));
 
@@ -231,10 +231,9 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             return default;
         }
 
-        var symbol = lookup.Symbol;
         node.ReferencedSymbol = new(symbol);
 
-        switch (lookup.Accessibility)
+        switch (accessibility)
         {
         case SymbolAccessibility.Blocked:
             Diagnostics.Add(SymbolDiagnostics.BlockedByFunction.Format(symbol, node.Location));
