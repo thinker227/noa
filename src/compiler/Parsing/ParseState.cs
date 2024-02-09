@@ -85,7 +85,7 @@ internal sealed class ParseState
         // Loop through and skip any erroneous tokens
         while (next.Kind is TokenKind.Error)
         {
-            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(next, next.Location);
+            var diagnostic = ParseDiagnostics.UnexpectedCharacter.Format(next.Text, next.Location);
             Diagnostics.Add(diagnostic);
                 
             // This should never occur because there should always be an end of file token
