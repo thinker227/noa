@@ -221,8 +221,6 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
     protected override int VisitIdentifierExpression(IdentifierExpression node)
     {
         var identifier = node.Identifier;
-
-        IDiagnostic? diagnostic;
         
         if (currentScope.LookupSymbol(identifier, node) is not { } lookup)
         {
