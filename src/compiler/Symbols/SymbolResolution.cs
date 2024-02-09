@@ -39,14 +39,14 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(IBlockNode node)
+    private IScope DeclareBlock(Node node, ImmutableArray<Statement> statements)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
         
         var functions = new Dictionary<string, FunctionSymbol>();
         
-        foreach (var statement in node.Statements)
+        foreach (var statement in statements)
         {
             if (statement.Declaration is not FunctionDeclaration func) continue;
             
@@ -55,6 +55,8 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
                 Name = func.Identifier.Name,
                 Declaration = func
             };
+
+            func.Symbol = functionSymbol;
 
             foreach (var param in func.Parameters)
             {
@@ -87,7 +89,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         var variables = ImmutableDictionary.Create<string, VariableSymbol>();
         var variableTimeline = new List<ImmutableDictionary<string, VariableSymbol>>() { variables };
         
-        foreach (var statement in node.Statements)
+        foreach (var statement in statements)
         {
             timelineIndexMap[statement] = timelineIndex;
 
@@ -121,7 +123,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
     {
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node);
+        var blockScope = DeclareBlock(node, node.Statements);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -141,12 +143,13 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         
         Visit(node.Identifier);
         
-        var paramScope = new MapScope(currentScope, node);
+        var blockingScope = new BlockingScope(currentScope, node);
+        var bodyScope = new MapScope(blockingScope, node);
         foreach (var param in node.Parameters)
         {
             var parameterSymbol = param.Symbol.Value;
             
-            var result = paramScope.Declare(parameterSymbol);
+            var result = bodyScope.Declare(parameterSymbol);
             functionSymbol.AddParameter(parameterSymbol);
 
             if (result.ConflictingSymbol is not null)
@@ -160,7 +163,6 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             Visit(param);
         }
 
-        var bodyScope = new BlockingScope(paramScope, node);
         InScope(bodyScope, () =>
         {
             Visit(node.ExpressionBody);
@@ -172,7 +174,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        var blockScope = DeclareBlock(node);
+        var blockScope = DeclareBlock(node, node.Statements);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
