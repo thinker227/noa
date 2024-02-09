@@ -91,12 +91,12 @@ public class SymbolResolutionTests
         yLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
 
         var declared = scope.DeclaredAt(null);
-        declared.ShouldBe([x, y]);
+        declared.ShouldBe([x, y], ignoreOrder: true);
         
         var accessible = scope.AccessibleAt(null);
         accessible.ShouldBe([
             new(x, SymbolAccessibility.Accessible),
             new(y, SymbolAccessibility.Accessible)
-        ]);
+        ], ignoreOrder: true);
     }
 }

@@ -29,36 +29,45 @@ internal sealed class BlockScope(
     /// </summary>
     private bool TryGetTimelineIndex(
         Node? node,
-        [NotNullWhen(true)] out Statement? statement,
+        [NotNullWhen(true)] out Node? parentLookupNode,
         out int timelineIndex)
     {
-        var stmt = node is not null
-            // Find the closest statement.
-            ? node as Statement ?? node.FindAncestor<Statement>()
-            // If the node is null, try find the parent statement of the block itself.
-            : block.FindAncestor<Statement>();
+        if (node is null)
+        {
+            // If the node we're trying to get the timeline index for is null,
+            // that means we want to get the timeline index and parent lookup node for the very end of the scope.
+            parentLookupNode = block;
+            timelineIndex = variableTimeline.Count - 1;
+            return true;
+        }
+        
+        var statement = node as Statement ?? node.FindAncestor<Statement>();
 
-        if (stmt is null)
+        if (statement is null)
         {
             // If we can't find a statement, we can't really do anything useful.
-            statement = null;
+            parentLookupNode = null;
             timelineIndex = -1;
             return false;
         }
 
-        statement = stmt;
-
-        if (node is null)
+        if (timelineIndexMap.TryGetValue(statement, out timelineIndex))
         {
-            // If the node is null, we're looking for the last step of the timeline.
-            timelineIndex = variableTimeline.Count - 1;
+            // The statement exists in this scope.
+            parentLookupNode = statement;
             return true;
         }
 
-        if (timelineIndexMap.TryGetValue(stmt, out timelineIndex)) return true;
-
         // If the statement doesn't belong to this block, check its ancestors to find one which does.
-        return TryGetAncestorTimelineIndex(stmt, out statement, out timelineIndex);
+        if (TryGetAncestorTimelineIndex(statement, out var parentStatement, out timelineIndex))
+        {
+            parentLookupNode = parentStatement;
+            return true;
+        }
+
+        parentLookupNode = null;
+        timelineIndex = -1;
+        return false;
     }
 
     private bool TryGetAncestorTimelineIndex(
@@ -88,8 +97,7 @@ internal sealed class BlockScope(
             return new(function, SymbolAccessibility.Accessible);
         }
 
-        // If we can't find the timeline index for the node, we can't do anything.
-        if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return null;
+        if (!TryGetTimelineIndex(at, out var parentLookupNode, out var timelineIndex)) return null;
 
         var variables = variableTimeline[timelineIndex];
         if (variables.TryGetValue(name, out var variable) &&
@@ -101,7 +109,7 @@ internal sealed class BlockScope(
         // We can't find the symbol in this scope.
 
         // Check if the symbol can be found in a parent scope.
-        if (Parent?.LookupSymbol(name, statement, predicate) is { } parentLookup) return parentLookup;
+        if (Parent?.LookupSymbol(name, parentLookupNode, predicate) is { } parentLookup) return parentLookup;
         
         // We know at this point that the symbol is not accessible, but to provide better error reporting
         // we also check future points in the variable timeline to see if the symbol is accessible there.
