@@ -219,10 +219,8 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
     protected override int VisitIdentifierExpression(IdentifierExpression node)
     {
         var identifier = node.Identifier;
-
-        IDiagnostic? diagnostic;
         
-        if (currentScope.LookupSymbol(identifier, node) is not { } lookup)
+        if (currentScope.LookupSymbol(identifier, node) is not var (symbol, accessibility))
         {
             Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(identifier, node.Location));
 
@@ -231,10 +229,10 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             return default;
         }
 
-        var symbol = lookup.Symbol;
+        // The symbol is still *referenced* even if it's not accessible.
         node.ReferencedSymbol = new(symbol);
 
-        switch (lookup.Accessibility)
+        switch (accessibility)
         {
         case SymbolAccessibility.Blocked:
             Diagnostics.Add(SymbolDiagnostics.BlockedByFunction.Format(symbol, node.Location));
