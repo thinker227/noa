@@ -3,6 +3,7 @@ using Cocona;
 using Cocona.Lite;
 using Noa.Compiler.Diagnostics;
 using Spectre.Console;
+using Noa.Compiler.Symbols;
 
 var builder = CoconaLiteApp.CreateBuilder();
 
@@ -27,10 +28,12 @@ app.AddCommand((
     var source = new Source(text, name);
 
     var ast = Ast.Create(source);
+    var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast);
+    var diagnostics = ast.Diagnostics.Concat(symbolDiagnostics).ToArray();
 
-    if (ast.Diagnostics.Count > 0)
+    if (diagnostics.Length > 0)
     {
-        foreach (var diagnostic in ast.Diagnostics)
+        foreach (var diagnostic in diagnostics)
         {
             var color = diagnostic.Severity switch
             {
