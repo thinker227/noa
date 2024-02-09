@@ -143,12 +143,13 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         
         Visit(node.Identifier);
         
-        var paramScope = new MapScope(currentScope, node);
+        var blockingScope = new BlockingScope(currentScope, node);
+        var bodyScope = new MapScope(blockingScope, node);
         foreach (var param in node.Parameters)
         {
             var parameterSymbol = param.Symbol.Value;
             
-            var result = paramScope.Declare(parameterSymbol);
+            var result = bodyScope.Declare(parameterSymbol);
             functionSymbol.AddParameter(parameterSymbol);
 
             if (result.ConflictingSymbol is not null)
@@ -162,7 +163,6 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             Visit(param);
         }
 
-        var bodyScope = new BlockingScope(paramScope, node);
         InScope(bodyScope, () =>
         {
             Visit(node.ExpressionBody);
