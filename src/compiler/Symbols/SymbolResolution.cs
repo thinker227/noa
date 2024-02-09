@@ -231,6 +231,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             return default;
         }
 
+        // The symbol is still *referenced* even if it's not accessible.
         node.ReferencedSymbol = new(symbol);
 
         switch (accessibility)
