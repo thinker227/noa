@@ -56,6 +56,8 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
                 Declaration = func
             };
 
+            func.Symbol = functionSymbol;
+
             foreach (var param in func.Parameters)
             {
                 var parameterSymbol = new ParameterSymbol()
