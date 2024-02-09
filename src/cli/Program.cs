@@ -1,6 +1,7 @@
 ﻿using Noa.Compiler;
 using Cocona;
 using Cocona.Lite;
+using Noa.Compiler.Diagnostics;
 using Spectre.Console;
 
 var builder = CoconaLiteApp.CreateBuilder();
@@ -37,7 +38,7 @@ app.AddCommand((
                 Severity.Error => Color.Red,
                 _ => Color.White
             };
-            console.Write(new Text($"{diagnostic.Message} ({diagnostic.Location})\n", color));
+            console.Write(new Text($"{diagnostic.Id}: {diagnostic.Message} ({diagnostic.Location})\n", color));
         }
     }
     else

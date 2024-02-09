@@ -1,3 +1,4 @@
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 using Expression = Noa.Compiler.Nodes.Expression;
 
