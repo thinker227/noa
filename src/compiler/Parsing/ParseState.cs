@@ -1,3 +1,4 @@
+using Noa.Compiler.Diagnostics;
 using SuperLinq;
 
 namespace Noa.Compiler.Parsing;
