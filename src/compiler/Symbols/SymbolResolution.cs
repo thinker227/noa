@@ -116,7 +116,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
             }
         }
 
-        return new BlockScope(currentScope, (Node)node, functions, variableTimeline, timelineIndexMap);
+        return new BlockScope(currentScope, node, functions, variableTimeline, timelineIndexMap);
     }
     
     protected override int VisitRoot(Root node)
