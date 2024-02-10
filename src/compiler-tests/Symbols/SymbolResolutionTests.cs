@@ -1,4 +1,5 @@
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Tests;
 
 namespace Noa.Compiler.Symbols.Tests;
 
@@ -10,18 +11,16 @@ public class SymbolResolutionTests
         var text = """
         let x = 0;
         let x = 1;
-        {}
         """;
         var source = new Source(text, "test-input");
         var ast = Ast.Create(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
-        diagnostics.ShouldBeEmpty();
+        diagnostics.DiagnosticsShouldBe([]);
 
         var x1Decl = (LetDeclaration)ast.Root.Statements[0].Declaration!;
         var x2Decl = (LetDeclaration)ast.Root.Statements[1].Declaration!;
-        var end = ast.Root.Statements[2];
         
         var x1 = x1Decl.Symbol.Value;
         var x2 = x2Decl.Symbol.Value;
@@ -35,32 +34,9 @@ public class SymbolResolutionTests
         x2Lookup.Symbol.ShouldBe(x1);
         x2Lookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
 
-        var endLookup = scope.LookupSymbol("x", end).ShouldNotBeNull();
+        var endLookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
         endLookup.Symbol.ShouldBe(x2);
         endLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
-    }
-
-    [Fact]
-    public void EarlyLookup_Returns_DeclaredLater()
-    {
-        var text = """
-        let x = 0;
-        """;
-        var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
-
-        var diagnostics = SymbolResolution.ResolveSymbols(ast);
-
-        diagnostics.ShouldBeEmpty();
-
-        var decl = (LetDeclaration)ast.Root.Statements[0].Declaration!;
-        var x = decl.Symbol.Value;
-
-        var scope = decl.Scope.Value;
-
-        var lookup = scope.LookupSymbol("x", decl).ShouldNotBeNull();
-        lookup.Symbol.ShouldBe(x);
-        lookup.Accessibility.ShouldBe(SymbolAccessibility.DeclaredLater);
     }
 
     [Fact]
@@ -75,7 +51,7 @@ public class SymbolResolutionTests
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
-        diagnostics.ShouldBeEmpty();
+        diagnostics.DiagnosticsShouldBe([]);
 
         var x = ((LetDeclaration)ast.Root.Statements[0].Declaration!).Symbol.Value;
         var y = ((LetDeclaration)ast.Root.Statements[1].Declaration!).Symbol.Value;
@@ -98,5 +74,128 @@ public class SymbolResolutionTests
             new(x, SymbolAccessibility.Accessible),
             new(y, SymbolAccessibility.Accessible)
         ], ignoreOrder: true);
+    }
+
+    [Fact]
+    public void ReferenceInSubScope_LooksUpSymbol_InParentScopes()
+    {
+        var text = """
+        let x = 0;
+        {
+            {
+                let v = x;
+            }
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([]);
+
+        var declaration = (LetDeclaration)ast.Root.Statements[0].Declaration!;
+        var reference = (IdentifierExpression)ast.Root.FindNodeAt(35)!;
+        
+        reference.ReferencedSymbol.Value.ShouldBe(declaration.Symbol.Value);
+    }
+    
+    [Fact]
+    public void DuplicateFunctionsDeclaration_Produces_FunctionAlreadyDeclared()
+    {
+        var text = """
+        func f() {}
+        func f() {}
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.FunctionAlreadyDeclared.Id, new("test-input", 12, 23))
+        ]);
+    }
+
+    [Fact]
+    public void DuplicateParameters_Produces_SymbolAlreadyDeclared()
+    {
+        var text = """
+        func f(a, a) {}
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.SymbolAlreadyDeclared.Id, new("test-input", 10, 11))
+        ]);
+    }
+
+    [Fact]
+    public void Variable_WithSameNameAsFunction_Produces_VariableShadowsFunction()
+    {
+        var text = """
+        let x = 0;
+        func x {}
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 0, 9))
+        ]);
+    }
+
+    [Fact]
+    public void BadReference_Produces_SymbolCannotBeFound()
+    {
+        var text = """
+        let x = v;
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.SymbolCannotBeFound.Id, new("test-input", 8, 9))
+        ]);
+    }
+
+    [Fact]
+    public void ReferenceToVariable_FromOuterScope_InsideFunction_Produces_BlockedByFunction()
+    {
+        var text = """
+        let x = 0;
+        func f() => x;
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.BlockedByFunction.Id, new("test-input", 23, 24))
+        ]);
+    }
+    
+    [Fact]
+    public void EarlyLookup_Produces_DeclaredLater()
+    {
+        var text = """
+        let x = x;
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([
+            (SymbolDiagnostics.DeclaredLater.Id, new("test-input", 8, 9))
+        ]);
     }
 }
