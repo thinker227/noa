@@ -9,7 +9,7 @@ namespace Noa.Compiler.Symbols;
 /// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
 /// <param name="declaration">The node which declares the scope.</param>
 [DebuggerDisplay("{GetDebuggerDisplay()}")]
-internal sealed class MapScope(IScope? parent, Node declaration) : IMutableScope
+internal sealed class MapScope(IScope? parent, Node declaration)
 {
     private readonly Dictionary<string, IDeclaredSymbol> symbols = new();
     
@@ -28,6 +28,11 @@ internal sealed class MapScope(IScope? parent, Node declaration) : IMutableScope
     public IEnumerable<ISymbol> AccessibleAt(Node? at) =>
         DeclaredAt(at).Concat(Parent?.AccessibleAt(declaration) ?? []);
 
+    /// <summary>
+    /// Declares a symbol within the scope.
+    /// </summary>
+    /// <param name="symbol">The symbol to declare.</param>
+    /// <returns>The result of the declaration.</returns>
     public DeclarationResult Declare(IDeclaredSymbol symbol)
     {
         var name = symbol.Name;

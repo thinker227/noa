@@ -48,19 +48,6 @@ public interface IScope
 }
 
 /// <summary>
-/// A scope which can have new symbols declared in it.
-/// </summary>
-internal interface IMutableScope : IScope
-{
-    /// <summary>
-    /// Declares a symbol within the scope.
-    /// </summary>
-    /// <param name="symbol">The symbol to declare.</param>
-    /// <returns>The result of the declaration.</returns>
-    DeclarationResult Declare(IDeclaredSymbol symbol);
-}
-
-/// <summary>
 /// The result of looking up a symbol in a scope.
 /// </summary>
 /// <param name="Symbol">The symbol which was found.</param>
