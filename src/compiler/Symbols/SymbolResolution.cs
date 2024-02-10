@@ -178,6 +178,7 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
+            Visit(node.TrailingExpression);
         });
 
         return default;

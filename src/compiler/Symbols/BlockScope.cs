@@ -109,7 +109,12 @@ internal sealed class BlockScope(
             return new(function, SymbolAccessibility.Accessible);
         }
 
-        if (!TryGetTimelineIndex(at, out var parentLookupNode, out var timelineIndex)) return null;
+        if (!TryGetTimelineIndex(at, out var parentLookupNode, out var timelineIndex))
+        {
+            // If we can't find the timeline index for the node we're looking up at, we're heading to
+            // the parent scope to check if it has a symbol available at the location of this block.
+            return Parent?.LookupSymbol(name, block, predicate);
+        }
 
         var variables = VariableTimeline[timelineIndex];
         if (variables.TryGetValue(name, out var variable) &&
