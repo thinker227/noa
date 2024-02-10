@@ -22,7 +22,7 @@ internal static class SymbolDiagnostics
         DiagnosticTemplate.Create<(VariableSymbol var, FunctionSymbol func)>(
             "NOA-SYM-003",
             arg => $"Variable '{arg.var.Name}' shadows function '{arg.func.Name}'. " +
-                   $"Variables cannot shadow functions",
+                   $"Variables cannot shadow functions in the same scope",
             Severity.Error);
     
     public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
@@ -33,12 +33,12 @@ internal static class SymbolDiagnostics
                 var (name, scope, at) = arg;
                 var corrections = LookupCorrection.FindPossibleCorrections(name, scope, at);
 
-                if (corrections.Count == 0) return $"Symbol '{name}' cannot be found in the current scope";
+                if (corrections.Count == 0) return $"Cannot find a symbol with the name '{name}' the current scope";
 
                 var correctionsString = Formatting.JoinOxfordOr(corrections
                     .Select(s => $"'{s.Name}'"));
 
-                return $"Symbol '{name}' cannot be found in the current scope. " +
+                return $"Cannot find a symbol with the name '{name}' the current scope. " +
                        $"Did you perhaps mean {correctionsString}?";
             },
             Severity.Error);
@@ -53,6 +53,6 @@ internal static class SymbolDiagnostics
     public static DiagnosticTemplate<ISymbol> DeclaredLater { get; } =
         DiagnosticTemplate.Create<ISymbol>(
             "NOA-SYM-006",
-            symbol => $"Cannot reference variable '{symbol.Name}' because it has not yet been declared",
+            symbol => $"Cannot reference variable '{symbol.Name}' because it has not been declared yet",
             Severity.Error);
 }
