@@ -190,6 +190,8 @@ public sealed class ReturnExpression : Expression
         Expression is not null
             ? [Expression]
             : [];
+    
+    public Semantic<FunctionDeclaration?> Function { get; internal set; }
 }
 
 public sealed class BreakExpression : Expression
@@ -200,11 +202,15 @@ public sealed class BreakExpression : Expression
         Expression is not null
             ? [Expression]
             : [];
+    
+    public Semantic<LoopExpression?> Loop { get; internal set; }
 }
 
 public sealed class ContinueExpression : Expression
 {
     public override IEnumerable<Node> Children => [];
+    
+    public Semantic<LoopExpression?> Loop { get; internal set; }
 }
 
 public sealed class UnaryExpression : Expression
