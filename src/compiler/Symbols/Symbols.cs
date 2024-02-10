@@ -1,3 +1,5 @@
+// ReSharper disable LocalVariableHidesMember
+
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;

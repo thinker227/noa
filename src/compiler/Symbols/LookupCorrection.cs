@@ -13,7 +13,7 @@ internal static class LookupCorrection
     /// Finds possible correction symbols for a typo in a symbol name.
     /// </summary>
     /// <param name="name">The name which might have a typo.</param>
-    /// <param name="scope">The scope to find corrections symbols in.</param>
+    /// <param name="scope">The scope to find correction symbols in.</param>
     /// <param name="at">The node at which to look up the correction symbols.</param>
     public static IReadOnlyCollection<ISymbol> FindPossibleCorrections(string name, IScope scope, Node at) =>
         scope.AccessibleAt(at)
