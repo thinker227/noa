@@ -1,6 +1,7 @@
-﻿using Noa.Compiler.Diagnostics;
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Parsing;
+using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler;
 
@@ -28,7 +29,7 @@ public sealed class Ast
     /// <summary>
     /// The global scope in which all top-level symbols are declared.
     /// </summary>
-    public Semantic<Scope> GlobalScope { get; internal set; }
+    public Semantic<IScope> GlobalScope { get; internal set; }
 
     private Ast(Source source)
     {

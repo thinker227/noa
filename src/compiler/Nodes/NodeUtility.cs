@@ -28,7 +28,7 @@ public static class NodeUtility
     /// <param name="node">The node to get the ancestors of.</param>
     public static IEnumerable<Node> Ancestors(this Node node) =>
         node.Parent.Value is not null
-            ? node.AncestorsAndSelf()
+            ? node.Parent.Value.AncestorsAndSelf()
             : [];
 
     /// <summary>

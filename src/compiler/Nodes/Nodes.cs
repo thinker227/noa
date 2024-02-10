@@ -31,7 +31,7 @@ public abstract class Node
     /// <summary>
     /// The semantic scope of the node.
     /// </summary>
-    public Semantic<Scope> Scope { get; internal set; }
+    public Semantic<IScope> Scope { get; internal set; }
 
     /// <summary>
     /// Returns an empty collection if the passed in node is null,
