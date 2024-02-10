@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -7,6 +8,7 @@ namespace Noa.Compiler.Symbols;
 /// </summary>
 /// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
 /// <param name="declaration">The node which declares the scope.</param>
+[DebuggerDisplay("{GetDebuggerDisplay()}")]
 internal sealed class MapScope(IScope? parent, Node declaration) : IMutableScope
 {
     private readonly Dictionary<string, IDeclaredSymbol> symbols = new();
@@ -40,4 +42,7 @@ internal sealed class MapScope(IScope? parent, Node declaration) : IMutableScope
         symbols[name] = symbol;
         return new(null);
     }
+
+    private string GetDebuggerDisplay() =>
+        $"Map scope {{ Symbols = {symbols.Count} }}";
 }

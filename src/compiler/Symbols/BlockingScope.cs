@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -5,6 +6,7 @@ namespace Noa.Compiler.Symbols;
 /// <summary>
 /// A scope which blocks access to variables and parameters from its parent scope.
 /// </summary>
+[DebuggerDisplay("Blocking scope")]
 internal sealed class BlockingScope(IScope parent, Node declaration) : IScope
 {
     public IScope Parent { get; } = parent;
