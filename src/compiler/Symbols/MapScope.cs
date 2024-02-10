@@ -25,10 +25,8 @@ internal sealed class MapScope(IScope? parent, Node declaration) : IMutableScope
     public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at) =>
         symbols.Values;
 
-    public IEnumerable<LookupResult> AccessibleAt(Node? at) =>
-        DeclaredAt(at)
-            .Select(s => new LookupResult(s, SymbolAccessibility.Accessible))
-            .Concat(Parent?.AccessibleAt(declaration) ?? []);
+    public IEnumerable<ISymbol> AccessibleAt(Node? at) =>
+        DeclaredAt(at).Concat(Parent?.AccessibleAt(declaration) ?? []);
 
     public DeclarationResult Declare(IDeclaredSymbol symbol)
     {

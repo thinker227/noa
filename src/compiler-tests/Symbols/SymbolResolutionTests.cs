@@ -70,10 +70,7 @@ public class SymbolResolutionTests
         declared.ShouldBe([x, y], ignoreOrder: true);
         
         var accessible = scope.AccessibleAt(null);
-        accessible.ShouldBe([
-            new(x, SymbolAccessibility.Accessible),
-            new(y, SymbolAccessibility.Accessible)
-        ], ignoreOrder: true);
+        accessible.ShouldBe([x, y], ignoreOrder: true);
     }
 
     [Fact]

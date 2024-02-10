@@ -15,24 +15,11 @@ internal static class LookupCorrection
     /// <param name="name">The name which might have a typo.</param>
     /// <param name="scope">The scope to find corrections symbols in.</param>
     /// <param name="at">The node at which to look up the correction symbols.</param>
-    public static IReadOnlyCollection<ISymbol> FindPossibleCorrections(string name, IScope scope, Node at)
-    {
-        var corrections = new List<ISymbol>();
-        
-        var accessible = scope.AccessibleAt(at);
-        foreach (var (symbol, accessibility) in accessible)
-        {
-            // Would be annoying to suggest symbols which aren't accessible.
-            if (accessibility is not SymbolAccessibility.Accessible) continue;
+    public static IReadOnlyCollection<ISymbol> FindPossibleCorrections(string name, IScope scope, Node at) =>
+        scope.AccessibleAt(at)
+            .Where(symbol => Distance(name, symbol.Name, MaxDistance + 1) <= MaxDistance)
+            .ToArray();
 
-            var distance = Distance(name, symbol.Name, MaxDistance + 1);
-
-            if (distance <= MaxDistance) corrections.Add(symbol);
-        }
-
-        return corrections;
-    }
-    
     // ------------------------------------------------------------------------------------------------------------
     // Adapted from
     // https://github.com/feature23/StringSimilarity.NET/blob/main/src/F23.StringSimilarity/Levenshtein.cs#L81-L164

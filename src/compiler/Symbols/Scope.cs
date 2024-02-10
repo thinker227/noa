@@ -38,13 +38,13 @@ public interface IScope
     IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at);
 
     /// <summary>
-    /// Gets the accessible symbols at a specific point in the scope.
+    /// Gets all accessible symbols at a specific point in the scope.
     /// </summary>
     /// <param name="at">
     /// The node at which to find the accessible symbols.
     /// If not specified, will get the accessible symbols at the end of the scope.
     /// </param>
-    IEnumerable<LookupResult> AccessibleAt(Node? at);
+    IEnumerable<ISymbol> AccessibleAt(Node? at);
 }
 
 /// <summary>

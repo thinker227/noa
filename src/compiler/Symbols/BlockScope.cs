@@ -153,15 +153,14 @@ internal sealed class BlockScope(
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
     }
 
-    public IEnumerable<LookupResult> AccessibleAt(Node? at)
+    public IEnumerable<ISymbol> AccessibleAt(Node? at)
     {
         if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return [];
 
         var variables = VariableTimeline[timelineIndex];
 
         var declared = Functions.Values
-            .Concat((IEnumerable<IDeclaredSymbol>)variables.Values)
-            .Select(s => new LookupResult(s, SymbolAccessibility.Accessible));
+            .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
 
         var parentAccessible = Parent?.AccessibleAt(statement) ?? [];
 
