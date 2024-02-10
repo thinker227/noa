@@ -9,7 +9,7 @@ namespace Noa.Compiler.Symbols;
 /// <param name="parent">The parent scope, or null if the scope is the global scope.</param>
 /// <param name="declaration">The node which declares the scope.</param>
 [DebuggerDisplay("{GetDebuggerDisplay()}")]
-internal sealed class MapScope(IScope? parent, Node declaration)
+internal sealed class MapScope(IScope? parent, Node declaration) : IScope
 {
     private readonly Dictionary<string, IDeclaredSymbol> symbols = new();
     
