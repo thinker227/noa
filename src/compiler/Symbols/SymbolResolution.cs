@@ -225,7 +225,9 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         
         if (currentScope.LookupSymbol(identifier, node) is not var (symbol, accessibility))
         {
-            Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(identifier, node.Location));
+            Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(
+                (identifier, currentScope, node),
+                node.Location));
 
             node.ReferencedSymbol = new ErrorSymbol();
             

@@ -1,4 +1,5 @@
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
 
@@ -24,10 +25,22 @@ internal static class SymbolDiagnostics
                    $"Variables cannot shadow functions",
             Severity.Error);
     
-    public static DiagnosticTemplate<string> SymbolCannotBeFound { get; } =
-        DiagnosticTemplate.Create<string>(
+    public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
+        DiagnosticTemplate.Create<(string name, IScope scope, Node at)>(
             "NOA-SYM-004",
-            name => $"Symbol '{name}' cannot be found in the current scope",
+            arg =>
+            {
+                var (name, scope, at) = arg;
+                var corrections = LookupCorrection.FindPossibleCorrections(name, scope, at);
+
+                if (corrections.Count == 0) return $"Symbol '{name}' cannot be found in the current scope";
+
+                var correctionsString = Formatting.JoinOxfordOr(corrections
+                    .Select(s => $"'{s.Name}'"));
+
+                return $"Symbol '{name}' cannot be found in the current scope. " +
+                       $"Did you perhaps mean {correctionsString}?";
+            },
             Severity.Error);
     
     public static DiagnosticTemplate<ISymbol> BlockedByFunction { get; } =
