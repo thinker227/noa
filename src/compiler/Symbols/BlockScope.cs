@@ -169,5 +169,5 @@ internal sealed class BlockScope(
     }
 
     private string GetDebuggerDisplay() =>
-        $"Block scope {{ Functions = {Functions.Count}, Variables = {VariableTimeline.Count} }}";
+        $"Block scope {{ Functions = {Functions.Count}, Variables = {VariableTimeline[^1].Count} }}";
 }
