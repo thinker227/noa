@@ -18,8 +18,9 @@
 
 - [x] AST
 - [x] Lexer
-- [ ] Parser
-- [ ] Scope/symbol resolution
+- [x] Parser
+- [x] Scope/symbol resolution
+- [ ] Flow analysis
 - [ ] Optimization
 - [ ] Bytecode
 - [ ] Runtime
