@@ -23,13 +23,16 @@ public static class FlowAnalyzer
 file sealed class Visitor : Visitor<int>
 {
     private readonly Stack<FunctionDeclaration> functions = [];
-    private readonly Stack<LoopExpression> loops = [];
+    private readonly Stack<LoopExpression?> loops = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
     
     protected override int VisitFunctionDeclaration(FunctionDeclaration node)
     {
         functions.Push(node);
+        // Push null to the loop stack to indicate that we're at
+        // the top-level inside a function body, which is not a loop.
+        loops.Push(null);
 
         Visit(node.Identifier);
         Visit(node.Parameters);
@@ -37,6 +40,7 @@ file sealed class Visitor : Visitor<int>
         Visit(node.BlockBody);
 
         functions.Pop();
+        loops.Pop();
 
         return default;
     }
@@ -71,7 +75,7 @@ file sealed class Visitor : Visitor<int>
 
     protected override int VisitBreakExpression(BreakExpression node)
     {
-        if (loops.TryPeek(out var loop))
+        if (loops.TryPeek(out var loop) && loop is not null)
         {
             node.Loop = loop;
         }
@@ -88,7 +92,7 @@ file sealed class Visitor : Visitor<int>
 
     protected override int VisitContinueExpression(ContinueExpression node)
     {
-        if (loops.TryPeek(out var loop))
+        if (loops.TryPeek(out var loop) && loop is not null)
         {
             node.Loop = loop;
         }
