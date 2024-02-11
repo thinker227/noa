@@ -1,3 +1,4 @@
+using Noa.Compiler.Nodes;
 using Noa.Compiler.Tests;
 
 namespace Noa.Compiler.FlowAnalysis.Tests;
@@ -5,7 +6,7 @@ namespace Noa.Compiler.FlowAnalysis.Tests;
 public class FlowAnalyzerTests
 {
     [Fact]
-    public void Return_OutsideFunction_Produces_ReturnOutsideFunction()
+    public void Return_OutsideFunction_Produces_ReturnOutsideFunction_AndSetsFunction_ToNull()
     {
         var text = """
         return;
@@ -18,10 +19,14 @@ public class FlowAnalyzerTests
         diagnostics.DiagnosticsShouldBe([
             (FlowDiagnostics.ReturnOutsideFunction.Id, new("test-input", 0, 6))
         ]);
+
+        var @return = (ReturnExpression)ast.Root.FindNodeAt(0)!;
+        
+        @return.Function.Value.ShouldBeNull();
     }
     
     [Fact]
-    public void Break_OutsideLoop_Produces_BreakOutsideLoop()
+    public void Break_OutsideLoop_Produces_BreakOutsideLoop_AndSetsLoop_ToNull()
     {
         var text = """
         break;
@@ -34,10 +39,14 @@ public class FlowAnalyzerTests
         diagnostics.DiagnosticsShouldBe([
             (FlowDiagnostics.BreakOutsideFunction.Id, new("test-input", 0, 5))
         ]);
+
+        var @break = (BreakExpression)ast.Root.FindNodeAt(0)!;
+        
+        @break.Loop.Value.ShouldBeNull();
     }
     
     [Fact]
-    public void Continue_OutsideLoop_Produces_ContinueOutsideLoop()
+    public void Continue_OutsideLoop_Produces_ContinueOutsideLoop_AndSetsLoop_ToNull()
     {
         var text = """
         continue;
@@ -50,6 +59,10 @@ public class FlowAnalyzerTests
         diagnostics.DiagnosticsShouldBe([
             (FlowDiagnostics.ContinueOutsideFunction.Id, new("test-input", 0, 8))
         ]);
+
+        var @continue = (ContinueExpression)ast.Root.FindNodeAt(0)!;
+        
+        @continue.Loop.Value.ShouldBeNull();
     }
     
     [Fact]
@@ -93,7 +106,7 @@ public class FlowAnalyzerTests
     }
     
     [Fact]
-    public void Return_InsideFunction_DoesNotProduceDiagnostics()
+    public void Return_InsideFunction_DoesNotProduceDiagnostics_AndSetsFunction_ToFunction()
     {
         var text = """
         func f() {
@@ -106,10 +119,16 @@ public class FlowAnalyzerTests
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
+
+        var func = (FunctionDeclaration)ast.Root.FindNodeAt(0)!;
+        var @return = (ReturnExpression)ast.Root.FindNodeAt(15)!;
+        
+        @return.Function.Value!.IsLambda.ShouldBeFalse();
+        @return.Function.Value!.Function.ShouldBe(func);
     }
     
     [Fact]
-    public void Return_InsideLambda_DoesNotProduceDiagnostics()
+    public void Return_InsideLambda_DoesNotProduceDiagnostics_AndSetsFunction_ToLambda()
     {
         var text = """
         let f = () => {
@@ -122,10 +141,37 @@ public class FlowAnalyzerTests
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
+
+        var lambda = (LambdaExpression)ast.Root.FindNodeAt(8)!;
+        var @return = (ReturnExpression)ast.Root.FindNodeAt(20)!;
+
+        @return.Function.Value!.IsLambda.ShouldBeTrue();
+        @return.Function.Value!.Lambda.ShouldBe(lambda);
     }
     
     [Fact]
-    public void Break_InsideLoop_DoesNotProduceDiagnostics()
+    public void Break_InsideLoop_DoesNotProduceDiagnostics_AndSetsLoop_ToLoop()
+    {
+        var text = """
+        loop {
+            break;
+        };
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = FlowAnalyzer.Analyze(ast);
+
+        diagnostics.DiagnosticsShouldBe([]);
+
+        var loop = (LoopExpression)ast.Root.FindNodeAt(0)!;
+        var @break = (BreakExpression)ast.Root.FindNodeAt(11)!;
+
+        @break.Loop.Value!.ShouldBe(loop);
+    }
+    
+    [Fact]
+    public void Continue_InsideLoop_DoesNotProduceDiagnostics_AndSetsLoop_ToLoop()
     {
         var text = """
         loop {
@@ -138,21 +184,10 @@ public class FlowAnalyzerTests
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
-    }
-    
-    [Fact]
-    public void Continue_InsideLoop_DoesNotProduceDiagnostics()
-    {
-        var text = """
-        loop {
-            continue;
-        };
-        """;
-        var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
 
-        var diagnostics = FlowAnalyzer.Analyze(ast);
+        var loop = (LoopExpression)ast.Root.FindNodeAt(0)!;
+        var @continue = (ContinueExpression)ast.Root.FindNodeAt(11)!;
 
-        diagnostics.DiagnosticsShouldBe([]);
+        @continue.Loop.Value!.ShouldBe(loop);
     }
 }
