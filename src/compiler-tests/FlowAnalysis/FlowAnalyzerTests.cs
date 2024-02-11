@@ -109,6 +109,22 @@ public class FlowAnalyzerTests
     }
     
     [Fact]
+    public void Return_InsideLambda_DoesNotProduceDiagnostics()
+    {
+        var text = """
+        let f = () => {
+            return;
+        };
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Create(source);
+
+        var diagnostics = FlowAnalyzer.Analyze(ast);
+
+        diagnostics.DiagnosticsShouldBe([]);
+    }
+    
+    [Fact]
     public void Break_InsideLoop_DoesNotProduceDiagnostics()
     {
         var text = """
