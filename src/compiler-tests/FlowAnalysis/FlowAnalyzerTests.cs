@@ -12,7 +12,7 @@ public class FlowAnalyzerTests
         return;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -32,7 +32,7 @@ public class FlowAnalyzerTests
         break;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -52,7 +52,7 @@ public class FlowAnalyzerTests
         continue;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -76,7 +76,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -96,7 +96,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -114,7 +114,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -136,7 +136,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -158,7 +158,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
@@ -179,7 +179,7 @@ public class FlowAnalyzerTests
         };
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = FlowAnalyzer.Analyze(ast);
 

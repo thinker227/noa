@@ -29,11 +29,9 @@ app.AddCommand((
     var source = new Source(text, name);
 
     var ast = Ast.Create(source);
-    var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast);
-    var flowDiagnostics = FlowAnalyzer.Analyze(ast);
-    var diagnostics = ast.Diagnostics.Concat(symbolDiagnostics).Concat(flowDiagnostics).ToArray();
+    var diagnostics = ast.Diagnostics;
 
-    if (diagnostics.Length > 0)
+    if (diagnostics.Count > 0)
     {
         foreach (var diagnostic in diagnostics)
         {

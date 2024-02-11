@@ -11,7 +11,7 @@ public class NodeUtilityTests
         //           ^
         var position = 13;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var node = ast.Root.FindNodeAt(position);
 
@@ -27,7 +27,7 @@ public class NodeUtilityTests
         """;
         var position = 20;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var node = ast.Root.FindNodeAt(position);
 
@@ -43,7 +43,7 @@ public class NodeUtilityTests
         //   ^
         var position = 5;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var node = ast.Root.FindNodeAt(position);
 

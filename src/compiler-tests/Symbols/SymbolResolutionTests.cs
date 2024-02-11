@@ -13,7 +13,7 @@ public class SymbolResolutionTests
         let x = 1;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -47,7 +47,7 @@ public class SymbolResolutionTests
         let y = 0;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -85,7 +85,7 @@ public class SymbolResolutionTests
         }
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -105,7 +105,7 @@ public class SymbolResolutionTests
         func f() {}
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -121,7 +121,7 @@ public class SymbolResolutionTests
         func f(a, a) {}
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -138,7 +138,7 @@ public class SymbolResolutionTests
         func x {}
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -154,7 +154,7 @@ public class SymbolResolutionTests
         let x = v;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -171,7 +171,7 @@ public class SymbolResolutionTests
         func f() => x;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
@@ -187,7 +187,7 @@ public class SymbolResolutionTests
         let x = x;
         """;
         var source = new Source(text, "test-input");
-        var ast = Ast.Create(source);
+        var ast = Ast.Parse(source);
 
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 

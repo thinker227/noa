@@ -3,8 +3,13 @@ using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
 
-public static class SymbolResolution
+internal static class SymbolResolution
 {
+    /// <summary>
+    /// Resolves scopes and symbols of an AST.
+    /// </summary>
+    /// <param name="ast">The AST to resolve the scopes and symbols of.</param>
+    /// <returns>The diagnostics produced by the resolution.</returns>
     public static IReadOnlyCollection<IDiagnostic> ResolveSymbols(Ast ast)
     {
         var globalScope = new MapScope(null, ast.Root);

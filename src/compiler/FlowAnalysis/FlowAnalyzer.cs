@@ -3,7 +3,7 @@ using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.FlowAnalysis;
 
-public static class FlowAnalyzer
+internal static class FlowAnalyzer
 {
     /// <summary>
     /// Analyzes the flow of an AST.

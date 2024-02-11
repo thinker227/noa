@@ -1,4 +1,7 @@
+// ReSharper disable LocalVariableHidesMember
+
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.FlowAnalysis;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Parsing;
 using Noa.Compiler.Symbols;
@@ -11,6 +14,7 @@ namespace Noa.Compiler;
 public sealed class Ast
 {
     private readonly Root? root;
+    private readonly List<IDiagnostic> diagnostics;
     private IReadOnlyDictionary<Node, Node>? parents = null;
 
     /// <summary>
@@ -24,7 +28,7 @@ public sealed class Ast
     /// <summary>
     /// The diagnostics in the AST.
     /// </summary>
-    public IReadOnlyCollection<IDiagnostic> Diagnostics { get; }
+    public IReadOnlyCollection<IDiagnostic> Diagnostics => diagnostics;
     
     /// <summary>
     /// The global scope in which all top-level symbols are declared.
@@ -33,7 +37,10 @@ public sealed class Ast
 
     private Ast(Source source)
     {
-        (root, Diagnostics) = Parser.Parse(source, this);
+        var (root, diagnostics) = Parser.Parse(source, this);
+        
+        this.root = root;
+        this.diagnostics = diagnostics.ToList();
     }
 
     /// <summary>
@@ -43,18 +50,15 @@ public sealed class Ast
     internal Ast()
     {
         root = null;
-        Diagnostics = [];
+        diagnostics = [];
     }
 
     /// <summary>
     /// Creates a new AST by parsing a source.
-    /// This leaves <see cref="GlobalScope"/> as null.
     /// </summary>
     /// <param name="source">The source file to parse.</param>
-    internal static Ast Parse(Source source)
-    {
-        return new(source);
-    }
+    internal static Ast Parse(Source source) =>
+        new(source);
 
     /// <summary>
     /// Creates a new AST from source.
@@ -62,7 +66,15 @@ public sealed class Ast
     /// <param name="source">The source to create the AST from.</param>
     public static Ast Create(Source source)
     {
-        return Parse(source);
+        var ast = Parse(source);
+
+        var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast);
+        ast.diagnostics.AddRange(symbolDiagnostics);
+
+        var flowDiagnostics = FlowAnalyzer.Analyze(ast);
+        ast.diagnostics.AddRange(flowDiagnostics);
+
+        return ast;
     }
 
     /// <summary>
