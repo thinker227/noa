@@ -15,7 +15,11 @@ statement = functionDeclaration
 
 
 
-functionDeclaration = 'func' NAME '(' parameter* ')' (blockExpression | ('=>' expression ';')) ;
+functionDeclaration = 'func' NAME '(' parameter* ')' functionBody ;
+
+functionBody = blockExpression
+             | '=>' expression ';'
+             ;
 
 letDeclaration = 'let' NAME '=' expression ;
 
