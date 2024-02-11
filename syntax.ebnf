@@ -3,11 +3,11 @@ root = statement* ;
 
 
 statement = functionDeclaration
-          | letDeclaration ';'
-          | callExpression ';'
-          | returnExpression ';'
-          | breakExpression ';'
-          | continueExpression ';'
+          | letDeclaration      ';'
+          | callExpression      ';'
+          | returnExpression    ';'
+          | breakExpression     ';'
+          | continueExpression  ';'
           | blockExpression
           | ifExpression
           | loopExpression
