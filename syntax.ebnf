@@ -3,7 +3,7 @@ root = statement* ;
 
 
 statement = functionDeclaration
-          | letDeclaration      ';'
+          | letDeclaration
           | callExpression      ';'
           | returnExpression    ';'
           | breakExpression     ';'
@@ -21,7 +21,7 @@ functionBody = blockExpression
              | '=>' expression ';'
              ;
 
-letDeclaration = 'let' NAME '=' expression ;
+letDeclaration = 'let' NAME '=' expression ';' ;
 
 parameter = 'mut'? NAME ;
 
