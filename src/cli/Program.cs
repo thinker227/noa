@@ -2,6 +2,7 @@
 using Cocona;
 using Cocona.Lite;
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.FlowAnalysis;
 using Spectre.Console;
 using Noa.Compiler.Symbols;
 
@@ -29,7 +30,8 @@ app.AddCommand((
 
     var ast = Ast.Create(source);
     var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast);
-    var diagnostics = ast.Diagnostics.Concat(symbolDiagnostics).ToArray();
+    var flowDiagnostics = FlowAnalyzer.Analyze(ast);
+    var diagnostics = ast.Diagnostics.Concat(symbolDiagnostics).Concat(flowDiagnostics).ToArray();
 
     if (diagnostics.Length > 0)
     {
