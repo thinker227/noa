@@ -4,14 +4,15 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    internal BlockExpression ParseBlockExpression()
+    internal (ImmutableArray<Statement>, Expression?) ParseBlock(
+        bool allowTrailingExpression,
+        TokenKind endKind,
+        IReadOnlySet<TokenKind> synchronizationTokens)
     {
-        var openBrace = Expect(TokenKind.OpenBrace);
-
         var statements = ImmutableArray.CreateBuilder<Statement>();
         var trailingExpression = null as Expression;
         
-        while (!AtEnd && Current.Kind is not TokenKind.CloseBrace)
+        while (!AtEnd && Current.Kind != endKind)
         {
             var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
@@ -22,7 +23,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                while (!AtEnd && !synchronizationTokens.Contains(Current.Kind)) Advance();
 
                 continue;
             }
@@ -51,10 +52,11 @@ internal sealed partial class Parser
 
             // If the token after the expression is not a semicolon and cannot start another
             // declaration or expression, then it's most likely a trailing expression.
-            if (Current.Kind is not TokenKind.Semicolon &&
+            if (allowTrailingExpression &&
+                Current.Kind is not TokenKind.Semicolon &&
                 !SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
             {
-                if (Current.Kind is TokenKind.CloseBrace)
+                if (Current.Kind == endKind)
                 {
                     trailingExpression = expression;
                     break;
@@ -66,10 +68,10 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                while (!AtEnd && !synchronizationTokens.Contains(Current.Kind)) Advance();
 
-                // If we find a closing brace then the expression was a trailing expression and we're done.
-                if (Current.Kind is TokenKind.CloseBrace)
+                // If we find a closing token then the expression was a trailing expression and we're done.
+                if (Current.Kind == endKind)
                 {
                     trailingExpression = expression;
                     break;
@@ -106,15 +108,28 @@ internal sealed partial class Parser
                 Expression = expression
             });
         }
-        
-        var closeBrace = Expect(TokenKind.CloseBrace);
 
-        return new()
+        return (statements.ToImmutable(), trailingExpression);
+    }
+    
+    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
+    {
+        var declaration = null as Declaration;
+        var expression = null as Expression;
+
+        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
+
+        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
         {
-            Ast = Ast,
-            Location = new(Source.Name, openBrace.Location.Start, closeBrace.Location.End),
-            Statements = statements.ToImmutable(),
-            TrailingExpression = trailingExpression
-        };
+            declaration = ParseDeclaration();
+        }
+        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
+        {
+            expression = ParseExpressionOrError();
+        }
+        else throw new UnreachableException(
+            "Kind could begin a statement but neither a declaration nor expression");
+
+        return (declaration, expression);
     }
 }

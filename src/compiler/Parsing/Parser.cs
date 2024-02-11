@@ -27,25 +27,10 @@ internal sealed partial class Parser
 
     internal Root ParseRoot()
     {
-        var statements = ImmutableArray.CreateBuilder<Statement>();
-        
-        while (!AtEnd)
-        {
-            var statement = ParseStatementOrNull();
-
-            if (statement is not null)
-            {
-                statements.Add(statement);
-                continue;
-            }
-            
-            // An unexpected token was encountered.
-            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
-            ReportDiagnostic(diagnostic);
-            
-            // Try synchronize with the next statement.
-            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(Current.Kind)) Advance();
-        }
+        var (statements, _) = ParseBlock(
+            allowTrailingExpression: false,
+            endKind: TokenKind.EndOfFile,
+            synchronizationTokens: SyntaxFacts.RootSynchronize);
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
@@ -56,64 +41,8 @@ internal sealed partial class Parser
         {
             Ast = Ast,
             Location = location,
-            Statements = statements.ToImmutable()
+            Statements = statements
         };
-    }
-
-    internal Statement? ParseStatementOrNull()
-    {
-        var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
-
-        if (declarationOrExpression is not var (declaration, expression)) return null;
-        
-        if (expression is not null && !expression.IsExpressionStatement())
-        {
-            // Only expression *statements* are allowed here.
-
-            var diagnostic = ParseDiagnostics.InvalidExpressionStatement.Format(expression.Location);
-            ReportDiagnostic(diagnostic);
-        }
-
-        var semicolon = Expect(TokenKind.Semicolon);
-
-        var start = (declaration, expression) switch
-        {
-            (not null, null) => declaration.Location.Start,
-            (null, not null) => expression.Location.Start,
-            // It's impossible for both the declaration and expression to not be null.
-            _ => throw new UnreachableException()
-        };
-
-        return new()
-        {
-            Ast = Ast,
-            Location = new(Source.Name, start, semicolon.Location.End),
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            IsDeclaration = declaration is not null,
-            Declaration = declaration,
-            Expression = expression
-        };
-    }
-    
-    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
-    {
-        var declaration = null as Declaration;
-        var expression = null as Expression;
-
-        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
-
-        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
-        {
-            declaration = ParseDeclaration();
-        }
-        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
-        {
-            expression = ParseExpressionOrError();
-        }
-        else throw new UnreachableException(
-            "Kind could begin a statement but neither a declaration nor expression");
-
-        return (declaration, expression);
     }
 
     internal Identifier ParseIdentifier()
