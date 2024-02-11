@@ -2,29 +2,26 @@ root = statement* ;
 
 
 
-statement = (declaration | expressionStatement) ';' ;
+statement = functionDeclaration
+          | letDeclaration ';'
+          | callExpression ';'
+          | returnExpression ';'
+          | breakExpression ';'
+          | continueExpression ';'
+          | blockExpression
+          | ifExpression
+          | loopExpression
+          ;
 
 
 
-declaration = functionDeclaration
-            | letDeclaration
-            ;
-
-functionDeclaration = 'func' NAME '(' parameter* ')' (blockExpression | ('=>' expression)) ;
+functionDeclaration = 'func' NAME '(' parameter* ')' (blockExpression | ('=>' expression ';')) ;
 
 letDeclaration = 'let' NAME '=' expression ;
 
 parameter = 'mut'? NAME ;
 
 
-
-expressionStatement = blockExpression
-                    | callExpression
-                    | ifExpression
-                    | loopExpression
-                    | returnExpression
-                    | breakExpression
-                    | continueExpression ;
 
 expression = blockExpression
            | callExpression
