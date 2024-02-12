@@ -83,7 +83,7 @@ internal sealed partial class Parser
 
         Expect(TokenKind.CloseParen);
 
-        var expressionBody = null as Expression;
+        var expressionBody = null as (Expression expression, Token semicolon)?;
         var blockBody = null as BlockExpression;
         
         if (Current.Kind is TokenKind.OpenBrace)
@@ -94,14 +94,18 @@ internal sealed partial class Parser
         {
             Expect(TokenKind.EqualsGreaterThan);
 
-            expressionBody = ParseExpressionOrError();
+            var expression = ParseExpressionOrError();
+            
+            var semicolon = Expect(TokenKind.Semicolon);
+
+            expressionBody = (expression, semicolon);
         }
 
-        var end = (blockBody, expressionBody) switch
+        var end = (expressionBody, blockBody) switch
         {
-            (not null, null) => blockBody.Location.End,
-            (null, not null) => expressionBody.Location.End,
-            // It's impossible for both the expression body and block body to not be null.
+            (var (_, semicolon), null) => semicolon.Location.End,
+            (null, not null) => blockBody.Location.End,
+            // It's impossible for the expression body and block body to both be null or both not be null.
             _ => throw new UnreachableException()
         };
 
@@ -111,7 +115,7 @@ internal sealed partial class Parser
             Location = new(Source.Name, func.Location.Start, end),
             Identifier = identifier,
             Parameters = parameters,
-            ExpressionBody = expressionBody,
+            ExpressionBody = expressionBody?.expression,
             BlockBody = blockBody
         };
     }
@@ -153,10 +157,12 @@ internal sealed partial class Parser
 
         var expression = ParseExpressionOrError();
 
+        var semicolon = Expect(TokenKind.Semicolon);
+
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, let.Location.Start, expression.Location.End),
+            Location = new(Source.Name, let.Location.Start, semicolon.Location.End),
             IsMutable = isMutable,
             Identifier = identifier,
             Expression = expression

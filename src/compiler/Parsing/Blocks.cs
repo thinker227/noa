@@ -27,19 +27,16 @@ internal sealed partial class Parser
 
                 continue;
             }
-
-            Token semicolon;
             
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (declaration is not null)
             {
-                // A declaration always expects a semicolon afterwards.
-                semicolon = Expect(TokenKind.Semicolon);
+                // A declaration expecting a semicolon is dependent on the syntax of each kind of declaration.
 
                 statements.Add(new()
                 {
                     Ast = Ast,
-                    Location = new(Source.Name, declaration.Location.Start, semicolon.Location.End),
+                    Location = declaration.Location,
                     IsDeclaration = true,
                     Declaration = declaration,
                     Expression = null
@@ -97,12 +94,17 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
             }
             
-            semicolon = Expect(TokenKind.Semicolon);
+            // If the expression is a control flow expression statement then we don't expect a semicolon.
+            var semicolon = expression.IsControlFlowExpressionStatement()
+                ? null as Token?
+                : Expect(TokenKind.Semicolon);
 
+            var end = semicolon?.Location.End ?? expression.Location.End;
+            
             statements.Add(new()
             {
                 Ast = Ast,
-                Location = new(Source.Name, expression.Location.Start, semicolon.Location.End),
+                Location = new(Source.Name, expression.Location.Start, end),
                 IsDeclaration = false,
                 Declaration = null,
                 Expression = expression
