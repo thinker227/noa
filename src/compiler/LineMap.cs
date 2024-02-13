@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Noa.Compiler;
 
 /// <summary>
@@ -5,13 +7,39 @@ namespace Noa.Compiler;
 /// </summary>
 public sealed class LineMap
 {
+    private readonly List<Line> lines;
+
+    private LineMap(List<Line> lines) =>
+        this.lines = lines;
+    
     /// <summary>
     /// Creates a new line map.
     /// </summary>
     /// <param name="str">The string of character to create the map from.</param>
     public static LineMap Create(ReadOnlySpan<char> str)
     {
-        throw new NotImplementedException();
+        var lines = new List<Line>();
+
+        var lineNumber = 1;
+        var lineStart = 0;
+        var lineLength = 0;
+        
+        for (var i = 0; i < str.Length; i++)
+        {
+            lineLength++;
+
+            if (str[i] is not '\n') continue;
+            
+            lines.Add(new(lineNumber, lineStart, lineStart + lineLength));
+
+            lineNumber++;
+            lineStart = i + 1;
+            lineLength = 0;
+        }
+        
+        lines.Add(new(lineNumber, lineStart, lineStart + lineLength));
+
+        return new(lines);
     }
 
     /// <summary>
@@ -20,7 +48,10 @@ public sealed class LineMap
     /// <param name="lineNumber">The <b>1-indexed</b> line number of the line to get.</param>
     public Line GetLine(int lineNumber)
     {
-        throw new NotImplementedException();
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(lineNumber);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(lineNumber, lines.Count);
+
+        return lines[lineNumber - 1];
     }
 
     /// <summary>
@@ -29,7 +60,31 @@ public sealed class LineMap
     /// <param name="position">The position in the text to get the character position at.</param>
     public CharacterPosition GetCharacterPosition(int position)
     {
-        throw new NotImplementedException();
+        ArgumentOutOfRangeException.ThrowIfNegative(position);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(position, lines[^1].End);
+
+        var span = CollectionsMarshal.AsSpan(lines);
+
+        while (true)
+        {
+            if (span.Length == 0)
+            {
+                // This should be unreachable, but throw just in case.
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            var index = span.Length / 2;
+            var line = span[index];
+
+            if (position >= line.Start && position < line.End)
+            {
+                return new(line, position - line.Start);
+            }
+
+            span = position < line.Start
+                ? span[..index]
+                : span[(index + 1)..];
+        }
     }
 }
 
