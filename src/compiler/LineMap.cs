@@ -3,11 +3,21 @@ using System.Runtime.InteropServices;
 namespace Noa.Compiler;
 
 /// <summary>
-/// A mapping of lines and character positions of a text.
+/// A mapping between lines and character positions of a text.
 /// </summary>
 public sealed class LineMap
 {
     private readonly List<Line> lines;
+
+    /// <summary>
+    /// The total amount of lines in the map.
+    /// </summary>
+    public int LineCount => lines.Count;
+
+    /// <summary>
+    /// The size of the mapped text.
+    /// </summary>
+    public int Size => lines[^1].End;
 
     private LineMap(List<Line> lines) =>
         this.lines = lines;

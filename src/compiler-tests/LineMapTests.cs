@@ -126,4 +126,20 @@ public class LineMapTests
 
         Should.Throw<ArgumentOutOfRangeException>(() => map.GetCharacterPosition(position));
     }
+
+    [Fact]
+    public void LineCount_ReturnsLineCount()
+    {
+        var map = LineMap.Create("\n\n\n\n");
+
+        map.LineCount.ShouldBe(5);
+    }
+
+    [Fact]
+    public void Size_ReturnsCharacterCount()
+    {
+        var map = LineMap.Create(Text);
+
+        map.Size.ShouldBe(12);
+    }
 }
