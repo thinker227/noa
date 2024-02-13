@@ -46,7 +46,10 @@ public class CommandBase
         
         console.Write(statusText);
         console.WriteLine();
-        if (diagnosticsResult.Count > 0) console.Write(diagnosticsDisplay);
+        if (diagnosticsResult.Count > 0)
+            console.Write(diagnosticsDisplay);
+        else 
+            console.WriteLine();
     }
 
     private static Markup DisplayBuildStatusText(IReadOnlyDictionary<Severity, IDiagnostic[]> diagnostics)
