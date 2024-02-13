@@ -71,7 +71,7 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
 
             console.Write(DisplayBuildDuration(time));
             console.WriteLine();
-            PrintStatus(console, ast.Diagnostics);
+            PrintStatus(console, ast.Source, ast.Diagnostics);
         }
     }
 

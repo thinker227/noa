@@ -24,7 +24,7 @@ public sealed class Compile(IAnsiConsole console) : CommandBase
 
         console.Write(DisplayBuildDuration(time));
         console.WriteLine();
-        PrintStatus(console, ast.Diagnostics);
+        PrintStatus(console, ast.Source, ast.Diagnostics);
         
         return 0;
     }

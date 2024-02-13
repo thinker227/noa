@@ -27,7 +27,7 @@ public class CommandBase
         return (ast, time);
     }
 
-    protected static void PrintStatus(IAnsiConsole console, IReadOnlyCollection<IDiagnostic> diagnosticsResult)
+    protected static void PrintStatus(IAnsiConsole console, Source source, IReadOnlyCollection<IDiagnostic> diagnosticsResult)
     {
         var collectedDiagnostics = diagnosticsResult
             .GroupBy(x => x.Severity)
@@ -41,7 +41,7 @@ public class CommandBase
             .ThenBy(x => x.Location.Length);
 
         var statusText = DisplayBuildStatusText(collectedDiagnostics);
-        var diagnosticsGrid = DisplayDiagnosticsGrid(diagnostics);
+        var diagnosticsGrid = DisplayDiagnosticsGrid(source, diagnostics);
         var diagnosticsDisplay = new Padder(diagnosticsGrid).Padding(6, 1, 0, 1);
         
         console.Write(statusText);
@@ -84,9 +84,10 @@ public class CommandBase
                 : "";
     }
 
-    private static Grid DisplayDiagnosticsGrid(IEnumerable<IDiagnostic> diagnostics)
+    private static Grid DisplayDiagnosticsGrid(Source source, IEnumerable<IDiagnostic> diagnostics)
     {
-        var displays = diagnostics.Select(DisplayDiagnostic);
+        // Todo: this is a massive hack to avoid getting out of range exceptions.
+        var lineMap = LineMap.Create(source.Text + " ");
 
         var grid = new Grid()
             .AddColumn(new GridColumn()
@@ -95,17 +96,20 @@ public class CommandBase
                 .Padding(0, 0, 0, 0));
 
         var dash = new Text("-");
-        foreach (var display in displays)
+        foreach (var diagnostic in diagnostics)
         {
+            var display = DisplayDiagnostic(lineMap, diagnostic);
             grid.AddRow(dash, display);
         }
 
         return grid;
     }
 
-    private static Markup DisplayDiagnostic(IDiagnostic diagnostic)
+    private static Markup DisplayDiagnostic(LineMap lineMap, IDiagnostic diagnostic)
     {
         var location = diagnostic.Location;
+        var start = lineMap.GetCharacterPosition(location.Start);
+        var end = lineMap.GetCharacterPosition(location.End);
         
         var color = diagnostic.Severity switch
         {
@@ -115,7 +119,9 @@ public class CommandBase
         };
 
         var text = $"[white]{diagnostic.Id}[/] at " +
-                   $"[aqua]{location.Start}[/] to [aqua]{location.End}[/] in [aqua]{location.SourceName}[/]\n" +
+                   $"[aqua]{start.Line.LineNumber}:{start.Offset + 1}[/] to " +
+                   $"[aqua]{end.Line.LineNumber}:{end.Offset + 1}[/] " +
+                   $"in [aqua]{location.SourceName}[/]\n" +
                    $"[{color.ToMarkup()}]{diagnostic.Message}[/]";
             
         return new Markup(text, Color.Grey);
