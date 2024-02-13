@@ -1,11 +1,12 @@
 using System.Runtime.InteropServices;
+using System.Collections;
 
 namespace Noa.Compiler;
 
 /// <summary>
 /// A mapping between lines and character positions of a text.
 /// </summary>
-public sealed class LineMap
+public sealed class LineMap : IReadOnlyList<Line>
 {
     private readonly List<Line> lines;
 
@@ -18,6 +19,11 @@ public sealed class LineMap
     /// The size of the mapped text.
     /// </summary>
     public int Size => lines[^1].End;
+
+    int IReadOnlyCollection<Line>.Count => LineCount;
+
+    Line IReadOnlyList<Line>.this[int index] =>
+        GetLine(index + 1);
 
     private LineMap(List<Line> lines) =>
         this.lines = lines;
@@ -96,6 +102,13 @@ public sealed class LineMap
                 : span[(index + 1)..];
         }
     }
+
+    /// <summary>
+    /// Enumerates the lines of the map.
+    /// </summary>
+    public IEnumerator<Line> GetEnumerator() => lines.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 /// <summary>

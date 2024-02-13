@@ -142,4 +142,16 @@ public class LineMapTests
 
         map.Size.ShouldBe(12);
     }
+
+    [Fact]
+    public void Enumerable_ReturnsLines()
+    {
+        var map = LineMap.Create(Text);
+        
+        map.ToArray().ShouldBe([
+            new(1, 0, 4),
+            new(2, 4, 10),
+            new(3, 10, 12)
+        ]);
+    }
 }
