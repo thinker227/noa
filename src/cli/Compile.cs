@@ -5,9 +5,9 @@ namespace Noa.Cli;
 
 public sealed class Compile(IAnsiConsole console) : CommandBase
 {
-    [Command(Description = "Compiles a source file")]
+    [Command("build", Description = "Compiles a source file")]
     public int Execute(
-        [Option("input-file", ['i'], Description = "The file to run")] string inputFile)
+        [Argument("input-file", Description = "The file to run")] string inputFile)
     {
         var file = new FileInfo(inputFile);
         var displayPath = GetDisplayPath(file);
