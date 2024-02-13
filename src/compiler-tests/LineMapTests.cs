@@ -2,17 +2,13 @@ namespace Noa.Compiler.Tests;
 
 public class LineMapTests
 {
-    private const string Text = """
-    all
-    babel
-    cs
-    """;
+    private const string Text = "all\nbabel\ncs";
     
     public static IEnumerable<object[]> GetLine_ReturnsLine_InRange_Data()
     {
         yield return Data(lineNumber: 1, lineStart: 0, lineEnd: 4);
-        yield return Data(lineNumber: 2, lineStart: 4, lineEnd: 8);
-        yield return Data(lineNumber: 3, lineStart: 8, lineEnd: 11);
+        yield return Data(lineNumber: 2, lineStart: 4, lineEnd: 10);
+        yield return Data(lineNumber: 3, lineStart: 10, lineEnd: 12);
 
         yield break;
         
@@ -56,39 +52,39 @@ public class LineMapTests
     public static IEnumerable<object[]> GetCharacterPosition_ReturnsCharacterPosition_InRange_Data()
     {
         yield return Data(
-            position: 0, 
-            lineNumber: 1, 
-            lineStart: 0, 
-            lineEnd: 4, 
+            position: 0,
+            lineNumber: 1,
+            lineStart: 0,
+            lineEnd: 4,
             characterOffset: 0);
         
         yield return Data(
             position: 3,
-            lineNumber: 1, 
-            lineStart: 0, 
-            lineEnd: 4, 
+            lineNumber: 1,
+            lineStart: 0,
+            lineEnd: 4,
             characterOffset: 3);
         
         yield return Data(
             position: 4,
-            lineNumber: 2, 
-            lineStart: 4, 
-            lineEnd: 8, 
+            lineNumber: 2,
+            lineStart: 4,
+            lineEnd: 10,
             characterOffset: 0);
         
         yield return Data(
-            position: 6, 
-            lineNumber: 2, 
-            lineStart: 4, 
-            lineEnd: 8, 
+            position: 6,
+            lineNumber: 2,
+            lineStart: 4,
+            lineEnd: 10,
             characterOffset: 2);
         
         yield return Data(
-            position: 10, 
-            lineNumber: 3, 
-            lineStart: 8, 
-            lineEnd: 11, 
-            characterOffset: 2);
+            position: 11,
+            lineNumber: 3,
+            lineStart: 10,
+            lineEnd: 12,
+            characterOffset: 1);
         
         yield break;
         
@@ -113,8 +109,8 @@ public class LineMapTests
     {
         yield return Data(-1);
         yield return Data(-2);
-        yield return Data(11);
         yield return Data(12);
+        yield return Data(13);
         
         yield break;
         
