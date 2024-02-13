@@ -31,7 +31,7 @@ public sealed class LineMap : IReadOnlyList<Line>
     /// <summary>
     /// Creates a new line map.
     /// </summary>
-    /// <param name="str">The string of character to create the map from.</param>
+    /// <param name="str">The string of characters to create the map from.</param>
     public static LineMap Create(ReadOnlySpan<char> str)
     {
         var lines = new List<Line>();
@@ -59,7 +59,7 @@ public sealed class LineMap : IReadOnlyList<Line>
     }
 
     /// <summary>
-    /// Gets the line with a specified <b>1-indexed</b> line number.
+    /// Gets the line with the specified <b>1-indexed</b> line number.
     /// </summary>
     /// <param name="lineNumber">The <b>1-indexed</b> line number of the line to get.</param>
     public Line GetLine(int lineNumber)
