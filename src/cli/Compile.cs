@@ -22,7 +22,8 @@ public sealed class Compile(IAnsiConsole console) : CommandBase
 
         var (ast, time) = CoreCompile(file);
 
-        console.MarkupLine($"\ud83d\udd52 Build took [aqua]{time}ms[/]");
+        console.Write(DisplayBuildDuration(time));
+        console.WriteLine();
         PrintStatus(console, ast.Diagnostics);
         
         return 0;

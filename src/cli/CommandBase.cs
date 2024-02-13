@@ -10,7 +10,7 @@ public class CommandBase
     protected static string GetDisplayPath(FileInfo file) =>
         Path.GetRelativePath(Environment.CurrentDirectory, file.FullName);
     
-    protected static (Ast ast, long time) CoreCompile(FileInfo file)
+    protected static (Ast ast, TimeSpan time) CoreCompile(FileInfo file)
     {
         var text = File.ReadAllText(file.FullName);
         var name = GetDisplayPath(file);
@@ -22,7 +22,7 @@ public class CommandBase
         var ast = Ast.Create(source);
 
         timer.Stop();
-        var time = timer.ElapsedMilliseconds;
+        var time = timer.Elapsed;
 
         return (ast, time);
     }
@@ -116,5 +116,14 @@ public class CommandBase
                    $"[{color.ToMarkup()}]{diagnostic.Message}[/]";
             
         return new Markup(text, Color.Grey);
+    }
+
+    protected static Markup DisplayBuildDuration(TimeSpan time)
+    {
+        var (duration, unit) = time.TotalMilliseconds >= 5
+            ? (time.TotalMilliseconds, "ms")
+            : (time.TotalMicroseconds, "μs");
+        
+        return new($"\ud83d\udd52 Build took [aqua]{duration:F0}{unit}[/]");
     }
 }
