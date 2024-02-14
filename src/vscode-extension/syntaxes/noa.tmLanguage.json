@@ -2,24 +2,24 @@
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     "name": "noa",
     "patterns": [
-		{
-			"include": "#keywords"
-		},
+        {
+            "include": "#keywords"
+        },
         {
             "include": "#calls"
         },
-		{
-			"include": "#numbers"
-		},
-		{
-			"include": "#names"
-		}
-	],
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#names"
+        }
+    ],
     "repository": {
         "keywords": {
             "patterns": [
                 {
-                    "name" :"keyword.other.noa",
+                    "name": "keyword.other.noa",
                     "match": "\\b(func|let)\\b"
                 },
                 {
