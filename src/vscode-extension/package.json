@@ -1,0 +1,34 @@
+{
+    "name": "noa-lang",
+    "displayName": "Noa Lang",
+    "description": "Language support for Noa",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.86.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "noa",
+                "aliases": [
+                    "Noa",
+                    "noa"
+                ],
+                "extensions": [
+                    ".noa"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "noa",
+                "scopeName": "source.noa",
+                "path": "./syntaxes/noa.tmLanguage.json"
+            }
+        ]
+    }
+}
