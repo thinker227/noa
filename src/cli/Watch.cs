@@ -3,19 +3,19 @@ using Spectre.Console;
 
 namespace Noa.Cli;
 
-public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandBase
+public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandBase(console)
 {
     [Command("watch", Description = "Watches a file for changes and re-compiles the file upon a change")]
     public async Task<int> Execute(
         [Argument("input-file", Description = "The file to watch for changes")]
         string inputFile)
     {
-        await RunWatch(console, inputFile, ct);
+        await RunWatch(inputFile, ct);
         
         return 0;
     }
     
-    private static async Task RunWatch(IAnsiConsole console, string inputFile, CancellationToken ct)
+    private async Task RunWatch(string inputFile, CancellationToken ct)
     {
         var file = new FileInfo(inputFile);
         
@@ -71,7 +71,7 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
 
             console.Write(DisplayBuildDuration(time));
             console.WriteLine();
-            PrintStatus(console, ast.Source, ast.Diagnostics);
+            PrintStatus(ast.Source, ast.Diagnostics);
         }
     }
 

@@ -5,8 +5,10 @@ using Spectre.Console;
 
 namespace Noa.Cli;
 
-public class CommandBase
+public abstract class CommandBase(IAnsiConsole console)
 {
+    protected readonly IAnsiConsole console = console;
+    
     protected static string GetDisplayPath(FileInfo file) =>
         Path.GetRelativePath(Environment.CurrentDirectory, file.FullName);
     
@@ -27,7 +29,7 @@ public class CommandBase
         return (ast, time);
     }
 
-    protected static void PrintStatus(IAnsiConsole console, Source source, IReadOnlyCollection<IDiagnostic> diagnosticsResult)
+    protected void PrintStatus(Source source, IReadOnlyCollection<IDiagnostic> diagnosticsResult)
     {
         var collectedDiagnostics = diagnosticsResult
             .GroupBy(x => x.Severity)

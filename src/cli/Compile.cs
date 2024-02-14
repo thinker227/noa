@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace Noa.Cli;
 
-public sealed class Compile(IAnsiConsole console) : CommandBase
+public sealed class Compile(IAnsiConsole console) : CommandBase(console)
 {
     [Command("build", Description = "Compiles a source file")]
     public int Execute(
@@ -24,7 +24,7 @@ public sealed class Compile(IAnsiConsole console) : CommandBase
 
         console.Write(DisplayBuildDuration(time));
         console.WriteLine();
-        PrintStatus(console, ast.Source, ast.Diagnostics);
+        PrintStatus(ast.Source, ast.Diagnostics);
         
         return 0;
     }
