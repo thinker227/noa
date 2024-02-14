@@ -62,18 +62,18 @@ public abstract class CommandBase(IAnsiConsole console)
         var text = (warnings, errors) switch
         {
             (null, null) =>
-                "\u2705 [green]Build succeeded![/]",
+                $"{Emoji.Known.CheckMarkButton} [green]Build succeeded![/]",
             
             (not null, null) =>
-                "\u2705 [green]Build succeeded[/] " +
+                $"{Emoji.Known.CheckMarkButton} [green]Build succeeded[/] " +
                 $"with [yellow]{warnings.Length} warning{Plural(warnings)}[/]",
             
             (null, not null) =>
-                "\u274c [red]Build failed[/] " +
+                $"{Emoji.Known.CrossMark} [red]Build failed[/] " +
                 $"with [red]{errors.Length} error{Plural(errors)}[/]",
             
             (not null, not null) =>
-                "\u274c [red]Build failed[/] " +
+                $"{Emoji.Known.CrossMark} [red]Build failed[/] " +
                 $"with [red]{errors.Length} error{Plural(errors)}[/] " +
                 $"and [yellow]{warnings.Length} warning{Plural(warnings)}[/]"
         };
@@ -135,6 +135,6 @@ public abstract class CommandBase(IAnsiConsole console)
             ? (time.TotalMilliseconds, "ms")
             : (time.TotalMicroseconds, "μs");
         
-        return new($"\ud83d\udd52 Build took [aqua]{duration:F0}{unit}[/]");
+        return new($"{Emoji.Known.Stopwatch}  Build took [aqua]{duration:F0}{unit}[/]");
     }
 }

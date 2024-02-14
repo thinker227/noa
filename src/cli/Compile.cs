@@ -14,11 +14,11 @@ public sealed class Compile(IAnsiConsole console) : CommandBase(console)
         
         if (!file.Exists)
         {
-            console.MarkupLine($"\u2754 [aqua]{displayPath}[/] [red]does not exist.[/]");
+            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [aqua]{displayPath}[/] [red]does not exist.[/]");
             return 1;
         }
 
-        console.MarkupLine($"\ud83d\udd27 Building [aqua]{displayPath}[/]...");
+        console.MarkupLine($"{Emoji.Known.Wrench} Building [aqua]{displayPath}[/]...");
 
         var (ast, time) = CoreCompile(file);
 

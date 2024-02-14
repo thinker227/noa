@@ -48,7 +48,7 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
 
         watcher.Deleted += (_, _) =>
         {
-            console.MarkupLine($"\ud83d\uddd1\ufe0f [aqua]{displayPath}[/] was deleted.");
+            console.MarkupLine($"{Emoji.Known.Wastebasket} [aqua]{displayPath}[/] was deleted.");
             
             taskCts.Cancel();
         };
@@ -59,13 +59,13 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
         }
         catch (TaskCanceledException) {}
     
-        console.MarkupLine("\ud83d\uded1 Stopped.");
+        console.MarkupLine($"{Emoji.Known.StopSign} Stopped.");
     
         return;
     
         void RunCompile()
         {
-            console.MarkupLine("\ud83d\udd27 Building... ");
+            console.MarkupLine($"{Emoji.Known.Wrench} Building... ");
     
             var (ast, time) = CoreCompile(file);
 
@@ -77,7 +77,7 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
 
     private static Rows DisplayStartupInfo(string displayPath)
     {
-        var header = new Text("\ud83d\udc40 Watch started!");
+        var header = new Text($"{Emoji.Known.Eyes} Watch started!");
 
         var info = new Padder(
             new Rows(
