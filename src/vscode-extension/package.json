@@ -3,6 +3,15 @@
     "displayName": "Noa Lang",
     "description": "Language support for Noa",
     "version": "0.0.1",
+    "author": {
+        "name": "thinker227"
+    },
+    "readme": "./README.md",
+    "license": "MIT",
+    "repository": {
+        "url": "https://github.com/thinker227/noa",
+        "type": "git"
+    },
     "engines": {
         "vscode": "^1.86.0"
     },
