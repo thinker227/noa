@@ -43,7 +43,7 @@
                     "match": "\\+|-|\\*|\\/|!|<|>|<=|>=|==|!="
                 },
                 {
-                    "name": "meta.punctuation",
+                    "name": "meta.punctuation.noa",
                     "match": ";|,|=|\\(|\\)|{|}"
                 }
             ]
