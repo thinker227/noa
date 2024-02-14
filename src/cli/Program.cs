@@ -1,55 +1,29 @@
-﻿using Noa.Compiler;
-using Cocona;
+﻿using Cocona;
 using Cocona.Lite;
-using Noa.Compiler.Diagnostics;
-using Noa.Compiler.FlowAnalysis;
+using Noa.Cli;
 using Spectre.Console;
-using Noa.Compiler.Symbols;
 
-var builder = CoconaLiteApp.CreateBuilder();
+var builder = CoconaLiteApp.CreateBuilder(args, options =>
+{
+    options.EnableShellCompletionSupport = true;
+    options.EnableConvertOptionNameToLowerCase = true;
+    options.EnableConvertArgumentNameToLowerCase = true;
+});
+
+var cts = new CancellationTokenSource();
+builder.Services.AddSingleton(cts.Token);
+Console.CancelKeyPress += (_, args) =>
+{
+    args.Cancel = true;
+    cts.Cancel();
+};
 
 var console = AnsiConsole.Create(new AnsiConsoleSettings());
 builder.Services.AddSingleton(console);
 
 var app = builder.Build();
 
-app.AddCommand((
-    IAnsiConsole console,
-    [Option("input-file", ['i'], Description = "The file to run")] string inputFile) =>
-{
-    if (!File.Exists(inputFile))
-    {
-        console.WriteLine($"File '{inputFile}' does not exist.");
-        return 1;
-    }
+app.AddCommands<Compile>();
+app.AddCommands<Watch>();
 
-    var text = File.ReadAllText(inputFile);
-    var file = new FileInfo(inputFile);
-    var name = file.Name;
-    var source = new Source(text, name);
-
-    var ast = Ast.Create(source);
-    var diagnostics = ast.Diagnostics;
-
-    if (diagnostics.Count > 0)
-    {
-        foreach (var diagnostic in diagnostics)
-        {
-            var color = diagnostic.Severity switch
-            {
-                Severity.Warning => Color.Yellow,
-                Severity.Error => Color.Red,
-                _ => Color.White
-            };
-            console.Write(new Text($"{diagnostic.Id}: {diagnostic.Message} ({diagnostic.Location})\n", color));
-        }
-    }
-    else
-    {
-        console.MarkupLine("[green]Success[/]");
-    }
-    
-    return 0;
-}).WithDescription("Compiles a file");
-
-app.Run();
+await app.RunAsync(cts.Token);
