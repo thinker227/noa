@@ -14,7 +14,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
     private readonly Dictionary<ISourceProvider, CompilationProvider> pendingCompilations = new();
 
     /// <summary>
-    /// Compiles a file.
+    /// Compiles a source from a source provider.
     /// </summary>
     /// <param name="sourceProvider">The source provider which provides the source to compile.</param>
     /// <param name="cancellationToken">The cancellation token for the compilation.</param>
