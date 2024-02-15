@@ -4,7 +4,7 @@ namespace Noa.Compiler.Workspace;
 /// An asynchronous provider for a compilation.
 /// </summary>
 /// <param name="path"></param>
-internal readonly struct CompilationProvider(string path) : IAsyncDisposable
+internal readonly struct CompilationProvider(Source source) : IAsyncDisposable
 {
     private readonly TaskCompletionSource completion = new();
     private readonly CancellationTokenSource providerCancellationSource = new();
@@ -16,11 +16,11 @@ internal readonly struct CompilationProvider(string path) : IAsyncDisposable
     /// <summary>
     /// Creates a new compilation provider and starts a compilation.
     /// </summary>
-    /// <param name="path">The path of the file to compile.</param>
+    /// <param name="source">The source create the compilation from.</param>
     /// <param name="cancellationToken">The cancellation token for the compilation.</param>
-    public static CompilationProvider CreateProvider(string path, CancellationToken cancellationToken)
+    public static CompilationProvider CreateProvider(Source source, CancellationToken cancellationToken)
     {
-        var provider = new CompilationProvider(path);
+        var provider = new CompilationProvider(source);
         
         _ = Task.Run(() => provider.Compile(cancellationToken), cancellationToken);
 

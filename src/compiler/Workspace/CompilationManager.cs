@@ -11,40 +11,39 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
 {
     private readonly TimeSpan debounceThreshold = debounceThreshold ?? TimeSpan.FromMilliseconds(50);
     private readonly SemaphoreSlim @lock = new(1, 1);
-    private readonly Dictionary<string, CompilationProvider> pendingCompilations = new();
-
-    private static string NormalizePath(string path) => Path.GetFullPath(path);
+    private readonly Dictionary<ISourceProvider, CompilationProvider> pendingCompilations = new();
 
     /// <summary>
     /// Compiles a file.
     /// </summary>
-    /// <param name="path">The path to the file to compile.</param>
+    /// <param name="sourceProvider">The source provider which provides the source to compile.</param>
     /// <param name="cancellationToken">The cancellation token for the compilation.</param>
-    public async Task Compile(string path, CancellationToken cancellationToken = default)
+    public async Task Compile(ISourceProvider sourceProvider, CancellationToken cancellationToken = default)
     {
-        path = NormalizePath(path);
-
         CompilationProvider provider;
 
         // The entire following block should only be executed once simultaneously.
         await @lock.WaitAsync(cancellationToken);
         try
         {
-            if (pendingCompilations.TryGetValue(path, out provider))
+            if (pendingCompilations.TryGetValue(sourceProvider, out provider))
             {
                 if (DateTimeOffset.UtcNow - provider.StartTime > debounceThreshold)
                 {
                     // Cancel the currently running compilation and start a new one.
                     await provider.DisposeAsync();
-                    provider = CompilationProvider.CreateProvider(path, cancellationToken);
-                    pendingCompilations[path] = provider;
+
+                    var source = sourceProvider.GetSource();
+                    provider = CompilationProvider.CreateProvider(source, cancellationToken);
+                    pendingCompilations[sourceProvider] = provider;
                 }
             }
             else
             {
                 // There is no currently running compilation, start a new one.
-                provider = CompilationProvider.CreateProvider(path, cancellationToken);
-                pendingCompilations[path] = provider;
+                var source = sourceProvider.GetSource();
+                provider = CompilationProvider.CreateProvider(source, cancellationToken);
+                pendingCompilations[sourceProvider] = provider;
             }
         }
         finally
@@ -62,7 +61,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
             await @lock.WaitAsync(cancellationToken);
             try
             {
-                pendingCompilations.Remove(path);
+                pendingCompilations.Remove(sourceProvider);
             }
             finally
             {
