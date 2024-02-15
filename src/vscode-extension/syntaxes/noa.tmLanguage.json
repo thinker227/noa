@@ -3,6 +3,9 @@
     "name": "noa",
     "patterns": [
         {
+            "include": "#comments"
+        },
+        {
             "include": "#keywords"
         },
         {
@@ -59,6 +62,10 @@
         "names": {
             "name": "variable.noa",
             "match": "\\p{L}(?:\\p{L}|\\p{N})*"
+        },
+        "comments": {
+            "name": "comment.line.double-slash.noa",
+            "match": "\\/\\/.*"
         }
     },
     "scopeName": "source.noa"
