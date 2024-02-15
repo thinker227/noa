@@ -76,11 +76,15 @@ public sealed class Ast
     public static Ast Create(Source source, CancellationToken cancellationToken = default)
     {
         var ast = Parse(source, cancellationToken);
+        
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast);
+        var symbolDiagnostics = SymbolResolution.ResolveSymbols(ast, cancellationToken);
         ast.diagnostics.AddRange(symbolDiagnostics);
+        
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var flowDiagnostics = FlowAnalyzer.Analyze(ast);
+        var flowDiagnostics = FlowAnalyzer.Analyze(ast, cancellationToken);
         ast.diagnostics.AddRange(flowDiagnostics);
 
         return ast;
