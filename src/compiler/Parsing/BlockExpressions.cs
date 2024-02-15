@@ -22,7 +22,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
 
                 continue;
             }
@@ -66,7 +66,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
 
                 // If we find a closing brace then the expression was a trailing expression and we're done.
                 if (Current.Kind is TokenKind.CloseBrace)

@@ -61,7 +61,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
             
                 // Try synchronize with the next parameter.
-                while (!AtEnd && !SyntaxFacts.LambdaParameterListSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
 
                 if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
                 {

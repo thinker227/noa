@@ -48,7 +48,7 @@ internal sealed partial class Parser
             ReportDiagnostic(diagnostic);
             
             // Try synchronize with the next statement.
-            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(Current.Kind)) Advance();
+            Synchronize(SyntaxFacts.RootSynchronize);
         }
 
         var endOfFile = Expect(TokenKind.EndOfFile);
