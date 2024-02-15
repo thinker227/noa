@@ -13,6 +13,8 @@ internal sealed partial class Parser
         
         while (!AtEnd && Current.Kind is not TokenKind.CloseBrace)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
             if (declarationOrExpression is not var (declaration, expression))

@@ -35,6 +35,8 @@ internal sealed partial class Parser
         
         while (!AtEnd)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             var statement = ParseStatementOrNull();
 
             if (statement is not null)

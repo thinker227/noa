@@ -32,6 +32,8 @@ internal sealed partial class Parser
         
         while (!AtEnd)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             // Check whether we've hit the end of the parameter list.
             // Checking this at the start of the loop also permits trailing commas.
             if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
