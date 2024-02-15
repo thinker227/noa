@@ -1,0 +1,72 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "noa",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#calls"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#names"
+        }
+    ],
+    "repository": {
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.other.noa",
+                    "match": "\\b(func|let)\\b"
+                },
+                {
+                    "name": "storage.modifier.noa",
+                    "match": "\\bmut\\b"
+                },
+                {
+                    "name": "keyword.other.noa",
+                    "match": "=>"
+                },
+                {
+                    "name": "keyword.control.noa",
+                    "match": "\\b(if|else|loop|return|break|continue)\\b"
+                },
+                {
+                    "name": "constant.language.boolean.noa",
+                    "match": "\\b(true|false)\\b"
+                },
+                {
+                    "name": "keyword.operator.noa",
+                    "match": "\\+|-|\\*|\\/|!|<|>|<=|>=|==|!="
+                },
+                {
+                    "name": "meta.punctuation.noa",
+                    "match": ";|,|=|\\(|\\)|{|}"
+                }
+            ]
+        },
+        "calls": {
+            "name": "entity.name.function.noa",
+            "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*\\("
+        },
+        "numbers": {
+            "name": "constant.numeric.noa",
+            "match": "\\b([0-9]+)"
+        },
+        "names": {
+            "name": "variable.noa",
+            "match": "\\p{L}(?:\\p{L}|\\p{N})*"
+        },
+        "comments": {
+            "name": "comment.line.double-slash.noa",
+            "match": "\\/\\/.*"
+        }
+    },
+    "scopeName": "source.noa"
+}

@@ -16,6 +16,11 @@ public sealed class Ast
     private readonly Root? root;
     private readonly List<IDiagnostic> diagnostics;
     private IReadOnlyDictionary<Node, Node>? parents = null;
+    
+    /// <summary>
+    /// The source for the AST.
+    /// </summary>
+    public Source Source { get; }
 
     /// <summary>
     /// The root of the syntax tree.
@@ -38,9 +43,10 @@ public sealed class Ast
     private Ast(Source source)
     {
         var (root, diagnostics) = Parser.Parse(source, this);
-        
+
         this.root = root;
         this.diagnostics = diagnostics.ToList();
+        Source = source;
     }
 
     /// <summary>
@@ -51,6 +57,7 @@ public sealed class Ast
     {
         root = null;
         diagnostics = [];
+        Source = default;
     }
 
     /// <summary>
