@@ -20,7 +20,7 @@ internal sealed partial class Parser
         Ast ast,
         CancellationToken cancellationToken)
     {
-        var tokens = Lexer.Lex(source);
+        var tokens = Lexer.Lex(source, cancellationToken);
         var parser = new Parser(source, ast, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
