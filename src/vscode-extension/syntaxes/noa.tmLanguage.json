@@ -49,7 +49,7 @@
             ]
         },
         "calls": {
-            "name": "entity.name.function",
+            "name": "entity.name.function.noa",
             "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*\\("
         },
         "numbers": {
