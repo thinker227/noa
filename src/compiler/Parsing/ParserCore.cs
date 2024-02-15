@@ -55,6 +55,20 @@ internal sealed partial class Parser
     }
 
     /// <summary>
+    /// Synchronizes the parser with a set of token kinds.
+    /// </summary>
+    /// <param name="synchronizationTokens">The token kinds to synchronize with.</param>
+    private void Synchronize(IReadOnlySet<TokenKind> synchronizationTokens)
+    {
+        while (!AtEnd && !synchronizationTokens.Contains(Current.Kind))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            Advance();
+        }
+    }
+
+    /// <summary>
     /// Parses a token-separated list of nodes.
     /// </summary>
     /// <param name="separatorKind">The token kind of the separator between the nodes.</param>
