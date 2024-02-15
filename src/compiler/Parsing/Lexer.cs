@@ -21,6 +21,13 @@ internal sealed partial class Lexer
         // Whitespace
         while (SyntaxFacts.IsWhitespace(Current)) Progress(1);
 
+        // Comments
+        if (Get(2) is "//")
+        {
+            while (!AtEnd && Current is not '\n') Progress(1);
+            return null;
+        }
+
         // If there is trailing whitespace before the end of the source,
         // the previous step has eaten all the whitespace, and we need to return null
         // to avoid choking on the end.
