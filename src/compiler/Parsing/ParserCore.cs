@@ -90,6 +90,8 @@ internal sealed partial class Parser
 
         while (!AtEnd)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var previousToken = Current;
 
             var node = parse();
