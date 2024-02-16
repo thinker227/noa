@@ -386,4 +386,232 @@ public class RootAndBlockExpressionTests
             }
         }
     }
+
+    [Fact]
+    public void Parses_LoopExpressions_InBlockExpressions_AsTrailingExpressions()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            loop {}
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<LoopExpression>();
+            {
+                p.N<BlockExpression>();
+            }
+        }
+    }
+
+    [Fact]
+    public void Parses_IfExpressions_InBlockExpressions_AsTrailingExpressions()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            if x {} else {}
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<IfExpression>();
+            {
+                p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+
+                p.N<BlockExpression>();
+
+                p.N<BlockExpression>();
+            }
+        }
+    }
+
+    [Fact]
+    public void Parses_BlockExpressions_InBlockExpressions_AsTrailingExpressions()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            {}
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<BlockExpression>();
+        }
+    }
+
+    [Fact]
+    public void Parses_LoopExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            loop {}
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<LoopExpression>();
+                {
+                    p.N<BlockExpression>();
+                }
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
+
+    [Fact]
+    public void Parses_IfExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            if x {} else {}
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<IfExpression>();
+                {
+                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+
+                    p.N<BlockExpression>();
+
+                    p.N<BlockExpression>();
+                }
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
+
+    [Fact]
+    public void Parses_BlockExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            {}
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<BlockExpression>();
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
+
+    [Fact]
+    public void Parses_LoopExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            loop {};
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([
+            (ParseDiagnostics.UnexpectedToken.Id, new("test-input", 13, 14)),
+            (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 13, 14))
+        ]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<LoopExpression>();
+                {
+                    p.N<BlockExpression>();
+                }
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
+
+    [Fact]
+    public void Parses_IfExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            if x {} else {};
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([
+            (ParseDiagnostics.UnexpectedToken.Id, new("test-input", 21, 22)),
+            (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 21, 22))
+        ]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<IfExpression>();
+                {
+                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+
+                    p.N<BlockExpression>();
+
+                    p.N<BlockExpression>();
+                }
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
+
+    [Fact]
+    public void Parses_BlockExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
+    {
+        using var p = ParseAssertion.Create("""
+        {
+            {};
+            0
+        }
+        """, p => p.ParseBlockExpression());
+
+        p.Diagnostics.DiagnosticsShouldBe([
+            (ParseDiagnostics.UnexpectedToken.Id, new("test-input", 8, 9)),
+            (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 8, 9))
+        ]);
+
+        p.N<BlockExpression>();
+        {
+            p.N<Statement>();
+            {
+                p.N<BlockExpression>();
+            }
+
+            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+        }
+    }
 }
