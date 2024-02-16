@@ -6,12 +6,12 @@ namespace Noa.Compiler.Workspace;
 /// <param name="path"></param>
 internal readonly struct CompilationProvider(Source source) : IAsyncDisposable
 {
-    private readonly TaskCompletionSource completion = new();
+    private readonly TaskCompletionSource<Ast> completion = new();
     private readonly CancellationTokenSource providerCancellationSource = new();
     
     public DateTimeOffset StartTime { get; } = DateTimeOffset.UtcNow;
 
-    public Task GetCompilation() => completion.Task;
+    public Task<Ast> GetCompilation() => completion.Task;
 
     /// <summary>
     /// Creates a new compilation provider and starts a compilation.
@@ -27,7 +27,7 @@ internal readonly struct CompilationProvider(Source source) : IAsyncDisposable
         return provider;
     }
 
-    private async Task Compile(CancellationToken cancellationToken)
+    private void Compile(CancellationToken cancellationToken)
     {
         try
         {
@@ -37,10 +37,9 @@ internal readonly struct CompilationProvider(Source source) : IAsyncDisposable
                 providerCancellationSource.Token,
                 cancellationToken);
 
-            // Todo: compilation here
-            await Task.Delay(5000, compilationCancellationSource.Token);
+            var ast = Ast.Create(source, compilationCancellationSource.Token);
 
-            completion.SetResult();
+            completion.SetResult(ast);
         }
         catch (Exception e)
         {

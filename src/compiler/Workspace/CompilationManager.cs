@@ -18,7 +18,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
     /// </summary>
     /// <param name="sourceProvider">The source provider which provides the source to compile.</param>
     /// <param name="cancellationToken">The cancellation token for the compilation.</param>
-    public async Task Compile(ISourceProvider sourceProvider, CancellationToken cancellationToken = default)
+    public async Task<Ast> Compile(ISourceProvider sourceProvider, CancellationToken cancellationToken = default)
     {
         CompilationProvider provider;
 
@@ -53,8 +53,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
 
         try
         {
-            // Todo: return compilation
-            await provider.GetCompilation();
+            return await provider.GetCompilation();
         }
         finally
         {
