@@ -9,10 +9,13 @@ internal static class FlowAnalyzer
     /// Analyzes the flow of an AST.
     /// </summary>
     /// <param name="ast">The AST to analyze.</param>
+    /// <param name="cancellationToken">The cancellation token which signals the flow analyzer to cancel.</param>
     /// <returns>The diagnostics produced by the analysis.</returns>
-    public static IReadOnlyCollection<IDiagnostic> Analyze(Ast ast)
+    public static IReadOnlyCollection<IDiagnostic> Analyze(
+        Ast ast,
+        CancellationToken cancellationToken = default)
     {
-        var visitor = new Visitor();
+        var visitor = new Visitor(cancellationToken);
         
         visitor.Visit(ast.Root);
 
@@ -20,13 +23,16 @@ internal static class FlowAnalyzer
     }
 }
 
-file sealed class Visitor : Visitor<int>
+file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 {
     private readonly Stack<FunctionOrLambda> functions = [];
     private readonly Stack<LoopExpression?> loops = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
-    
+
+    protected override void BeforeVisit(Node node) =>
+        cancellationToken.ThrowIfCancellationRequested();
+
     protected override int VisitFunctionDeclaration(FunctionDeclaration node)
     {
         functions.Push(new()

@@ -9,12 +9,15 @@ internal static class SymbolResolution
     /// Resolves scopes and symbols of an AST.
     /// </summary>
     /// <param name="ast">The AST to resolve the scopes and symbols of.</param>
+    /// <param name="cancellationToken">The cancellation token which signals the symbol resolver to cancel.</param>
     /// <returns>The diagnostics produced by the resolution.</returns>
-    public static IReadOnlyCollection<IDiagnostic> ResolveSymbols(Ast ast)
+    public static IReadOnlyCollection<IDiagnostic> ResolveSymbols(
+        Ast ast,
+        CancellationToken cancellationToken = default)
     {
         var globalScope = new MapScope(null, ast.Root);
         
-        var visitor = new Visitor(globalScope);
+        var visitor = new Visitor(globalScope, cancellationToken);
         visitor.Visit(ast.Root);
 
         ast.GlobalScope = globalScope;
@@ -25,14 +28,18 @@ internal static class SymbolResolution
 }
 
 // Int here is just used as a useless type.
-file sealed class Visitor(IScope globalScope) : Visitor<int>
+file sealed class Visitor(IScope globalScope, CancellationToken cancellationToken) : Visitor<int>
 {
     private IScope currentScope = globalScope;
     
     public List<IDiagnostic> Diagnostics { get; } = [];
 
-    protected override void BeforeVisit(Node node) =>
+    protected override void BeforeVisit(Node node)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         node.Scope = new(currentScope);
+    }
 
     private void InScope(IScope scope, Action action)
     {
@@ -53,6 +60,11 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         
         foreach (var statement in statements)
         {
+            // These two foreach loops may take a substantial amount of time depending on the amount of
+            // statements within the block. Placing a cancellation point at the start of each iteration
+            // prevents a requested cancellation from taking too long here. 
+            cancellationToken.ThrowIfCancellationRequested();
+            
             if (statement.Declaration is not FunctionDeclaration func) continue;
             
             var functionSymbol = new FunctionSymbol()
@@ -96,6 +108,8 @@ file sealed class Visitor(IScope globalScope) : Visitor<int>
         
         foreach (var statement in statements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             timelineIndexMap[statement] = timelineIndex;
 
             if (statement.Declaration is not LetDeclaration let) continue;

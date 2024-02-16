@@ -49,6 +49,8 @@ internal sealed partial class Parser
 
             while (!parser.AtEnd && kindsSet.Contains(parser.Current.Kind))
             {
+                parser.cancellationToken.ThrowIfCancellationRequested();
+                
                 var kindToken = parser.Advance();
                 var kind = kindToken.Kind.ToBinaryKind()
                     ?? throw new InvalidOperationException($"{kindToken.Kind} cannot be converted into a binary kind");

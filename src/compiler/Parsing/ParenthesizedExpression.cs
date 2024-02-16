@@ -32,6 +32,8 @@ internal sealed partial class Parser
         
         while (!AtEnd)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             // Check whether we've hit the end of the parameter list.
             // Checking this at the start of the loop also permits trailing commas.
             if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
@@ -61,7 +63,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
             
                 // Try synchronize with the next parameter.
-                while (!AtEnd && !SyntaxFacts.LambdaParameterListSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
 
                 if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
                 {

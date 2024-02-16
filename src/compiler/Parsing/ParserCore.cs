@@ -6,6 +6,7 @@ namespace Noa.Compiler.Parsing;
 internal sealed partial class Parser
 {
     private ParseState state;
+    private readonly CancellationToken cancellationToken;
 
     internal IReadOnlyCollection<IDiagnostic> Diagnostics => state.Diagnostics;
     
@@ -16,9 +17,16 @@ internal sealed partial class Parser
     private Token Current => state.Current;
 
     private bool AtEnd => Current.Kind is TokenKind.EndOfFile;
-    
-    internal Parser(Source source, Ast ast, IEnumerable<Token> tokenSource) =>
+
+    internal Parser(
+        Source source,
+        Ast ast,
+        IEnumerable<Token> tokenSource,
+        CancellationToken cancellationToken)
+    {
         state = new(source, ast, tokenSource);
+        this.cancellationToken = cancellationToken;
+    }
 
     private void ReportDiagnostic(IDiagnostic diagnostic) =>
         state.Diagnostics.Add(diagnostic);
@@ -44,6 +52,20 @@ internal sealed partial class Parser
         ReportDiagnostic(diagnostic);
         
         return null;
+    }
+
+    /// <summary>
+    /// Synchronizes the parser with a set of token kinds.
+    /// </summary>
+    /// <param name="synchronizationTokens">The token kinds to synchronize with.</param>
+    private void Synchronize(IReadOnlySet<TokenKind> synchronizationTokens)
+    {
+        while (!AtEnd && !synchronizationTokens.Contains(Current.Kind))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            Advance();
+        }
     }
 
     /// <summary>

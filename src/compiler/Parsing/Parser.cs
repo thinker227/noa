@@ -14,10 +14,14 @@ internal sealed partial class Parser
     /// </summary>
     /// <param name="source">The source file to parse.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
-    public static (Root, IReadOnlyCollection<IDiagnostic>) Parse(Source source, Ast ast)
+    /// <param name="cancellationToken">The cancellation token used to signal the parser to cancel.</param>
+    public static (Root, IReadOnlyCollection<IDiagnostic>) Parse(
+        Source source,
+        Ast ast,
+        CancellationToken cancellationToken)
     {
-        var tokens = Lexer.Lex(source);
-        var parser = new Parser(source, ast, tokens);
+        var tokens = Lexer.Lex(source, cancellationToken);
+        var parser = new Parser(source, ast, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
         var diagnostics = parser.Diagnostics;
@@ -31,6 +35,8 @@ internal sealed partial class Parser
         
         while (!AtEnd)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             var statement = ParseStatementOrNull();
 
             if (statement is not null)
@@ -44,7 +50,7 @@ internal sealed partial class Parser
             ReportDiagnostic(diagnostic);
             
             // Try synchronize with the next statement.
-            while (!AtEnd && !SyntaxFacts.RootSynchronize.Contains(Current.Kind)) Advance();
+            Synchronize(SyntaxFacts.RootSynchronize);
         }
 
         var endOfFile = Expect(TokenKind.EndOfFile);

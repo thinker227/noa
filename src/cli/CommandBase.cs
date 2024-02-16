@@ -12,7 +12,7 @@ public abstract class CommandBase(IAnsiConsole console)
     protected static string GetDisplayPath(FileInfo file) =>
         Path.GetRelativePath(Environment.CurrentDirectory, file.FullName);
     
-    protected static (Ast ast, TimeSpan time) CoreCompile(FileInfo file)
+    protected static (Ast ast, TimeSpan time) CoreCompile(FileInfo file, CancellationToken ct)
     {
         var text = File.ReadAllText(file.FullName);
         var name = GetDisplayPath(file);
@@ -21,7 +21,7 @@ public abstract class CommandBase(IAnsiConsole console)
         var timer = new Stopwatch();
         timer.Start();
         
-        var ast = Ast.Create(source);
+        var ast = Ast.Create(source, ct);
 
         timer.Stop();
         var time = timer.Elapsed;

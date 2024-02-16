@@ -1,6 +1,6 @@
 namespace Noa.Compiler.Parsing;
 
-internal sealed partial class Lexer(Source source)
+internal sealed partial class Lexer(Source source, CancellationToken cancellationToken)
 {
     private readonly string text = source.Text;
     private int position = 0;

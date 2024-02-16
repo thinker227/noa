@@ -22,9 +22,9 @@ internal sealed class ParseAssertion : IDisposable
     {
         var source = new Source(text, "test-input");
         var ast = new Ast();
-        var tokens = Lexer.Lex(source);
+        var tokens = Lexer.Lex(source, default);
 
-        var parser = new Parser(source, ast, tokens);
+        var parser = new Parser(source, ast, tokens, default);
 
         var root = parse(parser);
         var diagnostics = parser.Diagnostics;
