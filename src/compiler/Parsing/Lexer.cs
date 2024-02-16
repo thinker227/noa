@@ -2,9 +2,9 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer
 {
-    public static IEnumerable<Token> Lex(Source source)
+    public static IEnumerable<Token> Lex(Source source, CancellationToken cancellationToken)
     {
-        var lexer = new Lexer(source);
+        var lexer = new Lexer(source, cancellationToken);
 
         while (!lexer.AtEnd)
         {
@@ -19,12 +19,23 @@ internal sealed partial class Lexer
     private Token? NextToken()
     {
         // Whitespace
-        while (SyntaxFacts.IsWhitespace(Current)) Progress(1);
+        while (SyntaxFacts.IsWhitespace(Current))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            Progress(1);
+        }
 
         // Comments
         if (Get(2) is "//")
         {
-            while (!AtEnd && Current is not '\n') Progress(1);
+            while (!AtEnd && Current is not '\n')
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                Progress(1);
+            }
+            
             return null;
         }
 

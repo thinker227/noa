@@ -67,7 +67,7 @@ public sealed class Watch(IAnsiConsole console, CancellationToken ct) : CommandB
         {
             console.MarkupLine($"{Emoji.Known.Wrench} Building... ");
     
-            var (ast, time) = CoreCompile(file);
+            var (ast, time) = CoreCompile(file, taskCt);
 
             console.Write(DisplayBuildDuration(time));
             console.WriteLine();

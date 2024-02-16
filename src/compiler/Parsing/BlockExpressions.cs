@@ -13,6 +13,8 @@ internal sealed partial class Parser
         
         while (!AtEnd && Current.Kind is not TokenKind.CloseBrace)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
 
             if (declarationOrExpression is not var (declaration, expression))
@@ -22,7 +24,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
 
                 continue;
             }
@@ -66,7 +68,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                while (!AtEnd && !SyntaxFacts.BlockExpressionSynchronize.Contains(Current.Kind)) Advance();
+                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
 
                 // If we find a closing brace then the expression was a trailing expression and we're done.
                 if (Current.Kind is TokenKind.CloseBrace)
