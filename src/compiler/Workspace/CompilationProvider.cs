@@ -3,14 +3,17 @@ namespace Noa.Compiler.Workspace;
 /// <summary>
 /// An asynchronous provider for a compilation.
 /// </summary>
-/// <param name="path"></param>
-internal readonly struct CompilationProvider(Source source) : IAsyncDisposable
+internal readonly struct CompilationProvider : IAsyncDisposable
 {
+    private readonly Source source;
     private readonly TaskCompletionSource<Ast> completion = new();
     private readonly CancellationTokenSource providerCancellationSource = new();
     
     public DateTimeOffset StartTime { get; } = DateTimeOffset.UtcNow;
 
+    private CompilationProvider(Source source) =>
+        this.source = source;
+    
     public Task<Ast> GetCompilation() => completion.Task;
 
     /// <summary>
