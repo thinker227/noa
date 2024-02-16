@@ -1,3 +1,6 @@
+// ReSharper disable MethodSupportsCancellation
+#pragma warning disable CA2016
+
 namespace Noa.Compiler.Workspace;
 
 /// <summary>
@@ -23,7 +26,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
         CompilationProvider provider;
 
         // The entire following block should only be executed once simultaneously.
-        await @lock.WaitAsync(cancellationToken);
+        await @lock.WaitAsync();
         try
         {
             if (pendingCompilations.TryGetValue(sourceProvider, out provider))
@@ -57,7 +60,7 @@ public sealed class CompilationManager(TimeSpan? debounceThreshold = null)
         }
         finally
         {
-            await @lock.WaitAsync(cancellationToken);
+            await @lock.WaitAsync();
             try
             {
                 pendingCompilations.Remove(sourceProvider);
