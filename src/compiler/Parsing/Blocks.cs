@@ -25,7 +25,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
+                Synchronize(synchronizationTokens);
 
                 continue;
             }
@@ -67,7 +67,7 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
+                Synchronize(synchronizationTokens);
 
                 // If we find a closing token then the expression was a trailing expression and we're done.
                 if (Current.Kind == endKind)
