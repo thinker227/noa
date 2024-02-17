@@ -64,8 +64,9 @@ public abstract class Visitor<T>
     protected virtual T VisitStatement(Statement node) => node switch
     {
         Declaration x => VisitDeclaration(x),
+        AssignmentStatement x => VisitAssignmentStatement(x),
         ExpressionStatement x => VisitExpressionStatement(x),
-        _ => throw new ArgumentOutOfRangeException(nameof(node))
+        _ => throw new UnreachableException()
     };
     
     protected virtual T VisitParameter(Parameter node)
