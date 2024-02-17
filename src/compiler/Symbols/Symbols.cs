@@ -62,9 +62,20 @@ public sealed class FunctionSymbol : IDeclaredSymbol
 }
 
 /// <summary>
+/// Represents a variable-like symbol.
+/// </summary>
+public interface IVariableSymbol : ISymbol
+{
+    /// <summary>
+    /// Whether the variable is declared as mutable.
+    /// </summary>
+    bool IsMutable { get; }
+}
+
+/// <summary>
 /// Represents a variable declared by a let declaration.
 /// </summary>
-public sealed class VariableSymbol : IDeclaredSymbol
+public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
 {
     public required string Name { get; init; }
 
@@ -86,7 +97,7 @@ public sealed class VariableSymbol : IDeclaredSymbol
 /// <summary>
 /// Represents a parameter declared by a function expression.
 /// </summary>
-public sealed class ParameterSymbol : IDeclaredSymbol
+public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
 {
     public required string Name { get; init; }
 
