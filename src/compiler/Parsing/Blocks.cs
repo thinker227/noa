@@ -34,15 +34,9 @@ internal sealed partial class Parser
             if (declaration is not null)
             {
                 // A declaration expecting a semicolon is dependent on the syntax of each kind of declaration.
+                // No semicolon should be expected here.
 
-                statements.Add(new()
-                {
-                    Ast = Ast,
-                    Location = declaration.Location,
-                    IsDeclaration = true,
-                    Declaration = declaration,
-                    Expression = null
-                });
+                statements.Add(declaration);
                 continue;
             }
 
@@ -102,13 +96,11 @@ internal sealed partial class Parser
                 : Expect(TokenKind.Semicolon);
 
             var end = semicolon?.Location.End ?? expression.Location.End;
-            
-            statements.Add(new()
+
+            statements.Add(new ExpressionStatement()
             {
                 Ast = Ast,
                 Location = new(Source.Name, expression.Location.Start, end),
-                IsDeclaration = false,
-                Declaration = null,
                 Expression = expression
             });
         }
