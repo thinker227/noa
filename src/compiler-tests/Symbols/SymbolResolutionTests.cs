@@ -143,7 +143,7 @@ public class SymbolResolutionTests
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
         diagnostics.DiagnosticsShouldBe([
-            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 0, 9))
+            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 0, 10))
         ]);
     }
 
