@@ -42,4 +42,10 @@ internal static class ParseDiagnostics
             "NOA-SYN-005",
             text => $"Number literal '{text}' is too large (> {int.MaxValue})",
             Severity.Error);
+
+    public static DiagnosticTemplate InvalidLValue { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-006",
+            "Only identifiers can be assigned to",
+            Severity.Error);
 }

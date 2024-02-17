@@ -107,7 +107,7 @@ internal static class SyntaxFacts
     /// <summary>
     /// The set of tokens which can begin a declaration or expression.
     /// </summary>
-    public static FrozenSet<TokenKind> CanBeginDeclarationOrExpression { get; } =
+    public static FrozenSet<TokenKind> CanBeginStatement { get; } =
         CanBeginDeclaration
             .Concat(CanBeginExpression)
             .ToFrozenSet();
@@ -115,7 +115,7 @@ internal static class SyntaxFacts
     /// <summary>
     /// The set of tokens to synchronize with inside a syntax root.
     /// </summary>
-    public static FrozenSet<TokenKind> RootSynchronize { get; } = CanBeginDeclarationOrExpression;
+    public static FrozenSet<TokenKind> RootSynchronize { get; } = CanBeginStatement;
 
     /// <summary>
     /// The set of tokens to synchronize with inside a block expression.
@@ -156,4 +156,11 @@ internal static class SyntaxFacts
         is BlockExpression
         or IfExpression
         or LoopExpression;
+
+    /// <summary>
+    /// Returns whether an expression is a valid l-value.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool IsValidLValue(this Expression expression) => expression
+        is IdentifierExpression;
 }

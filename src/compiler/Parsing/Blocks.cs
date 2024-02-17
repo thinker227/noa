@@ -16,9 +16,9 @@ internal sealed partial class Parser
         {
             cancellationToken.ThrowIfCancellationRequested();
             
-            var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
+            var statementOrExpression = ParseStatementOrExpressionOrNull();
 
-            if (declarationOrExpression is not var (declaration, expression))
+            if (statementOrExpression is not var (statement, expression))
             {
                 // An unexpected token was encountered.
                 var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
@@ -31,23 +31,23 @@ internal sealed partial class Parser
             }
             
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (declaration is not null)
+            if (statement is not null)
             {
-                // A declaration expecting a semicolon is dependent on the syntax of each kind of declaration.
+                // A statement expecting a semicolon is dependent on the syntax of each kind of statement.
                 // No semicolon should be expected here.
 
-                statements.Add(declaration);
+                statements.Add(statement);
                 continue;
             }
 
-            // If the declaration is null then the expression should never be null.
+            // If the statement is null then the expression should never be null.
             if (expression is null) throw new UnreachableException();
 
-            // If the token after the expression is not a semicolon and cannot start another
-            // declaration or expression, then it's most likely a trailing expression.
+            // If the token after the expression is not a semicolon and cannot start another statement,
+            // then it's most likely a trailing expression.
             if (allowTrailingExpression &&
                 Current.Kind is not TokenKind.Semicolon &&
-                !SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
+                !SyntaxFacts.CanBeginStatement.Contains(Current.Kind))
             {
                 if (Current.Kind == endKind)
                 {
@@ -70,7 +70,7 @@ internal sealed partial class Parser
                     break;
                 }
 
-                if (!SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
+                if (!SyntaxFacts.CanBeginStatement.Contains(Current.Kind))
                 {
                     // If we stop on a token which isn't a closing brace and cannot start a statement,
                     // then the synchronization has reached the end of the input.
@@ -108,24 +108,51 @@ internal sealed partial class Parser
         return (statements.ToImmutable(), trailingExpression);
     }
     
-    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
+    internal (Statement?, Expression?)? ParseStatementOrExpressionOrNull()
     {
-        var declaration = null as Declaration;
-        var expression = null as Expression;
 
-        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
+        if (Expect(SyntaxFacts.CanBeginStatement) is not { Kind: var kind }) return null;
 
         if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
         {
-            declaration = ParseDeclaration();
+            var declaration = ParseDeclaration();
+            return (declaration, null);
         }
-        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
-        {
-            expression = ParseExpressionOrError();
-        }
-        else throw new UnreachableException(
-            "Kind could begin a statement but neither a declaration nor expression");
 
-        return (declaration, expression);
+        if (SyntaxFacts.CanBeginExpression.Contains(kind))
+        {
+            return ParseExpressionOrAssignmentStatement();
+        }
+        
+        throw new UnreachableException(
+            "Kind could begin a statement but neither a declaration nor expression");
+    }
+
+    internal (Statement?, Expression?) ParseExpressionOrAssignmentStatement()
+    {
+        var expression = ParseExpressionOrError();
+
+        if (Current.Kind is not TokenKind.Equals) return (null, expression);
+        
+        Advance();
+
+        var value = ParseExpressionOrError();
+
+        Expect(TokenKind.Semicolon);
+
+        if (!expression.IsValidLValue())
+        {
+            var diagnostic = ParseDiagnostics.InvalidLValue.Format(expression.Location);
+            ReportDiagnostic(diagnostic);
+        }
+
+        var assignment = new AssignmentStatement()
+        {
+            Ast = Ast,
+            Location = new(Source.Name, expression.Location.Start, value.Location.End),
+            Target = expression,
+            Value = value,
+        };
+        return (assignment, null);
     }
 }
