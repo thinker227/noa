@@ -96,9 +96,7 @@ public class AssignmentTests
     [Fact]
     public void Assignment_ToError_DoesNotReport()
     {
-        var text = """
-        x = 0;
-        """;
+        var text = "x = 0;";
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
