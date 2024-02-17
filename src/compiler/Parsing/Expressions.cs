@@ -274,6 +274,26 @@ internal sealed partial class Parser
             };
         }
     }
+    
+    internal BlockExpression ParseBlockExpression()
+    {
+        var openBrace = Expect(TokenKind.OpenBrace);
+
+        var (statements, trailingExpression) = ParseBlock(
+            allowTrailingExpression: true,
+            endKind: TokenKind.CloseBrace,
+            synchronizationTokens: SyntaxFacts.BlockExpressionSynchronize);
+        
+        var closeBrace = Expect(TokenKind.CloseBrace);
+
+        return new()
+        {
+            Ast = Ast,
+            Location = new(Source.Name, openBrace.Location.Start, closeBrace.Location.End),
+            Statements = statements,
+            TrailingExpression = trailingExpression
+        };
+    }
 
     internal IfExpression ParseIfExpression()
     {

@@ -142,12 +142,18 @@ internal static class SyntaxFacts
     /// </summary>
     /// <param name="expression">The expression to check.</param>
     public static bool IsExpressionStatement(this Expression expression) => expression
-        is BlockExpression
-        or CallExpression
-        or IfExpression
-        or LoopExpression
+        is CallExpression
         or ReturnExpression
         or BreakExpression
         or ContinueExpression
-        ;
+        || expression.IsControlFlowExpressionStatement();
+
+    /// <summary>
+    /// Returns whether an expression is a control flow expression statement.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool IsControlFlowExpressionStatement(this Expression expression) => expression
+        is BlockExpression
+        or IfExpression
+        or LoopExpression;
 }

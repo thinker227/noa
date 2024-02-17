@@ -31,27 +31,10 @@ internal sealed partial class Parser
 
     internal Root ParseRoot()
     {
-        var statements = ImmutableArray.CreateBuilder<Statement>();
-        
-        while (!AtEnd)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            
-            var statement = ParseStatementOrNull();
-
-            if (statement is not null)
-            {
-                statements.Add(statement);
-                continue;
-            }
-            
-            // An unexpected token was encountered.
-            var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
-            ReportDiagnostic(diagnostic);
-            
-            // Try synchronize with the next statement.
-            Synchronize(SyntaxFacts.RootSynchronize);
-        }
+        var (statements, _) = ParseBlock(
+            allowTrailingExpression: false,
+            endKind: TokenKind.EndOfFile,
+            synchronizationTokens: SyntaxFacts.RootSynchronize);
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
@@ -62,64 +45,8 @@ internal sealed partial class Parser
         {
             Ast = Ast,
             Location = location,
-            Statements = statements.ToImmutable()
+            Statements = statements
         };
-    }
-
-    internal Statement? ParseStatementOrNull()
-    {
-        var declarationOrExpression = ParseDeclarationOrExpressionOrNull();
-
-        if (declarationOrExpression is not var (declaration, expression)) return null;
-        
-        if (expression is not null && !expression.IsExpressionStatement())
-        {
-            // Only expression *statements* are allowed here.
-
-            var diagnostic = ParseDiagnostics.InvalidExpressionStatement.Format(expression.Location);
-            ReportDiagnostic(diagnostic);
-        }
-
-        var semicolon = Expect(TokenKind.Semicolon);
-
-        var start = (declaration, expression) switch
-        {
-            (not null, null) => declaration.Location.Start,
-            (null, not null) => expression.Location.Start,
-            // It's impossible for both the declaration and expression to not be null.
-            _ => throw new UnreachableException()
-        };
-
-        return new()
-        {
-            Ast = Ast,
-            Location = new(Source.Name, start, semicolon.Location.End),
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            IsDeclaration = declaration is not null,
-            Declaration = declaration,
-            Expression = expression
-        };
-    }
-    
-    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
-    {
-        var declaration = null as Declaration;
-        var expression = null as Expression;
-
-        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
-
-        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
-        {
-            declaration = ParseDeclaration();
-        }
-        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
-        {
-            expression = ParseExpressionOrError();
-        }
-        else throw new UnreachableException(
-            "Kind could begin a statement but neither a declaration nor expression");
-
-        return (declaration, expression);
     }
 
     internal Identifier ParseIdentifier()
@@ -160,7 +87,7 @@ internal sealed partial class Parser
 
         Expect(TokenKind.CloseParen);
 
-        var expressionBody = null as Expression;
+        var expressionBody = null as (Expression expression, Token semicolon)?;
         var blockBody = null as BlockExpression;
         
         if (Current.Kind is TokenKind.OpenBrace)
@@ -171,14 +98,18 @@ internal sealed partial class Parser
         {
             Expect(TokenKind.EqualsGreaterThan);
 
-            expressionBody = ParseExpressionOrError();
+            var expression = ParseExpressionOrError();
+            
+            var semicolon = Expect(TokenKind.Semicolon);
+
+            expressionBody = (expression, semicolon);
         }
 
-        var end = (blockBody, expressionBody) switch
+        var end = (expressionBody, blockBody) switch
         {
-            (not null, null) => blockBody.Location.End,
-            (null, not null) => expressionBody.Location.End,
-            // It's impossible for both the expression body and block body to not be null.
+            (var (_, semicolon), null) => semicolon.Location.End,
+            (null, not null) => blockBody.Location.End,
+            // It's impossible for the expression body and block body to both be null or both not be null.
             _ => throw new UnreachableException()
         };
 
@@ -188,7 +119,7 @@ internal sealed partial class Parser
             Location = new(Source.Name, func.Location.Start, end),
             Identifier = identifier,
             Parameters = parameters,
-            ExpressionBody = expressionBody,
+            ExpressionBody = expressionBody?.expression,
             BlockBody = blockBody
         };
     }
@@ -230,10 +161,12 @@ internal sealed partial class Parser
 
         var expression = ParseExpressionOrError();
 
+        var semicolon = Expect(TokenKind.Semicolon);
+
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, let.Location.Start, expression.Location.End),
+            Location = new(Source.Name, let.Location.Start, semicolon.Location.End),
             IsMutable = isMutable,
             Identifier = identifier,
             Expression = expression

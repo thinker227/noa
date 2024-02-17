@@ -4,14 +4,15 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    internal BlockExpression ParseBlockExpression()
+    internal (ImmutableArray<Statement>, Expression?) ParseBlock(
+        bool allowTrailingExpression,
+        TokenKind endKind,
+        IReadOnlySet<TokenKind> synchronizationTokens)
     {
-        var openBrace = Expect(TokenKind.OpenBrace);
-
         var statements = ImmutableArray.CreateBuilder<Statement>();
         var trailingExpression = null as Expression;
         
-        while (!AtEnd && Current.Kind is not TokenKind.CloseBrace)
+        while (!AtEnd && Current.Kind != endKind)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -24,23 +25,20 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
                 
                 // Try synchronize with the next statement or closing brace.
-                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
+                Synchronize(synchronizationTokens);
 
                 continue;
             }
-
-            Token semicolon;
             
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (declaration is not null)
             {
-                // A declaration always expects a semicolon afterwards.
-                semicolon = Expect(TokenKind.Semicolon);
+                // A declaration expecting a semicolon is dependent on the syntax of each kind of declaration.
 
                 statements.Add(new()
                 {
                     Ast = Ast,
-                    Location = new(Source.Name, declaration.Location.Start, semicolon.Location.End),
+                    Location = declaration.Location,
                     IsDeclaration = true,
                     Declaration = declaration,
                     Expression = null
@@ -53,10 +51,11 @@ internal sealed partial class Parser
 
             // If the token after the expression is not a semicolon and cannot start another
             // declaration or expression, then it's most likely a trailing expression.
-            if (Current.Kind is not TokenKind.Semicolon &&
+            if (allowTrailingExpression &&
+                Current.Kind is not TokenKind.Semicolon &&
                 !SyntaxFacts.CanBeginDeclarationOrExpression.Contains(Current.Kind))
             {
-                if (Current.Kind is TokenKind.CloseBrace)
+                if (Current.Kind == endKind)
                 {
                     trailingExpression = expression;
                     break;
@@ -68,10 +67,10 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
 
                 // Try synchronize with the next statement or closing brace.
-                Synchronize(SyntaxFacts.BlockExpressionSynchronize);
+                Synchronize(synchronizationTokens);
 
-                // If we find a closing brace then the expression was a trailing expression and we're done.
-                if (Current.Kind is TokenKind.CloseBrace)
+                // If we find a closing token then the expression was a trailing expression and we're done.
+                if (Current.Kind == endKind)
                 {
                     trailingExpression = expression;
                     break;
@@ -97,26 +96,44 @@ internal sealed partial class Parser
                 ReportDiagnostic(diagnostic);
             }
             
-            semicolon = Expect(TokenKind.Semicolon);
+            // If the expression is a control flow expression statement then we don't expect a semicolon.
+            var semicolon = expression.IsControlFlowExpressionStatement()
+                ? null as Token?
+                : Expect(TokenKind.Semicolon);
 
+            var end = semicolon?.Location.End ?? expression.Location.End;
+            
             statements.Add(new()
             {
                 Ast = Ast,
-                Location = new(Source.Name, expression.Location.Start, semicolon.Location.End),
+                Location = new(Source.Name, expression.Location.Start, end),
                 IsDeclaration = false,
                 Declaration = null,
                 Expression = expression
             });
         }
-        
-        var closeBrace = Expect(TokenKind.CloseBrace);
 
-        return new()
+        return (statements.ToImmutable(), trailingExpression);
+    }
+    
+    internal (Declaration?, Expression?)? ParseDeclarationOrExpressionOrNull()
+    {
+        var declaration = null as Declaration;
+        var expression = null as Expression;
+
+        if (Expect(SyntaxFacts.CanBeginDeclarationOrExpression) is not { Kind: var kind }) return null;
+
+        if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
         {
-            Ast = Ast,
-            Location = new(Source.Name, openBrace.Location.Start, closeBrace.Location.End),
-            Statements = statements.ToImmutable(),
-            TrailingExpression = trailingExpression
-        };
+            declaration = ParseDeclaration();
+        }
+        else if (SyntaxFacts.CanBeginExpression.Contains(kind))
+        {
+            expression = ParseExpressionOrError();
+        }
+        else throw new UnreachableException(
+            "Kind could begin a statement but neither a declaration nor expression");
+
+        return (declaration, expression);
     }
 }
