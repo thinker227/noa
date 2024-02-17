@@ -46,6 +46,6 @@ internal static class ParseDiagnostics
     public static DiagnosticTemplate InvalidLValue { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-006",
-            "Only identifiers can be assigned to",
+            "Only identifier expressions can be used on the left-hand side of an assignment statement",
             Severity.Error);
 }
