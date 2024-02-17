@@ -74,6 +74,28 @@ public class SymbolResolutionTests
     }
 
     [Fact]
+    public void ReferenceInTrailingExpression_LooksUpSymbol_InBlock()
+    {
+        var text = """
+        {
+            let x = 0;
+            x
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        var diagnostics = SymbolResolution.ResolveSymbols(ast);
+
+        diagnostics.DiagnosticsShouldBe([]);
+
+        var declaration = (LetDeclaration)ast.Root.FindNodeAt(6)!;
+        var reference = (IdentifierExpression)ast.Root.FindNodeAt(21)!;
+        
+        reference.ReferencedSymbol.Value.ShouldBe(declaration.Symbol.Value);
+    }
+
+    [Fact]
     public void ReferenceInSubScope_LooksUpSymbol_InParentScopes()
     {
         var text = """
