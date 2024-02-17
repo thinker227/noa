@@ -105,6 +105,15 @@ public sealed class LetDeclaration : Declaration
     public override IEnumerable<Node> Children => [Identifier, Expression];
 }
 
+public sealed class AssignmentStatement : Statement
+{
+    public required Identifier Identifier { get; init; }
+    
+    public required Expression Expression { get; init; }
+
+    public override IEnumerable<Node> Children => [Identifier, Expression];
+}
+
 public sealed class ExpressionStatement : Statement
 {
     public required Expression Expression { get; init; }
