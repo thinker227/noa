@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.FlowAnalysis;
 
@@ -55,6 +56,35 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         loops.Pop();
         
         return default;
+    }
+
+    protected override int VisitAssignmentStatement(AssignmentStatement node)
+    {
+        if (node.Target is IdentifierExpression identifier)
+        {
+            CheckAssignmentTargetSymbol(node.Target, identifier.ReferencedSymbol.Value);
+        }
+        
+        Visit(node.Target);
+        Visit(node.Value);
+
+        return default;
+    }
+
+    private void CheckAssignmentTargetSymbol(Expression target, ISymbol symbol)
+    {
+        if (symbol is ErrorSymbol) return;
+
+        if (symbol is not IVariableSymbol variable)
+        {
+            Diagnostics.Add(FlowDiagnostics.AssignmentToInvalidSymbol.Format(symbol, target.Location));
+            return;
+        }
+
+        if (!variable.IsMutable)
+        {
+            Diagnostics.Add(FlowDiagnostics.AssignmentToImmutableSymbol.Format(variable, target.Location));
+        }
     }
 
     protected override int VisitLambdaExpression(LambdaExpression node)
