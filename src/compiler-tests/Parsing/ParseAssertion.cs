@@ -3,7 +3,7 @@ using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing.Tests;
 
-internal sealed class ParseAssertion : IDisposable
+internal sealed class ParseAssertion
 {
     private readonly IEnumerator<Node> nodes;
 
@@ -49,9 +49,6 @@ internal sealed class ParseAssertion : IDisposable
         return node;
     }
 
-    public void Dispose()
-    {
+    public void End() =>
         nodes.MoveNext().ShouldBeFalse();
-        nodes.Dispose();
-    }
 }

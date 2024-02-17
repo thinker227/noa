@@ -8,7 +8,7 @@ public class RootAndBlockExpressionTests
     [Fact]
     public void DoesNotParse_Root_WithTrailingExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         a();
         b();
         c()
@@ -44,12 +44,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpression_WithTrailingExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             a();
             b();
@@ -79,32 +81,38 @@ public class RootAndBlockExpressionTests
             
             p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_Root_Empty()
     {
-        using var p = ParseAssertion.Create("", p => p.ParseRoot());
+        var p = ParseAssertion.Create("", p => p.ParseRoot());
 
         p.Diagnostics.DiagnosticsShouldBe([]);
         
         p.N<Root>();
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpression_Empty()
     {
-        using var p = ParseAssertion.Create("{}", p => p.ParseBlockExpression());
+        var p = ParseAssertion.Create("{}", p => p.ParseBlockExpression());
 
         p.Diagnostics.DiagnosticsShouldBe([]);
         
         p.N<BlockExpression>();
+
+        p.End();
     }
 
     [Fact]
     public void Parses_Root_WithSingleStatement()
     {
-        using var p = ParseAssertion.Create("a();", p => p.ParseRoot());
+        var p = ParseAssertion.Create("a();", p => p.ParseRoot());
 
         p.Diagnostics.DiagnosticsShouldBe([]);
         
@@ -118,12 +126,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpression_WithSingleStatement()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             a();
         }
@@ -141,12 +151,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpression_WithOnlyTrailingExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             x
         }
@@ -158,12 +170,14 @@ public class RootAndBlockExpressionTests
         {
             p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpression_WithStatement_WithMissingSemicolon_BeforeTrailingExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             a()
             x
@@ -186,12 +200,14 @@ public class RootAndBlockExpressionTests
 
             p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_Root_WithStatement_WithMissingSemicolon_BeforeStatement()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         a()
         b();
         """, p => p.ParseRoot());
@@ -218,12 +234,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
     
     [Fact]
     public void Parses_Root_WithStatement_BeforeNonsense()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         a();
         mut
         """, p => p.ParseRoot());
@@ -243,12 +261,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
     
     [Fact]
     public void Parses_BlockExpression_WithTrailingExpression_BeforeNonsense()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             x
             mut
@@ -263,12 +283,14 @@ public class RootAndBlockExpressionTests
         {
             p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
         }
+
+        p.End();
     }
     
     [Fact]
     public void Synchronizes_BlockExpression_WithStartOfStatementOrExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             a();
             mut
@@ -299,12 +321,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
     
     [Fact]
     public void Synchronizes_BlockExpression_WithClosingBrace()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             a();
             mut
@@ -326,12 +350,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
     
     [Fact]
     public void Synchronizes_Root_WithStartOfStatementOrExpression()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         a();
         mut
         b();
@@ -360,12 +386,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
     
     [Fact]
     public void Synchronizes_Root_WithEndOfFile()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         a();
         mut
         """, p => p.ParseRoot());
@@ -385,12 +413,14 @@ public class RootAndBlockExpressionTests
                 }
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_LoopExpressions_InBlockExpressions_AsTrailingExpressions()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             loop {}
         }
@@ -405,12 +435,14 @@ public class RootAndBlockExpressionTests
                 p.N<BlockExpression>();
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_IfExpressions_InBlockExpressions_AsTrailingExpressions()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             if x {} else {}
         }
@@ -429,12 +461,14 @@ public class RootAndBlockExpressionTests
                 p.N<BlockExpression>();
             }
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpressions_InBlockExpressions_AsTrailingExpressions()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             {}
         }
@@ -446,12 +480,14 @@ public class RootAndBlockExpressionTests
         {
             p.N<BlockExpression>();
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_LoopExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             loop {}
             0
@@ -472,12 +508,14 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_IfExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             if x {} else {}
             0
@@ -502,12 +540,14 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpressions_WithoutSemicolon_InBlockExpressions_AsStatements()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             {}
             0
@@ -525,12 +565,14 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_LoopExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             loop {};
             0
@@ -554,12 +596,14 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_IfExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             if x {} else {};
             0
@@ -587,12 +631,14 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 
     [Fact]
     public void Parses_BlockExpressions_WithSemicolon_InBlockExpressions_AsStatements_AndErrors()
     {
-        using var p = ParseAssertion.Create("""
+        var p = ParseAssertion.Create("""
         {
             {};
             0
@@ -613,5 +659,7 @@ public class RootAndBlockExpressionTests
 
             p.N<NumberExpression>(n => n.Value.ShouldBe(0));
         }
+
+        p.End();
     }
 }
