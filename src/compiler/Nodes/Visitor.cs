@@ -102,8 +102,8 @@ public abstract class Visitor<T>
 
     protected virtual T VisitAssignmentStatement(AssignmentStatement node)
     {
-        Visit(node.Identifier);
-        Visit(node.Expression);
+        Visit(node.Target);
+        Visit(node.Value);
 
         return default!;
     }

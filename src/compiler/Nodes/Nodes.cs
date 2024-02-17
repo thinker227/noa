@@ -107,11 +107,11 @@ public sealed class LetDeclaration : Declaration
 
 public sealed class AssignmentStatement : Statement
 {
-    public required Identifier Identifier { get; init; }
+    public required Expression Target { get; init; }
     
-    public required Expression Expression { get; init; }
+    public required Expression Value { get; init; }
 
-    public override IEnumerable<Node> Children => [Identifier, Expression];
+    public override IEnumerable<Node> Children => [Target, Value];
 }
 
 public sealed class ExpressionStatement : Statement
