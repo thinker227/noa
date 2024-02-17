@@ -47,7 +47,6 @@ public abstract class Visitor<T>
             Identifier x => VisitIdentifier(x),
             Statement x => VisitStatement(x),
             Parameter x => VisitParameter(x),
-            Declaration x => VisitDeclaration(x),
             Expression x => VisitExpression(x),
             _ => throw new UnreachableException()
         };
@@ -62,13 +61,12 @@ public abstract class Visitor<T>
     
     protected virtual T VisitIdentifier(Identifier node) => default!;
 
-    protected virtual T VisitStatement(Statement node)
+    protected virtual T VisitStatement(Statement node) => node switch
     {
-        Visit(node.Declaration);
-        Visit(node.Expression);
-        
-        return default!;
-    }
+        Declaration x => VisitDeclaration(x),
+        ExpressionStatement x => VisitExpressionStatement(x),
+        _ => throw new ArgumentOutOfRangeException(nameof(node))
+    };
     
     protected virtual T VisitParameter(Parameter node)
     {
@@ -99,6 +97,13 @@ public abstract class Visitor<T>
         Visit(node.Identifier);
         Visit(node.Expression);
         
+        return default!;
+    }
+
+    protected virtual T VisitExpressionStatement(ExpressionStatement node)
+    {
+        Visit(node.Expression);
+
         return default!;
     }
 

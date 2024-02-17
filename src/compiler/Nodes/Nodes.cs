@@ -57,25 +57,7 @@ public sealed class Identifier : Node
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed class Statement : Node
-{
-    [MemberNotNullWhen(true, nameof(Declaration))]
-    [MemberNotNullWhen(false, nameof(Expression))]
-    public required bool IsDeclaration { get; init; }
-
-    [MemberNotNullWhen(false, nameof(Declaration))]
-    [MemberNotNullWhen(true, nameof(Expression))]
-    public bool IsExpression => !IsDeclaration;
-    
-    public Declaration? Declaration { get; init; }
-    
-    public Expression? Expression { get; init; }
-
-    public override IEnumerable<Node> Children => [
-        ..EmptyIfNull(Declaration),
-        ..EmptyIfNull(Expression)
-    ];
-}
+public abstract class Statement : Node;
 
 public sealed class Parameter : Node
 {
@@ -88,7 +70,7 @@ public sealed class Parameter : Node
     public override IEnumerable<Node> Children => [Identifier];
 }
 
-public abstract class Declaration : Node;
+public abstract class Declaration : Statement;
 
 public sealed class FunctionDeclaration : Declaration
 {
@@ -121,6 +103,13 @@ public sealed class LetDeclaration : Declaration
     public Semantic<VariableSymbol> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [Identifier, Expression];
+}
+
+public sealed class ExpressionStatement : Statement
+{
+    public required Expression Expression { get; init; }
+
+    public override IEnumerable<Node> Children => [Expression];
 }
 
 public abstract class Expression : Node;
