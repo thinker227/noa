@@ -51,7 +51,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(Node node, ImmutableArray<Statement> statements)
+    private IScope DeclareBlock(Node node, ImmutableArray<Statement> statements, Expression? trailingExpression)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
@@ -102,7 +102,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         // so that variables may shadow previously declared ones.
         
         var timelineIndex = 0;
-        var timelineIndexMap = new Dictionary<Statement, int>();
+        var timelineIndexMap = new Dictionary<Node, int>();
         var variables = ImmutableDictionary.Create<string, VariableSymbol>();
         var variableTimeline = new List<ImmutableDictionary<string, VariableSymbol>>() { variables };
         
@@ -135,6 +135,9 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             }
         }
 
+        // The trailing expression is always assigned the absolute last index.
+        if (trailingExpression is not null) timelineIndexMap[trailingExpression] = timelineIndex;
+        
         return new BlockScope(currentScope, node, functions, variableTimeline, timelineIndexMap);
     }
     
@@ -142,7 +145,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     {
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node, node.Statements);
+        var blockScope = DeclareBlock(node, node.Statements, null);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -193,7 +196,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        var blockScope = DeclareBlock(node, node.Statements);
+        var blockScope = DeclareBlock(node, node.Statements, node.TrailingExpression);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
