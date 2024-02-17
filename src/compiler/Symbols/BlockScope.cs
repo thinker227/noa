@@ -13,7 +13,7 @@ namespace Noa.Compiler.Symbols;
 /// <param name="functions">The functions declared in the scope.</param>
 /// <param name="variableTimeline">A timeline of variables declared in the scope.</param>
 /// <param name="timelineIndexMap">
-/// A mapping between statements and their indices in the variable timeline.
+/// A mapping between nodes in the block and their indices in the variable timeline.
 /// </param>
 [DebuggerDisplay("{GetDebuggerDisplay()}")]
 internal sealed class BlockScope(
@@ -21,7 +21,7 @@ internal sealed class BlockScope(
     Node block,
     IReadOnlyDictionary<string, FunctionSymbol> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
-    IReadOnlyDictionary<Statement, int> timelineIndexMap)
+    IReadOnlyDictionary<Node, int> timelineIndexMap)
     : IScope
 {
     public IScope? Parent { get; } = parent;
@@ -37,8 +37,26 @@ internal sealed class BlockScope(
     public IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> VariableTimeline { get; } = variableTimeline;
 
     /// <summary>
+    /// Tries to find an ancestor statement-like node which has the current block as its parent.
+    /// </summary>
+    /// <param name="node">The node to find the statement-like ancestor of.</param>
+    /// <returns>The found node, or null if none was found.</returns>
+    private Node? FindRelevantStatementLikeAncestor(Node node) =>
+        node.AncestorsAndSelf()
+            .TakeWhile(n => !n.Equals(block))
+            .LastOrDefault();
+    
+    /// <summary>
     /// Tries to get the timeline index of a node.
     /// </summary>
+    /// <param name="node">
+    /// The node to look up the timeline index of,
+    /// or null to look up the timeline index for the end of the block.
+    /// </param>
+    /// <param name="parentLookupNode">
+    /// The node to look up the symbol at in the parent scope
+    /// if the requested symbol doesn't exist in the current scope.</param>
+    /// <param name="timelineIndex">The timeline index for the node.</param>
     private bool TryGetTimelineIndex(
         Node? node,
         [NotNullWhen(true)] out Node? parentLookupNode,
@@ -52,50 +70,27 @@ internal sealed class BlockScope(
             timelineIndex = VariableTimeline.Count - 1;
             return true;
         }
-        
-        var statement = node as Statement ?? node.FindAncestor<Statement>();
 
-        if (statement is null)
+        // If the node is a statement then we just use that.
+        // Otherwise, we try to find the first statement-like node.
+        var statementLikeNode = node as Statement ?? FindRelevantStatementLikeAncestor(node);
+
+        if (statementLikeNode is null)
         {
-            // If we can't find a statement, we can't really do anything useful.
+            // If we can't find a node, we can't really do anything useful.
             parentLookupNode = null;
             timelineIndex = -1;
             return false;
         }
 
-        if (timelineIndexMap.TryGetValue(statement, out timelineIndex))
+        if (timelineIndexMap.TryGetValue(statementLikeNode, out timelineIndex))
         {
             // The statement exists in this scope.
-            parentLookupNode = statement;
-            return true;
-        }
-
-        // If the statement doesn't belong to this block, check its ancestors to find one which does.
-        if (TryGetAncestorTimelineIndex(statement, out var parentStatement, out timelineIndex))
-        {
-            parentLookupNode = parentStatement;
+            parentLookupNode = statementLikeNode;
             return true;
         }
 
         parentLookupNode = null;
-        timelineIndex = -1;
-        return false;
-    }
-
-    private bool TryGetAncestorTimelineIndex(
-        Node node,
-        [NotNullWhen(true)] out Statement? statement,
-        out int timelineIndex)
-    {
-        foreach (var ancestor in node.Ancestors())
-        {
-            if (ancestor is not Statement stmt) continue;
-            
-            statement = stmt;
-            if (timelineIndexMap.TryGetValue(stmt, out timelineIndex)) return true;
-        }
-
-        statement = null;
         timelineIndex = -1;
         return false;
     }
