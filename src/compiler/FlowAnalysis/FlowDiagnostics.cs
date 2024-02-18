@@ -1,4 +1,5 @@
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.FlowAnalysis;
 
@@ -20,5 +21,17 @@ internal static class FlowDiagnostics
         DiagnosticTemplate.Create(
             "NOA-FLW-003",
             "Continue expressions cannot be used outside loop blocks",
+            Severity.Error);
+    
+    public static DiagnosticTemplate<ISymbol> AssignmentToInvalidSymbol { get; } =
+        DiagnosticTemplate.Create<ISymbol>(
+            "NOA-FLW-004",
+            symbol => $"Cannot assign to '{symbol.Name}' because it is not a variable or parameter",
+            Severity.Error);
+    
+    public static DiagnosticTemplate<IVariableSymbol> AssignmentToImmutableSymbol { get; } =
+        DiagnosticTemplate.Create<IVariableSymbol>(
+            "NOA-FLW-005",
+            symbol => $"Cannot assign to '{symbol.Name}' because it is immutable",
             Severity.Error);
 }

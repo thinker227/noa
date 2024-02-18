@@ -65,7 +65,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             // prevents a requested cancellation from taking too long here. 
             cancellationToken.ThrowIfCancellationRequested();
             
-            if (statement.Declaration is not FunctionDeclaration func) continue;
+            if (statement is not FunctionDeclaration func) continue;
             
             var functionSymbol = new FunctionSymbol()
             {
@@ -112,7 +112,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             
             timelineIndexMap[statement] = timelineIndex;
 
-            if (statement.Declaration is not LetDeclaration let) continue;
+            if (statement is not LetDeclaration let) continue;
             
             var variableSymbol = new VariableSymbol()
             {

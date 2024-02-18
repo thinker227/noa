@@ -4,6 +4,7 @@ root = statement* ;
 
 statement = functionDeclaration
           | letDeclaration
+          | assignmentStatement
           | callExpression      ';'
           | returnExpression    ';'
           | breakExpression     ';'
@@ -24,6 +25,10 @@ functionBody = blockExpression
 letDeclaration = 'let' NAME '=' expression ';' ;
 
 parameter = 'mut'? NAME ;
+
+assignmentStatement = lValue '=' expression ';' ;
+
+lValue = identifierExpression ;
 
 
 
