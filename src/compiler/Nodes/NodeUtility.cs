@@ -37,20 +37,31 @@ public static class NodeUtility
     /// <param name="node">The node to get the ancestors of.</param>
     public static IEnumerable<Node> AncestorsAndSelf(this Node node) =>
         node.Ancestors().Prepend(node);
-    
+
     /// <summary>
     /// Gets the descendants of a node, in depth-first order.
+    /// If <paramref name="descend"/> is false for the node, no nodes are returned.
     /// </summary>
     /// <param name="node">The node to get the descendants of.</param>
-    public static IEnumerable<Node> Descendants(this Node node) =>
-        node.Children.SelectMany(DescendantsAndSelf);
+    /// <param name="descend">
+    /// A function which determines whether to return a node and continue descending into its children.
+    /// </param>
+    public static IEnumerable<Node> Descendants(this Node node, Func<Node, bool>? descend = null) =>
+        descend?.Invoke(node) ?? true
+            ? node.Children
+                .SelectMany(child => child.Descendants(descend))
+                .Prepend(node)
+            : [];
 
     /// <summary>
     /// Gets the descendants of a node and the node itself, in depth-first order.
     /// </summary>
     /// <param name="node">The node to get the descendants of.</param>
-    public static IEnumerable<Node> DescendantsAndSelf(this Node node) =>
-        node.Descendants().Prepend(node);
+    /// <param name="descend">
+    /// A function which determines whether to return a node and continue descending into its children.
+    /// </param>
+    public static IEnumerable<Node> DescendantsAndSelf(this Node node, Func<Node, bool>? descend = null) =>
+        node.Descendants(descend).Prepend(node);
     
     /// <summary>
     /// Finds a node at a specified position in source.
