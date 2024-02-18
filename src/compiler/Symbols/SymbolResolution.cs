@@ -56,7 +56,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
         
-        var functions = new Dictionary<string, FunctionSymbol>();
+        var functions = new Dictionary<string, NomialFunction>();
         
         foreach (var statement in statements)
         {
@@ -67,7 +67,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             
             if (statement is not FunctionDeclaration func) continue;
             
-            var functionSymbol = new FunctionSymbol()
+            var functionSymbol = new NomialFunction()
             {
                 Name = func.Identifier.Name,
                 Declaration = func
