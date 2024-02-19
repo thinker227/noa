@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -48,13 +49,32 @@ public sealed class NomialFunction(string name, FunctionDeclaration declaration)
     Node IFunction.Declaration => Declaration;
 
     /// <summary>
+    /// Whether the function has an expression body or block body.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(ExpressionBody))]
+    [MemberNotNullWhen(false, nameof(BlockBody))]
+    public bool HasExpressionBody => Declaration.ExpressionBody is not null;
+
+    /// <summary>
+    /// The expression body of the function.
+    /// </summary>
+    public Expression? ExpressionBody => Declaration.ExpressionBody;
+
+    /// <summary>
+    /// The block body of the function.
+    /// </summary>
+    public BlockExpression? BlockBody => Declaration.BlockBody;
+
+    /// <summary>
     /// The body of the function.
     /// </summary>
-    public Expression Body => Declaration.ExpressionBody ?? Declaration.BlockBody!;
+    public Expression BodyExpression => HasExpressionBody
+        ? ExpressionBody
+        : BlockBody;
 
     public IReadOnlyList<VariableSymbol> GetLocals()
     {
-        locals ??= LocalsHelper.GetLocals(Body);
+        locals ??= LocalsHelper.GetLocals(BodyExpression);
         return locals;
     }
     
@@ -90,14 +110,14 @@ public sealed class LambdaFunction(LambdaExpression expression) : IFunction
     /// <summary>
     /// The body of the function.
     /// </summary>
-    public Expression Body => Expression.Body;
+    public Expression BodyExpression => Expression.Body;
 
     public IReadOnlyList<ParameterSymbol> Parameters { get; } =
         expression.Parameters.Select(x => x.Symbol.Value).ToList();
 
     public IReadOnlyList<VariableSymbol> GetLocals()
     {
-        locals ??= LocalsHelper.GetLocals(Body);
+        locals ??= LocalsHelper.GetLocals(BodyExpression);
         return locals;
     }
 }
