@@ -85,7 +85,6 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
             
             Body = new FunctionBody(
                 body,
-                body.Scope.Value,
                 [],
                 FunctionBody.GetReturnExpressions(body)
                     .Select(x => ((Expression)x, ReturnKind.Explicit))
@@ -101,7 +100,6 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
                 
             Body = new FunctionBody(
                 body,
-                body.Scope.Value,
                 body.Statements,
                 FunctionBody.GetReturnExpressions(body)
                     .Select(x => ((Expression)x, ReturnKind.Explicit))
@@ -146,7 +144,6 @@ public sealed class LambdaFunction(LambdaExpression expression) : IFunction
 
     public FunctionBody Body { get; } = new(
         expression.Body,
-        expression.Body.Scope.Value,
         [],
         FunctionBody.GetReturnExpressions(expression.Body)
             .Select(x => ((Expression)x, ReturnKind.Explicit)),
@@ -161,7 +158,6 @@ public sealed class LambdaFunction(LambdaExpression expression) : IFunction
 /// </summary>
 public sealed class FunctionBody(
     Node node,
-    IScope scope,
     ImmutableArray<Statement> statements,
     IEnumerable<(Expression, ReturnKind)> returns,
     IEnumerable<VariableSymbol> locals)
@@ -174,7 +170,7 @@ public sealed class FunctionBody(
     /// <summary>
     /// The scope of the body.
     /// </summary>
-    public IScope Scope { get; } = scope;
+    public Semantic<IScope> Scope { get; internal set; }
 
     /// <summary>
     /// The statements directly inside the body.
