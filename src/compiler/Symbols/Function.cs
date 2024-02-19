@@ -14,35 +14,29 @@ public interface IFunction
     Node Declaration { get; }
     
     /// <summary>
+    /// The body of the function.
+    /// </summary>
+    FunctionBody Body { get; }
+    
+    /// <summary>
     /// The parameter of the function.
     /// </summary>
     IReadOnlyList<ParameterSymbol> Parameters { get; }
-    
-    /// <summary>
-    /// Gets the local variables declared by the function.
-    /// </summary>
-    IReadOnlyList<VariableSymbol> GetLocals();
 }
 
 /// <summary>
 /// Represents a function declared by a function declaration.
 /// </summary>
-public sealed class NomialFunction(string name, FunctionDeclaration declaration) : IDeclaredSymbol, IFunction
+public sealed class NomialFunction : IDeclaredSymbol, IFunction
 {
     private readonly List<ParameterSymbol> parameters = [];
-    private IReadOnlyList<VariableSymbol>? locals = null;
 
-    public string Name { get; } = name;
-
-    /// <summary>
-    /// The parameters of the function.
-    /// </summary>
-    public IReadOnlyList<ParameterSymbol> Parameters => parameters;
+    public string Name { get; }
 
     /// <summary>
     /// The declaration of the function.
     /// </summary>
-    public FunctionDeclaration Declaration { get; } = declaration;
+    public FunctionDeclaration Declaration { get; }
 
     Node IDeclaredSymbol.Declaration => Declaration;
 
@@ -72,10 +66,48 @@ public sealed class NomialFunction(string name, FunctionDeclaration declaration)
         ? ExpressionBody
         : BlockBody;
 
-    public IReadOnlyList<VariableSymbol> GetLocals()
+    public FunctionBody Body { get; }
+
+    /// <summary>
+    /// The parameters of the function.
+    /// </summary>
+    public IReadOnlyList<ParameterSymbol> Parameters => parameters;
+
+    public NomialFunction(string name, FunctionDeclaration declaration)
     {
-        locals ??= LocalsHelper.GetLocals(BodyExpression);
-        return locals;
+        Name = name;
+        Declaration = declaration;
+
+        if (declaration.ExpressionBody is not null)
+        {
+            var body = declaration.ExpressionBody;
+            var implicitReturn = (body, ReturnKind.Implicit);
+            
+            Body = new FunctionBody(
+                body,
+                body.Scope.Value,
+                [],
+                FunctionBody.GetReturnExpressions(body)
+                    .Select(x => ((Expression)x, ReturnKind.Explicit))
+                    .Prepend(implicitReturn),
+                FunctionBody.GetLocals(body));
+        }
+        else
+        {
+            var body = declaration.BlockBody!;
+            IEnumerable<(Expression, ReturnKind)> trailingReturn = body.TrailingExpression is not null
+                ? [(body.TrailingExpression, ReturnKind.Implicit)]
+                : []; 
+                
+            Body = new FunctionBody(
+                body,
+                body.Scope.Value,
+                body.Statements,
+                FunctionBody.GetReturnExpressions(body)
+                    .Select(x => ((Expression)x, ReturnKind.Explicit))
+                    .Concat(trailingReturn),
+                FunctionBody.GetLocals(body));
+        }
     }
     
     /// <summary>
@@ -112,23 +144,69 @@ public sealed class LambdaFunction(LambdaExpression expression) : IFunction
     /// </summary>
     public Expression BodyExpression => Expression.Body;
 
+    public FunctionBody Body { get; } = new(
+        expression.Body,
+        expression.Body.Scope.Value,
+        [],
+        FunctionBody.GetReturnExpressions(expression.Body)
+            .Select(x => ((Expression)x, ReturnKind.Explicit)),
+        FunctionBody.GetLocals(expression.Body));
+
     public IReadOnlyList<ParameterSymbol> Parameters { get; } =
         expression.Parameters.Select(x => x.Symbol.Value).ToList();
-
-    public IReadOnlyList<VariableSymbol> GetLocals()
-    {
-        locals ??= LocalsHelper.GetLocals(BodyExpression);
-        return locals;
-    }
 }
 
-file static class LocalsHelper
+/// <summary>
+/// A semantic representation of a function body.
+/// </summary>
+public sealed class FunctionBody(
+    Node node,
+    IScope scope,
+    ImmutableArray<Statement> statements,
+    IEnumerable<(Expression, ReturnKind)> returns,
+    IEnumerable<VariableSymbol> locals)
 {
-    public static IReadOnlyList<VariableSymbol> GetLocals(Node node) =>
-        node
-            .Descendants(x =>
-                x is not (LambdaExpression or Expression { Parent.Value: FunctionDeclaration }))
+    /// <summary>
+    /// The node of the block.
+    /// </summary>
+    public Node Node { get; } = node;
+
+    /// <summary>
+    /// The scope of the body.
+    /// </summary>
+    public IScope Scope { get; } = scope;
+
+    /// <summary>
+    /// The statements directly inside the body.
+    /// </summary>
+    public ImmutableArray<Statement> Statements { get; } = statements;
+
+    /// <summary>
+    /// The return expressions within the function.
+    /// </summary>
+    public ImmutableArray<(Expression expression, ReturnKind kind)> Returns { get; } = returns.ToImmutableArray();
+
+    /// <summary>
+    /// The local variables declared by the function.
+    /// </summary>
+    public ImmutableArray<VariableSymbol> Locals { get; } = locals.ToImmutableArray();
+
+    private static IEnumerable<Node> GetNodesWithinFunction(Node node) =>
+        node.Descendants(x =>
+            x is not (LambdaExpression or Expression { Parent.Value: FunctionDeclaration }));
+
+    internal static IEnumerable<VariableSymbol> GetLocals(Node node) =>
+        GetNodesWithinFunction(node)
             .OfType<LetDeclaration>()
-            .Select(x => x.Symbol.Value)
-            .ToList();
+            .Select(x => x.Symbol.Value);
+
+    internal static IEnumerable<ReturnExpression> GetReturnExpressions(Node node) =>
+        GetNodesWithinFunction(node)
+            .OfType<ReturnExpression>();
+}
+
+public enum ReturnKind
+{
+    Explicit,
+    Implicit,
 }
