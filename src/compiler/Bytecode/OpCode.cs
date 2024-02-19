@@ -16,6 +16,7 @@ public enum OpCode : byte
     // Stack operations
     PushInt,
     PushBool,
+    PushFunc,
     Pop,
     Dup,
 

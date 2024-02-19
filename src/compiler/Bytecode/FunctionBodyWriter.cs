@@ -68,6 +68,12 @@ internal sealed class FunctionBodyWriter(BinaryWriter writer)
         Code(OpCode.PushBool);
         writer.Write(@bool);
     }
+
+    public void PushFunc(FuncId funcId)
+    {
+        Code(OpCode.PushFunc);
+        writer.Write(funcId.Id);
+    }
     
     public void Pop() => Code(OpCode.Pop);
     
@@ -133,3 +139,8 @@ internal readonly record struct VariableIndex(int Index);
 /// The address of an instruction in a function body.
 /// </summary>
 internal readonly record struct Address(int Value);
+
+/// <summary>
+/// The ID of a function.
+/// </summary>
+internal readonly record struct FuncId(int Id);
