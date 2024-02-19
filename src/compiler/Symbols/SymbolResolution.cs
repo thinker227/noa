@@ -147,6 +147,16 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.Statements);
         });
 
+        node.FunctionLikeBody = new FunctionBody(
+            node,
+            node.Statements,
+            FunctionBody.GetReturnExpressions(node)
+                .Select(x => ((Expression)x, ReturnKind.Explicit)),
+            FunctionBody.GetLocals(node))
+        {
+            Scope = new(blockScope)
+        };
+
         return default;
     }
     
