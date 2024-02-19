@@ -13,11 +13,6 @@ public interface IFunction
     Node Declaration { get; }
     
     /// <summary>
-    /// The body expression of the function.
-    /// </summary>
-    Expression Body { get; }
-    
-    /// <summary>
     /// The parameter of the function.
     /// </summary>
     IReadOnlyList<ParameterSymbol> Parameters { get; }
@@ -52,6 +47,9 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
 
     Node IFunction.Declaration => Declaration;
 
+    /// <summary>
+    /// The body of the function.
+    /// </summary>
     public Expression Body => Declaration.ExpressionBody ?? Declaration.BlockBody!;
 
     public IReadOnlyList<VariableSymbol> GetLocals()
@@ -89,6 +87,9 @@ public sealed class LambdaFunction(LambdaExpression expression) : IFunction
 
     Node IFunction.Declaration => Expression;
 
+    /// <summary>
+    /// The body of the function.
+    /// </summary>
     public Expression Body => Expression.Body;
 
     public IReadOnlyList<ParameterSymbol> Parameters { get; } =
