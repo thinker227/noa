@@ -128,8 +128,6 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
 /// <param name="expression">The source lambda expression.</param>
 public sealed class LambdaFunction(LambdaExpression expression) : IFunction
 {
-    private IReadOnlyList<VariableSymbol>? locals = null;
-    
     /// <summary>
     /// The source lambda expression.
     /// </summary>
