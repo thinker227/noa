@@ -26,22 +26,22 @@ public interface IFunction
 /// <summary>
 /// Represents a function declared by a function declaration.
 /// </summary>
-public sealed class NomialFunction : IDeclaredSymbol, IFunction
+public sealed class NomialFunction(string name, FunctionDeclaration declaration) : IDeclaredSymbol, IFunction
 {
     private readonly List<ParameterSymbol> parameters = [];
     private IReadOnlyList<VariableSymbol>? locals = null;
-    
-    public required string Name { get; init; }
+
+    public string Name { get; } = name;
 
     /// <summary>
     /// The parameters of the function.
     /// </summary>
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
-    
+
     /// <summary>
     /// The declaration of the function.
     /// </summary>
-    public required FunctionDeclaration Declaration { get; init; }
+    public FunctionDeclaration Declaration { get; } = declaration;
 
     Node IDeclaredSymbol.Declaration => Declaration;
 
