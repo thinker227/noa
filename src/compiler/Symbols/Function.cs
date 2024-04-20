@@ -78,7 +78,7 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
 /// A semantic representation of a lambda expression.
 /// </summary>
 /// <param name="expression">The source lambda expression.</param>
-public sealed class LambdaFunction(LambdaExpression expression) : IFunction
+public sealed class Lambda(LambdaExpression expression) : IFunction
 {
     private IReadOnlyList<VariableSymbol>? locals = null;
     
