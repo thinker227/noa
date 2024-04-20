@@ -19,7 +19,7 @@ namespace Noa.Compiler.Symbols;
 internal sealed class BlockScope(
     IScope? parent,
     BlockExpression block,
-    IReadOnlyDictionary<string, FunctionSymbol> functions,
+    IReadOnlyDictionary<string, NomialFunction> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
     IReadOnlyDictionary<Node, int> timelineIndexMap)
     : IScope
@@ -29,7 +29,7 @@ internal sealed class BlockScope(
     /// <summary>
     /// The functions declared in the scope.
     /// </summary>
-    public IReadOnlyDictionary<string, FunctionSymbol> Functions { get; } = functions;
+    public IReadOnlyDictionary<string, NomialFunction> Functions { get; } = functions;
 
     /// <summary>
     /// A timeline of variables declared in the scope.
