@@ -5,8 +5,8 @@ namespace Noa.Compiler.Symbols;
 
 internal static class SymbolDiagnostics
 {
-    public static DiagnosticTemplate<NomialFunction> FunctionAlreadyDeclared { get; } =
-        DiagnosticTemplate.Create<NomialFunction>(
+    public static DiagnosticTemplate<FunctionSymbol> FunctionAlreadyDeclared { get; } =
+        DiagnosticTemplate.Create<FunctionSymbol>(
             "NOA-SYM-001",
             function => $"Function '{function.Name}' has already been declared in this scope. " +
                         $"Functions cannot shadow other functions in the same scope",
@@ -18,8 +18,8 @@ internal static class SymbolDiagnostics
             name => $"A symbol with the name '{name}' has already been declared in this scope",
             Severity.Error);
     
-    public static DiagnosticTemplate<(VariableSymbol, NomialFunction)> VariableShadowsFunction { get; } =
-        DiagnosticTemplate.Create<(VariableSymbol var, NomialFunction func)>(
+    public static DiagnosticTemplate<(VariableSymbol, FunctionSymbol)> VariableShadowsFunction { get; } =
+        DiagnosticTemplate.Create<(VariableSymbol var, FunctionSymbol func)>(
             "NOA-SYM-003",
             arg => $"Variable '{arg.var.Name}' shadows function '{arg.func.Name}'. " +
                    $"Variables cannot shadow functions in the same scope",

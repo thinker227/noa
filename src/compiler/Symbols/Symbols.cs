@@ -27,6 +27,41 @@ public interface IDeclaredSymbol : ISymbol
 }
 
 /// <summary>
+/// Represents a function declared by a function declaration.
+/// </summary>
+public sealed class FunctionSymbol : IDeclaredSymbol
+{
+    private readonly List<ParameterSymbol> parameters = [];
+    
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// The parameters of the function.
+    /// </summary>
+    public IReadOnlyList<ParameterSymbol> Parameters => parameters;
+    
+    /// <summary>
+    /// The declaration of the function.
+    /// </summary>
+    public required FunctionDeclaration Declaration { get; init; }
+
+    Node IDeclaredSymbol.Declaration => Declaration;
+
+    /// <summary>
+    /// Adds a parameter to the function.
+    /// </summary>
+    /// <param name="parameter">The parameter to add.</param>
+    internal void AddParameter(ParameterSymbol parameter) =>
+        parameters.Add(parameter);
+    
+    public override string ToString()
+    {
+        var parameters = string.Join(", ", Parameters.Select(p => p.Name));
+        return $"{Name}({parameters}) declared at {Declaration.Location}";
+    }
+}
+
+/// <summary>
 /// Represents a variable-like symbol.
 /// </summary>
 public interface IVariableSymbol : ISymbol
@@ -75,7 +110,7 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     /// The function symbol which the parameter belongs to,
     /// or null if the parameter belongs to a lambda expression.
     /// </summary>
-    public NomialFunction? Function { get; init; }
+    public FunctionSymbol? Function { get; init; }
     
     /// <summary>
     /// The declaration of the parameter.

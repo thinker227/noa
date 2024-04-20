@@ -82,7 +82,7 @@ public sealed class FunctionDeclaration : Declaration
     
     public required BlockExpression? BlockBody { get; init; }
 
-    public Semantic<NomialFunction> Symbol { get; internal set; }
+    public Semantic<FunctionSymbol> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [
         Identifier,
