@@ -67,7 +67,11 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             
             if (statement is not FunctionDeclaration func) continue;
             
-            var functionSymbol = new NomialFunction(func.Identifier.Name, func);
+            var functionSymbol = new NomialFunction()
+            {
+                Name = func.Identifier.Name,
+                Declaration = func
+            };
 
             func.Symbol = functionSymbol;
 
