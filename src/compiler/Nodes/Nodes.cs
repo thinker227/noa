@@ -48,8 +48,6 @@ public sealed class Root : Node
     public required ImmutableArray<Statement> Statements { get; init; }
 
     public override IEnumerable<Node> Children => Statements;
-    
-    public Semantic<FunctionBody> FunctionLikeBody { get; internal set; }
 }
 
 public sealed class Identifier : Node
