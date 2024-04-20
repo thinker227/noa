@@ -26,7 +26,7 @@ internal static class FlowAnalyzer
 
 file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 {
-    private readonly Stack<IFunction> functions = [];
+    private readonly Stack<FunctionOrLambda> functions = [];
     private readonly Stack<LoopExpression?> loops = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
@@ -36,7 +36,12 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
     protected override int VisitFunctionDeclaration(FunctionDeclaration node)
     {
-        functions.Push(node.Symbol.Value);
+        functions.Push(new()
+        {
+            IsLambda = false,
+            Function = node,
+            Lambda = null
+        });
         
         // Push null to the loop stack to indicate that we're at
         // the top-level inside a function body, which is not a loop.
@@ -84,7 +89,12 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
-        functions.Push(node.Function.Value);
+        functions.Push(new()
+        {
+            IsLambda = true,
+            Function = null,
+            Lambda = node
+        });
         
         loops.Push(null);
 
@@ -112,7 +122,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
     {
         if (functions.TryPeek(out var func))
         {
-            node.Function = new(func);
+            node.Function = func;
         }
         else
         {

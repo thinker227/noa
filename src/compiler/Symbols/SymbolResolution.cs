@@ -163,8 +163,6 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         
         var blockingScope = new BlockingScope(currentScope, node);
         var bodyScope = new MapScope(blockingScope, node);
-        functionSymbol.Body.Scope = bodyScope;
-        
         foreach (var param in node.Parameters)
         {
             var parameterSymbol = param.Symbol.Value;
@@ -235,15 +233,6 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         {
             Visit(node.Body);
         });
-
-        var function = new LambdaFunction(node)
-        {
-            Body =
-            {
-                Scope = paramScope
-            }
-        };
-        node.Function = function;
 
         return default;
     }

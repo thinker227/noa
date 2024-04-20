@@ -1,5 +1,4 @@
 using Noa.Compiler.Nodes;
-using Noa.Compiler.Symbols;
 using Noa.Compiler.Tests;
 
 namespace Noa.Compiler.FlowAnalysis.Tests;
@@ -15,7 +14,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -36,7 +34,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -81,7 +78,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -102,7 +98,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -121,15 +116,15 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
 
         var func = (FunctionDeclaration)ast.Root.FindNodeAt(0)!;
         var @return = (ReturnExpression)ast.Root.FindNodeAt(15)!;
-
-        @return.Function.Value.ShouldBe(func.Symbol.Value);
+        
+        @return.Function.Value!.IsLambda.ShouldBeFalse();
+        @return.Function.Value!.Function.ShouldBe(func);
     }
     
     [Fact]
@@ -143,7 +138,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -151,7 +145,8 @@ public class FlowAnalyzerTests
         var lambda = (LambdaExpression)ast.Root.FindNodeAt(8)!;
         var @return = (ReturnExpression)ast.Root.FindNodeAt(20)!;
 
-        @return.Function.Value!.ShouldBe(lambda.Function.Value);
+        @return.Function.Value!.IsLambda.ShouldBeTrue();
+        @return.Function.Value!.Lambda.ShouldBe(lambda);
     }
     
     [Fact]
@@ -165,7 +160,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -187,7 +181,6 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);

@@ -153,8 +153,6 @@ public sealed class LambdaExpression : Expression
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
-    
-    public Semantic<LambdaFunction> Function { get; internal set; }
 }
 
 public sealed class TupleExpression : Expression
@@ -191,7 +189,7 @@ public sealed class ReturnExpression : Expression
             ? [Expression]
             : [];
     
-    public Semantic<IFunction?> Function { get; internal set; }
+    public Semantic<FunctionOrLambda?> Function { get; internal set; }
 }
 
 public sealed class BreakExpression : Expression
