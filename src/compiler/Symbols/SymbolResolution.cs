@@ -51,14 +51,14 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(Node node, ImmutableArray<Statement> statements, Expression? trailingExpression)
+    private IScope DeclareBlock(BlockExpression block)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
         
         var functions = new Dictionary<string, FunctionSymbol>();
         
-        foreach (var statement in statements)
+        foreach (var statement in block.Statements)
         {
             // These two foreach loops may take a substantial amount of time depending on the amount of
             // statements within the block. Placing a cancellation point at the start of each iteration
@@ -106,7 +106,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         var variables = ImmutableDictionary.Create<string, VariableSymbol>();
         var variableTimeline = new List<ImmutableDictionary<string, VariableSymbol>>() { variables };
         
-        foreach (var statement in statements)
+        foreach (var statement in block.Statements)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -136,16 +136,16 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         }
 
         // The trailing expression is always assigned the absolute last index.
-        if (trailingExpression is not null) timelineIndexMap[trailingExpression] = timelineIndex;
+        if (block.TrailingExpression is not null) timelineIndexMap[block.TrailingExpression] = timelineIndex;
         
-        return new BlockScope(currentScope, node, functions, variableTimeline, timelineIndexMap);
+        return new BlockScope(currentScope, block, functions, variableTimeline, timelineIndexMap);
     }
     
     protected override int VisitRoot(Root node)
     {
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node, node.Statements, node.TrailingExpression);
+        var blockScope = DeclareBlock(node);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -197,7 +197,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        var blockScope = DeclareBlock(node, node.Statements, node.TrailingExpression);
+        var blockScope = DeclareBlock(node);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
