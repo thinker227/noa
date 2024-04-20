@@ -1,4 +1,4 @@
-root = statement* ;
+root = statement* expression? ;
 
 
 

@@ -43,12 +43,7 @@ public abstract class Node
             : [];
 }
 
-public sealed class Root : Node
-{
-    public required ImmutableArray<Statement> Statements { get; init; }
-
-    public override IEnumerable<Node> Children => Statements;
-}
+public sealed class Root : BlockExpression;
 
 public sealed class Identifier : Node
 {
@@ -128,7 +123,7 @@ public sealed class ErrorExpression : Expression
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed class BlockExpression : Expression
+public class BlockExpression : Expression
 {
     public required ImmutableArray<Statement> Statements { get; init; }
     

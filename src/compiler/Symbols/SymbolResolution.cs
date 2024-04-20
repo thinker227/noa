@@ -145,10 +145,11 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     {
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node, node.Statements, null);
+        var blockScope = DeclareBlock(node, node.Statements, node.TrailingExpression);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
+            Visit(node.TrailingExpression);
         });
 
         return default;
