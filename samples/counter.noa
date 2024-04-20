@@ -1,0 +1,16 @@
+func createCounter(start) {
+    let mut x = start;
+    () => {
+        x = x + 1;
+        x
+    }
+}
+
+let counter = createCounter(0);
+
+print(counter());
+print(counter());
+print(counter());
+
+// stub
+func print() {}
