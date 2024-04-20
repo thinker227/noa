@@ -34,7 +34,7 @@ public interface IFunction
 public sealed class NomialFunction : IDeclaredSymbol, IFunction
 {
     private readonly List<ParameterSymbol> parameters = [];
-    private IReadOnlyList<VariableSymbol>? locals = null;
+    private List<VariableSymbol>? locals = null;
     
     public required string Name { get; init; }
 
@@ -56,7 +56,13 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
 
     public IReadOnlyList<VariableSymbol> GetLocals()
     {
-        locals ??= LocalsHelper.GetLocals(Body);
+        locals ??= Declaration
+            .Descendants(node =>
+                node is not (LambdaExpression or Expression { Parent.Value: FunctionDeclaration }))
+            .OfType<LetDeclaration>()
+            .Select(x => x.Symbol.Value)
+            .ToList();
+
         return locals;
     }
     
@@ -72,42 +78,4 @@ public sealed class NomialFunction : IDeclaredSymbol, IFunction
         var parameters = string.Join(", ", Parameters.Select(p => p.Name));
         return $"{Name}({parameters}) declared at {Declaration.Location}";
     }
-}
-
-/// <summary>
-/// A semantic representation of a lambda expression.
-/// </summary>
-/// <param name="expression">The source lambda expression.</param>
-public sealed class Lambda(LambdaExpression expression) : IFunction
-{
-    private IReadOnlyList<VariableSymbol>? locals = null;
-    
-    /// <summary>
-    /// The source lambda expression.
-    /// </summary>
-    public LambdaExpression Expression { get; } = expression;
-
-    Node IFunction.Declaration => Expression;
-
-    public Expression Body => Expression.Body;
-
-    public IReadOnlyList<ParameterSymbol> Parameters { get; } =
-        expression.Parameters.Select(x => x.Symbol.Value).ToList();
-
-    public IReadOnlyList<VariableSymbol> GetLocals()
-    {
-        locals ??= LocalsHelper.GetLocals(Body);
-        return locals;
-    }
-}
-
-file static class LocalsHelper
-{
-    public static IReadOnlyList<VariableSymbol> GetLocals(Node node) =>
-        node
-            .Descendants(x =>
-                x is not (LambdaExpression or Expression { Parent.Value: FunctionDeclaration }))
-            .OfType<LetDeclaration>()
-            .Select(x => x.Symbol.Value)
-            .ToList();
 }
