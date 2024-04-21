@@ -80,6 +80,53 @@ public interface IDiagnosticPage
     /// <param name="location">The location to write.</param>
     /// <returns>The current page.</returns>
     IDiagnosticPage Location(Location location) => Raw(location.ToString());
+
+    /// <summary>
+    /// Writes many values onto the page.
+    /// </summary>
+    /// <param name="writeActions">The actions which write onto the page.</param>
+    /// <param name="terminator">Specifies how to terminate the list,
+    /// i.e. what to write between the second-to-last and last values instead of a comma.</param>
+    /// <returns>The current page.</returns>
+    IDiagnosticPage Many(IEnumerable<Action<IDiagnosticPage>> writeActions, ManyTerminator terminator)
+    {
+        var (dualSeparator, endingSeparator) = terminator switch
+        {
+            ManyTerminator.And => (" and ", ", and "),
+            ManyTerminator.Or => (" or ", ", or "),
+            ManyTerminator.None => (", ", ", "),
+            _ => throw new UnreachableException()
+        };
+        
+        DiagnosticPageUtility.WriteManyJoinedWithSeparators(
+            this,
+            page => page.Raw(", "),
+            page => page.Raw(dualSeparator),
+            page => page.Raw(endingSeparator),
+            writeActions);
+
+        return this;
+    }
+}
+
+/// <summary>
+/// Specifies how to terminate a list of many values written onto a page,
+/// i.e. what to write between the second-to-last and last values instead of a comma.
+/// </summary>
+public enum ManyTerminator
+{
+    /// <summary>
+    /// Write an 'and'.
+    /// </summary>
+    And,
+    /// <summary>
+    /// Write an 'or'.
+    /// </summary>
+    Or,
+    /// <summary>
+    /// Write nothing, or usually a ','.
+    /// </summary>
+    None
 }
 
 /// <summary>
@@ -93,4 +140,71 @@ public interface IDiagnosticPage<out T> : IDiagnosticPage
     /// </summary>
     /// <returns>The written contents of the page.</returns>
     T Write();
+}
+
+public static class DiagnosticPageUtility
+{
+    /// <summary>
+    /// Acts as a helper for <see cref="IDiagnosticPage.Many"/>.
+    /// Writes many values onto a page using an individual separator
+    /// between two values, between the two ending values,
+    /// and between the single two values of the sequence if it only contains two values.
+    /// </summary>
+    /// <param name="page">The page to write to.</param>
+    /// <param name="writeSeparator">Writes a separator between values before the ending pair.</param>
+    /// <param name="writeEndingSeparator">Writes a separator between the ending pair.</param>
+    /// <param name="writeDualSeparator">
+    /// Writes a separator between the two values in the sequence if the sequence of contains two values.
+    /// </param>
+    /// <param name="writeActions">The actions to write.</param>
+    public static void WriteManyJoinedWithSeparators(
+        IDiagnosticPage page,
+        Action<IDiagnosticPage> writeSeparator,
+        Action<IDiagnosticPage> writeDualSeparator,
+        Action<IDiagnosticPage> writeEndingSeparator,
+    IEnumerable<Action<IDiagnosticPage>> writeActions)
+    {
+        using var enumerator = writeActions.GetEnumerator();
+
+        if (!enumerator.MoveNext()) return;
+        var first = enumerator.Current;
+
+        first(page);
+        if (!enumerator.MoveNext()) return;
+        var second = enumerator.Current;
+        
+        var count = 2;
+        var previous = second;
+        while (enumerator.MoveNext())
+        {
+            writeSeparator(page);
+            previous(page);
+            
+            count++;
+            previous = enumerator.Current;
+        }
+
+        if (count == 2)
+        {
+            writeDualSeparator(page);
+            previous(page);
+        }
+        else if (count > 2)
+        {
+            writeEndingSeparator(page);
+            previous(page);
+        }
+    }
+
+    /// <summary>
+    /// Turns a sequence of values into a sequence of actions onto a page.
+    /// </summary>
+    /// <param name="values">The values to turns into actions.</param>
+    /// <param name="action">The action to apply to the page for each value.</param>
+    /// <typeparam name="T">The type of the values.</typeparam>
+    /// <returns>A sequence of page actions.</returns>
+    public static IEnumerable<Action<IDiagnosticPage>> ToPageActions<T>(
+        IEnumerable<T> values,
+        Action<T, IDiagnosticPage> action) =>
+        values.Select(Action<IDiagnosticPage> (x) => p => action(x, p));
 }
