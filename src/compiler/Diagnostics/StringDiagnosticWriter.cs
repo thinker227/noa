@@ -16,7 +16,7 @@ public sealed class StringDiagnosticWriter : IDiagnosticWriter<string>
     
     private StringDiagnosticWriter() {}
     
-    public IDiagnosticPage<string> CreatePage(IDiagnostic diagnostic, Ast ast) => new StringPage();
+    public IDiagnosticPage<string> CreatePage(IDiagnostic diagnostic) => new StringPage();
 }
 
 file sealed class StringPage : IDiagnosticPage<string>

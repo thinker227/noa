@@ -11,9 +11,8 @@ public interface IDiagnosticWriter
     /// Creates a new blank page to write a diagnostic onto.
     /// </summary>
     /// <param name="diagnostic">The diagnostic which will be written to the page.</param>
-    /// <param name="ast">The AST the diagnostic belongs to.</param>
     /// <returns>A new blank diagnostic page.</returns>
-    IDiagnosticPage CreatePage(IDiagnostic diagnostic, Ast ast);
+    IDiagnosticPage CreatePage(IDiagnostic diagnostic);
 }
 
 /// <summary>
@@ -23,9 +22,9 @@ public interface IDiagnosticWriter
 public interface IDiagnosticWriter<out T> : IDiagnosticWriter
 {
     /// <inheritdoc cref="IDiagnosticWriter.CreatePage"/>
-    new IDiagnosticPage<T> CreatePage(IDiagnostic diagnostic, Ast ast);
+    new IDiagnosticPage<T> CreatePage(IDiagnostic diagnostic);
 
-    IDiagnosticPage IDiagnosticWriter.CreatePage(IDiagnostic diagnostic, Ast ast) => CreatePage(diagnostic, ast);
+    IDiagnosticPage IDiagnosticWriter.CreatePage(IDiagnostic diagnostic) => CreatePage(diagnostic);
 }
 
 /// <summary>
@@ -103,9 +102,8 @@ public static class DiagnosticWriterExtensions
     /// </summary>
     /// <param name="writer">The diagnostic writer.</param>
     /// <param name="diagnostic">The diagnostic to write the message of.</param>
-    /// <param name="ast">The AST the diagnostic belongs to.</param>
     /// <typeparam name="T">The type of the written message.</typeparam>
     /// <returns>The written diagnostic message.</returns>
-    public static T Write<T>(this IDiagnosticWriter<T> writer, IDiagnostic diagnostic, Ast ast) =>
-        writer.CreatePage(diagnostic, ast).Write();
+    public static T Write<T>(this IDiagnosticWriter<T> writer, IDiagnostic diagnostic) =>
+        writer.CreatePage(diagnostic).Write();
 }
