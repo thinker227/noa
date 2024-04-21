@@ -85,8 +85,10 @@ public interface IDiagnosticPage
     /// Writes many values onto the page.
     /// </summary>
     /// <param name="writeActions">The actions which write onto the page.</param>
-    /// <param name="terminator">Specifies how to terminate the list,
-    /// i.e. what to write between the second-to-last and last values instead of a comma.</param>
+    /// <param name="terminator">
+    /// Specifies how to terminate the list,
+    /// i.e. what to write between the second-to-last and last values instead of a comma.
+    /// </param>
     /// <returns>The current page.</returns>
     IDiagnosticPage Many(IEnumerable<Action<IDiagnosticPage>> writeActions, ManyTerminator terminator)
     {
@@ -162,7 +164,7 @@ public static class DiagnosticPageUtility
         Action<IDiagnosticPage> writeSeparator,
         Action<IDiagnosticPage> writeDualSeparator,
         Action<IDiagnosticPage> writeEndingSeparator,
-    IEnumerable<Action<IDiagnosticPage>> writeActions)
+        IEnumerable<Action<IDiagnosticPage>> writeActions)
     {
         using var enumerator = writeActions.GetEnumerator();
 
@@ -207,4 +209,27 @@ public static class DiagnosticPageUtility
         IEnumerable<T> values,
         Action<T, IDiagnosticPage> action) =>
         values.Select(Action<IDiagnosticPage> (x) => p => action(x, p));
+
+    /// <summary>
+    /// Writes many values onto a page.
+    /// </summary>
+    /// <param name="page">The page to write the values onto.</param>
+    /// <param name="values">The values to write.</param>
+    /// <param name="action">An action which write a single value onto the page.</param>
+    /// <param name="terminator">
+    /// Specifies how to terminate the list,
+    /// i.e. what to write between the second-to-last and last values instead of a comma.
+    /// </param>
+    /// <returns>The current page.</returns>
+    public static IDiagnosticPage Many<T>(
+        this IDiagnosticPage page,
+        IEnumerable<T> values,
+        Action<T, IDiagnosticPage> action,
+        ManyTerminator terminator)
+    {
+        var actions = ToPageActions(values, action);
+        page.Many(actions, terminator);
+        
+        return page;
+    }
 }
