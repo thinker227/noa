@@ -35,9 +35,9 @@ file sealed class StringPage : IDiagnosticPage<string>
         return this;
     }
 
-    public IDiagnosticPage Character(char character)
+    public IDiagnosticPage Source(string source)
     {
-        builder.Append($"'{character}'");
+        builder.Append($"'{source}'");
         return this;
     }
 

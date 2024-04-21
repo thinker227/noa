@@ -47,11 +47,11 @@ public interface IDiagnosticPage
     IDiagnosticPage Emphasized(string text) => Raw(text);
 
     /// <summary>
-    /// Writes a single character to the page.
+    /// Writes a piece of source code without any special context to the page.
     /// </summary>
-    /// <param name="character">The character to write.</param>
+    /// <param name="source">The source code to write.</param>
     /// <returns>The current page.</returns>
-    IDiagnosticPage Character(char character) => Raw(character.ToString());
+    IDiagnosticPage Source(string source) => Raw(source);
 
     /// <summary>
     /// Writes a keyword to the page.
