@@ -94,16 +94,3 @@ public interface IDiagnosticPage<out T> : IDiagnosticPage
     /// <returns>The written contents of the page.</returns>
     T Write();
 }
-
-public static class DiagnosticWriterExtensions
-{
-    /// <summary>
-    /// Writes a diagnostic message.
-    /// </summary>
-    /// <param name="writer">The diagnostic writer.</param>
-    /// <param name="diagnostic">The diagnostic to write the message of.</param>
-    /// <typeparam name="T">The type of the written message.</typeparam>
-    /// <returns>The written diagnostic message.</returns>
-    public static T Write<T>(this IDiagnosticWriter<T> writer, IDiagnostic diagnostic) =>
-        writer.CreatePage(diagnostic).Write();
-}

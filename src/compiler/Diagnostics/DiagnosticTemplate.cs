@@ -27,25 +27,29 @@ public sealed record DiagnosticTemplate(DiagnosticId Id, string Message, Severit
     /// <summary>
     /// Creates a diagnostic template with an argument used to format its message.
     /// </summary>
-    /// <param name="createMessage">A function to create the message for a diagnostic.</param>
+    /// <param name="writeMessage">
+    /// A function to write the diagnostic message onto an <see cref="IDiagnosticPage"/>.
+    /// </param>
     /// <param name="severity">The severity of the diagnostic.</param>
     /// <typeparam name="TArg">The type of the argument to the template.</typeparam>
     public static DiagnosticTemplate<TArg> Create<TArg>(
         DiagnosticId id,
-        Func<TArg, string> createMessage,
+        Action<TArg, IDiagnosticPage> writeMessage,
         Severity severity) =>
-        new(id, createMessage, severity);
+        new(id, writeMessage, severity);
 }
 
 /// <summary>
 /// A template for a diagnostic with an argument used to format its message.
 /// </summary>
-/// <param name="CreateMessage">A function to create the message for a diagnostic.</param>
+/// <param name="WriteMessage">
+/// A function to write the diagnostic message onto an <see cref="IDiagnosticPage"/>.
+/// </param>
 /// <param name="Severity">The severity of the diagnostic.</param>
 /// <typeparam name="TArg">The type of the argument to the template.</typeparam>
 public sealed record DiagnosticTemplate<TArg>(
     DiagnosticId Id,
-    Func<TArg, string> CreateMessage,
+    Action<TArg, IDiagnosticPage> WriteMessage,
     Severity Severity)
 {
     /// <summary>
