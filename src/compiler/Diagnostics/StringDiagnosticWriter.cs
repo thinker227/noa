@@ -1,4 +1,5 @@
 using System.Text;
+using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.Diagnostics;
 
@@ -25,6 +26,24 @@ file sealed class StringPage : IDiagnosticPage<string>
     public IDiagnosticPage Raw(string text)
     {
         builder.Append(text);
+        return this;
+    }
+
+    public IDiagnosticPage Name(string name)
+    {
+        builder.Append($"'{name}'");
+        return this;
+    }
+
+    public IDiagnosticPage Character(char character)
+    {
+        builder.Append($"'{character}'");
+        return this;
+    }
+
+    public IDiagnosticPage Symbol(ISymbol symbol)
+    {
+        builder.Append($"'{symbol.Name}'");
         return this;
     }
 
