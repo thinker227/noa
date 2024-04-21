@@ -22,16 +22,26 @@ internal static class FlowDiagnostics
             "NOA-FLW-003",
             "Continue expressions cannot be used outside loop blocks",
             Severity.Error);
-    
+
     public static DiagnosticTemplate<ISymbol> AssignmentToInvalidSymbol { get; } =
         DiagnosticTemplate.Create<ISymbol>(
             "NOA-FLW-004",
-            symbol => $"Cannot assign to '{symbol.Name}' because it is not a variable or parameter",
+            (symbol, page) => page
+                .Raw("Cannot assign to ")
+                .Symbol(symbol)
+                .Raw(" because it is not a ")
+                .Emphasized("variable")
+                .Raw(" or ")
+                .Emphasized("parameter"),
             Severity.Error);
-    
+
     public static DiagnosticTemplate<IVariableSymbol> AssignmentToImmutableSymbol { get; } =
         DiagnosticTemplate.Create<IVariableSymbol>(
             "NOA-FLW-005",
-            symbol => $"Cannot assign to '{symbol.Name}' because it is immutable",
+            (symbol, page) => page
+                .Raw("Cannot assign to ")
+                .Symbol(symbol)
+                .Raw(" because it is ")
+                .Emphasized("immutable"),
             Severity.Error);
 }

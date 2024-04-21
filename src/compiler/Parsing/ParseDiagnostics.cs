@@ -7,45 +7,73 @@ internal static class ParseDiagnostics
     public static DiagnosticTemplate<string> UnexpectedCharacter { get; } =
         DiagnosticTemplate.Create<string>(
             "NOA-SYN-001",
-            c => $"Unexpected character '{c}'",
+            (c, page) => page
+                .Raw("Unexpected character ")
+                .Source(c),
             Severity.Error);
 
     public static DiagnosticTemplate<Token> UnexpectedToken { get; } =
         DiagnosticTemplate.Create<Token>(
             "NOA-SYN-002",
-            token => $"Unexpected token '{token.Text}'",
+            (token, page) => page
+                .Raw("Unexpected token ")
+                .Source(token.Text),
             Severity.Error);
     
     public static DiagnosticTemplate<IReadOnlyCollection<TokenKind>> ExpectedKinds { get; } =
         DiagnosticTemplate.Create<IReadOnlyCollection<TokenKind>>(
             "NOA-SYN-003",
-            kinds =>
+            (kinds, page) =>
             {
-                var kindsString = Formatting.JoinOxfordOr(kinds
-                    .Select(kind => kind.ToDisplayString()));
-
-                return kinds.Count == 1
-                    ? $"Expected {kindsString}"
-                    : $"Expected either {kindsString}";
+                var ks = DiagnosticPageUtility.ToPageActions(
+                    kinds,
+                    (kind, p) => p.Keyword(kind.ToDisplayString()));
+                
+                if (kinds.Count == 1)
+                {
+                    page.Raw("Expected ")
+                        .Many(ks, ManyTerminator.None);
+                }
+                else
+                {
+                    page.Raw("Expected either ")
+                        .Many(ks, ManyTerminator.Or);
+                }
             },
             Severity.Error);
 
     public static DiagnosticTemplate InvalidExpressionStatement { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-004",
-            "Only block, call, if, loop, return, break, and continue expressions " +
-            "may be used as statements",
+            page => page
+                .Raw("Only ")
+                .Many<string>(
+                    ["block", "call", "if", "loop", "return", "break", "continue"],
+                    (s, p) => p.Raw(s),
+                    ManyTerminator.And)
+                .Raw(" expressions may be used as ")
+                .Emphasized("statements"),
             Severity.Error);
-    
+
     public static DiagnosticTemplate<string> LiteralTooLarge { get; } =
         DiagnosticTemplate.Create<string>(
             "NOA-SYN-005",
-            text => $"Number literal '{text}' is too large (> {int.MaxValue})",
+            (text, page) => page
+                .Raw("Number literal ")
+                .Source(text)
+                .Raw(" is too large (")
+                .Emphasized($"> {int.MaxValue}")
+                .Raw(")"),
             Severity.Error);
 
     public static DiagnosticTemplate InvalidLValue { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-006",
-            "Only identifier expressions can be used on the left-hand side of an assignment statement",
+            // "Only identifier expressions can be used on the left-hand side of an assignment statement",
+            page => page
+                .Raw("Only ")
+                .Keyword("identifier expressions")
+                .Raw(" can be used on the ")
+                .Emphasized("left-hand side of an assignment statement"),
             Severity.Error);
 }
