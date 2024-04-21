@@ -58,7 +58,7 @@ public static class Diagnostic
     
         public Location Location { get; } = location;
 
-        public void WriteToPage(IDiagnosticPage page) => page.Raw(template.Message);
+        public void WriteToPage(IDiagnosticPage page) => template.WriteMessage(page);
 
         public override string ToString()
         {

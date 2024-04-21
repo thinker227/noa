@@ -3,9 +3,14 @@ namespace Noa.Compiler.Diagnostics;
 /// <summary>
 /// A simple template for a diagnostic.
 /// </summary>
-/// <param name="Message">The message of the diagnostic.</param>
+/// <param name="WriteMessage">
+/// A function the diagnostic message onto an <see cref="IDiagnosticPage"/>.
+/// </param>
 /// <param name="Severity">The severity of the diagnostic.</param>
-public sealed record DiagnosticTemplate(DiagnosticId Id, string Message, Severity Severity)
+public sealed record DiagnosticTemplate(
+    DiagnosticId Id,
+    Action<IDiagnosticPage> WriteMessage,
+    Severity Severity)
 {
     /// <summary>
     /// Formats the template into a diagnostic.
@@ -19,10 +24,25 @@ public sealed record DiagnosticTemplate(DiagnosticId Id, string Message, Severit
     /// <summary>
     /// Creates a simple diagnostic template.
     /// </summary>
+    /// <param name="id">The ID of the diagnostic.</param>
     /// <param name="message">The message of the diagnostic.</param>
     /// <param name="severity">The severity of the diagnostic.</param>
     public static DiagnosticTemplate Create(DiagnosticId id, string message, Severity severity) =>
-        new(id, message, severity);
+        new(id, page => page.Raw(message), severity);
+
+    /// <summary>
+    /// Creates a simple diagnostic template.
+    /// </summary>
+    /// <param name="id">The ID of the diagnostic.</param>
+    /// <param name="writeMessage">
+    /// A function the diagnostic message onto an <see cref="IDiagnosticPage"/>.
+    /// </param>
+    /// <param name="severity">The severity of the diagnostic.</param>
+    public static DiagnosticTemplate Create(
+        DiagnosticId id,
+        Action<IDiagnosticPage> writeMessage,
+        Severity severity) =>
+        new(id, writeMessage, severity);
 
     /// <summary>
     /// Creates a diagnostic template with an argument used to format its message.
