@@ -184,7 +184,7 @@ public sealed class ReturnExpression : Expression
             ? [Expression]
             : [];
     
-    public Semantic<FunctionOrLambda?> Function { get; internal set; }
+    public Semantic<IFunction?> Function { get; internal set; }
 }
 
 public sealed class BreakExpression : Expression
