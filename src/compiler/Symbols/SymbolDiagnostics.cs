@@ -35,7 +35,9 @@ internal static class SymbolDiagnostics
                 .Symbol(arg.var)
                 .Raw(" shadows function ")
                 .Symbol(arg.func)
-                .Raw(". Variables cannot shadow functions in the same scope."),
+                .Raw(". Variables ")
+                .Emphasized("cannot shadow functions")
+                .Raw(" in the same scope."),
             Severity.Error);
     
     public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
