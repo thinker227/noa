@@ -72,10 +72,9 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     public bool IsMutable => Declaration.IsMutable;
     
     /// <summary>
-    /// The function symbol which the parameter belongs to,
-    /// or null if the parameter belongs to a lambda expression.
+    /// The function symbol which the parameter belongs to.
     /// </summary>
-    public NomialFunction? Function { get; init; }
+    public required IFunction Function { get; init; }
     
     /// <summary>
     /// The declaration of the parameter.

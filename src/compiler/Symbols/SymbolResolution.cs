@@ -221,7 +221,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             {
                 Name = param.Identifier.Name,
                 Declaration = param,
-                Function = null
+                Function = function
             };
 
             param.Symbol = symbol;
