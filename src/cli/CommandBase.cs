@@ -120,7 +120,7 @@ public abstract class CommandBase(IAnsiConsole console)
             _ => Color.White
         };
 
-        var message = diagnostic.WriteMessage(StringDiagnosticWriter.Writer);
+        var message = diagnostic.WriteMessage(SpectreDiagnosticWriter.Writer);
         var text = $"[white]{diagnostic.Id}[/] at " +
                    $"[aqua]{start.Line.LineNumber}:{start.Offset + 1}[/] to " +
                    $"[aqua]{end.Line.LineNumber}:{end.Offset + 1}[/] " +
