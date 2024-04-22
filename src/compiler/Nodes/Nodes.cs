@@ -133,6 +133,12 @@ public class BlockExpression : Expression
     public required Expression? TrailingExpression { get; init; }
 
     public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+    
+    /// <summary>
+    /// The scope <i>declared</i> by the scope,
+    /// different from the scope the block is <i>in</i>.
+    /// </summary>
+    public Semantic<IScope> DeclaredScope { get; internal set; }
 }
 
 public sealed class CallExpression : Expression

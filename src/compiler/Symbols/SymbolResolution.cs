@@ -146,6 +146,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         // Note: the root is in the global scope, not the block scope it itself declares.
         
         var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -154,8 +155,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         
         var function = new TopLevelFunction()
         {
-            Declaration = node,
-            BodyScope = blockScope
+            Declaration = node
         };
         node.Function = function;
 
@@ -205,6 +205,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     protected override int VisitBlockExpression(BlockExpression node)
     {
         var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);

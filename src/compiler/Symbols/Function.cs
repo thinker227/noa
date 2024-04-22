@@ -74,7 +74,9 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 
     Node IFunction.Declaration => Declaration;
 
-    public IScope BodyScope => Body.Scope.Value;
+    public IScope BodyScope => HasExpressionBody
+        ? ExpressionBody.Scope.Value
+        : BlockBody.DeclaredScope.Value;
 
     [MemberNotNullWhen(true, nameof(ExpressionBody))]
     [MemberNotNullWhen(false, nameof(BlockBody))]
@@ -138,8 +140,8 @@ public sealed class TopLevelFunction : IFunction
     Node IFunction.Declaration => Declaration;
     
     IReadOnlyList<ParameterSymbol> IFunction.Parameters { get; } = [];
-    
-    public required IScope BodyScope { get; init; }
+
+    public IScope BodyScope => Declaration.DeclaredScope.Value;
 
     bool IFunction.HasExpressionBody => false;
 
