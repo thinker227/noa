@@ -43,7 +43,10 @@ public abstract class Node
             : [];
 }
 
-public sealed class Root : BlockExpression;
+public sealed class Root : BlockExpression
+{
+    public Semantic<TopLevelFunction> Function { get; internal set; }
+}
 
 public sealed class Identifier : Node
 {

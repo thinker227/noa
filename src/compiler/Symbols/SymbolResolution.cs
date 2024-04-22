@@ -143,6 +143,12 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     
     protected override int VisitRoot(Root node)
     {
+        var function = new TopLevelFunction()
+        {
+            Declaration = node
+        };
+        node.Function = function;
+        
         // Note: the root is in the global scope, not the block scope it itself declares.
         
         var blockScope = DeclareBlock(node);
