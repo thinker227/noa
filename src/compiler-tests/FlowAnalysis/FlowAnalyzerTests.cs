@@ -15,6 +15,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -35,6 +36,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -55,6 +57,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -79,6 +82,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -99,6 +103,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -117,6 +122,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -139,6 +145,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -161,6 +168,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -182,6 +190,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
