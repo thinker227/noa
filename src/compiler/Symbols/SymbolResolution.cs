@@ -143,12 +143,6 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     
     protected override int VisitRoot(Root node)
     {
-        var function = new TopLevelFunction()
-        {
-            Declaration = node
-        };
-        node.Function = function;
-        
         // Note: the root is in the global scope, not the block scope it itself declares.
         
         var blockScope = DeclareBlock(node);
@@ -157,6 +151,13 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.Statements);
             Visit(node.TrailingExpression);
         });
+        
+        var function = new TopLevelFunction()
+        {
+            Declaration = node,
+            BodyScope = blockScope
+        };
+        node.Function = function;
 
         return default;
     }
@@ -215,12 +216,13 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
+        var paramScope = new MapScope(currentScope, node);
+        
         var function = new LambdaFunction()
         {
             Declaration = node
         };
         
-        var paramScope = new MapScope(currentScope, node);
         foreach (var param in node.Parameters)
         {
             var symbol = new ParameterSymbol()

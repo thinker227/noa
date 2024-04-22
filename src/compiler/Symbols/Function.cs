@@ -19,6 +19,11 @@ public interface IFunction
     IReadOnlyList<ParameterSymbol> Parameters { get; }
     
     /// <summary>
+    /// The scope of the body of the function.
+    /// </summary>
+    IScope BodyScope { get; }
+    
+    /// <summary>
     /// Whether the function has an expression body or a block body.
     /// </summary>
     [MemberNotNullWhen(true, nameof(ExpressionBody))]
@@ -69,11 +74,19 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 
     Node IFunction.Declaration => Declaration;
 
+    public IScope BodyScope => Body.Scope.Value;
+
+    [MemberNotNullWhen(true, nameof(ExpressionBody))]
+    [MemberNotNullWhen(false, nameof(BlockBody))]
     public bool HasExpressionBody => Declaration.ExpressionBody is not null;
 
     public Expression? ExpressionBody => Declaration.ExpressionBody;
 
     public BlockExpression? BlockBody => Declaration.BlockBody;
+    
+    public Expression Body => HasExpressionBody
+        ? ExpressionBody
+        : BlockBody;
     
     public override string ToString()
     {
@@ -97,6 +110,8 @@ public sealed class LambdaFunction : IFunction
     Node IFunction.Declaration => Declaration;
 
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
+
+    public IScope BodyScope => Body.Scope.Value;
 
     bool IFunction.HasExpressionBody => true;
 
@@ -123,6 +138,8 @@ public sealed class TopLevelFunction : IFunction
     Node IFunction.Declaration => Declaration;
     
     IReadOnlyList<ParameterSymbol> IFunction.Parameters { get; } = [];
+    
+    public required IScope BodyScope { get; init; }
 
     bool IFunction.HasExpressionBody => false;
 
