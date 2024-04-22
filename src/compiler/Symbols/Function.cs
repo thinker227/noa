@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -16,6 +17,33 @@ public interface IFunction
     /// The parameters to the function.
     /// </summary>
     IReadOnlyList<ParameterSymbol> Parameters { get; }
+    
+    /// <summary>
+    /// Whether the function has an expression body or a block body.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(ExpressionBody))]
+    [MemberNotNullWhen(false, nameof(BlockBody))]
+    bool HasExpressionBody { get; }
+    
+    /// <summary>
+    /// The expression body of the function.
+    /// </summary>
+    Expression? ExpressionBody { get; }
+    
+    /// <summary>
+    /// The block body of the function.
+    /// </summary>
+    BlockExpression? BlockBody { get; }
+
+    /// <summary>
+    /// The body of the function.
+    /// This may be a non-block expression in the case of the body being an expression body,
+    /// or a block expression in the case of the body being a block body or an expression body
+    /// where the expression is a block expression.
+    /// </summary>
+    Expression Body => HasExpressionBody
+        ? ExpressionBody
+        : BlockBody;
 }
 
 /// <summary>
@@ -40,6 +68,12 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
     Node IDeclaredSymbol.Declaration => Declaration;
 
     Node IFunction.Declaration => Declaration;
+
+    public bool HasExpressionBody => Declaration.ExpressionBody is not null;
+
+    public Expression? ExpressionBody => Declaration.ExpressionBody;
+
+    public BlockExpression? BlockBody => Declaration.BlockBody;
     
     public override string ToString()
     {
@@ -63,6 +97,17 @@ public sealed class LambdaFunction : IFunction
     Node IFunction.Declaration => Declaration;
 
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
+
+    bool IFunction.HasExpressionBody => true;
+
+    Expression? IFunction.ExpressionBody => Body;
+
+    BlockExpression? IFunction.BlockBody => null;
+
+    /// <summary>
+    /// The body of the lambda.
+    /// </summary>
+    public Expression Body => Declaration.Body;
 }
 
 /// <summary>
@@ -78,4 +123,10 @@ public sealed class TopLevelFunction : IFunction
     Node IFunction.Declaration => Declaration;
     
     IReadOnlyList<ParameterSymbol> IFunction.Parameters { get; } = [];
+
+    bool IFunction.HasExpressionBody => false;
+
+    Expression? IFunction.ExpressionBody => null;
+
+    BlockExpression? IFunction.BlockBody => Declaration;
 }
