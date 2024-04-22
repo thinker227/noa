@@ -9,7 +9,8 @@ internal static class ParseDiagnostics
             "NOA-SYN-001",
             (c, page) => page
                 .Raw("Unexpected character ")
-                .Source(c),
+                .Source(c)
+                .Raw("."),
             Severity.Error);
 
     public static DiagnosticTemplate<Token> UnexpectedToken { get; } =
@@ -17,7 +18,8 @@ internal static class ParseDiagnostics
             "NOA-SYN-002",
             (token, page) => page
                 .Raw("Unexpected token ")
-                .Source(token.Text),
+                .Source(token.Text)
+                .Raw("."),
             Severity.Error);
     
     public static DiagnosticTemplate<IReadOnlyCollection<TokenKind>> ExpectedKinds { get; } =
@@ -39,6 +41,8 @@ internal static class ParseDiagnostics
                     page.Raw("Expected either ")
                         .Many(ks, ManyTerminator.Or);
                 }
+
+                page.Raw(".");
             },
             Severity.Error);
 
@@ -52,7 +56,8 @@ internal static class ParseDiagnostics
                     (s, p) => p.Keyword(s),
                     ManyTerminator.And)
                 .Raw(" expressions may be used as ")
-                .Emphasized("statements"),
+                .Emphasized("statements")
+                .Raw("."),
             Severity.Error);
 
     public static DiagnosticTemplate<string> LiteralTooLarge { get; } =
@@ -63,7 +68,7 @@ internal static class ParseDiagnostics
                 .Source(text)
                 .Raw(" is too large (")
                 .Emphasized($"> {int.MaxValue}")
-                .Raw(")"),
+                .Raw(")."),
             Severity.Error);
 
     public static DiagnosticTemplate InvalidLValue { get; } =
@@ -74,6 +79,7 @@ internal static class ParseDiagnostics
                 .Raw("Only ")
                 .Keyword("identifier expressions")
                 .Raw(" can be used on the ")
-                .Emphasized("left-hand side of an assignment statement"),
+                .Emphasized("left-hand side of an assignment statement")
+                .Raw("."),
             Severity.Error);
 }

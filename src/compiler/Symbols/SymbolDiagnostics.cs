@@ -13,7 +13,7 @@ internal static class SymbolDiagnostics
                 .Symbol(function)
                 .Raw(" has already been declared in this scope. Functions ")
                 .Emphasized("cannot shadow others functions")
-                .Raw(" the same scope"),
+                .Raw(" the same scope."),
             Severity.Error);
 
     public static DiagnosticTemplate<string> SymbolAlreadyDeclared { get; } =
@@ -24,7 +24,7 @@ internal static class SymbolDiagnostics
                 .Name(name)
                 .Raw(" has ")
                 .Emphasized("already been declared")
-                .Raw(" in this scope"),
+                .Raw(" in this scope."),
             Severity.Error);
     
     public static DiagnosticTemplate<(VariableSymbol, FunctionSymbol)> VariableShadowsFunction { get; } =
@@ -35,7 +35,7 @@ internal static class SymbolDiagnostics
                 .Symbol(arg.var)
                 .Raw(" shadows function ")
                 .Symbol(arg.func)
-                .Raw(". Variables cannot shadow functions in the same scope"),
+                .Raw(". Variables cannot shadow functions in the same scope."),
             Severity.Error);
     
     public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
@@ -48,7 +48,7 @@ internal static class SymbolDiagnostics
 
                 page.Raw("Cannot find a symbol with the name ")
                     .Name(name)
-                    .Raw(" in the current scope");
+                    .Raw(" in the current scope.");
                 
                 if (corrections.Count == 0) return;
                 
@@ -56,7 +56,7 @@ internal static class SymbolDiagnostics
                     corrections,
                     (s, p) => p.Symbol(s));
 
-                page.Raw(". Did you perhaps mean ")
+                page.Raw(" Did you perhaps mean ")
                     .Many(correctionActions, ManyTerminator.Or)
                     .Raw("?");
             },
@@ -72,7 +72,7 @@ internal static class SymbolDiagnostics
                 .Emphasized("variables")
                 .Raw(" or ")
                 .Emphasized("parameters")
-                .Raw(" from their containing scope"),
+                .Raw(" from their containing scope."),
             Severity.Error);
 
     public static DiagnosticTemplate<ISymbol> DeclaredLater { get; } =
@@ -82,6 +82,7 @@ internal static class SymbolDiagnostics
                 .Raw("Cannot reference variable ")
                 .Symbol(symbol)
                 .Raw(" because it has ")
-                .Emphasized("not been declared yet"),
+                .Emphasized("not been declared yet")
+                .Raw("."),
             Severity.Error);
 }

@@ -11,7 +11,8 @@ internal static class FlowDiagnostics
             page => page
                 .Keyword("Return expressions")
                 .Raw(" cannot be used outside ")
-                .Emphasized("function bodies"),
+                .Emphasized("function bodies")
+                .Raw("."),
             Severity.Error);
     
     public static DiagnosticTemplate BreakOutsideFunction { get; } =
@@ -20,7 +21,8 @@ internal static class FlowDiagnostics
             page => page
                 .Keyword("Break expressions")
                 .Raw(" cannot be used outside ")
-                .Emphasized("loop blocks"),
+                .Emphasized("loop blocks")
+                .Raw("."),
             Severity.Error);
     
     public static DiagnosticTemplate ContinueOutsideFunction { get; } =
@@ -29,7 +31,8 @@ internal static class FlowDiagnostics
             page => page
                 .Keyword("Continue expressions")
                 .Raw(" cannot be used outside ")
-                .Emphasized("loop blocks"),
+                .Emphasized("loop blocks")
+                .Raw("."),
             Severity.Error);
 
     public static DiagnosticTemplate<ISymbol> AssignmentToInvalidSymbol { get; } =
@@ -41,7 +44,8 @@ internal static class FlowDiagnostics
                 .Raw(" because it is not a ")
                 .Emphasized("variable")
                 .Raw(" or ")
-                .Emphasized("parameter"),
+                .Emphasized("parameter")
+                .Raw("."),
             Severity.Error);
 
     public static DiagnosticTemplate<IVariableSymbol> AssignmentToImmutableSymbol { get; } =
@@ -51,6 +55,7 @@ internal static class FlowDiagnostics
                 .Raw("Cannot assign to ")
                 .Symbol(symbol)
                 .Raw(" because it is ")
-                .Emphasized("immutable"),
+                .Emphasized("immutable")
+                .Raw("."),
             Severity.Error);
 }
