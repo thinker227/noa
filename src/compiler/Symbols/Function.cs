@@ -49,6 +49,15 @@ public interface IFunction
     Expression Body => HasExpressionBody
         ? ExpressionBody
         : BlockBody;
+
+    /// <summary>
+    /// Gets a sequence of every local variable declared in the function.
+    /// </summary>
+    /// <remarks>
+    /// Implementations of this method implement caching,
+    /// so calculations will only run the first time the method is called.
+    /// </remarks>
+    IReadOnlyCollection<VariableSymbol> GetLocals();
 }
 
 /// <summary>
@@ -57,6 +66,7 @@ public interface IFunction
 public sealed class NomialFunction : IFunction, IDeclaredSymbol
 {
     internal readonly List<ParameterSymbol> parameters = [];
+    private IReadOnlyCollection<VariableSymbol>? locals = null;
     
     public required string Name { get; init; }
 
@@ -89,7 +99,13 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
     public Expression Body => HasExpressionBody
         ? ExpressionBody
         : BlockBody;
-    
+
+    public IReadOnlyCollection<VariableSymbol> GetLocals()
+    {
+        locals ??= LocalsVisitor.GetLocals(Body);
+        return locals;
+    }
+
     public override string ToString()
     {
         var parameters = string.Join(", ", Parameters.Select(p => p.Name));
@@ -103,6 +119,7 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 public sealed class LambdaFunction : IFunction
 {
     internal readonly List<ParameterSymbol> parameters = [];
+    private IReadOnlyCollection<VariableSymbol>? locals = null;
     
     /// <summary>
     /// The declaration of the function.
@@ -125,6 +142,17 @@ public sealed class LambdaFunction : IFunction
     /// The body of the lambda.
     /// </summary>
     public Expression Body => Declaration.Body;
+
+    public IReadOnlyCollection<VariableSymbol> GetLocals()
+    {
+        locals = LocalsVisitor.GetLocals(Body);
+        return locals;
+    }
+
+    /// <summary>
+    /// Gets all variables and parameters captured by the lambda.
+    /// </summary>
+    public IReadOnlyCollection<IVariableSymbol> GetCaptures() => throw new NotImplementedException();
 }
 
 /// <summary>
@@ -132,6 +160,8 @@ public sealed class LambdaFunction : IFunction
 /// </summary>
 public sealed class TopLevelFunction : IFunction
 {
+    private IReadOnlyCollection<VariableSymbol>? locals = null;
+    
     /// <summary>
     /// The declaration of the function.
     /// </summary>
@@ -148,4 +178,10 @@ public sealed class TopLevelFunction : IFunction
     Expression? IFunction.ExpressionBody => null;
 
     BlockExpression? IFunction.BlockBody => Declaration;
+
+    public IReadOnlyCollection<VariableSymbol> GetLocals()
+    {
+        locals ??= LocalsVisitor.GetLocals(Declaration);
+        return locals;
+    }
 }
