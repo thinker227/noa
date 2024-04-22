@@ -40,6 +40,11 @@ public sealed class Ast
     /// </summary>
     public Semantic<IScope> GlobalScope { get; internal set; }
 
+    /// <summary>
+    /// The top-level function.
+    /// </summary>
+    public TopLevelFunction TopLevelFunction => Root.Function.Value;
+
     private Ast(Source source, CancellationToken cancellationToken)
     {
         var (root, diagnostics) = Parser.Parse(source, this, cancellationToken);
