@@ -90,6 +90,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         };
         var parameters = node.Parameters.Select(p => p.Symbol.Value);
         lambda.parameters.AddRange(parameters);
+        node.Function = lambda;
         
         functions.Push(lambda);
         
