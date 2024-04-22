@@ -84,15 +84,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
-        var lambda = new LambdaFunction()
-        {
-            Declaration = node
-        };
-        var parameters = node.Parameters.Select(p => p.Symbol.Value);
-        lambda.parameters.AddRange(parameters);
-        node.Function = lambda;
-        
-        functions.Push(lambda);
+        functions.Push(node.Function.Value);
         
         loops.Push(null);
 

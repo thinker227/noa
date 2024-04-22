@@ -209,6 +209,11 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
+        var function = new LambdaFunction()
+        {
+            Declaration = node
+        };
+        
         var paramScope = new MapScope(currentScope, node);
         foreach (var param in node.Parameters)
         {
@@ -220,6 +225,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             };
 
             param.Symbol = symbol;
+            function.parameters.Add(symbol);
             
             var result = paramScope.Declare(symbol);
             
@@ -233,6 +239,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             
             Visit(param);
         }
+        
+        node.Function = function;
         
         InScope(paramScope, () =>
         {
