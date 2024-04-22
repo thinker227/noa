@@ -8,19 +8,28 @@ internal static class FlowDiagnostics
     public static DiagnosticTemplate ReturnOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-001",
-            "Return expressions cannot be used outside functions bodies",
+            page => page
+                .Keyword("Return expressions")
+                .Raw(" cannot be used outside ")
+                .Emphasized("function bodies"),
             Severity.Error);
     
     public static DiagnosticTemplate BreakOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-002",
-            "Break expressions cannot be used outside loop blocks",
+            page => page
+                .Keyword("Break expressions")
+                .Raw(" cannot be used outside ")
+                .Emphasized("loop blocks"),
             Severity.Error);
     
     public static DiagnosticTemplate ContinueOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-003",
-            "Continue expressions cannot be used outside loop blocks",
+            page => page
+                .Keyword("Continue expressions")
+                .Raw(" cannot be used outside ")
+                .Emphasized("loop blocks"),
             Severity.Error);
 
     public static DiagnosticTemplate<ISymbol> AssignmentToInvalidSymbol { get; } =
