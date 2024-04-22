@@ -49,7 +49,7 @@ internal static class ParseDiagnostics
                 .Raw("Only ")
                 .Many<string>(
                     ["block", "call", "if", "loop", "return", "break", "continue"],
-                    (s, p) => p.Raw(s),
+                    (s, p) => p.Keyword(s),
                     ManyTerminator.And)
                 .Raw(" expressions may be used as ")
                 .Emphasized("statements"),
