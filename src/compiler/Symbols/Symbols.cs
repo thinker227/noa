@@ -40,7 +40,7 @@ public interface IDeclaredSymbol : ISymbol, IFunctionNested
 /// <summary>
 /// Represents a variable-like symbol.
 /// </summary>
-public interface IVariableSymbol : ISymbol
+public interface IVariableSymbol : ISymbol, IFunctionNested
 {
     /// <summary>
     /// Whether the variable is declared as mutable.
