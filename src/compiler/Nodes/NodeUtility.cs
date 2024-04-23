@@ -51,6 +51,31 @@ public static class NodeUtility
     /// <param name="node">The node to get the descendants of.</param>
     public static IEnumerable<Node> DescendantsAndSelf(this Node node) =>
         node.Descendants().Prepend(node);
+
+    /// <summary>
+    /// Gets the descendants of a node in depth-first order, bounded by the current function.
+    /// </summary>
+    /// <param name="node">The node to get the descendants of.</param>
+    /// <returns></returns>
+    public static IEnumerable<Node> DescendantNodesInFunction(this Node node)
+    {
+        var children = node switch
+        {
+            FunctionDeclaration func => [func.Identifier, ..func.Parameters],
+            LambdaExpression lambda => lambda.Parameters,
+            _ => node.Children
+        };
+
+        return children.SelectMany(DescendantNodesAndSelfInFunction);
+    }
+
+    /// <summary>
+    /// Gets the descendants of a node and the node itself in depth-first order,
+    /// bounded by the current function.
+    /// </summary>
+    /// <param name="node">The node to get the descendants of.</param>
+    public static IEnumerable<Node> DescendantNodesAndSelfInFunction(this Node node) =>
+        node.DescendantNodesInFunction().Prepend(node);
     
     /// <summary>
     /// Finds a node at a specified position in source.
