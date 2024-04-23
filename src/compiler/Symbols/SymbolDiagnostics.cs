@@ -8,51 +8,83 @@ internal static class SymbolDiagnostics
     public static DiagnosticTemplate<FunctionSymbol> FunctionAlreadyDeclared { get; } =
         DiagnosticTemplate.Create<FunctionSymbol>(
             "NOA-SYM-001",
-            function => $"Function '{function.Name}' has already been declared in this scope. " +
-                        $"Functions cannot shadow other functions in the same scope",
+            (function, page) => page
+                .Raw("Function ")
+                .Symbol(function)
+                .Raw(" has already been declared in this scope. Functions ")
+                .Emphasized("cannot shadow others functions")
+                .Raw(" the same scope."),
             Severity.Error);
 
     public static DiagnosticTemplate<string> SymbolAlreadyDeclared { get; } =
         DiagnosticTemplate.Create<string>(
             "NOA-SYM-002",
-            name => $"A symbol with the name '{name}' has already been declared in this scope",
+            (name, page) => page
+                .Raw("A symbol with the name ")
+                .Name(name)
+                .Raw(" has ")
+                .Emphasized("already been declared")
+                .Raw(" in this scope."),
             Severity.Error);
     
     public static DiagnosticTemplate<(VariableSymbol, FunctionSymbol)> VariableShadowsFunction { get; } =
         DiagnosticTemplate.Create<(VariableSymbol var, FunctionSymbol func)>(
             "NOA-SYM-003",
-            arg => $"Variable '{arg.var.Name}' shadows function '{arg.func.Name}'. " +
-                   $"Variables cannot shadow functions in the same scope",
+            (arg, page) => page
+                .Raw("Variable ")
+                .Symbol(arg.var)
+                .Raw(" shadows function ")
+                .Symbol(arg.func)
+                .Raw(". Variables ")
+                .Emphasized("cannot shadow functions")
+                .Raw(" in the same scope."),
             Severity.Error);
     
     public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
         DiagnosticTemplate.Create<(string name, IScope scope, Node at)>(
             "NOA-SYM-004",
-            arg =>
+            (arg, page) =>
             {
                 var (name, scope, at) = arg;
                 var corrections = LookupCorrection.FindPossibleCorrections(name, scope, at);
 
-                if (corrections.Count == 0) return $"Cannot find a symbol with the name '{name}' the current scope";
+                page.Raw("Cannot find a symbol with the name ")
+                    .Name(name)
+                    .Raw(" in the current scope.");
+                
+                if (corrections.Count == 0) return;
+                
+                var correctionActions = DiagnosticPageUtility.ToPageActions(
+                    corrections,
+                    (s, p) => p.Symbol(s));
 
-                var correctionsString = Formatting.JoinOxfordOr(corrections
-                    .Select(s => $"'{s.Name}'"));
-
-                return $"Cannot find a symbol with the name '{name}' the current scope. " +
-                       $"Did you perhaps mean {correctionsString}?";
+                page.Raw(" Did you perhaps mean ")
+                    .Many(correctionActions, ManyTerminator.Or)
+                    .Raw("?");
             },
             Severity.Error);
     
     public static DiagnosticTemplate<ISymbol> BlockedByFunction { get; } =
         DiagnosticTemplate.Create<ISymbol>(
             "NOA-SYM-005",
-            symbol => $"Cannot reference variable or parameter '{symbol.Name}' inside function body. " +
-                      $"Functions cannot reference variables or parameters from their containing scope",
+            (symbol, page) => page
+                .Raw("Cannot reference variable or parameter ")
+                .Symbol(symbol)
+                .Raw(" inside function body. Functions cannot reference ")
+                .Emphasized("variables")
+                .Raw(" or ")
+                .Emphasized("parameters")
+                .Raw(" from their containing scope."),
             Severity.Error);
-    
+
     public static DiagnosticTemplate<ISymbol> DeclaredLater { get; } =
         DiagnosticTemplate.Create<ISymbol>(
             "NOA-SYM-006",
-            symbol => $"Cannot reference variable '{symbol.Name}' because it has not been declared yet",
+            (symbol, page) => page
+                .Raw("Cannot reference variable ")
+                .Symbol(symbol)
+                .Raw(" because it has ")
+                .Emphasized("not been declared yet")
+                .Raw("."),
             Severity.Error);
 }

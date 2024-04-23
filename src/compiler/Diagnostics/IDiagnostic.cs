@@ -11,11 +11,6 @@ public interface IDiagnostic
     DiagnosticId Id { get; }
     
     /// <summary>
-    /// The message describing the diagnostic.
-    /// </summary>
-    string Message { get; }
-    
-    /// <summary>
     /// The severity of the diagnostic.
     /// </summary>
     Severity Severity { get; }
@@ -24,6 +19,12 @@ public interface IDiagnostic
     /// The location in source of the diagnostic.
     /// </summary>
     Location Location { get; }
+
+    /// <summary>
+    /// Writes the diagnostic message onto a <see cref="IDiagnosticPage"/>.
+    /// </summary>
+    /// <param name="page">The page to write to.</param>
+    void WriteToPage(IDiagnosticPage page);
 }
 
 /// <summary>

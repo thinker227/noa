@@ -23,6 +23,21 @@ public static class Diagnostic
     public static IDiagnostic Create<TArg>(DiagnosticTemplate<TArg> template, TArg argument, Location location) =>
         new ArgumentDiagnostic<TArg>(template, argument, location);
 
+    /// <summary>
+    /// Writes the message of a diagnostic using a specified <see cref="IDiagnosticWriter"/>.
+    /// </summary>
+    /// <param name="diagnostic">The diagnostic to write the message of.</param>
+    /// <param name="writer">The <see cref="IDiagnosticWriter"/> to use to write the message.</param>
+    /// <param name="ast">The AST the diagnostic belongs to.</param>
+    /// <typeparam name="T">The type of the written message.</typeparam>
+    /// <returns>The written diagnostic message.</returns>
+    public static T WriteMessage<T>(this IDiagnostic diagnostic, IDiagnosticWriter<T> writer)
+    {
+        var page = writer.CreatePage(diagnostic);
+        diagnostic.WriteToPage(page);
+        return page.Write();
+    }
+
     private static string DisplayDiagnostic(DiagnosticId id, string message, Severity severity, Location location)
     {
          var severityString = severity switch
@@ -38,14 +53,18 @@ public static class Diagnostic
     private sealed class SimpleDiagnostic(DiagnosticTemplate template, Location location) : IDiagnostic
     {
         public DiagnosticId Id { get; } = template.Id;
-        
-        public string Message { get; } = template.Message;
     
         public Severity Severity { get; } = template.Severity;
     
         public Location Location { get; } = location;
 
-        public override string ToString() => DisplayDiagnostic(Id, Message, Severity, Location);
+        public void WriteToPage(IDiagnosticPage page) => template.WriteMessage(page);
+
+        public override string ToString()
+        {
+            var message = WriteMessage(this, StringDiagnosticWriter.Writer);
+            return DisplayDiagnostic(Id, message, Severity, Location);
+        }
     }
     
     private sealed class ArgumentDiagnostic<TArg>(
@@ -54,13 +73,17 @@ public static class Diagnostic
         Location location) : IDiagnostic
     {
         public DiagnosticId Id { get; } = template.Id;
-        
-        public string Message => template.CreateMessage(argument);
 
         public Severity Severity { get; } = template.Severity;
 
         public Location Location { get; } = location;
 
-        public override string ToString() => DisplayDiagnostic(Id, Message, Severity, Location);
+        public void WriteToPage(IDiagnosticPage page) => template.WriteMessage(argument, page);
+
+        public override string ToString()
+        {
+            var message = WriteMessage(this, StringDiagnosticWriter.Writer);
+            return DisplayDiagnostic(Id, message, Severity, Location);
+        }
     }
 }
