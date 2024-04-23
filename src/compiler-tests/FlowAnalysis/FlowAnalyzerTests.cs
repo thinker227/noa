@@ -7,7 +7,7 @@ namespace Noa.Compiler.FlowAnalysis.Tests;
 public class FlowAnalyzerTests
 {
     [Fact]
-    public void Return_OutsideFunction_Produces_ReturnOutsideFunction_AndSetsFunction_ToNull()
+    public void Return_InTopLevelFunction_DoesNotProduceDiagnostics_AndSetsFunction_ToFunction()
     {
         var text = """
         return;
@@ -18,13 +18,12 @@ public class FlowAnalyzerTests
         SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
-        diagnostics.DiagnosticsShouldBe([
-            (FlowDiagnostics.ReturnOutsideFunction.Id, new("test-input", 0, 6))
-        ]);
+        diagnostics.DiagnosticsShouldBe([]);
 
         var @return = (ReturnExpression)ast.Root.FindNodeAt(0)!;
         
-        @return.Function.Value.ShouldBeNull();
+        @return.Function.Value.ShouldBeOfType<TopLevelFunction>();
+        @return.Function.Value.ShouldBe(ast.TopLevelFunction);
     }
     
     [Fact]

@@ -34,6 +34,18 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
     protected override void BeforeVisit(Node node) =>
         cancellationToken.ThrowIfCancellationRequested();
 
+    protected override int VisitRoot(Root node)
+    {
+        functions.Push(node.Function.Value);
+
+        Visit(node.Statements);
+        Visit(node.TrailingExpression);
+        
+        functions.Pop();
+
+        return default;
+    }
+
     protected override int VisitFunctionDeclaration(FunctionDeclaration node)
     {
         functions.Push(node.Symbol.Value);
