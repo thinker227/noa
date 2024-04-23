@@ -16,9 +16,20 @@ public interface ISymbol
 }
 
 /// <summary>
+/// A semantic element which is nested within a function.
+/// </summary>
+public interface IFunctionNested
+{
+    /// <summary>
+    /// The function which contains the element.
+    /// </summary>
+    IFunction ContainingFunction { get; }
+}
+
+/// <summary>
 /// A symbol which is declared in source and has a corresponding AST node.
 /// </summary>
-public interface IDeclaredSymbol : ISymbol
+public interface IDeclaredSymbol : ISymbol, IFunctionNested
 {
     /// <summary>
     /// The declaring node of the symbol.
@@ -54,6 +65,8 @@ public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
     /// </summary>
     public required LetDeclaration Declaration { get; init; }
     
+    public required IFunction ContainingFunction { get; init; }
+    
     Node IDeclaredSymbol.Declaration => Declaration;
 
     public override string ToString() => $"Variable {Name} declared at {Declaration.Location}";
@@ -80,6 +93,8 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
+
+    IFunction IFunctionNested.ContainingFunction => Function;
     
     Node IDeclaredSymbol.Declaration => Declaration;
     

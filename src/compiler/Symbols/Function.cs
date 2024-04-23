@@ -99,6 +99,8 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
     public Expression Body => HasExpressionBody
         ? ExpressionBody
         : BlockBody;
+    
+    public required IFunction ContainingFunction { get; init; }
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
@@ -116,7 +118,7 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 /// <summary>
 /// A semantic representation of a lambda expression.
 /// </summary>
-public sealed class LambdaFunction : IFunction
+public sealed class LambdaFunction : IFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
     private IReadOnlyCollection<VariableSymbol>? locals = null;
@@ -142,6 +144,11 @@ public sealed class LambdaFunction : IFunction
     /// The body of the lambda.
     /// </summary>
     public Expression Body => Declaration.Body;
+    
+    /// <summary>
+    /// The function which contains the lambda.
+    /// </summary>
+    public required IFunction ContainingFunction { get; init; }
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {

@@ -31,6 +31,7 @@ internal static class SymbolResolution
 file sealed class Visitor(IScope globalScope, CancellationToken cancellationToken) : Visitor<int>
 {
     private IScope currentScope = globalScope;
+    private readonly Stack<IFunction> functionStack = [];
     
     public List<IDiagnostic> Diagnostics { get; } = [];
 
@@ -55,7 +56,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
-        
+
+        var containingFunction = functionStack.Peek();
         var functions = new Dictionary<string, NomialFunction>();
         
         foreach (var statement in block.Statements)
@@ -70,7 +72,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             var functionSymbol = new NomialFunction()
             {
                 Name = func.Identifier.Name,
-                Declaration = func
+                Declaration = func,
+                ContainingFunction = containingFunction
             };
 
             func.Symbol = functionSymbol;
@@ -117,7 +120,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             var variableSymbol = new VariableSymbol()
             {
                 Name = let.Identifier.Name,
-                Declaration = let
+                Declaration = let,
+                ContainingFunction = containingFunction
             };
 
             let.Symbol = variableSymbol;
@@ -143,6 +147,15 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     
     protected override int VisitRoot(Root node)
     {
+        
+        var function = new TopLevelFunction()
+        {
+            Declaration = node
+        };
+        node.Function = function;
+        
+        functionStack.Push(function);
+        
         // Note: the root is in the global scope, not the block scope it itself declares.
         
         var blockScope = DeclareBlock(node);
@@ -152,12 +165,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.Statements);
             Visit(node.TrailingExpression);
         });
-        
-        var function = new TopLevelFunction()
-        {
-            Declaration = node
-        };
-        node.Function = function;
+
+        functionStack.Pop();
 
         return default;
     }
@@ -170,6 +179,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         // All symbols here *should* already have been set by DeclareBlock.
         
         var functionSymbol = node.Symbol.Value;
+        
+        functionStack.Push(functionSymbol);
         
         Visit(node.Identifier);
         
@@ -199,6 +210,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.BlockBody);
         });
 
+        functionStack.Pop();
+
         return default;
     }
 
@@ -218,11 +231,15 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
         var paramScope = new MapScope(currentScope, node);
-        
+
+        var containingFunction = functionStack.Peek();
         var function = new LambdaFunction()
         {
-            Declaration = node
+            Declaration = node,
+            ContainingFunction = containingFunction
         };
+
+        functionStack.Push(function);
         
         foreach (var param in node.Parameters)
         {
@@ -255,6 +272,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         {
             Visit(node.Body);
         });
+
+        functionStack.Pop();
 
         return default;
     }
