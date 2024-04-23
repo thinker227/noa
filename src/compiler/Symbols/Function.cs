@@ -104,7 +104,7 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
-        locals ??= LocalsVisitor.GetLocals(Body);
+        locals ??= FunctionUtility.GetLocals(Body);
         return locals;
     }
 
@@ -122,6 +122,7 @@ public sealed class LambdaFunction : IFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
     private IReadOnlyCollection<VariableSymbol>? locals = null;
+    private IReadOnlyCollection<IVariableSymbol>? captures = null;
     
     /// <summary>
     /// The declaration of the function.
@@ -152,14 +153,34 @@ public sealed class LambdaFunction : IFunction, IFunctionNested
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
-        locals = LocalsVisitor.GetLocals(Body);
+        locals = FunctionUtility.GetLocals(Body);
         return locals;
     }
 
     /// <summary>
     /// Gets all variables and parameters captured by the lambda.
     /// </summary>
-    public IReadOnlyCollection<IVariableSymbol> GetCaptures() => throw new NotImplementedException();
+    public IReadOnlyCollection<IVariableSymbol> GetCaptures()
+    {
+        if (captures is not null) return captures;
+        
+        var identifierExpressions = Body
+            .DescendantNodesAndSelfInFunction()
+            .OfType<IdentifierExpression>();
+        
+        var referencedSymbols = identifierExpressions
+            .Select(x => x.ReferencedSymbol.Value);
+
+        // Logically, referenced symbols which are not from the current lambda function
+        // have to have been declared in some containing function, meaning it's been captured.
+        captures = referencedSymbols
+            .OfType<IVariableSymbol>()
+            .Where(x => !x.ContainingFunction.Equals(this))
+            .Distinct()
+            .ToList();
+
+        return captures;
+    }
 }
 
 /// <summary>
@@ -188,7 +209,16 @@ public sealed class TopLevelFunction : IFunction
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
-        locals ??= LocalsVisitor.GetLocals(Declaration);
+        locals ??= FunctionUtility.GetLocals(Declaration);
         return locals;
     }
+}
+
+file static class FunctionUtility
+{
+    public static IReadOnlyCollection<VariableSymbol> GetLocals(Node node) => node
+        .DescendantNodesAndSelfInFunction()
+        .OfType<LetDeclaration>()
+        .Select(x => x.Symbol.Value)
+        .ToList();
 }
