@@ -3,6 +3,8 @@ use std::{fs, io, path::Path};
 use clap::Parser;
 use cli::Args;
 
+use crate::runtime::virtual_machine::VM;
+
 mod cli;
 mod runtime;
 
@@ -12,10 +14,22 @@ fn main() {
     let bytecode = if let Some(path) = &args.bytecode_file_path {
         read_bytecode_from_file_path(path)
     } else {
-        todo!("Handle file path not being provided.")
+        println!("Bytecode file path was not provided");
+        return;
     };
 
-    println!("{:?}", bytecode);
+    match bytecode {
+        Ok(bytecode) => {
+            execute(bytecode.as_slice());
+        }
+        Err(e) => match e {
+            BytecodeReadError::IoError(e) => println!("{e}"),
+        }
+    }
+}
+
+fn execute(bytecode: &[u8]) -> () {
+    let _vm = VM::new(bytecode);
 }
 
 #[derive(Debug)]
