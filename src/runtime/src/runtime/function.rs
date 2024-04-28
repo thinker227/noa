@@ -2,14 +2,14 @@ use crate::byte_utility::{split, split_as_u32};
 use super::opcode::{FuncId, Opcode, OpcodeError};
 
 /// Represents a function section.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct FunctionSection {
     pub functions_length: u32,
     pub functions: Vec<Function>,
 }
 
 /// An error from reading an invalid function section.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum FunctionSectionError {
     MissingLength,
     IncongruentLength,
@@ -53,7 +53,7 @@ fn parse_functions(mut bytes: &[u8]) -> Result<Vec<Function>, FunctionError> {
 }
 
 /// A function executed by the runtime.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Function {
     id: FuncId,
     code_length: u32,
@@ -61,7 +61,7 @@ pub struct Function {
 }
 
 /// An error from reading an invalid error.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum FunctionError {
     MissingId,
     MissingCodeLength,

@@ -3,14 +3,14 @@ use crate::runtime::function::{FunctionSection, FunctionSectionError};
 use crate::byte_utility::{split_as_u32, split_const};
 
 /// An Ark file.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Ark {
     header: Header,
     function_section: FunctionSection,
 }
 
 /// An error from reading an invalid Ark file.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ArkError {
     MissingHeader,
     HeaderError(HeaderError),
@@ -48,14 +48,14 @@ pub const IDENTIFIER: [u8; 8] = *b"totheark";
 pub const HEADER_SIZE: usize = 12;
 
 /// The header of an Ark file.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Header {
     identifier: [u8; 8],
     main: FuncId,
 }
 
 /// An error from reading an invalid header.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HeaderError {
     MissingIdentifier,
     BadIdentifier,
