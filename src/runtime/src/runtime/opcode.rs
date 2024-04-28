@@ -1,3 +1,5 @@
+use crate::byte_utility::{get, split, split_as_u32};
+
 pub const NO_OP: u8 = 0;
 pub const JUMP: u8 = 1;
 pub const JUMP_IF: u8 = 2;
@@ -157,28 +159,6 @@ impl TryFrom<&[u8]> for Opcode {
         let (x, _) = Self::from_bytes(value)?;
         Ok(x)
     }
-}
-
-fn get(xs: &[u8], at: usize) -> Option<(&u8, &[u8])> {
-    if at < xs.len() {
-        Some((&xs[at], &xs[(at + 1)..]))
-    } else {
-        None
-    }
-}
-
-fn split<const I: usize>(xs: &[u8]) -> Option<(&[u8; I], &[u8])> {
-    if I <= xs.len() {
-        Some((xs[..I].try_into().unwrap(), &xs[I..]))
-    } else {
-        None
-    }
-}
-
-fn split_as_u32(xs: &[u8]) -> Option<(u32, &[u8])> {
-    let (bytes, rest) = split::<4>(xs)?;
-    let x = u32::from_be_bytes(*bytes);
-    Some((x, rest))
 }
 
 #[cfg(test)]

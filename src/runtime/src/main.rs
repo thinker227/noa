@@ -8,6 +8,7 @@ use cli::Args;
 use crate::runtime::virtual_machine::VM;
 
 mod cli;
+mod byte_utility;
 mod runtime;
 
 fn main() {
