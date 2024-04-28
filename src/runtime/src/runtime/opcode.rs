@@ -1,4 +1,4 @@
-use crate::byte_utility::{get, split, split_as_u32};
+use crate::byte_utility::{get, split_const, split_as_u32};
 
 pub const NO_OP: u8 = 0;
 pub const JUMP: u8 = 1;
@@ -115,7 +115,7 @@ impl Opcode {
             },
 
             self::PUSH_INT => {
-                let (bytes, rest) = split::<4>(data)
+                let (bytes, rest) = split_const::<4>(data)
                     .ok_or(OpcodeError::TooLittleData)?;
                 let value = i32::from_be_bytes(*bytes);
                 Ok((Opcode::PushInt(value), rest))
