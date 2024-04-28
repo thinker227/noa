@@ -1,5 +1,7 @@
 This is a "specification" of the `.ark` file format which is used as Noa's IR format.
 
+Ark file parsing is implemented in [ark.rs](src/runtime/src/ark.rs), [function.rs](src/runtime/src/runtime/function.rs), and [opcode.rs](src/runtime/src/runtime/opcode.rs).
+
 ## Structure
 
 An ark file begins with a header which is followed by a series of sections.
@@ -9,12 +11,12 @@ An ark file begins with a header which is followed by a series of sections.
 
 ## Header
 
-The header contains the identifier for the Ark file as well as metadata about the program.
+The header contains the identifier for the Ark file (which is always the same), as well as metadata about the program.
 
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
 | 0 | 8 | `identifier` | The constant bytes `[116, 111, 116, 104, 101, 97, 114, 107]` (`totheark`). |
-| 0 | 4 | `main` | Function ID of the main function. |
+| 8 | 4 | `main` | Function ID of the main function. |
 
 ## Function section
 
@@ -32,5 +34,5 @@ A function specifies an executable function.
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
 | 0 | 4 | `id` | The unique ID of the function. |
-| 4 | 4 | `code_length` | The length of the function in bytes. |
+| 4 | 4 | `code_length` | The length of the following code in bytes. |
 | 8 | * | `code` | The op-codes which make up the body of the function. |
