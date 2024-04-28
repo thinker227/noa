@@ -61,7 +61,7 @@ pub enum Opcode {
     Or = OR,
 }
 
-/// An error produced by attempting to construct a bad op-code.
+/// An error from reading an invalid opcode.
 #[derive(Debug, PartialEq, Eq)]
 pub enum OpcodeError {
     Empty,
@@ -74,6 +74,7 @@ impl Opcode {
     /// Attempts to construct an op-code from a sequence of bytes.
     /// If the function succeeds then [`Ok`] is returned with the constructed
     /// op-code and the remaining unread bytes, otherwise an [`OpcodeError`] is returned.
+    /// Reads only the amount of bytes required by the opcode and returns the rest.
     pub fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), OpcodeError> {
         let (code, data) = get(bytes, 0)
             .ok_or(OpcodeError::Empty)?;
