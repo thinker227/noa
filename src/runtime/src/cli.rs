@@ -5,7 +5,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version = "1", about = "Noa runtime")]
 pub struct Args {
-    /// The bytecode file to execute
+    /// The .ark file to execute
     #[arg(short = 'f', value_name = ".ark file", value_parser = file_exists)]
     pub bytecode_file_path: Option<PathBuf>
 }
