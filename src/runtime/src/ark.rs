@@ -5,8 +5,8 @@ use crate::byte_utility::{split_as_u32, split_const};
 /// An Ark file.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Ark {
-    header: Header,
-    function_section: FunctionSection,
+    pub header: Header,
+    pub function_section: FunctionSection,
 }
 
 /// An error from reading an invalid Ark file.
@@ -50,8 +50,8 @@ pub const HEADER_SIZE: usize = 12;
 /// The header of an Ark file.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Header {
-    identifier: [u8; 8],
-    main: FuncId,
+    pub identifier: [u8; 8],
+    pub main: FuncId,
 }
 
 /// An error from reading an invalid header.
