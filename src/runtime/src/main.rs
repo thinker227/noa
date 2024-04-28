@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_variables)]
+
 use std::{fs, io, path::Path};
 
 use clap::Parser;
