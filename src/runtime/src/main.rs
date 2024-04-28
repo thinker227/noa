@@ -9,6 +9,7 @@ use crate::runtime::virtual_machine::VM;
 
 mod cli;
 mod byte_utility;
+mod ark;
 mod runtime;
 
 fn main() {
