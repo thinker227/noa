@@ -42,7 +42,8 @@ fn main() {
 }
 
 fn execute(ark: Ark) -> () {
-    let _vm = VM::new(ark, 2_000, 10_000);
+    let mut vm = VM::new(ark, 2_000, 10_000);
+    vm.execute_main();
 }
 
 #[derive(Debug)]

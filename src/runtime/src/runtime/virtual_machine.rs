@@ -38,4 +38,12 @@ impl<'a> VM<'a> {
 
         vm
     }
+
+    pub fn execute_main(&mut self) {
+        self.execute(self.main)
+    }
+
+    fn execute(&mut self, function: FuncId) {
+
+    }
 }
