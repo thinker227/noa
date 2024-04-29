@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use coercion::CoercionError;
+
 use super::opcode::FuncId;
 
 pub mod coercion;
@@ -40,8 +42,67 @@ impl Value {
             Value::Nil => Type::Nil,
         }
     }
+}
 
-    
+/// Defines types which can be converted to and from [`Value`].
+pub trait FromValue where Self: Sized {
+    /// Tries to convert a [`Value`] into the type.
+    fn from_value(value: Value) -> Result<Self, CoercionError>;
+
+    /// Converts the value into a [`Value`].
+    fn to_value(self) -> Value;
+}
+
+impl FromValue for i32 {
+    fn from_value(value: Value) -> Result<i32, CoercionError> {
+        match value.try_coerce(Type::Number)? {
+            Value::Number(x) => Ok(x),
+            _ => unreachable!(),
+        }
+    }
+
+    fn to_value(self) -> Value {
+        Value::Number(self)
+    }
+}
+
+impl FromValue for bool {
+    fn from_value(value: Value) -> Result<bool, CoercionError> {
+        match value.try_coerce(Type::Bool)? {
+            Value::Bool(x) => Ok(x),
+            _ => unreachable!(),
+        }
+    }
+
+    fn to_value(self) -> Value {
+        Value::Bool(self)
+    }
+}
+
+impl FromValue for FuncId {
+    fn from_value(value: Value) -> Result<FuncId, CoercionError> {
+        match value.try_coerce(Type::Function)? {
+            Value::Function(id) => Ok(id),
+            _ => unreachable!(),
+        }
+    }
+
+    fn to_value(self) -> Value {
+        Value::Function(self)
+    }
+}
+
+impl FromValue for () {
+    fn from_value(value: Value) -> Result<(), CoercionError> {
+        match value.try_coerce(Type::Nil)? {
+            Value::Nil => Ok(()),
+            _ => unreachable!(),
+        }
+    }
+
+    fn to_value(self) -> Value {
+        Value::Nil
+    }
 }
 
 impl Display for Value {
