@@ -34,6 +34,11 @@ impl<'a> StackFrame<'a> {
         Some(opcode)
     }
 
+    /// Sets the instruction pointer.
+    pub fn set_ip(&mut self, ip: usize) {
+        self.ip = ip;
+    }
+
     /// Returns whether the stack frame has finished or not.
     pub fn is_finished(&self) -> bool {
         self.ip < self.function.code().len()
