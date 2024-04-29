@@ -10,6 +10,7 @@
 - `PushInt <int32>` (`20`): Pushes the 32-bit signed integer `int32` onto the stack.
 - `PushBool <bool>` (`21`): Pushes the boolean `bool` onto the stack.
 - `PushFunc <func id>` (`22`): Pushes the function with the ID `func id` onto the stack.
+- `PushNil` (`23`): Pushes nil onto the stack.
 
 ## Miscellaneous stack operations (`50`-`69`)
 - `Pop` (`50`): Pops the topmost value from the stack.

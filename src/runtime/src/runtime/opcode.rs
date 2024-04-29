@@ -8,6 +8,7 @@ pub const RET: u8 = 4;
 pub const PUSH_INT: u8 = 20;
 pub const PUSH_BOOL: u8 = 21;
 pub const PUSH_FUNC: u8 = 22;
+pub const PUSH_NIL: u8 = 23;
 pub const POP: u8 = 50;
 pub const DUP: u8 = 51;
 pub const STORE_VAR: u8 = 70;
@@ -42,6 +43,7 @@ pub enum Opcode {
     PushInt(i32) = PUSH_INT,
     PushBool(bool) = PUSH_BOOL,
     PushFunc(u32) = PUSH_FUNC,
+    PushNil = PUSH_NIL,
     Pop = POP,
     Dup = DUP,
 
@@ -82,6 +84,7 @@ impl Opcode {
         if let Some(simple) = match *code {
             self::NO_OP => Some(Opcode::NoOp),
             self::RET => Some(Opcode::Ret),
+            self::PUSH_NIL => Some(Opcode::PushNil),
             self::POP => Some(Opcode::Pop),
             self::DUP => Some(Opcode::Dup),
             self::ADD => Some(Opcode::Add),
@@ -279,6 +282,11 @@ mod tests {
     #[test]
     fn push_func_too_little_data() {
         test_too_little_data(PUSH_FUNC);
+    }
+
+    #[test]
+    fn push_nil() {
+        test_simple(PUSH_NIL, Opcode::PushNil);
     }
 
     #[test]
