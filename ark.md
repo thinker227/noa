@@ -35,8 +35,9 @@ A function specifies an executable function.
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
 | 0 | 4 | `id` | The unique ID of the function. |
-| 4 | 4 | `code_length` | The length of the following code in bytes. |
-| 8 | * | `code` | The op-codes which make up the body of the function. |
+| 4 | 4 | `name_index` | The string index of the name of the function. |
+| 8 | 4 | `code_length` | The length of the following code in bytes. |
+| 12 | * | `code` | The op-codes which make up the body of the function. |
 
 ## String section
 

@@ -56,6 +56,7 @@ fn parse_functions(mut bytes: &[u8]) -> Result<Vec<Function>, FunctionError> {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Function {
     id: FuncId,
+    name_index: u32,
     code_length: u32,
     code: Vec<Opcode>,
 }
@@ -64,6 +65,7 @@ pub struct Function {
 #[derive(Debug, PartialEq, Eq)]
 pub enum FunctionError {
     MissingId,
+    MissingNameIndex,
     MissingCodeLength,
     IncongruentLength,
     OpcodeError(OpcodeError),
@@ -77,6 +79,9 @@ impl Function {
         let (id, bytes) = split_as_u32(bytes)
             .ok_or(FunctionError::MissingId)?;
 
+        let (name_index, bytes) = split_as_u32(bytes)
+            .ok_or(FunctionError::MissingNameIndex)?;
+
         let (code_length, bytes) = split_as_u32(bytes)
             .ok_or(FunctionError::MissingCodeLength)?;
 
@@ -88,6 +93,7 @@ impl Function {
 
         let function = Self {
             id,
+            name_index,
             code_length,
             code
         };
@@ -97,6 +103,11 @@ impl Function {
     /// Gets the ID of the function.
     pub fn id(&self) -> FuncId {
         self.id
+    }
+
+    /// Gets the name index of teh function.
+    pub fn name_index(&self) -> u32 {
+        self.name_index
     }
 
     /// Gets the bytecode of the function.

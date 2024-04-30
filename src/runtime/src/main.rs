@@ -55,7 +55,10 @@ fn execute(ark: Ark) -> () {
 
     match result {
         Ok(ret_value) => {
-            println!("Return value from <main>:");
+            let main = vm.functions().get(&vm.main()).unwrap();
+            let main_name = vm.get_string(main.name_index()).unwrap();
+            
+            println!("Return value from <{main_name}>:");
             println!("{ret_value}");
 
             std::process::exit(0);
@@ -87,6 +90,7 @@ fn exception_message(e: &Exception) -> String {
             format!("Coercion error: {c_msg}.")
         },
         ExceptionKind::InvalidFunction => "Attempted to call an invalid function. (does the function exists?)".into(),
+        ExceptionKind::InvalidString => "Attempted to access a string with an invalid index. (does the string exist?)".into(),
         ExceptionKind::Unsupported => "Attempted to execute an unsupported operation.".into(),
     }
 }

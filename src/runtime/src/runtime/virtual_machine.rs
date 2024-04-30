@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::ark::Ark;
 
+use super::exception::{Exception, ExceptionKind};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
@@ -14,6 +15,7 @@ mod interpret;
 #[derive(Debug)]
 pub struct VM {
     functions: HashMap<FuncId, Function>,
+    strings: Vec<String>,
     main: FuncId,
     call_stack: Vec<StackFrame>,
     stack: Vec<Value>,
@@ -29,11 +31,14 @@ impl VM {
             functions.insert(function.id(), function);
         }
 
+        let strings = ark.string_section.strings;
+
         let call_stack = Vec::with_capacity(call_stack_size);
         let stack = Vec::with_capacity(stack_size);
 
         let vm = Self {
             functions,
+            strings,
             main,
             call_stack,
             stack,
@@ -45,6 +50,12 @@ impl VM {
     /// The functions the virtual machine interprets.
     pub fn functions(&self) -> &HashMap<FuncId, Function> {
         &self.functions
+    }
+
+    /// Gets a string with a specified index.
+    pub fn get_string(&self, index: u32) -> Result<&String, Exception> {
+        self.strings.get(index as usize)
+            .ok_or_else(|| Exception::new(ExceptionKind::InvalidString))
     }
 
     /// The ID of the main function.

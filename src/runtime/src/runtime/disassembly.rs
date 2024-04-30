@@ -2,16 +2,12 @@ use super::{opcode::Opcode, virtual_machine::VM};
 
 pub fn print_disassembly(vm: &VM) {
     let functions = vm.functions();
-    let main = vm.main();
     
     println!("Disassembly:");
     for (id, f) in functions {
-        let id_msg = if *id == main {
-            "main".into()
-        } else {
-            id.to_string()
-        };
-        println!("  Function <{id_msg}>");
+        let name = vm.get_string(f.name_index()).unwrap();
+
+        println!("  Function <{name}>");
         for (index, code) in f.code().iter().enumerate() {
             println!("    {0}: {1}", index, disassemble_opcode(*code));
         }

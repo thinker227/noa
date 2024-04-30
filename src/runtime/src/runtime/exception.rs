@@ -17,6 +17,8 @@ pub enum ExceptionKind {
     CoercionError(CoercionError),
     /// A function with an invalid function ID was referenced.
     InvalidFunction,
+    /// A string with an invalid index was referenced.
+    InvalidString,
     /// Attempted to execute an unsupported operation.
     Unsupported,
 }
