@@ -61,7 +61,10 @@ impl VM {
 
                 let frame = StackFrame::new(function);
 
-                // Todo: handle callstack overflow
+                if self.call_stack.len() >= self.call_stack.capacity() {
+                    return Err(Exception::new(ExceptionKind::StackOverflow));
+                }
+
                 self.call_stack.push(frame);
             },
             Opcode::Ret => {

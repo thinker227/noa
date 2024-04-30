@@ -5,7 +5,10 @@ use super::VM;
 impl VM {
     /// Pushes a value onto the stack.
     pub(super) fn push(&mut self, value: Value) -> Result<(), Exception> {
-        // Todo: handle stack overflow
+        if self.stack.len() >= self.stack.capacity() {
+            return Err(Exception::new(ExceptionKind::StackOverflow));
+        }
+
         self.stack.push(value);
 
         Ok(())
