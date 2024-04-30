@@ -7,6 +7,9 @@ use super::opcode::FuncId;
 use super::frame::StackFrame;
 use super::value::Value;
 
+mod stack;
+mod interpret;
+
 /// A virtual machine. Contains the entire state of the runtime.
 #[derive(Debug)]
 pub struct VM {
@@ -38,12 +41,13 @@ impl VM {
 
         vm
     }
+}
 
-    pub fn execute_main(&mut self) {
-        self.execute(self.main)
-    }
-
-    fn execute(&mut self, function: FuncId) {
-
-    }
+/// Returns the current stack frame in the [VM].
+#[macro_export]
+macro_rules! current_frame {
+    ($vm:expr) => {
+        $vm.call_stack.last_mut()
+            .ok_or_else(|| $crate::runtime::exception::Exception::new($crate::runtime::exception::ExceptionKind::NoStackFrame))
+    };
 }
