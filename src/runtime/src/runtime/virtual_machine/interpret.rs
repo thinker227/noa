@@ -29,7 +29,8 @@ impl VM {
         let frame = current_frame!(self)?;
 
         let ip = frame.increment_ip();
-        let function = self.functions.get(&frame.function()).unwrap();
+        let function = self.functions.get(&frame.function())
+            .ok_or_else(|| Exception::new(ExceptionKind::InvalidFunction))?;
 
         let opcode = *function.code().get(ip)
             .ok_or_else(|| Exception::new(ExceptionKind::FunctionOverrun))?;
