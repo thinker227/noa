@@ -4,3 +4,4 @@ pub mod function;
 pub mod opcode;
 pub mod value;
 pub mod exception;
+pub mod disassembly;

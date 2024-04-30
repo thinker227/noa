@@ -6,7 +6,9 @@ use clap::Parser;
 use cli::Args;
 
 use ark::Ark;
-use runtime::{exception::{Exception, ExceptionKind}, virtual_machine::VM};
+use runtime::virtual_machine::VM;
+use runtime::exception::{Exception, ExceptionKind};
+use runtime::disassembly;
 
 mod cli;
 mod byte_utility;
@@ -46,10 +48,14 @@ fn main() {
 
 fn execute(ark: Ark) -> () {
     let mut vm = VM::new(ark, 2_000, 10_000);
+
+    disassembly::print_disassembly(&vm);
+
     let result = vm.execute_main();
 
     match result {
         Ok(ret_value) => {
+            println!("Return value from <main>:");
             println!("{ret_value}");
 
             std::process::exit(0);

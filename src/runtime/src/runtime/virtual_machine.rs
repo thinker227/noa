@@ -41,6 +41,16 @@ impl VM {
 
         vm
     }
+
+    /// The functions the virtual machine interprets.
+    pub fn functions(&self) -> &HashMap<FuncId, Function> {
+        &self.functions
+    }
+
+    /// The ID of the main function.
+    pub fn main(&self) -> FuncId {
+        self.main
+    }
 }
 
 /// Returns the current stack frame in the [VM].
