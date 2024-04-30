@@ -1,23 +1,9 @@
 use std::fmt::Display;
 
 use coercion::CoercionError;
-
 use super::opcode::FuncId;
 
 pub mod coercion;
-
-/// A runtime value.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Value {
-    /// A 32-bit integer.
-    Number(i32),
-    /// A boolean.
-    Bool(bool),
-    /// A function.
-    Function(FuncId),
-    /// NIL / `()`
-    Nil,
-}
 
 /// The type of a runtime value.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -28,6 +14,30 @@ pub enum Type {
     Bool,
     /// A function.
     Function,
+    /// NIL / `()`
+    Nil,
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Self::Number => write!(f, "number"),
+            Self::Bool => write!(f, "bool"),
+            Self::Function => write!(f, "function"),
+            Self::Nil => write!(f, "()"),
+        }
+    }
+}
+
+/// A runtime value.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Value {
+    /// A 32-bit integer.
+    Number(i32),
+    /// A boolean.
+    Bool(bool),
+    /// A function.
+    Function(FuncId),
     /// NIL / `()`
     Nil,
 }
