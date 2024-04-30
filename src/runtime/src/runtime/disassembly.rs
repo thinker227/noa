@@ -7,9 +7,9 @@ pub fn print_disassembly(vm: &VM) {
     for (id, f) in functions {
         let name = vm.get_string_or_fallback(f.name_index(), "?");
 
-        println!("  Function <{name}>");
+        println!("  Function {name}");
         for (index, code) in f.code().iter().enumerate() {
-            println!("    {0}: {1}", index, disassemble_opcode(*code, vm));
+            println!("    {0}  {1}", index, disassemble_opcode(*code, vm));
         }
     }
 
