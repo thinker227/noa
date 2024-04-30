@@ -1,5 +1,6 @@
 use crate::runtime::opcode::FuncId;
 use crate::runtime::function::{FunctionSection, FunctionSectionError};
+use crate::runtime::strings::{StringSection, StringSectionError};
 use crate::byte_utility::{split_as_u32, split_const};
 
 /// An Ark file.
@@ -7,6 +8,7 @@ use crate::byte_utility::{split_as_u32, split_const};
 pub struct Ark {
     pub header: Header,
     pub function_section: FunctionSection,
+    pub string_section: StringSection,
 }
 
 /// An error from reading an invalid Ark file.
@@ -16,6 +18,7 @@ pub enum ArkError {
     HeaderError(HeaderError),
     FunctionSectionError(FunctionSectionError),
     TooManyBytes,
+    StringSectionError(StringSectionError),
 }
 
 impl Ark {
@@ -29,8 +32,11 @@ impl Ark {
         let header = Header::from_bytes(header_bytes)
             .map_err(|e| ArkError::HeaderError(e))?;
 
-        let (function_section, rest) = FunctionSection::from_bytes(bytes)
+        let (function_section, bytes) = FunctionSection::from_bytes(bytes)
             .map_err(|e| ArkError::FunctionSectionError(e))?;
+
+        let (string_section, rest) = StringSection::from_bytes(bytes)
+            .map_err(|e| ArkError::StringSectionError(e))?;
 
         if *rest != [] {
             return Err(ArkError::TooManyBytes);
@@ -38,7 +44,8 @@ impl Ark {
 
         let ark = Self {
             header,
-            function_section
+            function_section,
+            string_section
         };
         Ok(ark)
     }
@@ -99,6 +106,7 @@ mod ark_tests {
         let bytes = &[
             116, 111, 116, 104, 101, 97, 114, 107,
             0xe, 6, 2, 1,
+            0, 0, 0, 0,
             0, 0, 0, 0
         ];
 
@@ -111,6 +119,10 @@ mod ark_tests {
             },
             function_section: FunctionSection {
                 functions_length: 0,
+                ..
+            },
+            string_section: StringSection {
+                strings_length: 0,
                 ..
             }
         });
@@ -139,6 +151,20 @@ mod ark_tests {
         let e = Ark::from_bytes(bytes).unwrap_err();
 
         matches!(e, ArkError::FunctionSectionError(..));
+    }
+
+    #[test]
+    fn string_section_error() {
+        let bytes = &[
+            116, 111, 116, 104, 101, 97, 114, 107,
+            0xe, 6, 2, 1,
+            0, 0, 0, 0,
+            6, 9
+        ];
+
+        let e = Ark::from_bytes(bytes).unwrap_err();
+
+        matches!(e, ArkError::StringSectionError(..));
     }
 
     #[test]
