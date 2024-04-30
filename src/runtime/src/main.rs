@@ -56,7 +56,7 @@ fn execute(ark: Ark) -> () {
     match result {
         Ok(ret_value) => {
             let main = vm.functions().get(&vm.main()).unwrap();
-            let main_name = vm.get_string(main.name_index()).unwrap();
+            let main_name = vm.get_string_or_fallback(main.name_index(), "?");
             
             println!("Return value from <{main_name}>:");
             println!("{ret_value}");

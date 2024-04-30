@@ -58,6 +58,15 @@ impl VM {
             .ok_or_else(|| Exception::new(ExceptionKind::InvalidString))
     }
 
+    /// Gets a string with a specified index,
+    /// or returns a fallback string in case a string with the specified index
+    /// does not exist.
+    pub fn get_string_or_fallback<'a>(&'a self, index: u32, s: &'static str) -> &'a str {
+        self.strings.get(index as usize)
+            .map(|x| x.as_str())
+            .unwrap_or(s)
+    }
+
     /// The ID of the main function.
     pub fn main(&self) -> FuncId {
         self.main

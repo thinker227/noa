@@ -5,18 +5,18 @@ pub fn print_disassembly(vm: &VM) {
     
     println!("Disassembly:");
     for (id, f) in functions {
-        let name = vm.get_string(f.name_index()).unwrap();
+        let name = vm.get_string_or_fallback(f.name_index(), "?");
 
         println!("  Function <{name}>");
         for (index, code) in f.code().iter().enumerate() {
-            println!("    {0}: {1}", index, disassemble_opcode(*code));
+            println!("    {0}: {1}", index, disassemble_opcode(*code, vm));
         }
     }
 
     println!();
 }
 
-pub fn disassemble_opcode(opcode: Opcode) -> String {
+pub fn disassemble_opcode(opcode: Opcode, vm: &VM) -> String {
     match opcode {
         Opcode::NoOp => "noop".into(),
         Opcode::Jump(address) => format!("jump <to_address: {address}>"),
@@ -25,7 +25,13 @@ pub fn disassemble_opcode(opcode: Opcode) -> String {
         Opcode::Ret => "return".into(),
         Opcode::PushInt(x) => format!("push_int <value: {x}>"),
         Opcode::PushBool(x) => format!("push_bool <value: {x}>"),
-        Opcode::PushFunc(id) => format!("push_function <function_id: {id}>"),
+        Opcode::PushFunc(id) => {
+            let function_name = match vm.functions().get(&id) {
+                Some(f) => vm.get_string_or_fallback(f.name_index(), "?"),
+                None => "!!!INVALID!!!"
+            };
+            format!("push_function <function_id: {id} ({function_name})>")
+        },
         Opcode::PushNil => "push_nil".into(),
         Opcode::Pop => "pop".into(),
         Opcode::Dup => "duplicate".into(),
