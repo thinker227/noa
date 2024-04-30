@@ -5,11 +5,13 @@ use super::value::coercion::CoercionError;
 pub enum ExceptionKind {
     /// No stack frame exists on the call stack.
     NoStackFrame,
+    /// The call stack overflowed.
+    CallStackOverflow,
     /// Attempted to execute code past the bounds of a function's code.
     FunctionOverrun,
-    /// The stack or call stack overflowed.
+    /// The stack overflowed.
     StackOverflow,
-    /// The stack or call stack underflowed.
+    /// The stack underflowed.
     StackUnderflow,
     /// A value coercion error occurred.
     CoercionError(CoercionError),

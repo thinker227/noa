@@ -62,7 +62,7 @@ impl VM {
                 let frame = StackFrame::new(function);
 
                 if self.call_stack.len() >= self.call_stack.capacity() {
-                    return Err(Exception::new(ExceptionKind::StackOverflow));
+                    return Err(Exception::new(ExceptionKind::CallStackOverflow));
                 }
 
                 self.call_stack.push(frame);
@@ -70,8 +70,10 @@ impl VM {
             Opcode::Ret => {
                 let ret_value = self.pop()?;
 
+                // It is impossible to be at this point
+                // and for the call stack to be empty at the same time.
                 self.call_stack.pop()
-                    .ok_or_else(|| Exception::new(ExceptionKind::StackUnderflow))?;
+                    .expect("call stack should not be empty");
 
                 self.push(ret_value)?;
             },

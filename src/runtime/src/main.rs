@@ -68,8 +68,9 @@ fn execute(ark: Ark) -> () {
 fn exception_message(e: &Exception) -> String {
     match e.kind() {
         ExceptionKind::NoStackFrame => "There was no stack frame on the call stack.".into(),
+        ExceptionKind::CallStackOverflow => "The call stack overflowed (infinite recursion?)".into(),
         ExceptionKind::FunctionOverrun => "Attempted to execute instructions past the function's bounds. (forgot a ret (0x04) instruction?) (jumped out of bounds?)".into(),
-        ExceptionKind::StackOverflow => "Stack overflow. (infinite recursion?)".into(),
+        ExceptionKind::StackOverflow => "Stack overflow.".into(),
         ExceptionKind::StackUnderflow => "Stack underflow. (pushed too little onto the stack?)".into(),
         ExceptionKind::CoercionError(c) => {
             let c_msg = match *c {
@@ -77,7 +78,7 @@ fn exception_message(e: &Exception) -> String {
                 runtime::value::coercion::CoercionError::ToNil => "coercion to ()",
                 runtime::value::coercion::CoercionError::FunctionToNumber => "coercion from function to number",
             };
-            format!("Coercion error: {c_msg}")
+            format!("Coercion error: {c_msg}.")
         },
         ExceptionKind::InvalidFunction => "Attempted to call an invalid function. (does the function exists?)".into(),
         ExceptionKind::Unsupported => "Attempted to execute an unsupported operation.".into(),
