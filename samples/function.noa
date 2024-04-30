@@ -1,0 +1,3 @@
+return owo();
+
+func owo() => 1;
