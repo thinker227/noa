@@ -1,16 +1,16 @@
-use super::{function::Function, opcode::Opcode};
+use super::opcode::FuncId;
 
 /// A frame which represents the state of the runtime
 /// within a single invocation of a function.
 #[derive(Debug)]
-pub struct StackFrame<'a> {
-    function: &'a Function,
+pub struct StackFrame {
+    function: FuncId,
     ip: usize,
 }
 
-impl<'a> StackFrame<'a> {
+impl StackFrame {
     /// Creates a new stack frame.
-    pub fn new(function: &'a Function) -> Self {
+    pub fn new(function: FuncId) -> Self {
         Self {
             function,
             ip: 0
@@ -18,29 +18,19 @@ impl<'a> StackFrame<'a> {
     }
 
     /// Returns the function the stack frame represents an invocation of.
-    pub fn function(&self) -> &Function {
+    pub fn function(&self) -> FuncId {
         self.function
     }
 
-    /// Returns the current op-code, if the stack frame hasn't finished.
-    pub fn current(&self) -> Option<Opcode> {
-        self.function.code().get(self.ip).copied()
-    }
-
-    /// Progresses to the next op-code, if the stack frame hasn't finished.
-    pub fn progress(&mut self) -> Option<Opcode> {
-        let opcode = self.current()?;
+    /// Increments the instruction pointer and returns the previous value.
+    pub fn increment_ip(&mut self) -> usize {
+        let x = self.ip;
         self.ip += 1;
-        Some(opcode)
+        x
     }
 
     /// Sets the instruction pointer.
     pub fn set_ip(&mut self, ip: usize) {
         self.ip = ip;
-    }
-
-    /// Returns whether the stack frame has finished or not.
-    pub fn is_finished(&self) -> bool {
-        self.ip < self.function.code().len()
     }
 }

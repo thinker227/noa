@@ -9,14 +9,14 @@ use super::value::Value;
 
 /// A virtual machine. Contains the entire state of the runtime.
 #[derive(Debug)]
-pub struct VM<'a> {
+pub struct VM {
     functions: HashMap<FuncId, Function>,
     main: FuncId,
-    call_stack: Vec<StackFrame<'a>>,
+    call_stack: Vec<StackFrame>,
     stack: Vec<Value>,
 }
 
-impl<'a> VM<'a> {
+impl VM {
     /// Constructs a new virtual machine.
     pub fn new(ark: Ark, call_stack_size: usize, stack_size: usize) -> Self {
         let main = ark.header.main;
