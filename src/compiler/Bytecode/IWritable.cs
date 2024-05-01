@@ -3,7 +3,7 @@ namespace Noa.Compiler.Bytecode;
 /// <summary>
 /// An element which can be written to a <see cref="Carpenter"/>.
 /// </summary>
-public interface IWritable
+internal interface IWritable
 {
     /// <summary>
     /// The byte length of the element.
@@ -17,7 +17,7 @@ public interface IWritable
     void Write(Carpenter writer);
 }
 
-public static class WritableExtensions
+internal static class WritableExtensions
 {
     /// <summary>
     /// Writes a writable element to a stream.

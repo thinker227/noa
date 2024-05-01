@@ -3,7 +3,7 @@ namespace Noa.Compiler.Bytecode;
 /// <summary>
 /// An op-code.
 /// </summary>
-public enum Opcode : byte
+internal enum Opcode : byte
 {
     NoOp = 0,
 

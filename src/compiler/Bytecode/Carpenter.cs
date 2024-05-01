@@ -7,7 +7,7 @@ namespace Noa.Compiler.Bytecode;
 /// Assembles ark( file)s.
 /// </summary>
 /// <param name="stream">The stream to emit bytes to.</param>
-public sealed class Carpenter(Stream stream)
+internal sealed class Carpenter(Stream stream)
 {
     /// <summary>
     /// Writes an <see cref="IWritable"/> element.

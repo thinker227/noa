@@ -4,7 +4,7 @@ namespace Noa.Compiler.Bytecode;
 /// An instruction in a function body.
 /// </summary>
 /// <param name="Opcode">The opcode of the instruction.</param>
-public readonly record struct Instruction(Opcode Opcode) : IWritable
+internal readonly record struct Instruction(Opcode Opcode) : IWritable
 {
     /// <summary>
     /// The additional byte data of the instruction.

@@ -7,7 +7,7 @@ namespace Noa.Compiler.Bytecode;
 /// </summary>
 /// <param name="functionSection">The builder for the function section.</param>
 /// <param name="stringSection">The builder for the string section.</param>
-public sealed class Ark(
+internal sealed class Ark(
     FunctionSectionBuilder functionSection,
     StringSectionBuilder stringSection)
     : IWritable
@@ -27,7 +27,7 @@ public sealed class Ark(
 /// An Ark header.
 /// </summary>
 /// <param name="main">The ID of the main function.</param>
-public sealed class Header(FunctionId main) : IWritable
+internal sealed class Header(FunctionId main) : IWritable
 {
     /// <summary>
     /// The constant length of the header.

@@ -5,7 +5,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// <summary>
 /// A builder for a string section.
 /// </summary>
-public sealed class StringSectionBuilder : IWritable
+internal sealed class StringSectionBuilder : IWritable
 {
     private readonly List<ArkString> strings = [];
     private readonly Dictionary<string, StringIndex> indices = [];
@@ -47,7 +47,7 @@ public sealed class StringSectionBuilder : IWritable
     }
 }
 
-public readonly record struct ArkString(string String) : IWritable
+internal readonly record struct ArkString(string String) : IWritable
 {
     private readonly uint stringByteLength = (uint)Encoding.UTF8.GetByteCount(String);
     
@@ -69,7 +69,7 @@ public readonly record struct ArkString(string String) : IWritable
 /// An index into a string section.
 /// </summary>
 /// <param name="Index">The numeric index.</param>
-public readonly record struct StringIndex(uint Index) : IWritable
+internal readonly record struct StringIndex(uint Index) : IWritable
 {
     public uint Length => 4;
 

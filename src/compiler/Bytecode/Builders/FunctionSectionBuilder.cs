@@ -3,7 +3,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// <summary>
 /// A builder for a function section.
 /// </summary>
-public sealed class FunctionSectionBuilder : IWritable
+internal sealed class FunctionSectionBuilder : IWritable
 {
     private readonly List<FunctionBuilder> functions = [];
     private uint currentId = 0;

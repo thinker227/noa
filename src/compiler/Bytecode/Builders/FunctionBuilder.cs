@@ -5,7 +5,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// </summary>
 /// <param name="id">The ID of the function.</param>
 /// <param name="nameIndex">The string index of the name of the function.</param>
-public sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IWritable
+internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IWritable
 {
     /// <summary>
     /// The ID of the function.
@@ -38,7 +38,7 @@ public sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IWri
 /// A function ID.
 /// </summary>
 /// <param name="Id">The numeric ID.</param>
-public readonly record struct FunctionId(uint Id) : IWritable
+internal readonly record struct FunctionId(uint Id) : IWritable
 {
     public uint Length => 4;
 

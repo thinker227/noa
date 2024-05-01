@@ -5,7 +5,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// <summary>
 /// A builder for the code of a function.
 /// </summary>
-public sealed class CodeBuilder : IWritable
+internal sealed class CodeBuilder : IWritable
 {
     private readonly List<Instruction> instructions = [];
     private uint currentAddress = 0;
@@ -145,7 +145,7 @@ public sealed class CodeBuilder : IWritable
 /// An address in a function body.
 /// </summary>
 /// <param name="Value">The numeric value.</param>
-public readonly record struct Address(uint Value)
+internal readonly record struct Address(uint Value)
 {
     public override string ToString() => $"@{Value}";
 }
@@ -154,7 +154,7 @@ public readonly record struct Address(uint Value)
 /// A hole into which an address can be written.
 /// </summary>
 /// <param name="bytes">The bytes to write the address to.</param>
-public readonly struct AddressHole(byte[] bytes)
+internal readonly struct AddressHole(byte[] bytes)
 {
     /// <summary>
     /// Fills the hole with a specified address.
@@ -168,7 +168,7 @@ public readonly struct AddressHole(byte[] bytes)
 /// A variable index in a function.
 /// </summary>
 /// <param name="Index">The numeric index.</param>
-public readonly record struct VariableIndex(uint Index)
+internal readonly record struct VariableIndex(uint Index)
 {
     public override string ToString() => $"var <{Index}>";
 }
