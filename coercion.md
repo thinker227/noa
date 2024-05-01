@@ -27,3 +27,7 @@ When a program exits, the return value from the main function will be attempted 
 | Nil      | `0`                           |
 
 Notably, the coercion from bool is flipped compared to normal coercion. Returning a bool can be read as "did the program succeed?".
+
+## Equality comparisons
+
+Equality comparisons using `==` always compare values plainly, they do not perform any coercion, so two values of different types will *never* be equal.
