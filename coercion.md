@@ -1,6 +1,6 @@
 # Coercion
 
-This is a handy little table over how values behave when coerced to another type, eg. things like `!2` or `true > nil`. Vertical is the type of the value being coerced and horizontal is the type being coerced to. Coercion is implemented in [coercion.rs](src/runtime/src/runtime/value/coercion.rs).
+This is a handy little table over how values behave when coerced to another type, eg. things like `!2` or `true > ()`. Vertical is the type of the value being coerced and horizontal is the type being coerced to. Coercion is implemented in [coercion.rs](src/runtime/src/runtime/value/coercion.rs).
 
 Blank spaces indicate that the coercion is invalid.
 
