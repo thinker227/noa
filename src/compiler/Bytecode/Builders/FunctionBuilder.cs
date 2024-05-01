@@ -26,6 +26,12 @@ public sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IWri
         writer.UInt(Code.Length);
         writer.Write(Code);
     }
+
+    /// <summary>
+    /// Implicitly converts a function builder to a function ID.
+    /// </summary>
+    /// <param name="builder">The builder to convert.</param>
+    public static implicit operator FunctionId(FunctionBuilder builder) => builder.Id;
 }
 
 /// <summary>
