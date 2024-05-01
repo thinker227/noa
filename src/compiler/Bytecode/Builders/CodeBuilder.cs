@@ -56,8 +56,22 @@ public sealed class CodeBuilder : IWritable
     public void NoOp() => Add(Opcode.NoOp);
     
     public AddressHole Jump() => JumpLike(Opcode.Jump);
+
+    public void Jump(Address address)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, address.Value);
+        Add(Opcode.Jump, bytes);
+    }
     
     public AddressHole JumpIf() => JumpLike(Opcode.JumpIf);
+
+    public void JumpIf(Address address)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, address.Value);
+        Add(Opcode.JumpIf, bytes);
+    }
 
     public void Call(uint argCount)
     {
