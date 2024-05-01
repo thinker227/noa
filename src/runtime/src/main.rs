@@ -57,11 +57,12 @@ fn execute(ark: Ark) -> () {
         Ok(ret_value) => {
             let main = vm.functions().get(&vm.main()).unwrap();
             let main_name = vm.get_string_or_fallback(main.name_index(), "?");
+            let exit_code = ret_value.exit_code();
             
             println!("Return value from <{main_name}>:");
             println!("{ret_value}");
 
-            std::process::exit(0);
+            std::process::exit(exit_code);
         },
         Err(e) => {
             let message = exception_message(&e);

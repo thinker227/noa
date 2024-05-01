@@ -40,4 +40,18 @@ impl Value {
             (_, Type::Nil) => Err(CoercionError::ToNil),
         }
     }
+
+    /// Coerces the value to an exit code.
+    pub fn exit_code(&self) -> i32 {
+        match *self {
+            Value::Number(x) => x,
+            Value::Bool(x) => if x {
+                0
+            } else {
+                1
+            },
+            Value::Function(_) => 0,
+            Value::Nil => 0,
+        }
+    }
 }
