@@ -19,7 +19,7 @@ There is technically a nil type, but is impossible to coerce anything to it and 
 
 When a program exits, the return value from the main function will be attempted to be coerced into a number using a set of special rules. This coercion will always succeed to prevent the program from crashing at the very last moment.
 
-|          | Exit code                     |
+| Value    | Exit code                     |
 |----------|-------------------------------|
 | Number   | same value                    |
 | Bool     | `true` => `0`, `false` => `1` |
