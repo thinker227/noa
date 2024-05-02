@@ -16,9 +16,20 @@ public interface ISymbol
 }
 
 /// <summary>
+/// A semantic element which is nested within a function.
+/// </summary>
+public interface IFunctionNested
+{
+    /// <summary>
+    /// The function which contains the element.
+    /// </summary>
+    IFunction ContainingFunction { get; }
+}
+
+/// <summary>
 /// A symbol which is declared in source and has a corresponding AST node.
 /// </summary>
-public interface IDeclaredSymbol : ISymbol
+public interface IDeclaredSymbol : ISymbol, IFunctionNested
 {
     /// <summary>
     /// The declaring node of the symbol.
@@ -27,44 +38,9 @@ public interface IDeclaredSymbol : ISymbol
 }
 
 /// <summary>
-/// Represents a function declared by a function declaration.
-/// </summary>
-public sealed class FunctionSymbol : IDeclaredSymbol
-{
-    private readonly List<ParameterSymbol> parameters = [];
-    
-    public required string Name { get; init; }
-
-    /// <summary>
-    /// The parameters of the function.
-    /// </summary>
-    public IReadOnlyList<ParameterSymbol> Parameters => parameters;
-    
-    /// <summary>
-    /// The declaration of the function.
-    /// </summary>
-    public required FunctionDeclaration Declaration { get; init; }
-
-    Node IDeclaredSymbol.Declaration => Declaration;
-
-    /// <summary>
-    /// Adds a parameter to the function.
-    /// </summary>
-    /// <param name="parameter">The parameter to add.</param>
-    internal void AddParameter(ParameterSymbol parameter) =>
-        parameters.Add(parameter);
-    
-    public override string ToString()
-    {
-        var parameters = string.Join(", ", Parameters.Select(p => p.Name));
-        return $"{Name}({parameters}) declared at {Declaration.Location}";
-    }
-}
-
-/// <summary>
 /// Represents a variable-like symbol.
 /// </summary>
-public interface IVariableSymbol : ISymbol
+public interface IVariableSymbol : ISymbol, IFunctionNested
 {
     /// <summary>
     /// Whether the variable is declared as mutable.
@@ -89,6 +65,8 @@ public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
     /// </summary>
     public required LetDeclaration Declaration { get; init; }
     
+    public required IFunction ContainingFunction { get; init; }
+    
     Node IDeclaredSymbol.Declaration => Declaration;
 
     public override string ToString() => $"Variable {Name} declared at {Declaration.Location}";
@@ -107,15 +85,16 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     public bool IsMutable => Declaration.IsMutable;
     
     /// <summary>
-    /// The function symbol which the parameter belongs to,
-    /// or null if the parameter belongs to a lambda expression.
+    /// The function symbol which the parameter belongs to.
     /// </summary>
-    public FunctionSymbol? Function { get; init; }
+    public required IFunction Function { get; init; }
     
     /// <summary>
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
+
+    IFunction IFunctionNested.ContainingFunction => Function;
     
     Node IDeclaredSymbol.Declaration => Declaration;
     

@@ -6,7 +6,7 @@ namespace Noa.Compiler.Parsing.Tests;
 public class RootAndBlockExpressionTests
 {
     [Fact]
-    public void DoesNotParse_Root_WithTrailingExpression()
+    public void Parses_Root_WithTrailingExpression()
     {
         var p = ParseAssertion.Create("""
         a();
@@ -14,9 +14,7 @@ public class RootAndBlockExpressionTests
         c()
         """, p => p.ParseRoot());
         
-        p.Diagnostics.DiagnosticsShouldBe([
-            (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 13, 13))
-        ]);
+        p.Diagnostics.DiagnosticsShouldBe([]);
 
         p.N<Root>();
         {
@@ -36,12 +34,9 @@ public class RootAndBlockExpressionTests
                 }
             }
             
-            p.N<ExpressionStatement>();
+            p.N<CallExpression>();
             {
-                p.N<CallExpression>();
-                {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("c"));
-                }
+                p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("c"));
             }
         }
 

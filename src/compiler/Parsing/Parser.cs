@@ -31,21 +31,24 @@ internal sealed partial class Parser
 
     internal Root ParseRoot()
     {
-        var (statements, _) = ParseBlock(
-            allowTrailingExpression: false,
+        var (statements, trailingExpression) = ParseBlock(
+            allowTrailingExpression: true,
             endKind: TokenKind.EndOfFile,
             synchronizationTokens: SyntaxFacts.RootSynchronize);
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
-        var start = statements.FirstOrDefault()?.Location.Start ?? endOfFile.Location.Start;
+        var start = statements.FirstOrDefault()?.Location.Start
+                    ?? trailingExpression?.Location.Start
+                    ?? endOfFile.Location.Start;
         var location = new Location(Source.Name, start, endOfFile.Location.End);
 
         return new()
         {
             Ast = Ast,
             Location = location,
-            Statements = statements
+            Statements = statements,
+            TrailingExpression = trailingExpression
         };
     }
 

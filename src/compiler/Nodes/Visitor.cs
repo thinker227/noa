@@ -55,6 +55,7 @@ public abstract class Visitor<T>
     protected virtual T VisitRoot(Root node)
     {
         Visit(node.Statements);
+        Visit(node.TrailingExpression);
         
         return default!;
     }

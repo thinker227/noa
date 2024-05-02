@@ -5,8 +5,8 @@ namespace Noa.Compiler.Symbols;
 
 internal static class SymbolDiagnostics
 {
-    public static DiagnosticTemplate<FunctionSymbol> FunctionAlreadyDeclared { get; } =
-        DiagnosticTemplate.Create<FunctionSymbol>(
+    public static DiagnosticTemplate<NomialFunction> FunctionAlreadyDeclared { get; } =
+        DiagnosticTemplate.Create<NomialFunction>(
             "NOA-SYM-001",
             (function, page) => page
                 .Raw("Function ")
@@ -27,8 +27,8 @@ internal static class SymbolDiagnostics
                 .Raw(" in this scope."),
             Severity.Error);
     
-    public static DiagnosticTemplate<(VariableSymbol, FunctionSymbol)> VariableShadowsFunction { get; } =
-        DiagnosticTemplate.Create<(VariableSymbol var, FunctionSymbol func)>(
+    public static DiagnosticTemplate<(VariableSymbol, NomialFunction)> VariableShadowsFunction { get; } =
+        DiagnosticTemplate.Create<(VariableSymbol var, NomialFunction func)>(
             "NOA-SYM-003",
             (arg, page) => page
                 .Raw("Variable ")

@@ -31,6 +31,7 @@ internal static class SymbolResolution
 file sealed class Visitor(IScope globalScope, CancellationToken cancellationToken) : Visitor<int>
 {
     private IScope currentScope = globalScope;
+    private readonly Stack<IFunction> functionStack = [];
     
     public List<IDiagnostic> Diagnostics { get; } = [];
 
@@ -51,14 +52,15 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(Node node, ImmutableArray<Statement> statements, Expression? trailingExpression)
+    private IScope DeclareBlock(BlockExpression block)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
+
+        var containingFunction = functionStack.Peek();
+        var functions = new Dictionary<string, NomialFunction>();
         
-        var functions = new Dictionary<string, FunctionSymbol>();
-        
-        foreach (var statement in statements)
+        foreach (var statement in block.Statements)
         {
             // These two foreach loops may take a substantial amount of time depending on the amount of
             // statements within the block. Placing a cancellation point at the start of each iteration
@@ -67,10 +69,11 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             
             if (statement is not FunctionDeclaration func) continue;
             
-            var functionSymbol = new FunctionSymbol()
+            var functionSymbol = new NomialFunction()
             {
                 Name = func.Identifier.Name,
-                Declaration = func
+                Declaration = func,
+                ContainingFunction = containingFunction
             };
 
             func.Symbol = functionSymbol;
@@ -106,7 +109,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         var variables = ImmutableDictionary.Create<string, VariableSymbol>();
         var variableTimeline = new List<ImmutableDictionary<string, VariableSymbol>>() { variables };
         
-        foreach (var statement in statements)
+        foreach (var statement in block.Statements)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -117,7 +120,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             var variableSymbol = new VariableSymbol()
             {
                 Name = let.Identifier.Name,
-                Declaration = let
+                Declaration = let,
+                ContainingFunction = containingFunction
             };
 
             let.Symbol = variableSymbol;
@@ -136,20 +140,33 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         }
 
         // The trailing expression is always assigned the absolute last index.
-        if (trailingExpression is not null) timelineIndexMap[trailingExpression] = timelineIndex;
+        if (block.TrailingExpression is not null) timelineIndexMap[block.TrailingExpression] = timelineIndex;
         
-        return new BlockScope(currentScope, node, functions, variableTimeline, timelineIndexMap);
+        return new BlockScope(currentScope, block, functions, variableTimeline, timelineIndexMap);
     }
     
     protected override int VisitRoot(Root node)
     {
+        
+        var function = new TopLevelFunction()
+        {
+            Declaration = node
+        };
+        node.Function = function;
+        
+        functionStack.Push(function);
+        
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node, node.Statements, null);
+        var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
+            Visit(node.TrailingExpression);
         });
+
+        functionStack.Pop();
 
         return default;
     }
@@ -163,6 +180,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         
         var functionSymbol = node.Symbol.Value;
         
+        functionStack.Push(functionSymbol);
+        
         Visit(node.Identifier);
         
         var blockingScope = new BlockingScope(currentScope, node);
@@ -172,7 +191,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             var parameterSymbol = param.Symbol.Value;
             
             var result = bodyScope.Declare(parameterSymbol);
-            functionSymbol.AddParameter(parameterSymbol);
+            functionSymbol.parameters.Add(parameterSymbol);
 
             if (result.ConflictingSymbol is not null)
             {
@@ -191,12 +210,15 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.BlockBody);
         });
 
+        functionStack.Pop();
+
         return default;
     }
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        var blockScope = DeclareBlock(node, node.Statements, node.TrailingExpression);
+        var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
@@ -209,16 +231,27 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
         var paramScope = new MapScope(currentScope, node);
+
+        var containingFunction = functionStack.Peek();
+        var function = new LambdaFunction()
+        {
+            Declaration = node,
+            ContainingFunction = containingFunction
+        };
+
+        functionStack.Push(function);
+        
         foreach (var param in node.Parameters)
         {
             var symbol = new ParameterSymbol()
             {
                 Name = param.Identifier.Name,
                 Declaration = param,
-                Function = null
+                Function = function
             };
 
             param.Symbol = symbol;
+            function.parameters.Add(symbol);
             
             var result = paramScope.Declare(symbol);
             
@@ -233,10 +266,14 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(param);
         }
         
+        node.Function = function;
+        
         InScope(paramScope, () =>
         {
             Visit(node.Body);
         });
+
+        functionStack.Pop();
 
         return default;
     }
