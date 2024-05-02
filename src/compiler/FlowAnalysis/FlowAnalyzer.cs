@@ -26,7 +26,7 @@ internal static class FlowAnalyzer
 
 file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 {
-    private readonly Stack<FunctionOrLambda> functions = [];
+    private readonly Stack<IFunction> functions = [];
     private readonly Stack<LoopExpression?> loops = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
@@ -34,14 +34,21 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
     protected override void BeforeVisit(Node node) =>
         cancellationToken.ThrowIfCancellationRequested();
 
+    protected override int VisitRoot(Root node)
+    {
+        functions.Push(node.Function.Value);
+
+        Visit(node.Statements);
+        Visit(node.TrailingExpression);
+        
+        functions.Pop();
+
+        return default;
+    }
+
     protected override int VisitFunctionDeclaration(FunctionDeclaration node)
     {
-        functions.Push(new()
-        {
-            IsLambda = false,
-            Function = node,
-            Lambda = null
-        });
+        functions.Push(node.Symbol.Value);
         
         // Push null to the loop stack to indicate that we're at
         // the top-level inside a function body, which is not a loop.
@@ -89,12 +96,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
-        functions.Push(new()
-        {
-            IsLambda = true,
-            Function = null,
-            Lambda = node
-        });
+        functions.Push(node.Function.Value);
         
         loops.Push(null);
 
@@ -122,7 +124,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
     {
         if (functions.TryPeek(out var func))
         {
-            node.Function = func;
+            node.Function = new(func);
         }
         else
         {

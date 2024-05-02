@@ -43,11 +43,9 @@ public abstract class Node
             : [];
 }
 
-public sealed class Root : Node
+public sealed class Root : BlockExpression
 {
-    public required ImmutableArray<Statement> Statements { get; init; }
-
-    public override IEnumerable<Node> Children => Statements;
+    public Semantic<TopLevelFunction> Function { get; internal set; }
 }
 
 public sealed class Identifier : Node
@@ -82,7 +80,7 @@ public sealed class FunctionDeclaration : Declaration
     
     public required BlockExpression? BlockBody { get; init; }
 
-    public Semantic<FunctionSymbol> Symbol { get; internal set; }
+    public Semantic<NomialFunction> Symbol { get; internal set; }
 
     public override IEnumerable<Node> Children => [
         Identifier,
@@ -128,13 +126,19 @@ public sealed class ErrorExpression : Expression
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed class BlockExpression : Expression
+public class BlockExpression : Expression
 {
     public required ImmutableArray<Statement> Statements { get; init; }
     
     public required Expression? TrailingExpression { get; init; }
 
     public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+    
+    /// <summary>
+    /// The scope <i>declared</i> by the scope,
+    /// different from the scope the block is <i>in</i>.
+    /// </summary>
+    public Semantic<IScope> DeclaredScope { get; internal set; }
 }
 
 public sealed class CallExpression : Expression
@@ -153,6 +157,8 @@ public sealed class LambdaExpression : Expression
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
+    
+    public Semantic<LambdaFunction> Function { get; internal set; }
 }
 
 public sealed class TupleExpression : Expression
@@ -189,7 +195,7 @@ public sealed class ReturnExpression : Expression
             ? [Expression]
             : [];
     
-    public Semantic<FunctionOrLambda?> Function { get; internal set; }
+    public Semantic<IFunction?> Function { get; internal set; }
 }
 
 public sealed class BreakExpression : Expression

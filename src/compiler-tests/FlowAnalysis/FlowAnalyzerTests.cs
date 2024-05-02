@@ -1,4 +1,5 @@
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Symbols;
 using Noa.Compiler.Tests;
 
 namespace Noa.Compiler.FlowAnalysis.Tests;
@@ -6,7 +7,7 @@ namespace Noa.Compiler.FlowAnalysis.Tests;
 public class FlowAnalyzerTests
 {
     [Fact]
-    public void Return_OutsideFunction_Produces_ReturnOutsideFunction_AndSetsFunction_ToNull()
+    public void Return_InTopLevelFunction_DoesNotProduceDiagnostics_AndSetsFunction_ToFunction()
     {
         var text = """
         return;
@@ -14,15 +15,15 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
-        diagnostics.DiagnosticsShouldBe([
-            (FlowDiagnostics.ReturnOutsideFunction.Id, new("test-input", 0, 6))
-        ]);
+        diagnostics.DiagnosticsShouldBe([]);
 
         var @return = (ReturnExpression)ast.Root.FindNodeAt(0)!;
         
-        @return.Function.Value.ShouldBeNull();
+        @return.Function.Value.ShouldBeOfType<TopLevelFunction>();
+        @return.Function.Value.ShouldBe(ast.TopLevelFunction);
     }
     
     [Fact]
@@ -34,6 +35,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -54,6 +56,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -78,6 +81,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -98,6 +102,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([
@@ -116,6 +121,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -123,8 +129,8 @@ public class FlowAnalyzerTests
         var func = (FunctionDeclaration)ast.Root.FindNodeAt(0)!;
         var @return = (ReturnExpression)ast.Root.FindNodeAt(15)!;
         
-        @return.Function.Value!.IsLambda.ShouldBeFalse();
-        @return.Function.Value!.Function.ShouldBe(func);
+        @return.Function.Value!.ShouldBeOfType<NomialFunction>();
+        @return.Function.Value!.ShouldBe(func.Symbol.Value);
     }
     
     [Fact]
@@ -138,6 +144,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -145,8 +152,8 @@ public class FlowAnalyzerTests
         var lambda = (LambdaExpression)ast.Root.FindNodeAt(8)!;
         var @return = (ReturnExpression)ast.Root.FindNodeAt(20)!;
 
-        @return.Function.Value!.IsLambda.ShouldBeTrue();
-        @return.Function.Value!.Lambda.ShouldBe(lambda);
+        @return.Function.Value!.ShouldBeOfType<LambdaFunction>();
+        @return.Function.Value!.ShouldBe(lambda.Function.Value);
     }
     
     [Fact]
@@ -160,6 +167,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
@@ -181,6 +189,7 @@ public class FlowAnalyzerTests
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
+        SymbolResolution.ResolveSymbols(ast);
         var diagnostics = FlowAnalyzer.Analyze(ast);
 
         diagnostics.DiagnosticsShouldBe([]);
