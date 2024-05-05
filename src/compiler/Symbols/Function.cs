@@ -214,6 +214,36 @@ public sealed class TopLevelFunction : IFunction
     }
 }
 
+public static class FunctionExtensions
+{
+    /// <summary>
+    /// Gets the full name of a function.
+    /// </summary>
+    /// <param name="function">The function to get the name of.</param>
+    public static string GetFullName(this IFunction function)
+    {
+        var upfrontName = UpfrontName(function);
+        
+        if (function is TopLevelFunction) return upfrontName;
+
+        var containingFunction = ((IFunctionNested)function).ContainingFunction;
+
+        if (containingFunction is TopLevelFunction) return upfrontName;
+
+        var nestedName = containingFunction.GetFullName();
+        
+        return $"{nestedName} -> {upfrontName}";
+    }
+
+    private static string UpfrontName(IFunction function) => function switch
+    {
+        TopLevelFunction => "<main>",
+        NomialFunction nomial => nomial.Name,
+        LambdaFunction => "<lambda>",
+        _ => throw new UnreachableException()
+    };
+}
+
 file static class FunctionUtility
 {
     public static IReadOnlyCollection<VariableSymbol> GetLocals(Node node) => node
