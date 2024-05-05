@@ -6,7 +6,6 @@ use super::opcode::FuncId;
 pub struct StackFrame {
     function: FuncId,
     stack_start: usize,
-    variables_start: usize,
     main_start: usize,
     ip: usize,
 }
@@ -14,13 +13,11 @@ pub struct StackFrame {
 impl StackFrame {
     /// Creates a new stack frame.
     pub fn new(function: FuncId, stack_position: usize, arity: u32, locals_count: u32) -> Self {
-        let variables_start = stack_position + arity as usize;
-        let main_start = variables_start + locals_count as usize;
+        let main_start = stack_position + arity as usize + locals_count as usize;
         
         Self {
             function,
             stack_start: stack_position,
-            variables_start,
             main_start,
             ip: 0
         }

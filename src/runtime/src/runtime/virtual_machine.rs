@@ -74,11 +74,20 @@ impl VM {
     }
 }
 
-/// Returns the current stack frame in the [VM].
+/// Returns a mutable reference to the current stack frame in the [VM].
+#[macro_export]
+macro_rules! current_frame_mut {
+    ($vm:expr) => {
+        $vm.call_stack.last_mut()
+            .ok_or_else(|| $crate::runtime::exception::Exception::new($crate::runtime::exception::ExceptionKind::NoStackFrame))
+    };
+}
+
+/// Returns a reference to the current stack frame in the [VM].
 #[macro_export]
 macro_rules! current_frame {
     ($vm:expr) => {
-        $vm.call_stack.last_mut()
+        $vm.call_stack.last()
             .ok_or_else(|| $crate::runtime::exception::Exception::new($crate::runtime::exception::ExceptionKind::NoStackFrame))
     };
 }

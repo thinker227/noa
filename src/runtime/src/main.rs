@@ -91,6 +91,7 @@ fn exception_message(e: &Exception) -> String {
             format!("Coercion error: {c_msg}.")
         },
         ExceptionKind::InvalidFunction => "Attempted to call an invalid function. (does the function exists?)".into(),
+        ExceptionKind::InvalidVariable => "Attempted to access a variable with an invalid index. (does the variable exist?)".into(),
         ExceptionKind::InvalidString => "Attempted to access a string with an invalid index. (does the string exist?)".into(),
         ExceptionKind::Unsupported => "Attempted to execute an unsupported operation.".into(),
     }

@@ -1,3 +1,5 @@
+use crate::current_frame;
+use crate::runtime::opcode::VarIndex;
 use crate::runtime::value::{FromValue, Value};
 use crate::runtime::exception::{Exception, ExceptionKind};
 use super::VM;
@@ -6,6 +8,32 @@ impl VM {
     /// Returns the current position on the stack from the bottom of the stack.
     pub(super) fn stack_position(&self) -> usize {
         self.stack.len()
+    }
+
+    /// Gets the value of a variable.
+    pub(super) fn get_variable(&self, variable: VarIndex) -> Result<Value, Exception> {
+        let frame = current_frame!(self)?;
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let var = self.stack.get(stack_index)
+            .ok_or_else(|| Exception::new(ExceptionKind::InvalidVariable))?;
+
+        Ok(*var)
+    }
+
+    /// Sets the value of a variable.
+    pub(super) fn set_variable(&mut self, variable: VarIndex, value: Value) -> Result<(), Exception> {
+        let frame = current_frame!(self)?;
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let var = self.stack.get_mut(stack_index)
+            .ok_or_else(|| Exception::new(ExceptionKind::InvalidVariable))?;
+
+        *var = value;
+
+        Ok(())
     }
 
     /// Pushes a value onto the stack.

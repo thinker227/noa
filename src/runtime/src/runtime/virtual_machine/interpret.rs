@@ -2,7 +2,7 @@ use crate::runtime::value::{FromValue, Value};
 use crate::runtime::opcode::{FuncId, Opcode};
 use crate::runtime::exception::{Exception, ExceptionKind};
 use super::VM;
-use crate::current_frame;
+use crate::current_frame_mut;
 
 impl VM {
     /// Executes the main function.
@@ -24,7 +24,7 @@ impl VM {
     }
 
     fn step(&mut self) -> Result<(), Exception> {
-        let frame = current_frame!(self)?;
+        let frame = current_frame_mut!(self)?;
 
         let ip = frame.increment_ip();
         let function = self.functions.get(&frame.function())
@@ -41,13 +41,13 @@ impl VM {
             Opcode::NoOp => {},
 
             Opcode::Jump(address) => {
-                let frame = current_frame!(self)?;
+                let frame = current_frame_mut!(self)?;
                 frame.set_ip(address as usize)
             },
             Opcode::JumpIf(address) => {
                 let x = self.pop_as()?;
                 if x {
-                    let frame = current_frame!(self)?;
+                    let frame = current_frame_mut!(self)?;
                     frame.set_ip(address as usize);
                 }
             },
@@ -64,11 +64,6 @@ impl VM {
                 let ret_value = self.pop()?;
 
                 self.exit_function();
-
-                // It is impossible to be at this point
-                // and for the call stack to be empty at the same time.
-                self.call_stack.pop()
-                    .expect("call stack should not be empty");
 
                 self.push(ret_value)?;
             },
@@ -87,8 +82,14 @@ impl VM {
                 self.push(value)?;
             },
 
-            Opcode::StoreVar(_) => return Err(Exception::new(ExceptionKind::Unsupported)),
-            Opcode::LoadVar(_) => return Err(Exception::new(ExceptionKind::Unsupported)),
+            Opcode::StoreVar(var) => {
+                let value = self.pop()?;
+                self.set_variable(var, value)?;
+            },
+            Opcode::LoadVar(var) => {
+                let value = self.get_variable(var)?;
+                self.push(value)?;
+            },
 
             Opcode::Add =>  self.binary_op(|a: i32, b: i32| a + b)?,
             Opcode::Sub =>  self.binary_op(|a: i32, b: i32| a - b)?,
