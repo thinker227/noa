@@ -7,7 +7,7 @@ use crate::current_frame_mut;
 impl VM {
     /// Executes the main function.
     pub fn execute_main(&mut self) -> Result<Value, Exception> {
-        self.enter_function(self.main)?;
+        self.enter_function(self.main, 0)?;
 
         self.execute()?;
 
@@ -52,13 +52,9 @@ impl VM {
                 }
             },
             Opcode::Call(arg_count) => {
-                if arg_count > 0 {
-                    return Err(Exception::new(ExceptionKind::Unsupported));
-                }
-
                 let function = self.pop_as::<FuncId>()?;
                 
-                self.enter_function(function)?;
+                self.enter_function(function, arg_count)?;
             },
             Opcode::Ret => {
                 let ret_value = self.pop()?;

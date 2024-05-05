@@ -16,6 +16,8 @@ internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex, uint
     /// The builder for the code of the function.
     /// </summary>
     public CodeBuilder Code { get; } = new();
+
+    public LocalsInator Locals { get; } = new(arity);
     
     public uint Length => 4 + 4 + 4 + 4 + 4 + Code.Length;
 
@@ -23,8 +25,8 @@ internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex, uint
     {
         writer.Write(Id);
         writer.Write(nameIndex);
-        writer.UInt(arity);
-        writer.UInt(0); // Todo: locals count
+        writer.UInt(Locals.Parameters);
+        writer.UInt(Locals.Variables);
         writer.UInt(Code.Length);
         writer.Write(Code);
     }

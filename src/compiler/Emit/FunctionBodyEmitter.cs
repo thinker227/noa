@@ -1,6 +1,7 @@
 using Noa.Compiler.Bytecode.Builders;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
+using SuperLinq;
 
 namespace Noa.Compiler.Emit;
 
@@ -10,18 +11,24 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     private readonly FunctionBuilder builder;
     private readonly IReadOnlyDictionary<IFunction, FunctionBuilder> builders;
     private readonly StringSectionBuilder strings;
+    private readonly IReadOnlyDictionary<IVariableSymbol, VariableIndex> variableIndices;
 
     private CodeBuilder Code => builder.Code;
 
+    private LocalsInator Locals => builder.Locals;
+
     private FunctionBodyEmitter(
         IFunction function,
+        FunctionBuilder builder,
         IReadOnlyDictionary<IFunction, FunctionBuilder> builders,
-        StringSectionBuilder strings)
+        StringSectionBuilder strings,
+        IReadOnlyDictionary<IVariableSymbol, VariableIndex> variableIndices)
     {
         this.function = function;
-        builder = builders[function];
+        this.builder = builder;
         this.builders = builders;
         this.strings = strings;
+        this.variableIndices = variableIndices;
     }
 
     public static void Emit(
@@ -29,10 +36,33 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         IReadOnlyDictionary<IFunction, FunctionBuilder> builders,
         StringSectionBuilder strings)
     {
-        var emitter = new FunctionBodyEmitter(function, builders, strings);
+        var builder = builders[function];
+
+        var variableIndices = CreateVariables(function, builder);
+        
+        var emitter = new FunctionBodyEmitter(function, builder, builders, strings, variableIndices);
         
         emitter.Visit(function.Body);
         emitter.Code.Ret();
+    }
+
+    private static IReadOnlyDictionary<IVariableSymbol, VariableIndex> CreateVariables(
+        IFunction function,
+        FunctionBuilder builder)
+    {
+        var variableIndices = new Dictionary<IVariableSymbol, VariableIndex>();
+        
+        foreach (var (paramIndex, param) in function.Parameters.Index())
+        {
+            variableIndices[param] = builder.Locals.GetParameterVariable(paramIndex);
+        }
+
+        foreach (var variable in function.GetLocals())
+        {
+            variableIndices[variable] = builder.Locals.CreateVariable();
+        }
+
+        return variableIndices;
     }
 
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
@@ -175,7 +205,16 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     protected override int VisitCallExpression(CallExpression node)
     {
         Visit(node.Target);
-        Visit(node.Arguments);
+        
+        // Todo: figure out how to not have to use a temporary variable here
+        using (var temp = Locals.GetTemp())
+        {
+            Code.StoreVar(temp.Variable);
+            
+            Visit(node.Arguments);
+            
+            Code.LoadVar(temp.Variable);
+        }
         
         Code.Call((uint)node.Arguments.Length);
 
@@ -198,13 +237,10 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
             var funcId = builders[func].Id;
             Code.PushFunc(funcId);
             break;
-        
-        case VariableSymbol:
-            throw new NotImplementedException();
-            break;
-        
-        case ParameterSymbol:
-            throw new NotImplementedException();
+
+        case IVariableSymbol var:
+            var index = variableIndices[var];
+            Code.LoadVar(index);
             break;
         }
 
@@ -217,6 +253,16 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
 
         Code.Ret();
 
+        return default;
+    }
+
+    protected override int VisitLetDeclaration(LetDeclaration node)
+    {
+        Visit(node.Expression);
+
+        var var = variableIndices[node.Symbol.Value];
+        Code.StoreVar(var);
+        
         return default;
     }
 }
