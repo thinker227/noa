@@ -25,7 +25,7 @@ pub const OR: u8 = 108;
 
 pub type Address = u32;
 pub type FuncId = u32;
-pub type VarId = u32;
+pub type VarIndex = u32;
 
 /// A single op-code. Some op-codes have associated operand data.
 #[repr(u8)]
@@ -48,8 +48,8 @@ pub enum Opcode {
     Dup = DUP,
 
     // Locals operations
-    StoreVar(VarId) = STORE_VAR,
-    LoadVar(VarId) = LOAD_VAR,
+    StoreVar(VarIndex) = STORE_VAR,
+    LoadVar(VarIndex) = LOAD_VAR,
 
     // Value operations
     Add = ADD,
