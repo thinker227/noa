@@ -59,6 +59,20 @@ impl VM {
             .map_err(|e| Exception::new(ExceptionKind::CoercionError(e)))
     }
 
+    /// Gets a value at a specified position in the stack.
+    pub(super) fn get_at(&self, at: usize) -> Result<Value, Exception> {
+        let value = self.stack.get(at)
+            .ok_or_else(|| Exception::new(ExceptionKind::StackUnderflow))?;
+
+        Ok(*value)
+    }
+
+    /// Gets a value at a specified position in a stack as a specified type.
+    pub(super) fn get_at_as<T: FromValue>(&self, at: usize) -> Result<T, Exception> {
+        T::from_value(self.get_at(at)?)
+            .map_err(|e| Exception::new(ExceptionKind::CoercionError(e)))
+    }
+
     /// Pops a value from the stack,
     /// performs a unary operation on it,
     /// and pushes the result back onto the stack.

@@ -205,16 +205,8 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     protected override int VisitCallExpression(CallExpression node)
     {
         Visit(node.Target);
-        
-        // Todo: figure out how to not have to use a temporary variable here
-        using (var temp = Locals.GetTemp())
-        {
-            Code.StoreVar(temp.Variable);
-            
-            Visit(node.Arguments);
-            
-            Code.LoadVar(temp.Variable);
-        }
+
+        Visit(node.Arguments);
         
         Code.Call((uint)node.Arguments.Length);
 

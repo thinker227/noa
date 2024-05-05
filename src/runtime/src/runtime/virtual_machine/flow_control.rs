@@ -7,7 +7,7 @@ use super::VM;
 
 impl VM {
     /// Enters a function.
-    pub(super) fn enter_function(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
+    pub(super) fn call(&mut self, id: FuncId, arg_count: u32, is_implicit: bool) -> Result<(), Exception> {
         if self.call_stack.len() >= self.call_stack.capacity() {
             return Err(Exception::new(ExceptionKind::CallStackOverflow));
         }
@@ -52,6 +52,7 @@ impl VM {
         self.call_stack.push(StackFrame::new(
             id,
             frame_stack_start_position,
+            is_implicit,
             arity,
             locals_count
         ));
@@ -60,12 +61,23 @@ impl VM {
     }
 
     /// Exits the current function.
-    pub(super) fn exit_function(&mut self) {
+    pub(super) fn ret(&mut self) {
         // It is impossible to be at this point
         // and for the call stack to be empty at the same time.
         let frame = self.call_stack.pop()
             .expect("call stack should not be empty");
 
-        self.stack.truncate(frame.stack_start());
+        let stack_start = frame.stack_start();
+
+        let stack_backtrack_position = if frame.is_implicit() {
+            // If the function was called implicitly then just the arguments need to be popped.
+            stack_start
+        } else {
+            // If the function was not called implicitly then there's a function value
+            // sitting just below the arguments on the stack, which also needs to be popped.
+            stack_start - 1
+        };
+
+        self.stack.truncate(stack_backtrack_position);
     }
 }

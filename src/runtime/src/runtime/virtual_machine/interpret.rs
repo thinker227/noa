@@ -7,7 +7,7 @@ use crate::current_frame_mut;
 impl VM {
     /// Executes the main function.
     pub fn execute_main(&mut self) -> Result<Value, Exception> {
-        self.enter_function(self.main, 0)?;
+        self.call(self.main, 0, true)?;
 
         self.execute()?;
 
@@ -52,14 +52,18 @@ impl VM {
                 }
             },
             Opcode::Call(arg_count) => {
-                let function = self.pop_as::<FuncId>()?;
+                // The position in the stack the function to call resides at
+                // is immediately before the arguments, so the position is
+                // the current position - the amount of arguments - 1.
+                let function_position = self.stack_position() - arg_count as usize - 1;
+                let function = self.get_at_as::<FuncId>(function_position)?;
                 
-                self.enter_function(function, arg_count)?;
+                self.call(function, arg_count, false)?;
             },
             Opcode::Ret => {
                 let ret_value = self.pop()?;
 
-                self.exit_function();
+                self.ret();
 
                 self.push(ret_value)?;
             },
