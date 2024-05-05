@@ -28,7 +28,8 @@ internal static class Emitter
         foreach (var function in functionsForEmission)
         {
             var name = function!.GetFullName();
-            var builder = functionsBuilder.CreateFunction(strings.GetOrAdd(name));
+            var arity = (uint)function!.Parameters.Count;
+            var builder = functionsBuilder.CreateFunction(strings.GetOrAdd(name), arity);
             functions.Add(function!, builder);
         }
         functions.Add(ast.TopLevelFunction, main);

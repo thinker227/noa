@@ -57,6 +57,8 @@ fn parse_functions(mut bytes: &[u8]) -> Result<Vec<Function>, FunctionError> {
 pub struct Function {
     id: FuncId,
     name_index: u32,
+    arity: u32,
+    locals_count: u32,
     code_length: u32,
     code: Vec<Opcode>,
 }
@@ -66,6 +68,8 @@ pub struct Function {
 pub enum FunctionError {
     MissingId,
     MissingNameIndex,
+    MissingArity,
+    MissingLocalsCount,
     MissingCodeLength,
     IncongruentLength,
     OpcodeError(OpcodeError),
@@ -82,6 +86,12 @@ impl Function {
         let (name_index, bytes) = split_as_u32(bytes)
             .ok_or(FunctionError::MissingNameIndex)?;
 
+        let (arity, bytes) = split_as_u32(bytes)
+            .ok_or(FunctionError::MissingArity)?;
+
+        let (locals_count, bytes) = split_as_u32(bytes)
+            .ok_or(FunctionError::MissingLocalsCount)?;
+
         let (code_length, bytes) = split_as_u32(bytes)
             .ok_or(FunctionError::MissingCodeLength)?;
 
@@ -94,6 +104,8 @@ impl Function {
         let function = Self {
             id,
             name_index,
+            arity,
+            locals_count,
             code_length,
             code
         };
@@ -105,9 +117,19 @@ impl Function {
         self.id
     }
 
-    /// Gets the name index of teh function.
+    /// Gets the name index of the function.
     pub fn name_index(&self) -> u32 {
         self.name_index
+    }
+
+    /// Gets the arity of the function.
+    pub fn arity(&self) -> u32 {
+        self.arity
+    }
+
+    /// Gets the amount of locals allocated by the function.
+    pub fn locals_count(&self) -> u32 {
+        self.locals_count
     }
 
     /// Gets the bytecode of the function.

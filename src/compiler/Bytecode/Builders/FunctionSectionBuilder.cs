@@ -30,7 +30,7 @@ internal sealed class FunctionSectionBuilder : IWritable
     public static (FunctionSectionBuilder builder, FunctionBuilder main) Create(StringIndex mainNameIndex)
     {
         var builder = new FunctionSectionBuilder();
-        var main = builder.CreateFunction(mainNameIndex);
+        var main = builder.CreateFunction(mainNameIndex, 0);
         builder.MainId = main.Id;
 
         return (builder, main);
@@ -40,11 +40,12 @@ internal sealed class FunctionSectionBuilder : IWritable
     /// Creates a new function.
     /// </summary>
     /// <param name="nameIndex">The string index of the name of the function.</param>
+    /// <param name="arity">The arity of the function.</param>
     /// <returns>A builder for the created function.</returns>
-    public FunctionBuilder CreateFunction(StringIndex nameIndex)
+    public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity)
     {
         var functionId = new FunctionId(currentId);
-        var builder = new FunctionBuilder(functionId, nameIndex);
+        var builder = new FunctionBuilder(functionId, nameIndex, arity);
         currentId++;
             
         functions.Add(builder);

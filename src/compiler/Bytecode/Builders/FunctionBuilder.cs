@@ -5,7 +5,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// </summary>
 /// <param name="id">The ID of the function.</param>
 /// <param name="nameIndex">The string index of the name of the function.</param>
-internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IWritable
+internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex, uint arity) : IWritable
 {
     /// <summary>
     /// The ID of the function.
@@ -17,12 +17,14 @@ internal sealed class FunctionBuilder(FunctionId id, StringIndex nameIndex) : IW
     /// </summary>
     public CodeBuilder Code { get; } = new();
     
-    public uint Length => Id.Length + nameIndex.Length + 4 + Code.Length;
+    public uint Length => 4 + 4 + 4 + 4 + 4 + Code.Length;
 
     public void Write(Carpenter writer)
     {
         writer.Write(Id);
         writer.Write(nameIndex);
+        writer.UInt(arity);
+        writer.UInt(0); // Todo: locals count
         writer.UInt(Code.Length);
         writer.Write(Code);
     }
