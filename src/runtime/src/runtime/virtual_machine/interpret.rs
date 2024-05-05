@@ -1,6 +1,5 @@
 use crate::runtime::value::{FromValue, Value};
 use crate::runtime::opcode::{FuncId, Opcode};
-use crate::runtime::frame::StackFrame;
 use crate::runtime::exception::{Exception, ExceptionKind};
 use super::VM;
 use crate::current_frame;
@@ -8,8 +7,7 @@ use crate::current_frame;
 impl VM {
     /// Executes the main function.
     pub fn execute_main(&mut self) -> Result<Value, Exception> {
-        let frame = StackFrame::new(self.main);
-        self.call_stack.push(frame);
+        self.enter_function(self.main)?;
 
         self.execute()?;
 
@@ -59,17 +57,13 @@ impl VM {
                 }
 
                 let function = self.pop_as::<FuncId>()?;
-
-                let frame = StackFrame::new(function);
-
-                if self.call_stack.len() >= self.call_stack.capacity() {
-                    return Err(Exception::new(ExceptionKind::CallStackOverflow));
-                }
-
-                self.call_stack.push(frame);
+                
+                self.enter_function(function)?;
             },
             Opcode::Ret => {
                 let ret_value = self.pop()?;
+
+                self.exit_function();
 
                 // It is impossible to be at this point
                 // and for the call stack to be empty at the same time.

@@ -10,6 +10,7 @@ use super::value::Value;
 
 mod stack;
 mod interpret;
+mod flow_control;
 
 /// A virtual machine. Contains the entire state of the runtime.
 #[derive(Debug)]

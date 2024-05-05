@@ -3,6 +3,11 @@ use crate::runtime::exception::{Exception, ExceptionKind};
 use super::VM;
 
 impl VM {
+    /// Returns the current position on the stack from the bottom of the stack.
+    pub(super) fn stack_position(&self) -> usize {
+        self.stack.len()
+    }
+
     /// Pushes a value onto the stack.
     pub(super) fn push(&mut self, value: Value) -> Result<(), Exception> {
         if self.stack.len() >= self.stack.capacity() {
