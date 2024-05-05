@@ -1,13 +1,15 @@
 # Noa
 
-*Simple* programming language.
+Noa is a work-in-progress dynamically typed, imperative, compiled programming language with its own bytecode format ("Ark") which runs on a virtual machine. Noa takes heavy influence from Rust and Javascript for its featureset, and C# for the runtime.
+
+The compiler is implemented in C# and runtime in Rust.
 
 ## Goals
 
-- Slim language
+- Slim/minimal language
 - JS/Rust-like syntax
 - Dynamically typed
-- Strongly typed
+- Static variable resolution
 - Compiles to bytecode
 - Runs on a VM
 - Compiler implemented in C#
@@ -20,11 +22,11 @@
 - [x] Lexer
 - [x] Parser
 - [x] Scope/symbol resolution
-- [ ] Flow analysis
+- [x] Flow analysis
 - [ ] Optimization
 - [ ] Bytecode
 - [ ] Runtime
-- [ ] CLI
+- [x] CLI
 - [ ] Language server
 
 ## Samples
@@ -52,18 +54,33 @@ let x = {      // Block expression
 ```
 
 ```js
-let add = (a, b) => a + b;
+func add(a, b) => a + b;
 
 let num = add(1, 2);
 ```
 
 ```js
-let greet = (name) => {
+func greet(name) {
     print("Hello, " + name + "!");
 };
 
 let name = readLine();
 greet(name);
+```
+
+```js
+func createCounter() {
+  let mut x = 0;
+  () => {
+    x += 1;
+    x
+  }
+}
+
+let counter = createCounter();
+print(counter()); // 1
+print(counter()); // 2
+print(counter()); // 3
 ```
 
 ### Dreamlands
@@ -77,12 +94,4 @@ export (val, hello);
 
 let val = 69;
 let hello = () => print("Hello!!!");
-```
-
-```js
-// Custom infix operator (extremely provisional syntax)
-($) = (f, x) => f(x);
-
-// Usage
-let v = ((k) => k + 1) $ 2;
 ```
