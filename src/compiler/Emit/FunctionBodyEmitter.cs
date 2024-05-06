@@ -75,6 +75,18 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         return default;
     }
 
+    protected override int VisitRoot(Root node) => VisitBlockExpression(node);
+
+    protected override int VisitBlockExpression(BlockExpression node)
+    {
+        Visit(node.Statements);
+
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        else Code.PushNil();
+
+        return default;
+    }
+
     protected override int VisitAssignmentStatement(AssignmentStatement node) => throw new NotImplementedException();
 
     protected override int VisitUnaryExpression(UnaryExpression node)
@@ -241,7 +253,8 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
 
     protected override int VisitReturnExpression(ReturnExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
+        else Code.PushNil();
 
         Code.Ret();
 
