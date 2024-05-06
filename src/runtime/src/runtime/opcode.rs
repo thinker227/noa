@@ -11,6 +11,7 @@ pub const PUSH_FUNC: u8 = 22;
 pub const PUSH_NIL: u8 = 23;
 pub const POP: u8 = 50;
 pub const DUP: u8 = 51;
+pub const SWAP: u8 = 52;
 pub const STORE_VAR: u8 = 70;
 pub const LOAD_VAR: u8 = 71;
 pub const ADD: u8 = 100;
@@ -46,6 +47,7 @@ pub enum Opcode {
     PushNil = PUSH_NIL,
     Pop = POP,
     Dup = DUP,
+    Swap = SWAP,
 
     // Locals operations
     StoreVar(VarIndex) = STORE_VAR,
@@ -87,6 +89,7 @@ impl Opcode {
             self::PUSH_NIL => Some(Opcode::PushNil),
             self::POP => Some(Opcode::Pop),
             self::DUP => Some(Opcode::Dup),
+            self::SWAP => Some(Opcode::Swap),
             self::ADD => Some(Opcode::Add),
             self::SUB => Some(Opcode::Sub),
             self::MULT => Some(Opcode::Mult),
@@ -297,6 +300,11 @@ mod tests {
     #[test]
     fn push_dup() {
         test_simple(DUP, Opcode::Dup);
+    }
+
+    #[test]
+    fn push_swap() {
+        test_simple(SWAP, Opcode::Swap);
     }
 
     #[test]

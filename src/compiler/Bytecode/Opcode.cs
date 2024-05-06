@@ -20,6 +20,7 @@ internal enum Opcode : byte
     PushNil = 23,
     Pop = 50,
     Dup = 51,
+    Swap = 52,
 
     // Locals operations
     StoreVar = 70,

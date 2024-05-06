@@ -15,6 +15,7 @@
 ## Miscellaneous stack operations (`50`-`69`)
 - `Pop` (`50`): Pops the topmost value from the stack.
 - `Dup` (`51`): Duplicates the topmost value on the stack and pushes it to the stack.
+- `Swap` (`52`): Pops the two topmost values from the stack and pushes them back in reverse order.
 
 ## Locals operations (`70`-`99`)
 - `StoreVar <var index>` (`70`): Pops the topmost value from the stack and stores it into a local variable with the index `var index`.

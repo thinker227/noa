@@ -35,6 +35,7 @@ pub fn disassemble_opcode(opcode: Opcode, vm: &VM) -> String {
         Opcode::PushNil => "push_nil".into(),
         Opcode::Pop => "pop".into(),
         Opcode::Dup => "duplicate".into(),
+        Opcode::Swap => "swap".into(),
         Opcode::StoreVar(index) => format!("store_variable <variable_index: {index}>"),
         Opcode::LoadVar(index) => format!("load_variable <variable_index: {index}>"),
         Opcode::Add => "add".into(),

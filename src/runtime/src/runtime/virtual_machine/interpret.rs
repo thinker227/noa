@@ -81,6 +81,12 @@ impl VM {
                 self.push(value)?;
                 self.push(value)?;
             },
+            Opcode::Swap => {
+                let a = self.pop()?;
+                let b = self.pop()?;
+                self.push(a)?;
+                self.push(b)?;
+            },
 
             Opcode::StoreVar(var) => {
                 let value = self.pop()?;

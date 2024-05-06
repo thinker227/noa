@@ -107,6 +107,8 @@ internal sealed class CodeBuilder : IWritable
     public void Pop() => Add(Opcode.Pop);
 
     public void Dup() => Add(Opcode.Dup);
+
+    public void Swap() => Add(Opcode.Swap);
     
     public void StoreVar(VariableIndex varIndex)
     {
