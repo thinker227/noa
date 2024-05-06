@@ -36,4 +36,5 @@ internal enum Opcode : byte
     Not = 106,
     And = 107,
     Or = 108,
+    GreaterThan = 109,
 }

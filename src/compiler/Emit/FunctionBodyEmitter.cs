@@ -100,8 +100,9 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
             break;
 
         case UnaryKind.Negate:
-            throw new NotImplementedException();
-            // Need a temporary variable
+            Code.PushInt(0);
+            Code.Swap();
+            Code.Sub();
             break;
 
         case UnaryKind.Not:
@@ -151,21 +152,16 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
             break;
         
         case BinaryKind.GreaterThan:
-            // > = !(<=) = !(< || =)
-            throw new NotImplementedException();
-            Code.LessThan();
-            // Need a temporary variable
+            Code.GreaterThan();
             break;
         
         case BinaryKind.LessThanOrEqual:
-            // <= = (< || =)
-            throw new NotImplementedException();
-            Code.LessThan();
-            // Need a temporary variable
+            Code.GreaterThan();
+            Code.Not();
+            
             break;
         
         case BinaryKind.GreaterThanOrEqual:
-            // >= = !(<)
             Code.LessThan();
             Code.Not();
             break;

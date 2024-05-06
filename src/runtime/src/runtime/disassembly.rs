@@ -47,5 +47,6 @@ pub fn disassemble_opcode(opcode: Opcode, vm: &VM) -> String {
         Opcode::Not => "not".into(),
         Opcode::And => "and".into(),
         Opcode::Or => "or".into(),
+        Opcode::GreaterThan => "greater_than".into(),
     }
 }

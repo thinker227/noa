@@ -31,3 +31,4 @@
 - `Not` (`106`): Pops the topmost value from the stack, performs a logical not on it, then pushes the result onto the stack.
 - `And` (`107`): Pops the two topmost values from the stack, performs a logical and on them, then pushes the result onto the stack.
 - `Or` (`108`): Pops the two topmost values from the stack, performs a logical or on them, then pushes the result onto the stack.
+- `GreaterThan` (`109`): Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value.

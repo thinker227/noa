@@ -141,6 +141,8 @@ internal sealed class CodeBuilder : IWritable
     public void And() => Add(Opcode.And);
     
     public void Or() => Add(Opcode.Or);
+
+    public void GreaterThan() => Add(Opcode.GreaterThan);
 }
 
 /// <summary>

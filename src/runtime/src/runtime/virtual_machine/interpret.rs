@@ -108,10 +108,11 @@ impl VM {
 
                 self.push(x)?;
             },
-            Opcode::LessThan => self.binary_op(|a: i32, b: i32| a < b)?,
-            Opcode::Not =>      self.unary_op(|x: bool| !x)?,
-            Opcode::And =>      self.binary_op(|a: bool, b: bool| a && b)?,
-            Opcode::Or =>       self.binary_op(|a: bool, b: bool| a || b)?,
+            Opcode::LessThan =>    self.binary_op(|a: i32, b: i32| a < b)?,
+            Opcode::Not =>         self.unary_op(|x: bool| !x)?,
+            Opcode::And =>         self.binary_op(|a: bool, b: bool| a && b)?,
+            Opcode::Or =>          self.binary_op(|a: bool, b: bool| a || b)?,
+            Opcode::GreaterThan => self.binary_op(|a: i32, b: i32| a > b)?,
         }
 
         Ok(())

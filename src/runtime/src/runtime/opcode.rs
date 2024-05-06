@@ -23,6 +23,7 @@ pub const LESS_THAN: u8 = 105;
 pub const NOT: u8 = 106;
 pub const AND: u8 = 107;
 pub const OR: u8 = 108;
+pub const GREATER_THAN: u8 = 109;
 
 pub type Address = u32;
 pub type FuncId = u32;
@@ -63,6 +64,7 @@ pub enum Opcode {
     Not = NOT,
     And = AND,
     Or = OR,
+    GreaterThan = GREATER_THAN,
 }
 
 /// An error from reading an invalid opcode.
@@ -99,6 +101,7 @@ impl Opcode {
             self::NOT => Some(Opcode::Not),
             self::AND => Some(Opcode::And),
             self::OR => Some(Opcode::Or),
+            self::GREATER_THAN => Some(Opcode::GreaterThan),
             _ => None
         } {
             return Ok((simple, data));
@@ -370,5 +373,10 @@ mod tests {
     #[test]
     fn push_or() {
         test_simple(OR, Opcode::Or);
+    }
+
+    #[test]
+    fn push_greater_than() {
+        test_simple(GREATER_THAN, Opcode::GreaterThan);
     }
 }
