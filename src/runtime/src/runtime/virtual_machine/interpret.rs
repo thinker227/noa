@@ -100,7 +100,17 @@ impl VM {
             Opcode::Add =>  self.binary_op(|a: i32, b: i32| a + b)?,
             Opcode::Sub =>  self.binary_op(|a: i32, b: i32| a - b)?,
             Opcode::Mult => self.binary_op(|a: i32, b: i32| a * b)?,
-            Opcode::Div =>  self.binary_op(|a: i32, b: i32| a / b)?,
+            Opcode::Div => {
+                let b = self.pop_as::<i32>()?;
+                let a = self.pop_as::<i32>()?;
+                
+                if b == 0 {
+                    return Err(Exception::new(ExceptionKind::DivisionBy0));
+                }
+
+                let x = a / b;
+                self.push(Value::Number(x))?;
+            },
             Opcode::Equal => {
                 let b = self.pop()?;
                 let a = self.pop()?;

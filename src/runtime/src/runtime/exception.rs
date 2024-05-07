@@ -21,6 +21,8 @@ pub enum ExceptionKind {
     InvalidVariable,
     /// A string with an invalid index was referenced.
     InvalidString,
+    /// Division by 0.
+    DivisionBy0,
     /// Attempted to execute an unsupported operation.
     Unsupported,
 }

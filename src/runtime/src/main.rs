@@ -93,6 +93,7 @@ fn exception_message(e: &Exception) -> String {
         ExceptionKind::InvalidFunction => "Attempted to call an invalid function. (does the function exists?)".into(),
         ExceptionKind::InvalidVariable => "Attempted to access a variable with an invalid index. (does the variable exist?)".into(),
         ExceptionKind::InvalidString => "Attempted to access a string with an invalid index. (does the string exist?)".into(),
+        ExceptionKind::DivisionBy0 => "Division by 0.".into(),
         ExceptionKind::Unsupported => "Attempted to execute an unsupported operation.".into(),
     }
 }
