@@ -7,7 +7,6 @@ use cli::Args;
 
 use ark::Ark;
 use runtime::virtual_machine::VM;
-use runtime::exception::{Exception, ExceptionKind};
 
 mod cli;
 mod byte_utility;
@@ -63,36 +62,11 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
             std::process::exit(exit_code);
         },
         Err(e) => {
-            let message = exception_message(&e);
-
             eprintln!("An exception occurred!");
-            eprintln!("  {message}");
+            eprintln!("  {}", e.kind().to_string());
 
             std::process::exit(1);
         }
-    }
-}
-
-fn exception_message(e: &Exception) -> String {
-    match e.kind() {
-        ExceptionKind::NoStackFrame => "There was no stack frame on the call stack.".into(),
-        ExceptionKind::CallStackOverflow => "The call stack overflowed (infinite recursion?)".into(),
-        ExceptionKind::FunctionOverrun => "Attempted to execute instructions past the function's bounds. (forgot a ret (0x04) instruction?) (jumped out of bounds?)".into(),
-        ExceptionKind::StackOverflow => "Stack overflow.".into(),
-        ExceptionKind::StackUnderflow => "Stack underflow. (pushed too little onto the stack?)".into(),
-        ExceptionKind::CoercionError(c) => {
-            let c_msg = match *c {
-                runtime::value::coercion::CoercionError::ToFunction => "coercion to a function",
-                runtime::value::coercion::CoercionError::ToNil => "coercion to ()",
-                runtime::value::coercion::CoercionError::FunctionToNumber => "coercion from function to number",
-            };
-            format!("Coercion error: {c_msg}.")
-        },
-        ExceptionKind::InvalidFunction => "Attempted to call an invalid function. (does the function exists?)".into(),
-        ExceptionKind::InvalidVariable => "Attempted to access a variable with an invalid index. (does the variable exist?)".into(),
-        ExceptionKind::InvalidString => "Attempted to access a string with an invalid index. (does the string exist?)".into(),
-        ExceptionKind::DivisionBy0 => "Division by 0.".into(),
-        ExceptionKind::Unsupported => "Attempted to execute an unsupported operation.".into(),
     }
 }
 

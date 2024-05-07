@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ark::Ark;
 
-use super::exception::{Exception, ExceptionKind};
+use super::exception::{Exception, VMException};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
@@ -56,7 +56,7 @@ impl VM {
     /// Gets a string with a specified index.
     pub fn get_string(&self, index: u32) -> Result<&String, Exception> {
         self.strings.get(index as usize)
-            .ok_or_else(|| Exception::new(ExceptionKind::InvalidString))
+            .ok_or_else(|| Exception::vm(VMException::InvalidString))
     }
 
     /// Gets a string with a specified index,
@@ -79,7 +79,7 @@ impl VM {
 macro_rules! current_frame_mut {
     ($vm:expr) => {
         $vm.call_stack.last_mut()
-            .ok_or_else(|| $crate::runtime::exception::Exception::new($crate::runtime::exception::ExceptionKind::NoStackFrame))
+            .ok_or_else(|| $crate::runtime::exception::Exception::vm($crate::runtime::exception::VMException::NoStackFrame))
     };
 }
 
@@ -88,6 +88,6 @@ macro_rules! current_frame_mut {
 macro_rules! current_frame {
     ($vm:expr) => {
         $vm.call_stack.last()
-            .ok_or_else(|| $crate::runtime::exception::Exception::new($crate::runtime::exception::ExceptionKind::NoStackFrame))
+            .ok_or_else(|| $crate::runtime::exception::Exception::vm($crate::runtime::exception::VMException::NoStackFrame))
     };
 }

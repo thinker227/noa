@@ -1,6 +1,6 @@
 use crate::runtime::value::{FromValue, Value};
 use crate::runtime::opcode::{FuncId, Opcode};
-use crate::runtime::exception::{Exception, ExceptionKind};
+use crate::runtime::exception::{CodeException, VMException, Exception};
 use super::VM;
 use crate::current_frame_mut;
 
@@ -28,10 +28,10 @@ impl VM {
 
         let ip = frame.increment_ip();
         let function = self.functions.get(&frame.function())
-            .ok_or_else(|| Exception::new(ExceptionKind::InvalidFunction))?;
+            .ok_or_else(|| Exception::vm(VMException::InvalidFunction))?;
 
         let opcode = *function.code().get(ip)
-            .ok_or_else(|| Exception::new(ExceptionKind::FunctionOverrun))?;
+            .ok_or_else(|| Exception::vm(VMException::FunctionOverrun))?;
 
         self.interpret(opcode)
     }
@@ -105,7 +105,7 @@ impl VM {
                 let a = self.pop_as::<i32>()?;
                 
                 if b == 0 {
-                    return Err(Exception::new(ExceptionKind::DivisionBy0));
+                    return Err(Exception::code(CodeException::DivisionBy0));
                 }
 
                 let x = a / b;

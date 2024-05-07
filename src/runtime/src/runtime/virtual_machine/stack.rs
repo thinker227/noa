@@ -1,7 +1,7 @@
 use crate::current_frame;
 use crate::runtime::opcode::VarIndex;
 use crate::runtime::value::{FromValue, Value};
-use crate::runtime::exception::{Exception, ExceptionKind};
+use crate::runtime::exception::{Exception, VMException, CodeException};
 use super::VM;
 
 impl VM {
@@ -17,7 +17,7 @@ impl VM {
         let stack_index = frame.stack_start() + variable as usize;
 
         let var = self.stack.get(stack_index)
-            .ok_or_else(|| Exception::new(ExceptionKind::InvalidVariable))?;
+            .ok_or_else(|| Exception::vm(VMException::InvalidVariable))?;
 
         Ok(*var)
     }
@@ -29,7 +29,7 @@ impl VM {
         let stack_index = frame.stack_start() + variable as usize;
 
         let var = self.stack.get_mut(stack_index)
-            .ok_or_else(|| Exception::new(ExceptionKind::InvalidVariable))?;
+            .ok_or_else(|| Exception::vm(VMException::InvalidVariable))?;
 
         *var = value;
 
@@ -39,7 +39,7 @@ impl VM {
     /// Pushes a value onto the stack.
     pub(super) fn push(&mut self, value: Value) -> Result<(), Exception> {
         if self.stack.len() >= self.stack.capacity() {
-            return Err(Exception::new(ExceptionKind::StackOverflow));
+            return Err(Exception::vm(VMException::StackOverflow));
         }
 
         self.stack.push(value);
@@ -50,19 +50,19 @@ impl VM {
     /// Pops a value from the stack and returns it.
     pub(super) fn pop(&mut self) -> Result<Value, Exception> {
         self.stack.pop()
-            .ok_or_else(|| Exception::new(ExceptionKind::StackUnderflow))
+            .ok_or_else(|| Exception::vm(VMException::StackUnderflow))
     }
 
     /// Pops a value from the stack as a specified type.
     pub(super) fn pop_as<T: FromValue>(&mut self) -> Result<T, Exception> {
         T::from_value(self.pop()?)
-            .map_err(|e| Exception::new(ExceptionKind::CoercionError(e)))
+            .map_err(|e| Exception::code(CodeException::CoercionError(e)))
     }
 
     /// Gets a value at a specified position in the stack.
     pub(super) fn get_at(&self, at: usize) -> Result<Value, Exception> {
         let value = self.stack.get(at)
-            .ok_or_else(|| Exception::new(ExceptionKind::StackUnderflow))?;
+            .ok_or_else(|| Exception::vm(VMException::StackUnderflow))?;
 
         Ok(*value)
     }
@@ -70,7 +70,7 @@ impl VM {
     /// Gets a value at a specified position in a stack as a specified type.
     pub(super) fn get_at_as<T: FromValue>(&self, at: usize) -> Result<T, Exception> {
         T::from_value(self.get_at(at)?)
-            .map_err(|e| Exception::new(ExceptionKind::CoercionError(e)))
+            .map_err(|e| Exception::code(CodeException::CoercionError(e)))
     }
 
     /// Pops a value from the stack,
