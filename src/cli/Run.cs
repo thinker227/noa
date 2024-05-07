@@ -57,9 +57,17 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
             runtimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
             if (runtimePath is null)
             {
-                console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} The environment variable [aqua]{runtimePathEnvVar}[/] [red]is not set.[/]");
+                console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The environment variable [/][aqua]{runtimePathEnvVar}[/] [red]is not set.[/]");
+                console.MarkupLine("[gray]Make sure the variable is set for the process and contains the path to the runtime executable, " +
+                                   "or specify the [/][white]--runtime[/][gray] option with the path.[/]");
                 return 1;
             }
+        }
+
+        if (!File.Exists(runtimePath))
+        {
+            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The specified runtime executable path [/][aqua]{runtimePath}[/][red] does not exist.[/]");
+            return 1;
         }
 
         var runtimeArgs = new List<string> { $"-f {outputFilePath}" };
