@@ -50,8 +50,6 @@ public abstract class CommandBase(IAnsiConsole console)
         console.WriteLine();
         if (diagnosticsResult.Count > 0)
             console.Write(diagnosticsDisplay);
-        else 
-            console.WriteLine();
     }
 
     private static Markup DisplayBuildStatusText(IReadOnlyDictionary<Severity, IDiagnostic[]> diagnostics)

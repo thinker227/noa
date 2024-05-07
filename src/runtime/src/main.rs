@@ -8,7 +8,6 @@ use cli::Args;
 use ark::Ark;
 use runtime::virtual_machine::VM;
 use runtime::exception::{Exception, ExceptionKind};
-use runtime::disassembly;
 
 mod cli;
 mod byte_utility;
@@ -35,7 +34,7 @@ fn main() {
                 }
             };
 
-            execute(ark);
+            execute(ark, args.print_return_value);
         }
         Err(e) => match e {
             ArkReadError::IoError(e) => {
@@ -46,10 +45,8 @@ fn main() {
     }
 }
 
-fn execute(ark: Ark) -> () {
+fn execute(ark: Ark, print_return_value: bool) -> () {
     let mut vm = VM::new(ark, 2_000, 10_000);
-
-    disassembly::print_disassembly(&vm);
 
     let result = vm.execute_main();
 
@@ -59,8 +56,9 @@ fn execute(ark: Ark) -> () {
             let main_name = vm.get_string_or_fallback(main.name_index(), "?");
             let exit_code = ret_value.exit_code();
             
-            println!("Return value from <{main_name}>:");
-            println!("{ret_value}");
+            if print_return_value {
+                println!("{ret_value}");
+            }
 
             std::process::exit(exit_code);
         },

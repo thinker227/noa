@@ -8,8 +8,8 @@ public sealed class Compile(IAnsiConsole console, CancellationToken ct) : Comman
 {
     [Command("build", Description = "Compiles a source file")]
     public int Execute(
-        [Argument("input-file", Description = "The file to run")] string inputFilePath,
-        [Option("output-file", ['o'], Description = "The output Ark file")] string? outputFilePath)
+        [Argument("input-file", Description = "The file to compile")] string inputFilePath,
+        [Option("output-file", ['o'], Description = "The output Ark file", ValueName = "path")] string? outputFilePath)
     {
         var inputFile = new FileInfo(inputFilePath);
         var inputDisplayPath = GetDisplayPath(inputFile);
@@ -50,7 +50,6 @@ public sealed class Compile(IAnsiConsole console, CancellationToken ct) : Comman
         console.MarkupLine($"{Emoji.Known.Hammer} Assembling ark to [aqua]{outputDisplayPath}[/]...");
 
         using var stream = outputFile.OpenWrite();
-        
         ast.Emit(stream);
         
         return 0;

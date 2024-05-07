@@ -7,7 +7,10 @@ use clap::Parser;
 pub struct Args {
     /// The .ark file to execute
     #[arg(short = 'f', value_name = ".ark file", value_parser = file_exists)]
-    pub bytecode_file_path: Option<PathBuf>
+    pub bytecode_file_path: Option<PathBuf>,
+    /// Specifies to print the return value from the main function.
+    #[arg(long = "print-ret")]
+    pub print_return_value: bool,
 }
 
 fn file_exists(s: &str) -> Result<PathBuf, String> {
