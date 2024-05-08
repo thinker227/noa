@@ -7,7 +7,6 @@ pub struct StackFrame {
     function: FuncId,
     is_implicit: bool,
     stack_start: usize,
-    main_start: usize,
     ip: usize,
 }
 
@@ -20,7 +19,6 @@ impl StackFrame {
             function,
             is_implicit,
             stack_start: stack_position,
-            main_start,
             ip: 0
         }
     }
