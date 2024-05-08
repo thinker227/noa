@@ -1,11 +1,19 @@
 use std::fmt::Display;
 
 use super::value::coercion::CoercionError;
+use super::opcode::{Address, FuncId};
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct StackTraceFrame {
+    pub function: FuncId,
+    pub address: Address,
+}
 
 /// A runtime exception.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Exception {
     kind: ExceptionKind,
+    stack_trace: Vec<StackTraceFrame>,
     // Todo: call stack trace, debug info, etc.
 }
 
@@ -50,22 +58,29 @@ pub enum VMException {
 
 impl Exception {
     /// Constructs a new code exception.
-    pub fn code(ex: CodeException) -> Self {
+    pub fn code(ex: CodeException, stack_trace: Vec<StackTraceFrame>) -> Self {
         Self {
-            kind: ExceptionKind::Code(ex)
+            kind: ExceptionKind::Code(ex),
+            stack_trace,
         }
     }
 
     /// Constructs a new virtual machine exception.
-    pub fn vm(ex: VMException) -> Self {
+    pub fn vm(ex: VMException, stack_trace: Vec<StackTraceFrame>) -> Self {
         Self {
-            kind: ExceptionKind::VM(ex)
+            kind: ExceptionKind::VM(ex),
+            stack_trace,
         }
     }
 
     /// Gets the kind of the exception.
     pub fn kind(&self) -> &ExceptionKind {
         &self.kind
+    }
+
+    /// Gets the stack trace.
+    pub fn stack_trace(&self) -> &Vec<StackTraceFrame> {
+        &self.stack_trace
     }
 }
 

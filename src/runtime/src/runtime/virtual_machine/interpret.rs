@@ -28,10 +28,10 @@ impl VM {
 
         let ip = frame.increment_ip();
         let function = self.functions.get(&frame.function())
-            .ok_or_else(|| Exception::vm(VMException::InvalidFunction))?;
+            .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
 
         let opcode = *function.code().get(ip)
-            .ok_or_else(|| Exception::vm(VMException::FunctionOverrun))?;
+            .ok_or_else(|| self.vm_exception(VMException::FunctionOverrun))?;
 
         self.interpret(opcode)
     }
@@ -105,7 +105,7 @@ impl VM {
                 let a = self.pop_as::<i32>()?;
                 
                 if b == 0 {
-                    return Err(Exception::code(CodeException::DivisionBy0));
+                    return Err(self.code_exception(CodeException::DivisionBy0));
                 }
 
                 let x = a / b;

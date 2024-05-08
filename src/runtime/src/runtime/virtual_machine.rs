@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ark::Ark;
 
-use super::exception::{Exception, VMException};
+use super::exception::{CodeException, Exception, StackTraceFrame, VMException};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
@@ -56,7 +56,7 @@ impl VM {
     /// Gets a string with a specified index.
     pub fn get_string(&self, index: u32) -> Result<&String, Exception> {
         self.strings.get(index as usize)
-            .ok_or_else(|| Exception::vm(VMException::InvalidString))
+            .ok_or_else(|| self.vm_exception(VMException::InvalidString))
     }
 
     /// Gets a string with a specified index,
@@ -72,14 +72,39 @@ impl VM {
     pub fn main(&self) -> FuncId {
         self.main
     }
+
+    /// Gets the current stack trace.
+    fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
+        self.call_stack.iter().rev().map(|frame| {
+            StackTraceFrame {
+                function: frame.function(),
+                address: frame.ip() as u32,
+            }
+        }).collect()
+    }
+
+    /// Creates a code exception.
+    pub fn code_exception(&self, ex: CodeException) -> Exception {
+        let stack_trace = self.get_stack_trace();
+        Exception::code(ex, stack_trace)
+    }
+
+    /// Creates a VM exception.
+    pub fn vm_exception(&self, ex: VMException) -> Exception {
+        let stack_trace = self.get_stack_trace();
+        Exception::vm(ex, stack_trace)
+    }
 }
 
 /// Returns a mutable reference to the current stack frame in the [VM].
 #[macro_export]
 macro_rules! current_frame_mut {
     ($vm:expr) => {
-        $vm.call_stack.last_mut()
-            .ok_or_else(|| $crate::runtime::exception::Exception::vm($crate::runtime::exception::VMException::NoStackFrame))
+        // Can't use ok_or_else here
+        match $vm.call_stack.last_mut() {
+            Some(x) => Ok(x),
+            None => Err($vm.vm_exception($crate::runtime::exception::VMException::NoStackFrame))
+        }
     };
 }
 
@@ -88,6 +113,6 @@ macro_rules! current_frame_mut {
 macro_rules! current_frame {
     ($vm:expr) => {
         $vm.call_stack.last()
-            .ok_or_else(|| $crate::runtime::exception::Exception::vm($crate::runtime::exception::VMException::NoStackFrame))
+            .ok_or_else(|| $vm.vm_exception($crate::runtime::exception::VMException::NoStackFrame))
     };
 }

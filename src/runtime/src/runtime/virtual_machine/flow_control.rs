@@ -9,11 +9,11 @@ impl VM {
     /// Enters a function.
     pub(super) fn call(&mut self, id: FuncId, arg_count: u32, is_implicit: bool) -> Result<(), Exception> {
         if self.call_stack.len() >= self.call_stack.capacity() {
-            return Err(Exception::vm(VMException::CallStackOverflow));
+            return Err(self.vm_exception(VMException::CallStackOverflow));
         }
 
         let function = self.functions.get(&id)
-            .ok_or_else(|| Exception::vm(VMException::InvalidFunction))?;
+            .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
 
         let arity = function.arity();
         let locals_count = function.locals_count();

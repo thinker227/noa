@@ -51,4 +51,9 @@ impl StackFrame {
     pub fn set_ip(&mut self, ip: usize) {
         self.ip = ip;
     }
+
+    /// Gets the instruction pointer.
+    pub fn ip(&self) -> usize {
+        self.ip
+    }
 }

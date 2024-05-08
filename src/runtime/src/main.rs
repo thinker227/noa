@@ -64,6 +64,13 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
         Err(e) => {
             eprintln!("An exception occurred!");
             eprintln!("  {}", e.kind().to_string());
+            eprintln!();
+            eprintln!("  Stack trace:");
+            for f in e.stack_trace() {
+                let function = vm.functions().get(&f.function).unwrap();
+                let func_name = vm.get_string(function.name_index()).unwrap();
+                eprintln!("    at address 0x{0:x} in {1}", f.address, func_name);
+            }
 
             std::process::exit(1);
         }
