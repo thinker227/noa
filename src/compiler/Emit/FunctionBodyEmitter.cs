@@ -202,10 +202,10 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         Visit(node.IfFalse);
         var jumpToEnd = Code.Jump();
         
-        jumpToTrue.SetAddress(Code.CurrentAddress);
+        jumpToTrue.SetAddress(Code.AddressOffset);
         Visit(node.IfTrue);
         
-        jumpToEnd.SetAddress(Code.CurrentAddress);
+        jumpToEnd.SetAddress(Code.AddressOffset);
 
         return default;
     }

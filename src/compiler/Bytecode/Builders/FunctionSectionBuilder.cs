@@ -44,13 +44,25 @@ internal sealed class FunctionSectionBuilder : IWritable
     /// <returns>A builder for the created function.</returns>
     public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity)
     {
+        var previous = functions.Count > 0
+            ? functions[^1].Code
+            : null;
+        var code = new CodeBuilder(previous);
+
         var functionId = new FunctionId(currentId);
-        var builder = new FunctionBuilder(functionId, nameIndex, arity);
+        
+        var builder = new FunctionBuilder(code, functionId, nameIndex, arity);
         currentId++;
             
         functions.Add(builder);
 
         return builder;
+    }
+
+    public CodeSectionBuilder CreateCodeSection()
+    {
+        var codeBuilders = functions.Select(x => x.Code);
+        return new(codeBuilders);
     }
 
     public void Write(Carpenter writer)

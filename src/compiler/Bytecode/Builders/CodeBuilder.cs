@@ -3,20 +3,29 @@ using System.Buffers.Binary;
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
-/// A builder for the code of a function.
+/// A builder for a code section.
 /// </summary>
-internal sealed class CodeBuilder : IWritable
+internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
 {
     private readonly List<Instruction> instructions = [];
-    private uint currentAddress = 0;
     private uint length = 0;
+    
+    /// <summary>
+    /// The start address of the builder within the code section.
+    /// </summary>
+    public Address StartAddress => previous?.EndAddress ?? new(0);
+
+    /// <summary>
+    /// The address immediatelt after the end address of the builder within the code section.
+    /// </summary>
+    public Address EndAddress => new(StartAddress.Value + Length);
 
     public uint Length => length;
 
     /// <summary>
-    /// The current address of the builder.
+    /// The current offset from <see cref="StartAddress"/>.
     /// </summary>
-    public Address CurrentAddress => new(currentAddress);
+    public uint AddressOffset => length;
 
     public void Write(Carpenter writer)
     {
@@ -26,7 +35,6 @@ internal sealed class CodeBuilder : IWritable
     private void Add(Instruction i)
     {
         instructions.Add(i);
-        currentAddress++;
         length += i.Length;
     }
 
@@ -36,7 +44,24 @@ internal sealed class CodeBuilder : IWritable
         Add(instruction);
     }
 
+/// <summary>
+/// A wrapper around a byte array containing instruction data.
+/// </summary>
+/// <param name="Data">The instruction data.</param>
+internal readonly record struct PlainData(byte[] Data) : IWritable
+{
+    public uint Length => (uint)Data.Length;
+
+    public void Write(Carpenter writer) => writer.Bytes(Data);
+}
+
     private void Add(Opcode opcode, byte[] data)
+    {
+        var writableData = new PlainData(data);
+        Add(opcode, writableData);
+    }
+
+    private void Add(Opcode opcode, IWritable data)
     {
         var instruction = new Instruction(opcode) { Data = data };
         Add(instruction);
@@ -44,12 +69,10 @@ internal sealed class CodeBuilder : IWritable
 
     private AddressHole JumpLike(Opcode opcode)
     {
-        // Setting the initial data to 0xFFFFFFFF ensures that in case the
+        // Setting the initial offset to 0xFFFFFFFF ensures that in case the
         // address hole isn't filled then it's immediately obvious that this occurred.
-        var data = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
-        
+        var data = new AddressOffsetData(this, 0xFFFFFFFF);
         Add(opcode, data);
-
         return new(data);
     }
 
@@ -57,20 +80,18 @@ internal sealed class CodeBuilder : IWritable
     
     public AddressHole Jump() => JumpLike(Opcode.Jump);
 
-    public void Jump(Address address)
+    public void Jump(uint addressOffset)
     {
-        var bytes = new byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(bytes, address.Value);
-        Add(Opcode.Jump, bytes);
+        var data = new AddressOffsetData(this, addressOffset);
+        Add(Opcode.Jump, data);
     }
     
     public AddressHole JumpIf() => JumpLike(Opcode.JumpIf);
 
-    public void JumpIf(Address address)
+    public void JumpIf(uint addressOffset)
     {
-        var bytes = new byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(bytes, address.Value);
-        Add(Opcode.JumpIf, bytes);
+        var data = new AddressOffsetData(this, addressOffset);
+        Add(Opcode.JumpIf, data);
     }
 
     public void Call(uint argCount)
@@ -155,17 +176,42 @@ internal readonly record struct Address(uint Value)
 }
 
 /// <summary>
-/// A hole into which an address can be written.
+/// A hole into which an address offset can be written.
 /// </summary>
-/// <param name="bytes">The bytes to write the address to.</param>
-internal readonly struct AddressHole(byte[] bytes)
+/// <param name="data">The data to write to.</param>
+internal readonly struct AddressHole(AddressOffsetData data)
 {
     /// <summary>
-    /// Fills the hole with a specified address.
+    /// Fills the hole with a specified address offset.
     /// </summary>
-    /// <param name="address"></param>
-    public void SetAddress(Address address) =>
-        BinaryPrimitives.WriteUInt32BigEndian(bytes, address.Value);
+    /// <param name="addressOffset">The address offset to write into the hole.</param>
+    public void SetAddress(uint addressOffset) =>
+        data.Offset = addressOffset;
+}
+
+/// <summary>
+/// A wrapper around a byte array containing instruction data.
+/// </summary>
+/// <param name="Data">The instruction data.</param>
+internal readonly record struct PlainData(byte[] Data) : IWritable
+{
+    public uint Length => (uint)Data.Length;
+
+    public void Write(Carpenter writer) => writer.Bytes(Data);
+}
+
+/// <summary>
+/// An 
+/// </summary>
+/// <param name="builder"></param>
+/// <param name="offset"></param>
+internal sealed class AddressOffsetData(CodeBuilder builder, uint offset) : IWritable
+{
+    public uint Offset { get; set; } = offset;
+
+    public uint Length => 4;
+
+    public void Write(Carpenter writer) => writer.UInt(builder.StartAddress.Value + Offset);
 }
 
 /// <summary>
