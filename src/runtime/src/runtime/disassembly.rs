@@ -1,19 +1,7 @@
 use super::{opcode::Opcode, virtual_machine::VM};
 
 pub fn print_disassembly(vm: &VM) {
-    let functions = vm.functions();
-    
-    println!("Disassembly:");
-    for (id, f) in functions {
-        let name = vm.get_string_or_fallback(f.name_index(), "?");
-
-        println!("  Function {name}");
-        for (index, code) in f.code().iter().enumerate() {
-            println!("    {0}  {1}", index, disassemble_opcode(*code, vm));
-        }
-    }
-
-    println!();
+    todo!();
 }
 
 pub fn disassemble_opcode(opcode: Opcode, vm: &VM) -> String {

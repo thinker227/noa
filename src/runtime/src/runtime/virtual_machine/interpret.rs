@@ -24,16 +24,17 @@ impl VM {
     }
 
     fn step(&mut self) -> Result<(), Exception> {
-        let frame = current_frame_mut!(self)?;
+        todo!();
+        // let frame = current_frame_mut!(self)?;
 
-        let ip = frame.increment_ip();
-        let function = self.functions.get(&frame.function())
-            .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
+        // let ip = frame.increment_ip();
+        // let function = self.functions.get(&frame.function())
+        //     .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
 
-        let opcode = *function.code().get(ip)
-            .ok_or_else(|| self.vm_exception(VMException::FunctionOverrun))?;
+        // let opcode = *function.code().get(ip)
+        //     .ok_or_else(|| self.vm_exception(VMException::FunctionOverrun))?;
 
-        self.interpret(opcode)
+        // self.interpret(opcode)
     }
 
     fn interpret(&mut self, opcode: Opcode) -> Result<(), Exception> {
