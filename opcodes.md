@@ -32,3 +32,6 @@
 - `And` (`107`): Pops the two topmost values from the stack, performs a logical and on them, then pushes the result onto the stack.
 - `Or` (`108`): Pops the two topmost values from the stack, performs a logical or on them, then pushes the result onto the stack.
 - `GreaterThan` (`109`): Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value.
+
+## Operational instructions (`240`-`256`)
+- `Boundary` (`256`): Specifies a boundary between two functions. Produces a runtime exception.
