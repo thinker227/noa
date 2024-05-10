@@ -3,7 +3,7 @@
 ## Control flow (`1`-`19`)
 - `Jump <address>` (`1`): Jumps to `address` within the current function.
 - `JumpIf <address>` (`2`): Pops the topmost value from the stack and jumps to `address` if the value is `true`.
-- `Call <arg count>` (`3`): Pops the topmost value from the stack and calls it as a function with `arg count` specifying the amount of additional values to pop and supply as arguments to the function.
+- `Call <arg count>` (`3`): Begins by looking up the element at `arg count` from the top of the stack and coerces it into a function. The remaining `arg count` elements are used as arguments, and the function is called.
 - `Ret` (`4`): Pops the topmost value from the stack, returns from the current function, then pushes the value onto the stack.
 
 ## Stack push operations (`20`-`49`)
