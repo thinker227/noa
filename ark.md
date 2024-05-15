@@ -18,7 +18,7 @@ The header contains the identifier for the Ark file (which is always the same), 
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
 | 0 | 8 | `identifier` | The constant bytes `[116, 111, 116, 104, 101, 97, 114, 107]` (`totheark`). |
-| 8 | 4 | `main` | Address in the [code section](#code-section) at which the main function starts. |
+| 8 | 4 | `main` | Function ID of the main function. |
 
 ## Function section
 
