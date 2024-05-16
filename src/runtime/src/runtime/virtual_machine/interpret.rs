@@ -54,7 +54,10 @@ impl VM {
                 let arg_count = self.code.read_u32()?;
 
                 let function_position = self.stack.head_position() - arg_count as usize - 1;
-                let function = self.stack.get_at_as::<FuncId>(function_position)?;
+                let function = self.stack.get_at(function_position)
+                    .expect("stack should contain enough elements to contain function")
+                    .to::<FuncId>()
+                    .map_err(|e| ExceptionData::Code(CodeException::CoercionError(e)))?;
 
                 self.call(function, arg_count, false)?;
             }

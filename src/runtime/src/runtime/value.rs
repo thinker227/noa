@@ -52,6 +52,11 @@ impl Value {
             Value::Nil => Type::Nil,
         }
     }
+
+    /// Tries to convert the value into another type.
+    pub fn to<T: FromValue>(self) -> Result<T, CoercionError> {
+        T::from_value(self)
+    }
 }
 
 /// Defines types which can be converted to and from [`Value`].

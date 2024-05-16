@@ -47,17 +47,13 @@ impl Stack {
     }
 
     /// Gets a value at a specified position in the stack.
-    pub fn get_at(&self, at: usize) -> Result<Value, ExceptionData> {
-        let value = self.stack.get(at)
-            .ok_or_else(|| ExceptionData::VM(VMException::StackUnderflow))?;
-
-        Ok(*value)
+    pub fn get_at(&self, at: usize) -> Option<Value> {
+        self.stack.get(at).copied()
     }
 
-    /// Gets a value at a specified position in a stack as a specified type.
-    pub fn get_at_as<T: FromValue>(&self, at: usize) -> Result<T, ExceptionData> {
-        T::from_value(self.get_at(at)?)
-            .map_err(|e| ExceptionData::Code(CodeException::CoercionError(e)))
+    /// Gets a value as a mutable reference at a specified position in the stack.
+    pub fn get_at_mut(&mut self, at: usize) -> Option<&mut Value> {
+        self.stack.get_mut(at)
     }
 
     /// Pops a value from the stack,
