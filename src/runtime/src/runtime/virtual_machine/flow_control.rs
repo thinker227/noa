@@ -84,5 +84,7 @@ impl VM {
         };
 
         self.stack.clear_to(stack_backtrack_position);
+
+        self.code.jump(frame.return_address());
     }
 }
