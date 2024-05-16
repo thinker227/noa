@@ -1,6 +1,6 @@
 use crate::runtime::value::{FromValue, Value};
 use crate::runtime::opcode::{FuncId, Opcode};
-use crate::runtime::exception::{CodeException, VMException, Exception};
+use crate::runtime::exception::{CodeException, Exception, ExceptionData};
 use super::VM;
 use crate::current_frame_mut;
 
@@ -17,13 +17,19 @@ impl VM {
 
     fn execute(&mut self) -> Result<(), Exception> {
         while !self.call_stack.is_empty() {
-            self.step()?;
+            let res = self.step();
+
+            if let Err(data) = res {
+                let stack_trace = self.get_stack_trace();
+                let ex = Exception::new(data, stack_trace);
+                return Err(ex);
+            }
         }
 
         Ok(())
     }
 
-    fn step(&mut self) -> Result<(), Exception> {
+    fn step(&mut self) -> Result<(), ExceptionData> {
         todo!();
         // let frame = current_frame_mut!(self)?;
 

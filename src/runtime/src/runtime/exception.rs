@@ -57,6 +57,14 @@ pub enum VMException {
 }
 
 impl Exception {
+    /// Constructs a new exception.
+    pub fn new(data: ExceptionData, stack_trace: Vec<StackTraceFrame>) -> Self {
+        Self {
+            data,
+            stack_trace,
+        }
+    }
+
     /// Constructs a new code exception.
     pub fn code(ex: CodeException, stack_trace: Vec<StackTraceFrame>) -> Self {
         Self {
