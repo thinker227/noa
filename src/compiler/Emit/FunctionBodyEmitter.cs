@@ -87,7 +87,18 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         return default;
     }
 
-    protected override int VisitAssignmentStatement(AssignmentStatement node) => throw new NotImplementedException();
+    protected override int VisitAssignmentStatement(AssignmentStatement node)
+    {
+        Visit(node.Value);
+        
+        // TODO: refactor this to allow targets other than identifiers
+        var target = (IdentifierExpression)node.Target;
+
+        var var = variableIndices[(IVariableSymbol)target.ReferencedSymbol.Value];
+        Code.StoreVar(var);
+        
+        return default;
+    }
 
     protected override int VisitUnaryExpression(UnaryExpression node)
     {
@@ -186,12 +197,7 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         return default;
     }
 
-    protected override int VisitLoopExpression(LoopExpression node)
-    {
-        throw new NotImplementedException();
-
-        return default;
-    }
+    protected override int VisitLoopExpression(LoopExpression node) => throw new NotImplementedException();
 
     protected override int VisitIfExpression(IfExpression node)
     {
