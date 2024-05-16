@@ -7,9 +7,8 @@ use super::exception::{CodeException, Exception, StackTraceFrame, VMException};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
-use super::value::Value;
+use super::stack::Stack;
 
-mod stack;
 mod interpret;
 mod flow_control;
 
@@ -20,7 +19,7 @@ pub struct VM {
     strings: Vec<String>,
     main: FuncId,
     call_stack: Vec<StackFrame>,
-    stack: Vec<Value>,
+    stack: Stack,
     code: CodeReader,
 }
 
@@ -37,7 +36,7 @@ impl VM {
         let strings = ark.string_section.strings;
 
         let call_stack = Vec::with_capacity(call_stack_size);
-        let stack = Vec::with_capacity(stack_size);
+        let stack = Stack::new(stack_size);
 
         let code = CodeReader::new(ark.code_section.code);
 
