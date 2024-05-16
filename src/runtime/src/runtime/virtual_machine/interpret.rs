@@ -1,5 +1,5 @@
 use crate::runtime::value::Value;
-use crate::runtime::opcode::{self, FuncId};
+use crate::runtime::opcode::{self, FuncId, VarIndex};
 use crate::runtime::exception::{CodeException, Exception, ExceptionData, VMException};
 use super::VM;
 
@@ -101,8 +101,20 @@ impl VM {
                 self.stack.push(b)?;
             }
 
-            opcode::STORE_VAR => todo!(),
-            opcode::LOAD_VAR => todo!(),
+            opcode::STORE_VAR => {
+                let var = self.code.read_u32()?;
+
+                let value = self.stack.pop()?;
+
+                self.set_variable(var, value)?;
+            }
+            opcode::LOAD_VAR => {
+                let var = self.code.read_u32()?;
+
+                let value = self.get_variable(var)?;
+
+                self.stack.push(value)?;
+            }
 
             opcode::ADD => self.stack.binary_op(|a: i32, b: i32| a + b)?,
             opcode::SUB => self.stack.binary_op(|a: i32, b: i32| a - b)?,
@@ -126,6 +138,32 @@ impl VM {
 
             _ => return Err(ExceptionData::VM(VMException::InvalidOpcode))
         }
+
+        Ok(())
+    }
+
+    fn get_variable(&self, variable: VarIndex) -> Result<Value, ExceptionData> {
+        let frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let val = self.stack.get_at(stack_index)
+            .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
+
+        Ok(val)
+    }
+
+    fn set_variable(&mut self, variable: VarIndex, value: Value) -> Result<(), ExceptionData> {
+        let frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let val = self.stack.get_at_mut(stack_index)
+            .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
+
+        *val = value;
 
         Ok(())
     }
