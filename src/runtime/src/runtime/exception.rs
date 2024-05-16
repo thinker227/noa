@@ -44,6 +44,8 @@ pub enum VMException {
     FunctionOverrun,
     /// Attempted to read a malformed opcode.
     MalformedOpcode,
+    /// Attempted to execute an invalid opcode.
+    InvalidOpcode,
     /// The stack overflowed.
     StackOverflow,
     /// The stack underflowed.
@@ -119,6 +121,7 @@ impl Display for VMException {
             VMException::CallStackOverflow => write!(f, "call stack overflowed"),
             VMException::FunctionOverrun => write!(f, "attempted to execute code outside the bounds of the function's code"),
             VMException::MalformedOpcode => write!(f, "attempted to read a malformed opcode"),
+            VMException::InvalidOpcode => write!(f, "attempted to execute an invalid opcode"),
             VMException::StackOverflow => write!(f, "stack overflowed"),
             VMException::StackUnderflow => write!(f, "stack underflow"),
             VMException::InvalidFunction => write!(f, "attempted to reference a function with an invalid ID"),
