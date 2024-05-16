@@ -1,4 +1,5 @@
 pub mod virtual_machine;
+pub mod code_reader;
 pub mod frame;
 pub mod function;
 pub mod code;

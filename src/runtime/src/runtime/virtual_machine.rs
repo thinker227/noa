@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::ark::Ark;
 
+use super::code_reader::CodeReader;
 use super::exception::{CodeException, Exception, StackTraceFrame, VMException};
 use super::function::Function;
 use super::opcode::FuncId;
@@ -20,7 +21,7 @@ pub struct VM {
     main: FuncId,
     call_stack: Vec<StackFrame>,
     stack: Vec<Value>,
-    ip: usize,
+    code: CodeReader,
 }
 
 impl VM {
@@ -38,13 +39,15 @@ impl VM {
         let call_stack = Vec::with_capacity(call_stack_size);
         let stack = Vec::with_capacity(stack_size);
 
+        let code = CodeReader::new(ark.code_section.code);
+
         let vm = Self {
             functions,
             strings,
             main,
             call_stack,
             stack,
-            ip: 0,
+            code,
         };
 
         vm
@@ -79,7 +82,7 @@ impl VM {
     fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
         let mut trace = Vec::new();
 
-        let mut return_address = self.ip;
+        let mut return_address = self.code.ip();
         
         for frame in self.call_stack.iter().rev() {
             trace.push(StackTraceFrame {

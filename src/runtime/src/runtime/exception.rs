@@ -42,6 +42,8 @@ pub enum VMException {
     CallStackOverflow,
     /// Attempted to execute code past the bounds of a function's code.
     FunctionOverrun,
+    /// Attempted to read a malformed opcode.
+    MalformedOpcode,
     /// The stack overflowed.
     StackOverflow,
     /// The stack underflowed.
@@ -116,6 +118,7 @@ impl Display for VMException {
             VMException::NoStackFrame => write!(f, "there are no stack frames on the call stack"),
             VMException::CallStackOverflow => write!(f, "call stack overflowed"),
             VMException::FunctionOverrun => write!(f, "attempted to execute code outside the bounds of the function's code"),
+            VMException::MalformedOpcode => write!(f, "attempted to read a malformed opcode"),
             VMException::StackOverflow => write!(f, "stack overflowed"),
             VMException::StackUnderflow => write!(f, "stack underflow"),
             VMException::InvalidFunction => write!(f, "attempted to reference a function with an invalid ID"),
