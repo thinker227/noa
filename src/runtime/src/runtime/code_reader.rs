@@ -16,6 +16,11 @@ impl CodeReader {
         }
     }
 
+    /// Advances the reader by 1 byte.
+    pub fn advance(&mut self) {
+        self.ip += 1;
+    }
+
     /// Jumps to the specified address.
     pub fn jump(&mut self, address: usize) {
         self.ip = address;
@@ -69,9 +74,15 @@ impl CodeReader {
         }
     }
 
-    /// Reads a 4-byte big-endian integer and advances the reader by 4 bytes.
+    /// Reads a 32-bit big-endian unsigned integer and advances the reader by 4 bytes.
     pub fn read_u32(&mut self) -> Result<u32, ExceptionData> {
         let bytes = self.read_bytes_const::<4>()?;
         Ok(u32::from_be_bytes(*bytes))
+    }
+
+    /// Reads a 32-bit big-endian signed integer and advances the reader by 4 bytes.
+    pub fn read_i32(&mut self) -> Result<i32, ExceptionData> {
+        let bytes = self.read_bytes_const::<4>()?;
+        Ok(i32::from_be_bytes(*bytes))
     }
 }
