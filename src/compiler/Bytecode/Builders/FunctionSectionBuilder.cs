@@ -9,9 +9,9 @@ internal sealed class FunctionSectionBuilder : IWritable
     private uint currentId = 0;
 
     /// <summary>
-    /// The ID of the main function.
+    /// The builder for the main function.
     /// </summary>
-    public FunctionId MainId { get; private set; }
+    public FunctionBuilder Main { get; private set; } = null!;
     
     private uint FunctionsLength => (uint)functions.Sum(f => f.Length); 
 
@@ -31,7 +31,7 @@ internal sealed class FunctionSectionBuilder : IWritable
     {
         var builder = new FunctionSectionBuilder();
         var main = builder.CreateFunction(mainNameIndex, 0);
-        builder.MainId = main.Id;
+        builder.Main = main;
 
         return (builder, main);
     }

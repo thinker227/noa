@@ -13,6 +13,11 @@ internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringInd
     public FunctionId Id { get; } = id;
 
     /// <summary>
+    /// The start address of the function within the code section.
+    /// </summary>
+    public Address Address => code.StartAddress;
+
+    /// <summary>
     /// The builder for the code of the function.
     /// </summary>
     public CodeBuilder Code { get; } = code;
@@ -27,7 +32,7 @@ internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringInd
         writer.Write(nameIndex);
         writer.UInt(Locals.Parameters);
         writer.UInt(Locals.Variables);
-        writer.UInt(Code.Length);
+        writer.UInt(Address.Value);
     }
 
     /// <summary>
