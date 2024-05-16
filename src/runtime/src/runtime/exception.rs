@@ -12,14 +12,14 @@ pub struct StackTraceFrame {
 /// A runtime exception.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Exception {
-    kind: ExceptionKind,
+    data: ExceptionData,
     stack_trace: Vec<StackTraceFrame>,
     // Todo: call stack trace, debug info, etc.
 }
 
 /// The kind of a runtime exception.
 #[derive(Debug, PartialEq, Eq)]
-pub enum ExceptionKind {
+pub enum ExceptionData {
     Code(CodeException),
     VM(VMException),
 }
@@ -60,7 +60,7 @@ impl Exception {
     /// Constructs a new code exception.
     pub fn code(ex: CodeException, stack_trace: Vec<StackTraceFrame>) -> Self {
         Self {
-            kind: ExceptionKind::Code(ex),
+            data: ExceptionData::Code(ex),
             stack_trace,
         }
     }
@@ -68,14 +68,14 @@ impl Exception {
     /// Constructs a new virtual machine exception.
     pub fn vm(ex: VMException, stack_trace: Vec<StackTraceFrame>) -> Self {
         Self {
-            kind: ExceptionKind::VM(ex),
+            data: ExceptionData::VM(ex),
             stack_trace,
         }
     }
 
     /// Gets the kind of the exception.
-    pub fn kind(&self) -> &ExceptionKind {
-        &self.kind
+    pub fn data(&self) -> &ExceptionData {
+        &self.data
     }
 
     /// Gets the stack trace.
@@ -84,11 +84,11 @@ impl Exception {
     }
 }
 
-impl Display for ExceptionKind {
+impl Display for ExceptionData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExceptionKind::Code(e) => write!(f, "{e}"),
-            ExceptionKind::VM(e) => write!(f, "{e}"),
+            ExceptionData::Code(e) => write!(f, "{e}"),
+            ExceptionData::VM(e) => write!(f, "{e}"),
         }
     }
 }
