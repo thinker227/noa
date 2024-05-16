@@ -20,6 +20,7 @@ pub struct VM {
     main: FuncId,
     call_stack: Vec<StackFrame>,
     stack: Vec<Value>,
+    ip: usize,
 }
 
 impl VM {
@@ -43,6 +44,7 @@ impl VM {
             main,
             call_stack,
             stack,
+            ip: 0,
         };
 
         vm
@@ -75,12 +77,20 @@ impl VM {
 
     /// Gets the current stack trace.
     fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
-        self.call_stack.iter().rev().map(|frame| {
-            StackTraceFrame {
+        let mut trace = Vec::new();
+
+        let mut return_address = self.ip;
+        
+        for frame in self.call_stack.iter().rev() {
+            trace.push(StackTraceFrame {
                 function: frame.function(),
-                address: frame.ip() as u32,
-            }
-        }).collect()
+                address: return_address as u32
+            });
+            
+            return_address = frame.return_address();
+        }
+
+        trace
     }
 
     /// Creates a code exception.

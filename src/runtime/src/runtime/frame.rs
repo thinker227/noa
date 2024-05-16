@@ -7,19 +7,26 @@ pub struct StackFrame {
     function: FuncId,
     is_implicit: bool,
     stack_start: usize,
-    ip: usize,
+    return_address: usize,
 }
 
 impl StackFrame {
     /// Creates a new stack frame.
-    pub fn new(function: FuncId, stack_position: usize, is_implicit: bool, arity: u32, locals_count: u32) -> Self {
+    pub fn new(
+        function: FuncId,
+        stack_position: usize,
+        is_implicit: bool,
+        return_address: usize,
+        arity: u32,
+        locals_count: u32
+    ) -> Self {
         let main_start = stack_position + arity as usize + locals_count as usize;
         
         Self {
             function,
             is_implicit,
             stack_start: stack_position,
-            ip: 0
+            return_address
         }
     }
 
@@ -37,21 +44,9 @@ impl StackFrame {
     pub fn stack_start(&self) -> usize {
         self.stack_start
     }
-
-    /// Increments the instruction pointer and returns the previous value.
-    pub fn increment_ip(&mut self) -> usize {
-        let x = self.ip;
-        self.ip += 1;
-        x
-    }
-
-    /// Sets the instruction pointer.
-    pub fn set_ip(&mut self, ip: usize) {
-        self.ip = ip;
-    }
-
-    /// Gets the instruction pointer.
-    pub fn ip(&self) -> usize {
-        self.ip
+    
+    /// Returns the address to return to after the frame has finished.
+    pub fn return_address(&self) -> usize {
+        self.return_address
     }
 }
