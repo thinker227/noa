@@ -9,9 +9,9 @@ internal sealed class FunctionSectionBuilder : IWritable
     private uint currentId = 0;
 
     /// <summary>
-    /// The ID of the main function.
+    /// The builder for the main function.
     /// </summary>
-    public FunctionId MainId { get; private set; }
+    public FunctionBuilder Main { get; private set; } = null!;
     
     private uint FunctionsLength => (uint)functions.Sum(f => f.Length); 
 
@@ -31,7 +31,7 @@ internal sealed class FunctionSectionBuilder : IWritable
     {
         var builder = new FunctionSectionBuilder();
         var main = builder.CreateFunction(mainNameIndex, 0);
-        builder.MainId = main.Id;
+        builder.Main = main;
 
         return (builder, main);
     }
@@ -44,13 +44,25 @@ internal sealed class FunctionSectionBuilder : IWritable
     /// <returns>A builder for the created function.</returns>
     public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity)
     {
+        var previous = functions.Count > 0
+            ? functions[^1].Code
+            : null;
+        var code = new CodeBuilder(previous);
+
         var functionId = new FunctionId(currentId);
-        var builder = new FunctionBuilder(functionId, nameIndex, arity);
+        
+        var builder = new FunctionBuilder(code, functionId, nameIndex, arity);
         currentId++;
             
         functions.Add(builder);
 
         return builder;
+    }
+
+    public CodeSectionBuilder CreateCodeSection()
+    {
+        var codeBuilders = functions.Select(x => x.Code);
+        return new(codeBuilders);
     }
 
     public void Write(Carpenter writer)

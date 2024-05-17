@@ -8,6 +8,7 @@ An ark file begins with a header which is followed by a series of sections.
 
 - [Header](#header)
 - [Function section](#function-section)
+- [Code section](#code-section)
 - [String section](#string-section)
 
 ## Header
@@ -38,8 +39,16 @@ A function specifies an executable function.
 | 4 | 4 | `name_index` | The string index of the name of the function. |
 | 8 | 4 | `arity` | The amount of parameters to the function. |
 | 12 | 4 | `locals_count` | The amount of locals allocated to the function. |
-| 16 | 4 | `code_length` | The length of the following code in bytes. |
-| 20 | * | `code` | The op-codes which make up the body of the function. |
+| 16 | 4 | `address` | The bytecode address within the code section where the function starts. |
+
+## Code section
+
+The code section contains all the bytecode which makes up the body of each function. The bytecode is stored back-to-back with a single 0xFF (boundary) opcode separating them.
+
+| Byte offset | Bytes | Name | Description |
+|-------------|-------|------|-------------|
+| 0 | 4 | `code_length` | The length of the following bytecode in bytes. |
+| 4 | * | `code` | A list of byte-encoded [opcodes](./opcodes.md). |
 
 ## String section
 

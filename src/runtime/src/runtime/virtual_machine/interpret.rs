@@ -1,129 +1,169 @@
-use crate::runtime::value::{FromValue, Value};
-use crate::runtime::opcode::{FuncId, Opcode};
-use crate::runtime::exception::{CodeException, VMException, Exception};
+use crate::runtime::value::Value;
+use crate::runtime::opcode::{self, FuncId, VarIndex};
+use crate::runtime::exception::{CodeException, Exception, ExceptionData, VMException};
 use super::VM;
-use crate::current_frame_mut;
 
 impl VM {
     /// Executes the main function.
     pub fn execute_main(&mut self) -> Result<Value, Exception> {
-        self.call(self.main, 0, true)?;
-
-        self.execute()?;
-
-        let exit_value = self.pop()?;
-        Ok(exit_value)
+        self.execute_main_internal()
+            .map_err(|data| {
+                let stack_trace = self.get_stack_trace();
+                return Exception::new(data, stack_trace);
+            })
     }
 
-    fn execute(&mut self) -> Result<(), Exception> {
+    fn execute_main_internal(&mut self) -> Result<Value, ExceptionData> {
+        self.call(self.main, 0, true)?;
+
+        self.run()?;
+
+        let ret_value = self.stack.pop()?;
+        Ok(ret_value)
+    }
+
+    fn run(&mut self) -> Result<(), ExceptionData> {
         while !self.call_stack.is_empty() {
-            self.step()?;
+            self.interpret()?;
         }
 
         Ok(())
     }
 
-    fn step(&mut self) -> Result<(), Exception> {
-        let frame = current_frame_mut!(self)?;
-
-        let ip = frame.increment_ip();
-        let function = self.functions.get(&frame.function())
-            .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
-
-        let opcode = *function.code().get(ip)
-            .ok_or_else(|| self.vm_exception(VMException::FunctionOverrun))?;
-
-        self.interpret(opcode)
-    }
-
-    fn interpret(&mut self, opcode: Opcode) -> Result<(), Exception> {
+    fn interpret(&mut self) -> Result<(), ExceptionData> {
+        let opcode = self.code.read_byte()?;
+        
         match opcode {
-            Opcode::NoOp => {},
+            opcode::NO_OP => {}
 
-            Opcode::Jump(address) => {
-                let frame = current_frame_mut!(self)?;
-                frame.set_ip(address as usize)
-            },
-            Opcode::JumpIf(address) => {
-                let x = self.pop_as()?;
-                if x {
-                    let frame = current_frame_mut!(self)?;
-                    frame.set_ip(address as usize);
+            opcode::JUMP => {
+                let address = self.code.read_u32()?;
+                self.code.jump(address as usize);
+            }
+            opcode::JUMP_IF => {
+                let address = self.code.read_u32()?;
+
+                let val = self.stack.pop_as::<bool>()?;
+
+                if val {
+                    self.code.jump(address as usize);
                 }
-            },
-            Opcode::Call(arg_count) => {
-                // The position in the stack the function to call resides at
-                // is immediately before the arguments, so the position is
-                // the current position - the amount of arguments - 1.
-                let function_position = self.stack_position() - arg_count as usize - 1;
-                let function = self.get_at_as::<FuncId>(function_position)?;
-                
+            }
+
+            opcode::CALL => {
+                let arg_count = self.code.read_u32()?;
+
+                let function_position = self.stack.head_position() - arg_count as usize - 1;
+                let function = self.stack.get_at(function_position)
+                    .expect("stack should contain enough elements to contain function")
+                    .to::<FuncId>()
+                    .map_err(|e| ExceptionData::Code(CodeException::CoercionError(e)))?;
+
                 self.call(function, arg_count, false)?;
-            },
-            Opcode::Ret => {
-                let ret_value = self.pop()?;
+            }
+            opcode::RET => {
+                let ret_value = self.stack.pop()?;
 
                 self.ret();
 
-                self.push(ret_value)?;
-            },
+                self.stack.push(ret_value)?;
+            }
 
-            Opcode::PushInt(x) => self.push(Value::Number(x))?,
-            Opcode::PushBool(x) => self.push(Value::Bool(x))?,
-            Opcode::PushFunc(id) => self.push(Value::Function(id))?,
-            Opcode::PushNil => self.push(Value::Nil)?,
+            opcode::PUSH_INT => {
+                let val = self.code.read_i32()?;
+                self.stack.push(Value::Number(val))?;
+            }
+            opcode::PUSH_BOOL => {
+                let val = self.code.read_bool()?;
+                self.stack.push(Value::Bool(val))?;
+            }
+            opcode::PUSH_FUNC => {
+                let val = self.code.read_u32()?;
+                self.stack.push(Value::Function(val))?;
+            }
+            opcode::PUSH_NIL => {
+                self.stack.push(Value::Nil)?;
+            }
 
-            Opcode::Pop => {
-                self.pop()?;
-            },
-            Opcode::Dup => {
-                let value = self.pop()?;
-                self.push(value)?;
-                self.push(value)?;
-            },
-            Opcode::Swap => {
-                let a = self.pop()?;
-                let b = self.pop()?;
-                self.push(a)?;
-                self.push(b)?;
-            },
+            opcode::POP => {
+                self.stack.pop()?;
+            }
+            opcode::DUP => {
+                let val = self.stack.pop()?;
+                self.stack.push(val)?;
+                self.stack.push(val)?;
+            }
+            opcode::SWAP => {
+                let a = self.stack.pop()?;
+                let b = self.stack.pop()?;
 
-            Opcode::StoreVar(var) => {
-                let value = self.pop()?;
+                self.stack.push(a)?;
+                self.stack.push(b)?;
+            }
+
+            opcode::STORE_VAR => {
+                let var = self.code.read_u32()?;
+
+                let value = self.stack.pop()?;
+
                 self.set_variable(var, value)?;
-            },
-            Opcode::LoadVar(var) => {
-                let value = self.get_variable(var)?;
-                self.push(value)?;
-            },
+            }
+            opcode::LOAD_VAR => {
+                let var = self.code.read_u32()?;
 
-            Opcode::Add =>  self.binary_op(|a: i32, b: i32| a + b)?,
-            Opcode::Sub =>  self.binary_op(|a: i32, b: i32| a - b)?,
-            Opcode::Mult => self.binary_op(|a: i32, b: i32| a * b)?,
-            Opcode::Div => {
-                let b = self.pop_as::<i32>()?;
-                let a = self.pop_as::<i32>()?;
-                
+                let value = self.get_variable(var)?;
+
+                self.stack.push(value)?;
+            }
+
+            opcode::ADD => self.stack.binary_op(|a: i32, b: i32| a + b)?,
+            opcode::SUB => self.stack.binary_op(|a: i32, b: i32| a - b)?,
+            opcode::MULT => self.stack.binary_op(|a: i32, b: i32| a * b)?,
+            opcode::DIV => {
+                let b = self.stack.pop_as::<i32>()?;
+                let a = self.stack.pop_as::<i32>()?;
+
                 if b == 0 {
-                    return Err(self.code_exception(CodeException::DivisionBy0));
+                    return Err(ExceptionData::Code(CodeException::DivisionBy0));
                 }
 
                 let x = a / b;
-                self.push(Value::Number(x))?;
-            },
-            Opcode::Equal => {
-                let b = self.pop()?;
-                let a = self.pop()?;
-                let x = (a == b).to_value();
+                self.stack.push(Value::Number(x))?;
+            }
+            opcode::LESS_THAN => self.stack.binary_op(|a: i32, b: i32| a < b)?,
+            opcode::NOT => self.stack.unary_op(|x: bool| !x)?,
+            opcode::AND => self.stack.binary_op(|a: bool, b: bool| a && b)?,
+            opcode::OR => self.stack.binary_op(|a: bool, b: bool| a || b)?,
+            opcode::GREATER_THAN => self.stack.binary_op(|a: i32, b: i32| a > b)?,
 
-                self.push(x)?;
-            },
-            Opcode::LessThan =>    self.binary_op(|a: i32, b: i32| a < b)?,
-            Opcode::Not =>         self.unary_op(|x: bool| !x)?,
-            Opcode::And =>         self.binary_op(|a: bool, b: bool| a && b)?,
-            Opcode::Or =>          self.binary_op(|a: bool, b: bool| a || b)?,
-            Opcode::GreaterThan => self.binary_op(|a: i32, b: i32| a > b)?,
+            _ => return Err(ExceptionData::VM(VMException::InvalidOpcode))
         }
+
+        Ok(())
+    }
+
+    fn get_variable(&self, variable: VarIndex) -> Result<Value, ExceptionData> {
+        let frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let val = self.stack.get_at(stack_index)
+            .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
+
+        Ok(val)
+    }
+
+    fn set_variable(&mut self, variable: VarIndex, value: Value) -> Result<(), ExceptionData> {
+        let frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        let stack_index = frame.stack_start() + variable as usize;
+
+        let val = self.stack.get_at_mut(stack_index)
+            .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
+
+        *val = value;
 
         Ok(())
     }

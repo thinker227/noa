@@ -1,28 +1,29 @@
 use crate::runtime::opcode::FuncId;
 use crate::runtime::frame::StackFrame;
-use crate::runtime::exception::{Exception, VMException};
+use crate::runtime::exception::{ExceptionData, VMException};
 use crate::runtime::value::Value;
 
 use super::VM;
 
 impl VM {
     /// Enters a function.
-    pub(super) fn call(&mut self, id: FuncId, arg_count: u32, is_implicit: bool) -> Result<(), Exception> {
+    pub(super) fn call(&mut self, id: FuncId, arg_count: u32, is_implicit: bool) -> Result<(), ExceptionData> {
         if self.call_stack.len() >= self.call_stack.capacity() {
-            return Err(self.vm_exception(VMException::CallStackOverflow));
+            return Err(ExceptionData::VM(VMException::CallStackOverflow));
         }
 
         let function = self.functions.get(&id)
-            .ok_or_else(|| self.vm_exception(VMException::InvalidFunction))?;
+            .ok_or(ExceptionData::VM(VMException::InvalidFunction))?;
 
         let arity = function.arity();
         let locals_count = function.locals_count();
+        let address = function.address();
 
         // Get rid of any additional arguments to the function
         // outside of what the function expects
         if arg_count > arity {
             for _ in 0..(arg_count - arity) {
-                self.pop()?;
+                self.stack.pop()?;
             }
         }
         
@@ -30,7 +31,7 @@ impl VM {
         // if there are not enough arguments
         if arg_count < arity {
             for _ in arg_count..arity {
-                self.push(Value::Nil)?;
+                self.stack.push(Value::Nil)?;
             }
         }
 
@@ -41,26 +42,30 @@ impl VM {
         // These arguments will be popped off the stack at the end of the function,
         // which is functionally no different from how they would act if the arguments
         // were popped before being passed as arguments.
-        let frame_stack_start_position = self.stack_position() - arity as usize;
+        let frame_stack_start_position = self.stack.head_position() - arity as usize;
 
         // Push placeholder values for variables onto the stack
         for _ in 0..locals_count {
-            self.push(Value::Nil)?;
+            self.stack.push(Value::Nil)?;
         }
 
         // Push new stack frame onto the call stack
+        let return_address = self.code.ip();
         self.call_stack.push(StackFrame::new(
             id,
             frame_stack_start_position,
             is_implicit,
+            return_address,
             arity,
             locals_count
         ));
 
+        self.code.jump(address as usize);
+
         Ok(())
     }
 
-    /// Exits the current function.
+    /// Returns from the current function.
     pub(super) fn ret(&mut self) {
         // It is impossible to be at this point
         // and for the call stack to be empty at the same time.
@@ -78,6 +83,8 @@ impl VM {
             stack_start - 1
         };
 
-        self.stack.truncate(stack_backtrack_position);
+        self.stack.clear_to(stack_backtrack_position);
+
+        self.code.jump(frame.return_address());
     }
 }

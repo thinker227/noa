@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use crate::ark::Ark;
 
+use super::code_reader::CodeReader;
 use super::exception::{CodeException, Exception, StackTraceFrame, VMException};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
-use super::value::Value;
+use super::stack::Stack;
 
-mod stack;
 mod interpret;
 mod flow_control;
 
@@ -19,7 +19,8 @@ pub struct VM {
     strings: Vec<String>,
     main: FuncId,
     call_stack: Vec<StackFrame>,
-    stack: Vec<Value>,
+    stack: Stack,
+    code: CodeReader,
 }
 
 impl VM {
@@ -35,7 +36,9 @@ impl VM {
         let strings = ark.string_section.strings;
 
         let call_stack = Vec::with_capacity(call_stack_size);
-        let stack = Vec::with_capacity(stack_size);
+        let stack = Stack::new(stack_size);
+
+        let code = CodeReader::new(ark.code_section.code);
 
         let vm = Self {
             functions,
@@ -43,6 +46,7 @@ impl VM {
             main,
             call_stack,
             stack,
+            code,
         };
 
         vm
@@ -75,12 +79,20 @@ impl VM {
 
     /// Gets the current stack trace.
     fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
-        self.call_stack.iter().rev().map(|frame| {
-            StackTraceFrame {
+        let mut trace = Vec::new();
+
+        let mut return_address = self.code.ip();
+        
+        for frame in self.call_stack.iter().rev() {
+            trace.push(StackTraceFrame {
                 function: frame.function(),
-                address: frame.ip() as u32,
-            }
-        }).collect()
+                address: return_address as u32
+            });
+            
+            return_address = frame.return_address();
+        }
+
+        trace
     }
 
     /// Creates a code exception.

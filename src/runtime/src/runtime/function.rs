@@ -1,5 +1,5 @@
 use crate::byte_utility::{split, split_as_u32};
-use super::opcode::{FuncId, Opcode, OpcodeError};
+use super::opcode::FuncId;
 
 /// Represents a function section.
 #[derive(Debug, PartialEq, Eq)]
@@ -59,8 +59,7 @@ pub struct Function {
     name_index: u32,
     arity: u32,
     locals_count: u32,
-    code_length: u32,
-    code: Vec<Opcode>,
+    address: u32,
 }
 
 /// An error from reading an invalid error.
@@ -70,9 +69,7 @@ pub enum FunctionError {
     MissingNameIndex,
     MissingArity,
     MissingLocalsCount,
-    MissingCodeLength,
-    IncongruentLength,
-    OpcodeError(OpcodeError),
+    MissingAddress,
 }
 
 impl Function {
@@ -92,22 +89,15 @@ impl Function {
         let (locals_count, bytes) = split_as_u32(bytes)
             .ok_or(FunctionError::MissingLocalsCount)?;
 
-        let (code_length, bytes) = split_as_u32(bytes)
-            .ok_or(FunctionError::MissingCodeLength)?;
-
-        let (code_bytes, rest) = split(bytes, code_length as usize)
-            .ok_or(FunctionError::IncongruentLength)?;
-
-        let code = parse_opcodes(code_bytes)
-            .map_err(|e| FunctionError::OpcodeError(e))?;
+        let (address, rest) = split_as_u32(bytes)
+            .ok_or(FunctionError::MissingAddress)?;
 
         let function = Self {
             id,
             name_index,
             arity,
             locals_count,
-            code_length,
-            code
+            address
         };
         Ok((function, rest))
     }
@@ -132,22 +122,8 @@ impl Function {
         self.locals_count
     }
 
-    /// Gets the bytecode of the function.
-    pub fn code(&self) -> &Vec<Opcode> {
-        &self.code
+    /// Gets the bytecode address at which the function starts..
+    pub fn address(&self) -> u32 {
+        self.address
     }
-}
-
-/// Parses opcodes from a sequence of bytes.
-/// Parses the *entire* sequence.
-fn parse_opcodes(mut bytecode: &[u8]) -> Result<Vec<Opcode>, OpcodeError> {
-    let mut opcodes = Vec::new();
-
-    while !bytecode.is_empty() {
-        let (opcode, rest) = Opcode::from_bytes(bytecode)?;
-        opcodes.push(opcode);
-        bytecode = rest;
-    }
-
-    Ok(opcodes)
 }

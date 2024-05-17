@@ -16,9 +16,12 @@ internal sealed class Ark(
 
     public void Write(Carpenter writer)
     {
-        var header = new Header(functionSection.MainId);
+        var header = new Header(functionSection.Main.Id);
+        var codeSection = functionSection.CreateCodeSection();
+
         writer.Write(header);
         writer.Write(functionSection);
+        writer.Write(codeSection);
         writer.Write(stringSection);
     }
 }

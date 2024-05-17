@@ -63,7 +63,7 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
         },
         Err(e) => {
             eprintln!("An exception occurred!");
-            eprintln!("  {}", e.kind().to_string());
+            eprintln!("  {}", e.data().to_string());
             eprintln!();
             eprintln!("  Stack trace:");
             for f in e.stack_trace() {

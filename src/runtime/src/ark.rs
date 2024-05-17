@@ -1,6 +1,7 @@
-use crate::runtime::opcode::FuncId;
 use crate::runtime::function::{FunctionSection, FunctionSectionError};
+use crate::runtime::code::{CodeSection, CodeSectionError};
 use crate::runtime::strings::{StringSection, StringSectionError};
+use crate::runtime::opcode::FuncId;
 use crate::byte_utility::{split_as_u32, split_const};
 
 /// An Ark file.
@@ -8,6 +9,7 @@ use crate::byte_utility::{split_as_u32, split_const};
 pub struct Ark {
     pub header: Header,
     pub function_section: FunctionSection,
+    pub code_section: CodeSection,
     pub string_section: StringSection,
 }
 
@@ -17,6 +19,7 @@ pub enum ArkError {
     MissingHeader,
     HeaderError(HeaderError),
     FunctionSectionError(FunctionSectionError),
+    CodeSectionError(CodeSectionError),
     TooManyBytes,
     StringSectionError(StringSectionError),
 }
@@ -35,6 +38,9 @@ impl Ark {
         let (function_section, bytes) = FunctionSection::from_bytes(bytes)
             .map_err(|e| ArkError::FunctionSectionError(e))?;
 
+        let (code_section, bytes) = CodeSection::from_bytes(bytes)
+            .map_err(|e| ArkError::CodeSectionError(e))?;
+
         let (string_section, rest) = StringSection::from_bytes(bytes)
             .map_err(|e| ArkError::StringSectionError(e))?;
 
@@ -45,6 +51,7 @@ impl Ark {
         let ark = Self {
             header,
             function_section,
+            code_section,
             string_section
         };
         Ok(ark)
@@ -107,6 +114,7 @@ mod ark_tests {
             116, 111, 116, 104, 101, 97, 114, 107,
             0xe, 6, 2, 1,
             0, 0, 0, 0,
+            0, 0, 0, 0,
             0, 0, 0, 0
         ];
 
@@ -116,6 +124,10 @@ mod ark_tests {
             header: Header {
                 identifier: IDENTIFIER,
                 main: 0x0e060201
+            },
+            code_section: CodeSection {
+                code_length: 0,
+                ..
             },
             function_section: FunctionSection {
                 functions_length: 0,
@@ -154,10 +166,25 @@ mod ark_tests {
     }
 
     #[test]
+    fn code_section_error() {
+        let bytes = &[
+            116, 111, 116, 104, 101, 97, 114, 107,
+            0xe, 6, 2, 1,
+            0, 0, 0, 0,
+            6, 9
+        ];
+
+        let e = Ark::from_bytes(bytes).unwrap_err();
+
+        matches!(e, ArkError::CodeSectionError(..));
+    }
+
+    #[test]
     fn string_section_error() {
         let bytes = &[
             116, 111, 116, 104, 101, 97, 114, 107,
             0xe, 6, 2, 1,
+            0, 0, 0, 0,
             0, 0, 0, 0,
             6, 9
         ];

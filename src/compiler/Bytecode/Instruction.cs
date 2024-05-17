@@ -9,7 +9,7 @@ internal readonly record struct Instruction(Opcode Opcode) : IWritable
     /// <summary>
     /// The additional byte data of the instruction.
     /// </summary>
-    public byte[]? Data { get; init; }
+    public IWritable? Data { get; init; }
 
     private uint DataLength => (uint)(Data?.Length ?? 0); 
     
@@ -19,7 +19,7 @@ internal readonly record struct Instruction(Opcode Opcode) : IWritable
     {
         writer.Opcode(Opcode);
         
-        if (Data is not null) writer.Bytes(Data);
+        if (Data is not null) writer.Write(Data);
     }
 
     public override string ToString()
