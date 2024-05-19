@@ -8,4 +8,3 @@ pub mod strings;
 pub mod opcode;
 pub mod value;
 pub mod exception;
-pub mod disassembly;

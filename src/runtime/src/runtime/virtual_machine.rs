@@ -101,24 +101,3 @@ impl VM {
         Exception::new(data, stack_trace)
     }
 }
-
-/// Returns a mutable reference to the current stack frame in the [VM].
-#[macro_export]
-macro_rules! current_frame_mut {
-    ($vm:expr) => {
-        // Can't use ok_or_else here
-        match $vm.call_stack.last_mut() {
-            Some(x) => Ok(x),
-            None => Err($vm.vm_exception($crate::runtime::exception::VMException::NoStackFrame))
-        }
-    };
-}
-
-/// Returns a reference to the current stack frame in the [VM].
-#[macro_export]
-macro_rules! current_frame {
-    ($vm:expr) => {
-        $vm.call_stack.last()
-            .ok_or_else(|| $vm.vm_exception($crate::runtime::exception::VMException::NoStackFrame))
-    };
-}
