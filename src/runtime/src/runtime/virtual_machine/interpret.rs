@@ -130,6 +130,14 @@ impl VM {
                 let x = a / b;
                 self.stack.push(Value::Number(x))?;
             }
+            opcode::EQUAL => {
+                let b = self.stack.pop()?;
+                let a = self.stack.pop()?;
+
+                let val = a == b;
+
+                self.stack.push(Value::Bool(val))?;
+            }
             opcode::LESS_THAN => self.stack.binary_op(|a: i32, b: i32| a < b)?,
             opcode::NOT => self.stack.unary_op(|x: bool| !x)?,
             opcode::AND => self.stack.binary_op(|a: bool, b: bool| a && b)?,
