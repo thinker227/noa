@@ -1,5 +1,5 @@
 use crate::byte_utility::{split, split_as_u32};
-use super::opcode::FuncId;
+use super::opcode::{Address, FuncId};
 
 /// Represents a function section.
 #[derive(Debug, PartialEq, Eq)]
@@ -59,7 +59,7 @@ pub struct Function {
     name_index: u32,
     arity: u32,
     locals_count: u32,
-    address: u32,
+    address: Address,
 }
 
 /// An error from reading an invalid error.
@@ -97,7 +97,7 @@ impl Function {
             name_index,
             arity,
             locals_count,
-            address
+            address: Address::from(address as usize)
         };
         Ok((function, rest))
     }
@@ -123,7 +123,7 @@ impl Function {
     }
 
     /// Gets the bytecode address at which the function starts..
-    pub fn address(&self) -> u32 {
+    pub fn address(&self) -> Address {
         self.address
     }
 }

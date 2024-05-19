@@ -60,7 +60,7 @@ impl VM {
             locals_count
         ));
 
-        self.code.jump(address as usize);
+        self.code.jump(address.value());
 
         Ok(())
     }
