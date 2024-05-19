@@ -1,12 +1,18 @@
 use std::fmt::Display;
 
 use super::value::coercion::CoercionError;
-use super::opcode::{Address, FuncId};
+use super::opcode::FuncId;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct StackTraceFrame {
     pub function: FuncId,
-    pub address: Address,
+    pub address: StackTraceAddress,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum StackTraceAddress {
+    Explicit(usize),
+    Implicit
 }
 
 /// A runtime exception.

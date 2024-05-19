@@ -1,5 +1,5 @@
 use crate::runtime::opcode::FuncId;
-use crate::runtime::frame::StackFrame;
+use crate::runtime::frame::{Call, Caller, StackFrame};
 use crate::runtime::exception::{ExceptionData, VMException};
 use crate::runtime::value::Value;
 
@@ -7,7 +7,19 @@ use super::VM;
 
 impl VM {
     /// Enters a function.
-    pub(super) fn call(&mut self, id: FuncId, arg_count: u32, is_implicit: bool) -> Result<(), ExceptionData> {
+    /// 
+    /// # Arguments
+    /// * `id` - The ID of the function to call.
+    /// * `arg_count` - The amount of argument the function is called with.
+    /// * `call_is_implicit` - Whether the call is explicit (i.e. from user code) or implicit (i.e. from runtime code.)
+    /// * `caller` - The current caller.
+    pub(super) fn call(
+        &mut self,
+        id: FuncId,
+        arg_count: u32,
+        call_is_implicit: bool,
+        caller: Caller,
+    ) -> Result<(), ExceptionData> {
         if self.call_stack.len() >= self.call_stack.capacity() {
             return Err(ExceptionData::VM(VMException::CallStackOverflow));
         }
@@ -50,14 +62,14 @@ impl VM {
         }
 
         // Push new stack frame onto the call stack
-        let return_address = self.code.ip();
+        let call = Call {
+            is_implicit: call_is_implicit
+        };
         self.call_stack.push(StackFrame::new(
             id,
             frame_stack_start_position,
-            is_implicit,
-            return_address,
-            arity,
-            locals_count
+            call,
+            caller
         ));
 
         self.code.jump(address.value());
@@ -74,7 +86,7 @@ impl VM {
 
         let stack_start = frame.stack_start();
 
-        let stack_backtrack_position = if frame.is_implicit() {
+        let stack_backtrack_position = if frame.call_is_implicit() {
             // If the function was called implicitly then just the arguments need to be popped.
             stack_start
         } else {
@@ -85,6 +97,10 @@ impl VM {
 
         self.stack.clear_to(stack_backtrack_position);
 
-        self.code.jump(frame.return_address());
+        // We can only return somewhere if there is somewhere to return, quite obviously.
+        // If the stack frame caller was implicit then there is nowhere to return to.
+        if let Some(return_address) = frame.return_address() {
+            self.code.jump(return_address.value());
+        }
     }
 }

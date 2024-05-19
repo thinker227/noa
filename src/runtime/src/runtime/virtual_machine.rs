@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use crate::ark::Ark;
 
 use super::code_reader::CodeReader;
-use super::exception::{Exception, ExceptionData, VMException, StackTraceFrame};
+use super::exception::{Exception, ExceptionData, StackTraceAddress, StackTraceFrame, VMException};
 use super::function::Function;
-use super::opcode::{Address, FuncId};
+use super::opcode::FuncId;
 use super::frame::StackFrame;
 use super::stack::Stack;
 
@@ -81,15 +81,18 @@ impl VM {
     fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
         let mut trace = Vec::new();
 
-        let mut return_address = self.code.ip();
+        let mut caller_address = StackTraceAddress::Explicit(self.code.ip());
         
         for frame in self.call_stack.iter().rev() {
             trace.push(StackTraceFrame {
                 function: frame.function(),
-                address: Address::from(return_address)
+                address: caller_address
             });
             
-            return_address = frame.return_address();
+            caller_address = match frame.caller_address() {
+                Some(x) => StackTraceAddress::Explicit(x.value()),
+                None => StackTraceAddress::Implicit,
+            }
         }
 
         trace

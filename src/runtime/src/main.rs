@@ -8,6 +8,8 @@ use cli::Args;
 use ark::Ark;
 use runtime::virtual_machine::VM;
 
+use crate::runtime::exception::StackTraceAddress;
+
 mod cli;
 mod byte_utility;
 mod ark;
@@ -69,7 +71,12 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
             for f in e.stack_trace() {
                 let function = vm.functions().get(&f.function).unwrap();
                 let func_name = vm.get_string(function.name_index()).unwrap();
-                eprintln!("    at address 0x{0:x} in {1}", f.address.value(), func_name);
+                let address = match f.address {
+                    StackTraceAddress::Explicit(x) => format!("{x:x}"),
+                    StackTraceAddress::Implicit => "<runtime code>".into(),
+                };
+
+                eprintln!("    at address 0x{0} in {1}", address, func_name);
             }
 
             std::process::exit(1);

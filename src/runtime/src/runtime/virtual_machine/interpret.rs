@@ -1,5 +1,6 @@
+use crate::runtime::frame::Caller;
 use crate::runtime::value::Value;
-use crate::runtime::opcode::{self, FuncId, VarIndex};
+use crate::runtime::opcode::{self, Address, FuncId, VarIndex};
 use crate::runtime::exception::{CodeException, Exception, ExceptionData, VMException};
 use super::VM;
 
@@ -11,7 +12,12 @@ impl VM {
     }
 
     fn execute_main_internal(&mut self) -> Result<Value, ExceptionData> {
-        self.call(self.main, 0, true)?;
+        self.call(
+            self.main,
+            0,
+            true,
+            Caller::Runtime
+        )?;
 
         self.run()?;
 
@@ -28,6 +34,8 @@ impl VM {
     }
 
     fn interpret(&mut self) -> Result<(), ExceptionData> {
+        let instruction_address = self.code.ip();
+
         let opcode = self.code.read_byte()?;
         
         match opcode {
@@ -56,7 +64,17 @@ impl VM {
                     .to::<FuncId>()
                     .map_err(|e| ExceptionData::Code(CodeException::CoercionError(e)))?;
 
-                self.call(function, arg_count, false)?;
+                let return_address = self.code.ip();
+
+                self.call(
+                    function,
+                    arg_count,
+                    false,
+                    Caller::Code {
+                        return_address: Address::from(return_address),
+                        caller_address: Address::from(instruction_address)
+                    }
+                )?;
             }
             opcode::RET => {
                 let ret_value = self.stack.pop()?;
