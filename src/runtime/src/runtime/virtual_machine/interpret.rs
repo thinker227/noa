@@ -76,7 +76,7 @@ impl VM {
             }
             opcode::PUSH_FUNC => {
                 let val = self.code.read_u32()?;
-                self.stack.push(Value::Function(val))?;
+                self.stack.push(Value::Function(FuncId::from(val)))?;
             }
             opcode::PUSH_NIL => {
                 self.stack.push(Value::Nil)?;
@@ -103,12 +103,12 @@ impl VM {
 
                 let value = self.stack.pop()?;
 
-                self.set_variable(var, value)?;
+                self.set_variable(VarIndex::from(var), value)?;
             }
             opcode::LOAD_VAR => {
                 let var = self.code.read_u32()?;
 
-                let value = self.get_variable(var)?;
+                let value = self.get_variable(VarIndex::from(var))?;
 
                 self.stack.push(value)?;
             }
@@ -149,10 +149,7 @@ impl VM {
     }
 
     fn get_variable(&self, variable: VarIndex) -> Result<Value, ExceptionData> {
-        let frame = self.call_stack.last()
-            .expect("call stack should not be empty");
-
-        let stack_index = frame.stack_start() + variable as usize;
+        let stack_index = self.get_variable_stack_index(variable);
 
         let val = self.stack.get_at(stack_index)
             .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
@@ -161,10 +158,7 @@ impl VM {
     }
 
     fn set_variable(&mut self, variable: VarIndex, value: Value) -> Result<(), ExceptionData> {
-        let frame = self.call_stack.last()
-            .expect("call stack should not be empty");
-
-        let stack_index = frame.stack_start() + variable as usize;
+        let stack_index = self.get_variable_stack_index(variable);
 
         let val = self.stack.get_at_mut(stack_index)
             .ok_or(ExceptionData::VM(VMException::InvalidVariable))?;
@@ -172,5 +166,12 @@ impl VM {
         *val = value;
 
         Ok(())
+    }
+
+    fn get_variable_stack_index(&self, var: VarIndex) -> usize {
+        let frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        frame.stack_start() + var.index() as usize
     }
 }

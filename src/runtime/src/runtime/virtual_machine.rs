@@ -5,7 +5,7 @@ use crate::ark::Ark;
 use super::code_reader::CodeReader;
 use super::exception::{Exception, ExceptionData, VMException, StackTraceFrame};
 use super::function::Function;
-use super::opcode::FuncId;
+use super::opcode::{Address, FuncId};
 use super::frame::StackFrame;
 use super::stack::Stack;
 
@@ -86,7 +86,7 @@ impl VM {
         for frame in self.call_stack.iter().rev() {
             trace.push(StackTraceFrame {
                 function: frame.function(),
-                address: return_address as u32
+                address: Address::from(return_address)
             });
             
             return_address = frame.return_address();

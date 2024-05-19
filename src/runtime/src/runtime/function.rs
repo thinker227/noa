@@ -93,7 +93,7 @@ impl Function {
             .ok_or(FunctionError::MissingAddress)?;
 
         let function = Self {
-            id,
+            id: FuncId::from(id),
             name_index,
             arity,
             locals_count,

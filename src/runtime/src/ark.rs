@@ -98,7 +98,7 @@ impl Header {
 
         let header = Self {
             identifier: *identifier,
-            main
+            main: FuncId::from(main)
         };
         Ok(header)
     }
@@ -120,10 +120,11 @@ mod ark_tests {
 
         let ark = Ark::from_bytes(bytes).unwrap();
 
+        assert_eq!(ark.header.main, FuncId::from(0x0e060201));
         matches!(ark, Ark {
             header: Header {
                 identifier: IDENTIFIER,
-                main: 0x0e060201
+                ..
             },
             code_section: CodeSection {
                 code_length: 0,
@@ -222,9 +223,10 @@ mod header_tests {
 
         let header = Header::from_bytes(bytes).unwrap();
 
+        assert_eq!(header.main, FuncId::from(0x0e060201));
         matches!(header, Header {
             identifier: self::IDENTIFIER,
-            main: 0x0e060201
+            ..
         });
     }
 
