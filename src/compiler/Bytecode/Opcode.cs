@@ -37,4 +37,7 @@ internal enum Opcode : byte
     And = 0x6B,
     Or = 0x6C,
     GreaterThan = 0x6D,
+    
+    // Operations instructions
+    Boundary = 0xFF,
 }

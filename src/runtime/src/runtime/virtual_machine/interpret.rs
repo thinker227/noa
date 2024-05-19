@@ -142,6 +142,8 @@ impl VM {
             opcode::OR => self.stack.binary_op(|a: bool, b: bool| a || b)?,
             opcode::GREATER_THAN => self.stack.binary_op(|a: i32, b: i32| a > b)?,
 
+            opcode::BOUNDARY => return Err(ExceptionData::VM(VMException::FunctionOverrun)),
+
             _ => return Err(ExceptionData::VM(VMException::InvalidOpcode))
         }
 

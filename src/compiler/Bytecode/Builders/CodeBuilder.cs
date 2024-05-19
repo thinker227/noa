@@ -16,11 +16,11 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public Address StartAddress => previous?.EndAddress ?? new(0);
 
     /// <summary>
-    /// The address immediatelt after the end address of the builder within the code section.
+    /// The address immediately after the end address of the builder within the code section.
     /// </summary>
     public Address EndAddress => new(StartAddress.Value + Length);
 
-    public uint Length => length;
+    public uint Length => length + 1;
 
     /// <summary>
     /// The current offset from <see cref="StartAddress"/>.
@@ -30,6 +30,7 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Write(Carpenter writer)
     {
         foreach (var i in instructions) writer.Write(i);
+        writer.Opcode(Opcode.Boundary);
     }
 
     private void Add(Instruction i)

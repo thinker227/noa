@@ -15,7 +15,7 @@ internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringInd
     /// <summary>
     /// The start address of the function within the code section.
     /// </summary>
-    public Address Address => code.StartAddress;
+    public Address Address => Code.StartAddress;
 
     /// <summary>
     /// The builder for the code of the function.
