@@ -7,10 +7,7 @@ impl VM {
     /// Executes the main function.
     pub fn execute_main(&mut self) -> Result<Value, Exception> {
         self.execute_main_internal()
-            .map_err(|data| {
-                let stack_trace = self.get_stack_trace();
-                return Exception::new(data, stack_trace);
-            })
+            .map_err(|data| self.create_exception(data))
     }
 
     fn execute_main_internal(&mut self) -> Result<Value, ExceptionData> {

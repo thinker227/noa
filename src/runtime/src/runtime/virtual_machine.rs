@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::ark::Ark;
 
 use super::code_reader::CodeReader;
-use super::exception::{CodeException, Exception, StackTraceFrame, VMException};
+use super::exception::{Exception, ExceptionData, VMException, StackTraceFrame};
 use super::function::Function;
 use super::opcode::FuncId;
 use super::frame::StackFrame;
@@ -58,9 +58,9 @@ impl VM {
     }
 
     /// Gets a string with a specified index.
-    pub fn get_string(&self, index: u32) -> Result<&String, Exception> {
+    pub fn get_string(&self, index: u32) -> Result<&String, ExceptionData> {
         self.strings.get(index as usize)
-            .ok_or_else(|| self.vm_exception(VMException::InvalidString))
+            .ok_or_else(|| ExceptionData::VM(VMException::InvalidString))
     }
 
     /// Gets a string with a specified index,
@@ -95,16 +95,10 @@ impl VM {
         trace
     }
 
-    /// Creates a code exception.
-    pub fn code_exception(&self, ex: CodeException) -> Exception {
+    /// Creates an exception.
+    fn create_exception(&self, data: ExceptionData) -> Exception {
         let stack_trace = self.get_stack_trace();
-        Exception::code(ex, stack_trace)
-    }
-
-    /// Creates a VM exception.
-    pub fn vm_exception(&self, ex: VMException) -> Exception {
-        let stack_trace = self.get_stack_trace();
-        Exception::vm(ex, stack_trace)
+        Exception::new(data, stack_trace)
     }
 }
 
