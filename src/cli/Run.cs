@@ -12,7 +12,8 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
         [Argument("input-file", Description = "The file to run")] string inputFilePath,
         [Option("output-file", ['o'], Description = "The output Ark file", ValueName = "path")] string? outputFilePath,
         [Option("runtime", Description = "The path to the runtime executable", ValueName = "path")] string? runtimePath,
-        [Option("print-ret", Description = "Specifies to print the return value from the main function")] bool printReturnValue)
+        [Option("print-ret", Description = "Prints the return value from the main function")] bool printReturnValue,
+        [Option("time", Description = "Prints the execution time of the program")] bool doTime)
     {
         var inputFile = new FileInfo(inputFilePath);
         var inputDisplayPath = GetDisplayPath(inputFile);
@@ -83,9 +84,21 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
                 CreateNoWindow = true,
             }
         };
+
+        var timer = new Stopwatch();
+        timer.Start();
         
         process.Start();
         process.WaitForExit();
+        
+        timer.Stop();
+        var time = timer.Elapsed;
+
+        if (doTime)
+        {
+            var duration = DisplayDuration(time);
+            console.MarkupLine($"{Emoji.Known.Stopwatch}  Execution took [aqua]{duration}[/]");
+        }
 
         return process.ExitCode;
     }
