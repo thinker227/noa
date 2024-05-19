@@ -49,15 +49,14 @@ wrapper!{
 
 /// Generates a wrapper struct around a type.
 /// 
-/// ### Syntax:
-/// `name, field: type, display, doc`
+/// Syntax: `name, field: type, display, doc`
 /// 
-/// ### Arguments:
-/// - `name`: The identifier of the struct.
-/// - `field`: The identifier for the internal field.
-/// - `type`: The wrapped type.
-/// - `display`: The format for displaying the struct. Has the field name available as a variable.
-/// - `doc`: The documentation for the struct.
+/// # Arguments
+/// * `name` - The identifier of the struct.
+/// * `field` - The identifier for the internal field.
+/// * `type` - The wrapped type.
+/// * `display` - The format for displaying the struct. Has the field name available as a variable.
+/// * `doc` - The documentation for the struct.
 #[macro_export]
 macro_rules! wrapper {
     ($name:ident, $field:ident: $type:ty, $display:expr, $doc:expr) => {
