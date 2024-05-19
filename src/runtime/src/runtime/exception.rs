@@ -31,6 +31,8 @@ pub enum CodeException {
     CoercionError(CoercionError),
     /// Division by 0.
     DivisionBy0,
+    /// Integer overflow.
+    IntegerOverflow,
 }
 
 /// An irrecoverable virtual machine exception.
@@ -110,6 +112,7 @@ impl Display for CodeException {
         match self {
             CodeException::CoercionError(e) => write!(f, "conversion error: {e}"),
             CodeException::DivisionBy0 => write!(f, "division by 0"),
+            CodeException::IntegerOverflow => write!(f, "integer overflow"),
         }
     }
 }

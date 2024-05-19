@@ -71,11 +71,24 @@ impl Stack {
     /// Pops two values from the stack,
     /// performs a binary operation on them,
     /// and pushes the result back onto the stack.
-    pub fn binary_op<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T, T) -> U) -> Result<(), ExceptionData>
-    {
+    pub fn binary_op<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T, T) -> U) -> Result<(), ExceptionData> {
         let b = self.pop_as()?;
         let a = self.pop_as()?;
         let x = op(a, b);
+
+        self.push(x.to_value())?;
+
+        Ok(())
+    }
+
+    /// Pops two values from the stack,
+    /// performs a binary operation on them with overflow checking,
+    /// and pushes the result back onto the stack.
+    pub fn binary_op_checked<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T, T) -> Option<U>) -> Result<(), ExceptionData> {
+        let b = self.pop_as()?;
+        let a = self.pop_as()?;
+        let x = op(a, b)
+            .ok_or(ExceptionData::Code(CodeException::IntegerOverflow))?;
 
         self.push(x.to_value())?;
 

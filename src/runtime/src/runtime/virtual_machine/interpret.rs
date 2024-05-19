@@ -116,9 +116,9 @@ impl VM {
                 self.stack.push(value)?;
             }
 
-            opcode::ADD => self.stack.binary_op(|a: i32, b: i32| a + b)?,
-            opcode::SUB => self.stack.binary_op(|a: i32, b: i32| a - b)?,
-            opcode::MULT => self.stack.binary_op(|a: i32, b: i32| a * b)?,
+            opcode::ADD => self.stack.binary_op_checked(i32::checked_add)?,
+            opcode::SUB => self.stack.binary_op_checked(i32::checked_sub)?,
+            opcode::MULT => self.stack.binary_op_checked(i32::checked_mul)?,
             opcode::DIV => {
                 let b = self.stack.pop_as::<i32>()?;
                 let a = self.stack.pop_as::<i32>()?;
@@ -127,7 +127,8 @@ impl VM {
                     return Err(ExceptionData::Code(CodeException::DivisionBy0));
                 }
 
-                let x = a / b;
+                let x = i32::checked_div(a, b)
+                    .ok_or(ExceptionData::Code(CodeException::IntegerOverflow))?;
                 self.stack.push(Value::Number(x))?;
             }
             opcode::EQUAL => {
