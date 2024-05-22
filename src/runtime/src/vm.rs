@@ -7,12 +7,14 @@ use crate::ark::function::Function;
 use crate::ark::opcode::FuncId;
 use frame::StackFrame;
 use stack::Stack;
+use gc::Gc;
 
 mod code_reader;
 mod stack;
 mod frame;
 mod interpret;
 mod flow_control;
+pub mod gc;
 
 /// A virtual machine. Contains the entire state of the runtime.
 #[derive(Debug)]
@@ -23,6 +25,7 @@ pub struct VM {
     call_stack: Vec<StackFrame>,
     stack: Stack,
     code: CodeReader,
+    gc: Gc
 }
 
 impl VM {
@@ -42,6 +45,8 @@ impl VM {
 
         let code = CodeReader::new(ark.code_section.code);
 
+        let gc = Gc::new();
+
         let vm = Self {
             functions,
             strings,
@@ -49,6 +54,7 @@ impl VM {
             call_stack,
             stack,
             code,
+            gc
         };
 
         vm
