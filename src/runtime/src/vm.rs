@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 
 use crate::ark::Ark;
+use code_reader::CodeReader;
+use crate::runtime::exception::{Exception, ExceptionData, StackTraceAddress, StackTraceFrame, VMException};
+use crate::ark::function::Function;
+use crate::ark::opcode::FuncId;
+use frame::StackFrame;
+use stack::Stack;
 
-use super::code_reader::CodeReader;
-use super::exception::{Exception, ExceptionData, StackTraceAddress, StackTraceFrame, VMException};
-use super::function::Function;
-use super::opcode::FuncId;
-use super::frame::StackFrame;
-use super::stack::Stack;
-
+mod code_reader;
+mod stack;
+mod frame;
 mod interpret;
 mod flow_control;
 

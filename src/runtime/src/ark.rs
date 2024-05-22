@@ -1,8 +1,13 @@
-use crate::runtime::function::{FunctionSection, FunctionSectionError};
-use crate::runtime::code::{CodeSection, CodeSectionError};
-use crate::runtime::strings::{StringSection, StringSectionError};
-use crate::runtime::opcode::FuncId;
-use crate::byte_utility::{split_as_u32, split_const};
+use crate::utility::bytes::{split_as_u32, split_const};
+use function::{FunctionSection, FunctionSectionError};
+use code::{CodeSection, CodeSectionError};
+use strings::{StringSection, StringSectionError};
+use opcode::FuncId;
+
+pub mod code;
+pub mod function;
+pub mod strings;
+pub mod opcode;
 
 /// An Ark file.
 #[derive(Debug, PartialEq, Eq)]

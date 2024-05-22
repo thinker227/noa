@@ -1,10 +1,2 @@
-pub mod virtual_machine;
-pub mod code_reader;
-pub mod stack;
-pub mod frame;
-pub mod function;
-pub mod code;
-pub mod strings;
-pub mod opcode;
 pub mod value;
 pub mod exception;

@@ -1,5 +1,5 @@
-use crate::runtime::opcode::FuncId;
-use crate::runtime::frame::{Call, Caller, StackFrame};
+use crate::ark::opcode::FuncId;
+use crate::vm::frame::{Call, Caller, StackFrame};
 use crate::runtime::exception::{ExceptionData, VMException};
 use crate::runtime::value::Value;
 

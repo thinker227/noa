@@ -6,14 +6,14 @@ use clap::Parser;
 use cli::Args;
 
 use ark::Ark;
-use runtime::virtual_machine::VM;
-
-use crate::runtime::exception::StackTraceAddress;
+use vm::VM;
+use runtime::exception::StackTraceAddress;
 
 mod cli;
-mod byte_utility;
+mod utility;
 mod ark;
 mod runtime;
+mod vm;
 
 fn main() {
     let args = Args::parse();

@@ -1,4 +1,4 @@
-use crate::byte_utility::{split, split_as_u32};
+use crate::utility::bytes::{split, split_as_u32};
 
 /// Represents a code section.
 #[derive(Debug, PartialEq, Eq)]

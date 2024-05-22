@@ -1,5 +1,5 @@
-use super::value::{FromValue, Value};
-use super::exception::{CodeException, ExceptionData, VMException};
+use crate::runtime::value::{FromValue, Value};
+use crate::runtime::exception::{CodeException, ExceptionData, VMException};
 
 #[derive(Debug)]
 pub struct Stack {

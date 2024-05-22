@@ -1,4 +1,4 @@
-use super::exception::{ExceptionData, VMException};
+use crate::runtime::exception::{ExceptionData, VMException};
 
 #[derive(Debug)]
 /// A wrapper around a sequence of bytes which reads the bytes as various data.

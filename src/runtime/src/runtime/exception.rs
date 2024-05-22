@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
+use crate::ark::opcode::FuncId;
 use super::value::coercion::CoercionError;
-use super::opcode::FuncId;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct StackTraceFrame {

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
+use crate::ark::opcode::FuncId;
 use coercion::CoercionError;
-use super::opcode::FuncId;
 
 pub mod coercion;
 

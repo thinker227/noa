@@ -1,4 +1,4 @@
-use super::opcode::{Address, FuncId};
+use crate::ark::opcode::{Address, FuncId};
 
 /// A frame on the call stack which represents the call of a single function.
 #[derive(Debug)]

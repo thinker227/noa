@@ -1,7 +1,7 @@
-use crate::runtime::frame::Caller;
+use crate::ark::opcode::{self, Address, FuncId, VarIndex};
 use crate::runtime::value::Value;
-use crate::runtime::opcode::{self, Address, FuncId, VarIndex};
 use crate::runtime::exception::{CodeException, Exception, ExceptionData, VMException};
+use super::frame::Caller;
 use super::VM;
 
 impl VM {
