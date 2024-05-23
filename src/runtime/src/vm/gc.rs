@@ -190,6 +190,8 @@ impl Gc {
             }
 
             free_obj(obj);
+
+            self.allocated -= 1;
         }
     }
 }
