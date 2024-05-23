@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut};
 use std::alloc::{self, Layout};
 
+use crate::runtime::value::object::{Object, ObjectMut};
 use crate::runtime::value::Value;
 
 /// A garbage collector which allocates and manages memory.
@@ -43,6 +44,12 @@ pub struct GcTracker {
 pub trait Managed: Trace {
     /// Gets the [GcTracker] for this managed instance.
     fn tracker(&mut self) -> &mut GcTracker;
+
+    /// Gets the managed object as an [Object].
+    fn as_object(&self) -> Object;
+
+    /// Gets the managed object as an [ObjectMut].
+    fn as_object_mut(&mut self) -> ObjectMut;
 }
 
 /// An object which traces through managed objects for references.

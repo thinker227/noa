@@ -44,6 +44,7 @@ impl Value {
             (Value::Number(_), Type::Number) => Ok(*self),
             (Value::Number(_), Type::Bool) => Ok(Value::Bool(true)),
             (Value::Number(_), Type::Function) => err(),
+            (Value::Number(_), Type::String) => err(),
 
             (Value::Bool(b), Type::Number) => Ok(Value::Number(
                 if b {
@@ -54,14 +55,22 @@ impl Value {
             )),
             (Value::Bool(_), Type::Bool) => Ok(*self),
             (Value::Bool(_), Type::Function) => err(),
+            (Value::Bool(_), Type::String) => err(),
 
             (Value::Function(_), Type::Number) => err(),
             (Value::Function(_), Type::Bool) => Ok(Value::Bool(true)),
             (Value::Function(_), Type::Function) => Ok(*self),
+            (Value::Function(_), Type::String) => err(),
+
+            (Value::Object(_), Type::Number) => err(),
+            (Value::Object(_), Type::Bool) => Ok(Value::Bool(true)),
+            (Value::Object(_), Type::Function) => err(),
+            (Value::Object(_), Type::String) => Ok(*self),
 
             (Value::Nil, Type::Number) => Ok(Value::Number(0)),
             (Value::Nil, Type::Bool) => Ok(Value::Bool(false)),
             (Value::Nil, Type::Function) => err(),
+            (Value::Nil, Type::String) => err(),
 
             (_, Type::Nil) => err(),
         }
@@ -77,6 +86,7 @@ impl Value {
                 1
             },
             Value::Function(_) => 0,
+            Value::Object(_) => 0,
             Value::Nil => 0,
         }
     }

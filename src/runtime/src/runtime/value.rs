@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
-use crate::vm::gc::{Spy, Trace};
+use crate::vm::gc::{GcRef, Spy, Trace};
 use crate::ark::opcode::FuncId;
 use coercion::CoercionError;
+use object::Object;
 
 pub mod coercion;
+pub mod object;
 
 /// The type of a runtime value.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -15,6 +17,9 @@ pub enum Type {
     Bool,
     /// A function.
     Function,
+    /// A string.
+    /// A string is represented by a [Value::Object] which points to a [StringObject].
+    String,
     /// NIL / `()`
     Nil,
 }
@@ -25,6 +30,7 @@ impl Display for Type {
             Self::Number => write!(f, "number"),
             Self::Bool => write!(f, "bool"),
             Self::Function => write!(f, "function"),
+            Self::String => write!(f, "string"),
             Self::Nil => write!(f, "()"),
         }
     }
@@ -39,6 +45,8 @@ pub enum Value {
     Bool(bool),
     /// A function.
     Function(FuncId),
+    /// A managed object.
+    Object(GcRef),
     /// NIL / `()`
     Nil,
 }
@@ -50,6 +58,9 @@ impl Value {
             Value::Number(_) => Type::Number,
             Value::Bool(_) => Type::Bool,
             Value::Function(_) => Type::Function,
+            Value::Object(obj) => match obj.as_object() {
+                Object::String(_) => Type::String
+            },
             Value::Nil => Type::Nil,
         }
     }
@@ -127,12 +138,17 @@ impl Display for Value {
             Value::Number(x) => write!(f, "{x}"),
             Value::Bool(x) => write!(f, "{x}"),
             Value::Function(id) => write!(f, "<func {id}>"),
+            Value::Object(_) => write!(f, "<object>"),
             Value::Nil => write!(f, "()"),
         }
     }
 }
 
 impl Trace for Value {
-    // Todo: trace GC references in value variants, but there are none of those yet.
-    fn trace(&mut self, spy: &Spy) {}
+    fn trace(&mut self, spy: &Spy) {
+        match self {
+            Self::Object(r) => spy.visit(r),
+            _ => {},
+        }
+    }
 }
