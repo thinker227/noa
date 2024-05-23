@@ -5,7 +5,8 @@ use crate::runtime::value::Value;
 
 /// A garbage collector which allocates and manages memory.
 /// 
-/// A [Gc] owns the objects it allocates, despite this not necessarily being kept track of by the borrow checker.
+/// A [Gc] owns the objects it allocates, despite this not necessarily
+/// being kept track of by the borrow checker.
 /// Once the [Gc] is dropped, all the objects it has allocated are freed.
 #[derive(Debug)]
 pub struct Gc {
@@ -18,6 +19,7 @@ pub struct Gc {
     allocated: usize,
 }
 
+/// An iterator for the memory of a [Gc].
 struct MemoryIterator {
     next: Option<*mut dyn Managed>,
 }
@@ -41,6 +43,11 @@ pub struct GcTracker {
 }
 
 /// Trait for GC-managed types.
+/// 
+/// Managed types are actively tracked by a [Gc] and may be freed once there are
+/// no more references to the object. Instances of managed types should therefore be kept wisely
+/// only inside structs which can be traced by the GC to prevent the data from attempting
+/// to be used when freed. Most commonly, managed objects should be accessed through a [GcRef].
 pub trait Managed {
     /// Gets the [GcTracker] for this managed instance.
     fn tracker(&mut self) -> &mut GcTracker;
