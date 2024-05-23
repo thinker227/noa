@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use crate::vm::gc::{Spy, Trace};
 use crate::ark::opcode::FuncId;
 use coercion::CoercionError;
 
@@ -129,4 +130,9 @@ impl Display for Value {
             Value::Nil => write!(f, "()"),
         }
     }
+}
+
+impl Trace for Value {
+    // Todo: trace GC references in value variants, but there are none of those yet.
+    fn trace(&mut self, spy: &Spy) {}
 }

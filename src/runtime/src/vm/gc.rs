@@ -48,9 +48,26 @@ pub struct GcTracker {
 /// no more references to the object. Instances of managed types should therefore be kept wisely
 /// only inside structs which can be traced by the GC to prevent the data from attempting
 /// to be used when freed. Most commonly, managed objects should be accessed through a [GcRef].
-pub trait Managed {
+pub trait Managed: Trace {
     /// Gets the [GcTracker] for this managed instance.
     fn tracker(&mut self) -> &mut GcTracker;
+}
+
+/// An object which traces through managed objects for references.
+// Note: this is just a 0-sized object which one purpose is to contain the visit function.
+// The function is kept associated with this object instead of as a free function
+// to avoid the ability to mark objects outside of tracing.
+// The purpose of the x field is to make this object only able to be created in this module.
+pub struct Spy {
+    pub(self) x: ()
+}
+
+/// Trait for types which can be traced for GC-managed references.
+pub trait Trace {
+    /// Traces the references to other managed objects referenced by this object.
+    /// 
+    /// The [Spy::visit] function should be called for each [GcRef] instance kept by this instance.
+    fn trace(&mut self, spy: &Spy);
 }
 
 /// A reference to a [Gc]-managed object.
@@ -127,7 +144,10 @@ impl Gc {
     /// 
     /// Since all memory which can't be reached from the stack is by definition unreachable,
     /// this function takes a reference to the stack of the VM to know what to collect.
-    pub fn collect(&mut self, stack: &Vec<Value>) {
+    /// 
+    /// Note: though this function takes a mutable reference to the stack,
+    /// it doesn't update the stack whatsoever.
+    pub fn collect(&mut self, stack: &mut Vec<Value>) {
         Self::mark_objects(stack);
         
         unsafe {
@@ -135,8 +155,16 @@ impl Gc {
         }
     }
 
-    fn mark_objects(values: &Vec<Value>) {
+    fn mark_objects(values: &mut Vec<Value>) {
         // There aren't any values yet which store pointers, so this doesn't do anything lmao.
+
+        let spy = Spy {
+            x: ()
+        };
+
+        for val in values {
+            val.trace(&spy);
+        }
     }
 
     unsafe fn sweep(&mut self) {
@@ -194,6 +222,23 @@ impl Iterator for MemoryIterator {
         }
 
         Some(obj)
+    }
+}
+
+impl Spy {
+    /// Visits a reference to a managed object.
+    pub fn visit(&self, reference: &mut GcRef) {
+        let tracker = reference.tracker();
+        
+        if tracker.color != Color::White {
+            return;
+        }
+
+        tracker.color = Color::Gray;
+
+        reference.trace(&self);
+
+        reference.tracker().color = Color::Black;
     }
 }
 
