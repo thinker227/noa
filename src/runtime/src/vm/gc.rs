@@ -20,13 +20,9 @@ pub struct Gc {
 /// The memory kept track of by a [Gc].
 #[derive(Debug)]
 struct Memory {
-    /// The root object of the memory. There's nothing special about this object,
-    /// it just happens to be the first one allocated.
-    root: *mut dyn Managed,
-
-    /// The latest object allocated by the GC. This object always has its [Obj::next] field set to [None]
-    /// because it's the last object in the chain of allocated objects.
-    current: *mut dyn Managed,
+    /// The head object of the memory.
+    /// This is the latest allocated object and the head of the chain of allocated object.
+    head: *mut dyn Managed,
 }
 
 /// An iterator over a [Memory].
@@ -49,10 +45,8 @@ pub struct Obj {
     /// The color the object is marked in.
     color: Color,
 
-    /// The next object in the chain of tracked objects.
-    /// 
-    /// This effectively forms a linked list of objects kept in memory.
-    next: Option<*mut dyn Managed>,
+    /// The previous object in the chain of tracked objects.
+    previous: Option<*mut dyn Managed>,
 }
 
 /// Trait for GC-managed types.
@@ -107,7 +101,9 @@ impl Gc {
     pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(Obj) -> T) -> GcRef {
         let header = Obj {
             color: Color::White,
-            next: None
+            previous: self.memory
+                .as_ref()
+                .map(|mem| mem.head)
         };
 
         let value = create(header);
@@ -128,15 +124,14 @@ impl Gc {
         match &mut self.memory {
             Some(mem) => {
                 // Memory has previously been allocated,
-                // so we just have to update the next pointer in the current object.
-                (*mem.current).obj().next = Some(obj);
+                // so we just have to update the head to the new object.
+                mem.head = obj;
             },
             None => {
                 // No memory has previously been allocated,
                 // so we have to set up the memory with the current object.
                 self.memory = Some(Memory {
-                    root: obj,
-                    current: obj
+                    head: obj
                 });
             }
         };
@@ -166,7 +161,7 @@ impl Gc {
             None => return,
         };
 
-        let mut previous: Option<*mut dyn Managed> = None;
+        let mut last: Option<*mut dyn Managed> = None;
 
         for obj in mem.iter() {
             let color = (*obj).obj().color;
@@ -176,17 +171,17 @@ impl Gc {
                 // so that the object is ready for the next collection.
                 (*obj).obj().color = Color::White;
 
-                previous = Some(obj);
+                last = Some(obj);
 
                 continue;
             }
 
             // The object is marked as white and is unreachable. Free it.
 
-            // If there is a previous object in the chain, we have to update
-            // its next pointer to the next object of the current object.
-            if let Some(prev) = previous {
-                (*prev).obj().next = (*obj).obj().next;
+            // If there is a last object in the chain, we have to update
+            // its previous pointer to the previous of the current object.
+            if let Some(prev) = last {
+                (*prev).obj().previous = (*obj).obj().previous;
             }
 
             free_obj(obj);
@@ -200,7 +195,7 @@ impl Memory {
     /// Creates an iterator over the memory.
     pub fn iter(&self) -> MemoryIterator {
         MemoryIterator {
-            next: Some(self.root)
+            next: Some(self.head)
         }
     }
 }
@@ -225,7 +220,7 @@ impl Iterator for MemoryIterator {
         };
 
         unsafe {
-            self.next = (*obj).obj().next;
+            self.next = (*obj).obj().previous;
         }
 
         Some(obj)
