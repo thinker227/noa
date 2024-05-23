@@ -9,25 +9,16 @@ use crate::runtime::value::Value;
 /// Once the [Gc] is dropped, all the objects it has allocated are freed.
 #[derive(Debug)]
 pub struct Gc {
-    /// The GC's memory. This is [None] if there is no memory allocated yet.
-    memory: Option<Memory>,
+    /// The head object of the tracked memory.
+    /// This is the latest allocated object and the head of the chain of allocated objects.
+    memory_head: Option<*mut dyn Managed>,
 
     /// The amount of allocated objects.
     /// This is not correlated to the amount of bytes allocated.
     allocated: usize,
 }
 
-/// The memory kept track of by a [Gc].
-#[derive(Debug)]
-struct Memory {
-    /// The head object of the memory.
-    /// This is the latest allocated object and the head of the chain of allocated object.
-    head: *mut dyn Managed,
-}
-
-/// An iterator over a [Memory].
 struct MemoryIterator {
-    /// The next value to iterate.
     next: Option<*mut dyn Managed>,
 }
 
@@ -82,8 +73,15 @@ impl Gc {
     /// Constructs a new [Gc].
     pub fn new() -> Self {
         Self {
-            memory: None,
+            memory_head: None,
             allocated: 0
+        }
+    }
+
+    /// Iterates the allocated objects in the memory of the [Gc].
+    pub(self) fn iter_memory(&self) -> MemoryIterator {
+        MemoryIterator {
+            next: self.memory_head
         }
     }
 
@@ -101,42 +99,21 @@ impl Gc {
     pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(Obj) -> T) -> GcRef {
         let header = Obj {
             color: Color::White,
-            previous: self.memory
-                .as_ref()
-                .map(|mem| mem.head)
+            previous: self.memory_head
         };
 
         let value = create(header);
 
-        unsafe {
-            let obj = allocate_obj(value);
-
-            self.attach_to_memory(obj);
-
-            GcRef {
-                ptr: obj
-            }
-        }
-    }
-
-    /// Attaches a pointer to a managed object to the GC's memory.
-    unsafe fn attach_to_memory(&mut self, obj: *mut dyn Managed) {
-        match &mut self.memory {
-            Some(mem) => {
-                // Memory has previously been allocated,
-                // so we just have to update the head to the new object.
-                mem.head = obj;
-            },
-            None => {
-                // No memory has previously been allocated,
-                // so we have to set up the memory with the current object.
-                self.memory = Some(Memory {
-                    head: obj
-                });
-            }
+        let obj = unsafe {
+            allocate_obj(value)
         };
 
+        self.memory_head = Some(obj);
         self.allocated += 1;
+
+        GcRef {
+            ptr: obj
+        }
     }
 
     /// Runs a collection and frees any unused allocated memory.
@@ -156,14 +133,9 @@ impl Gc {
     }
 
     unsafe fn sweep(&mut self) {
-        let mem = match &mut self.memory {
-            Some(mem) => mem,
-            None => return,
-        };
-
         let mut last: Option<*mut dyn Managed> = None;
 
-        for obj in mem.iter() {
+        for obj in self.iter_memory() {
             let color = (*obj).obj().color;
 
             if color != Color::White {
@@ -191,18 +163,9 @@ impl Gc {
     }
 }
 
-impl Memory {
-    /// Creates an iterator over the memory.
-    pub fn iter(&self) -> MemoryIterator {
-        MemoryIterator {
-            next: Some(self.head)
-        }
-    }
-}
-
-impl Drop for Memory {
+impl Drop for Gc {
     fn drop(&mut self) {
-        for obj in self.iter() {
+        for obj in self.iter_memory() {
             unsafe {
                 free_obj(obj);
             }
