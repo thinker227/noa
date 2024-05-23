@@ -32,7 +32,7 @@ enum Color {
 
 /// Contains data required by a [Gc] to track a managed object.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Obj {
+pub struct GcTracker {
     /// The color the object is marked in.
     color: Color,
 
@@ -42,8 +42,8 @@ pub struct Obj {
 
 /// Trait for GC-managed types.
 pub trait Managed {
-    /// Gets the [Obj] for this managed instance.
-    fn obj(&mut self) -> &mut Obj;
+    /// Gets the [GcTracker] for this managed instance.
+    fn tracker(&mut self) -> &mut GcTracker;
 }
 
 /// A reference to a [Gc]-managed object.
@@ -89,15 +89,15 @@ impl Gc {
     /// Memory will be allocated specifically for the type `T`.
     /// 
     /// This function takes another function which creates the managed object using
-    /// an [Obj] which is used to track the object within the [Gc].
-    /// This tracking object should be stored somewhere in the type `T` as it is
+    /// a [GcTracker] which is used to track the object within the [Gc].
+    /// This tracker should be stored somewhere in the type `T` as it is
     /// a unique marker for that specific instance of the managed object.
     /// 
     /// The returned [GcRef] has the same lifetime as the [Gc] which allocated it.
     /// It is *extremely* unsafe to dereference the [GcRef] after the [Gc] has been dropped
     /// and the allocated memory of the reference freed.
-    pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(Obj) -> T) -> GcRef {
-        let header = Obj {
+    pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef {
+        let header = GcTracker {
             color: Color::White,
             previous: self.memory_head
         };
@@ -136,12 +136,12 @@ impl Gc {
         let mut last: Option<*mut dyn Managed> = None;
 
         for obj in self.iter_memory() {
-            let color = (*obj).obj().color;
+            let color = (*obj).tracker().color;
 
             if color != Color::White {
                 // Revert the object back to being marked as white
                 // so that the object is ready for the next collection.
-                (*obj).obj().color = Color::White;
+                (*obj).tracker().color = Color::White;
 
                 last = Some(obj);
 
@@ -153,7 +153,7 @@ impl Gc {
             // If there is a last object in the chain, we have to update
             // its previous pointer to the previous of the current object.
             if let Some(prev) = last {
-                (*prev).obj().previous = (*obj).obj().previous;
+                (*prev).tracker().previous = (*obj).tracker().previous;
             }
 
             free_obj(obj);
@@ -183,7 +183,7 @@ impl Iterator for MemoryIterator {
         };
 
         unsafe {
-            self.next = (*obj).obj().previous;
+            self.next = (*obj).tracker().previous;
         }
 
         Some(obj)
