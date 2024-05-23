@@ -24,19 +24,11 @@ struct MemoryIterator {
     next: Option<*mut dyn Managed>,
 }
 
-/// The color of a visited object.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-enum Color {
-    White,
-    Gray,
-    Black,
-}
-
 /// Contains data required by a [Gc] to track a managed object.
 #[derive(Debug, PartialEq, Eq)]
 pub struct GcTracker {
-    /// The color the object is marked in.
-    color: Color,
+    /// Whether the object is marked as traced.
+    marked: bool,
 
     /// The previous object in the chain of tracked objects.
     previous: Option<*mut dyn Managed>,
@@ -122,7 +114,7 @@ impl Gc {
     /// and the allocated memory of the reference freed.
     pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef {
         let header = GcTracker {
-            color: Color::White,
+            marked: false,
             previous: self.memory_head
         };
 
@@ -171,12 +163,12 @@ impl Gc {
         let mut last: Option<*mut dyn Managed> = None;
 
         for obj in self.iter_memory() {
-            let color = (*obj).tracker().color;
+            let marked = &mut (*obj).tracker().marked;
 
-            if color != Color::White {
+            if *marked {
                 // Revert the object back to being marked as white
                 // so that the object is ready for the next collection.
-                (*obj).tracker().color = Color::White;
+                *marked = false;
 
                 last = Some(obj);
 
@@ -228,17 +220,15 @@ impl Iterator for MemoryIterator {
 impl Spy {
     /// Visits a reference to a managed object.
     pub fn visit(&self, reference: &mut GcRef) {
-        let tracker = reference.tracker();
+        let marked = &mut reference.tracker().marked;
         
-        if tracker.color != Color::White {
+        if *marked {
             return;
         }
 
-        tracker.color = Color::Gray;
+        *marked = true;
 
         reference.trace(&self);
-
-        reference.tracker().color = Color::Black;
     }
 }
 
