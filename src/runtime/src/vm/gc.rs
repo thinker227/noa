@@ -116,7 +116,7 @@ impl Gc {
         }
     }
 
-    /// Allocates a new object containing a managed value.
+    /// Allocates a new managed object on the heap.
     /// Memory will be allocated specifically for the type `T`.
     /// 
     /// This function takes another function which creates the managed object using
