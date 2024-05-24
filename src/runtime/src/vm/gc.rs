@@ -15,7 +15,18 @@ pub struct Gc {
 
     /// The amount of bytes currently allocated.
     allocated: usize,
+
+    /// The amount of bytes at which the next collection will be performed.
+    next_gc: usize,
 }
+
+// Just some constants Crafting Interpreters recommends, idk
+
+/// The grow factor by which the heap will grow after a collection.
+const HEAP_GROW_FACTOR: usize = 2;
+
+/// The initial size of the heap.
+const INITIAL_HEAP_SIZE: usize = 1024 * 1028;
 
 /// An iterator for the memory of a [Gc].
 struct MemoryIterator {
@@ -93,7 +104,8 @@ impl Gc {
     pub fn new() -> Self {
         Self {
             memory_head: None,
-            allocated: 0
+            allocated: 0,
+            next_gc: INITIAL_HEAP_SIZE
         }
     }
 
@@ -130,9 +142,30 @@ impl Gc {
         self.memory_head = Some(obj);
         self.allocated += bytes;
 
-        GcRef {
+        let gc_ref = GcRef {
             ptr: obj
+        };
+
+        gc_ref
+    }
+
+    /// Tries to run a collection depending on whether a collection is deemed necessary.
+    /// Call [Self::collect] to unconditionally force a collection.
+    /// 
+    /// Takes a mutable reference to an object which implements [Trace]
+    /// which acts as the source object to begin tracing from.
+    /// 
+    /// Returns whether a collection was performed.
+    pub fn try_collect(&mut self, source: &mut impl Trace) -> bool {
+        if self.allocated <= self.next_gc {
+            return false;
         }
+
+        self.collect(source);
+
+        self.next_gc = self.allocated * HEAP_GROW_FACTOR;
+
+        true
     }
 
     /// Runs a collection and frees any unused allocated memory.
