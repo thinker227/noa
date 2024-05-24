@@ -45,7 +45,6 @@ pub enum Value {
     /// A function.
     Function(FuncId),
     /// A managed object.
-    // Todo: use an actual object trait here.
     Object(GcRef<dyn object::Object>),
     /// NIL / `()`
     Nil,
