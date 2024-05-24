@@ -1,6 +1,8 @@
 #![allow(dead_code, unused_variables)]
 
-use std::{fs, io, path::Path};
+use std::{fs, io};
+use std::path::Path;
+use std::process::ExitCode;
 
 use clap::Parser;
 use cli::Args;
@@ -15,14 +17,14 @@ mod ark;
 mod runtime;
 mod vm;
 
-fn main() {
+fn main() -> ExitCode {
     let args = Args::parse();
 
     let ark_bytes = if let Some(path) = &args.bytecode_file_path {
         read_ark_from_file_path(path)
     } else {
         eprintln!(".ark file path was not provided");
-        std::process::exit(1);
+        return ExitCode::FAILURE;
     };
 
     match ark_bytes {
@@ -31,22 +33,25 @@ fn main() {
                 Ok(ark) => ark,
                 Err(_) => {
                     eprintln!("Error reading .ark file.");
-                    std::process::exit(1);
+                    return ExitCode::FAILURE;
                 }
             };
 
-            execute(ark, args.print_return_value);
+            let result = execute(ark, args.print_return_value);
+
+            result.map(|x| ExitCode::from(x as u8))
+                .unwrap_or(ExitCode::FAILURE)
         }
         Err(e) => match e {
             ArkReadError::IoError(e) => {
                 eprintln!("{e}");
-                std::process::exit(1);
+                ExitCode::FAILURE
             }
         }
     }
 }
 
-fn execute(ark: Ark, print_return_value: bool) -> () {
+fn execute(ark: Ark, print_return_value: bool) -> Result<i32, ()> {
     let mut vm = VM::new(ark, 2_000, 10_000);
 
     let result = vm.execute_main();
@@ -61,7 +66,7 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
                 println!("{ret_value}");
             }
 
-            std::process::exit(exit_code);
+            Ok(exit_code)
         },
         Err(e) => {
             eprintln!("An exception occurred!");
@@ -79,7 +84,7 @@ fn execute(ark: Ark, print_return_value: bool) -> () {
                 eprintln!("    at address 0x{0} in {1}", address, func_name);
             }
 
-            std::process::exit(1);
+            Err(())
         }
     }
 }
