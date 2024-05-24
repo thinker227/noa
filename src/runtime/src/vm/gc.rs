@@ -2,7 +2,6 @@ use std::ops::{Deref, DerefMut};
 use std::alloc::{self, Layout};
 
 use crate::runtime::value::object::{Object, ObjectMut};
-use crate::runtime::value::Value;
 
 /// A garbage collector which allocates and manages memory.
 /// 
@@ -65,7 +64,8 @@ pub struct Spy {
 pub trait Trace {
     /// Traces the references to other managed objects referenced by this object.
     /// 
-    /// The [Spy::visit] function should be called for each [GcRef] instance kept by this instance.
+    /// The [Spy::visit] function should be called for each [GcRef] instance kept by this object.
+    /// [Trace::trace] should continue being called for any objects which implement [Trace].
     fn trace(&mut self, spy: &Spy);
 }
 
@@ -141,29 +141,22 @@ impl Gc {
 
     /// Runs a collection and frees any unused allocated memory.
     /// 
-    /// Since all memory which can't be reached from the stack is by definition unreachable,
-    /// this function takes a reference to the stack of the VM to know what to collect.
-    /// 
-    /// Note: though this function takes a mutable reference to the stack,
-    /// it doesn't update the stack whatsoever.
-    pub fn collect(&mut self, stack: &mut Vec<Value>) {
-        Self::mark_objects(stack);
+    /// Takes a mutable reference to an object which implements [Trace]
+    /// which acts as the source object to begin tracing from.
+    pub fn collect(&mut self, source: &mut impl Trace) {
+        Self::mark_objects(source);
         
         unsafe {
             self.sweep();
         }
     }
 
-    fn mark_objects(values: &mut Vec<Value>) {
-        // There aren't any values yet which store pointers, so this doesn't do anything lmao.
-
+    fn mark_objects(source: &mut impl Trace) {
         let spy = Spy {
             x: ()
         };
 
-        for val in values {
-            val.trace(&spy);
-        }
+        source.trace(&spy);
     }
 
     unsafe fn sweep(&mut self) {
