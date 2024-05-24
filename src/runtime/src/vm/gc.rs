@@ -73,7 +73,7 @@ pub trait Trace {
 }
 
 /// A reference to a [Gc]-managed object.
-pub struct GcRef<T: Managed> {
+pub struct GcRef<T: Managed + ?Sized> {
     ptr: *mut T,
 }
 
@@ -248,7 +248,7 @@ impl Iterator for MemoryIterator {
 
 impl Spy {
     /// Visits a reference to a managed object.
-    pub fn visit<T: Managed>(&self, reference: &mut GcRef<T>) {
+    pub fn visit<T: Managed + ?Sized>(&self, reference: &mut GcRef<T>) {
         let marked = &mut reference.tracker().marked;
         
         if *marked {
@@ -261,7 +261,7 @@ impl Spy {
     }
 }
 
-impl<T: Managed> GcRef<T> {
+impl<T: Managed + ?Sized> GcRef<T> {
     /// Gets the backing pointer to the managed object.
     pub fn ptr(&self) -> *mut T {
         self.ptr
@@ -273,7 +273,7 @@ impl<T: Managed> GcRef<T> {
 // has been freed. In practice though, that should never happen,
 // and these are a nice quality of life regardless.
 
-impl<T: Managed> Deref for GcRef<T> {
+impl<T: Managed + ?Sized> Deref for GcRef<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -283,7 +283,7 @@ impl<T: Managed> Deref for GcRef<T> {
     }
 }
 
-impl<T: Managed> DerefMut for GcRef<T> {
+impl<T: Managed + ?Sized> DerefMut for GcRef<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
             &mut *self.ptr
@@ -295,7 +295,7 @@ impl<T: Managed> DerefMut for GcRef<T> {
 // bildly requires that all type parameters also implement the derived trait.
 // Since GcRef just contains a pointer, this isn't applicable.
 
-impl<T: Managed + Debug> Debug for GcRef<T> {
+impl<T: Managed + Debug + ?Sized> Debug for GcRef<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("GcRef")
             .field("address", &self.ptr)
@@ -304,15 +304,15 @@ impl<T: Managed + Debug> Debug for GcRef<T> {
     }
 }
 
-impl<T: Managed> PartialEq for GcRef<T> {
+impl<T: Managed + ?Sized> PartialEq for GcRef<T> {
     fn eq(&self, other: &Self) -> bool {
         self.ptr == other.ptr
     }
 }
 
-impl<T: Managed> Eq for GcRef<T> {}
+impl<T: Managed + ?Sized> Eq for GcRef<T> {}
 
-impl<T: Managed> Clone for GcRef<T> {
+impl<T: Managed + ?Sized> Clone for GcRef<T> {
     fn clone(&self) -> Self {
         Self {
             ptr: self.ptr
@@ -320,4 +320,4 @@ impl<T: Managed> Clone for GcRef<T> {
     }
 }
 
-impl<T: Managed> Copy for GcRef<T> {}
+impl<T: Managed + ?Sized> Copy for GcRef<T> {}
