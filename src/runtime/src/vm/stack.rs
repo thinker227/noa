@@ -1,5 +1,6 @@
 use crate::runtime::value::{FromValue, Value};
 use crate::runtime::exception::{CodeException, ExceptionData, VMException};
+use crate::vm::gc::Trace;
 
 #[derive(Debug)]
 pub struct Stack {
@@ -93,5 +94,13 @@ impl Stack {
         self.push(x.to_value())?;
 
         Ok(())
+    }
+}
+
+impl Trace for Stack {
+    fn trace(&mut self, spy: &super::gc::Spy) {
+        for x in &mut self.stack {
+            x.trace(spy);
+        }
     }
 }
