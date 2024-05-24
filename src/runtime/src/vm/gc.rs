@@ -13,8 +13,7 @@ pub struct Gc {
     /// This is the latest allocated object and the head of the chain of allocated objects.
     memory_head: Option<*mut dyn Managed>,
 
-    /// The amount of allocated objects.
-    /// This is not correlated to the amount of bytes allocated.
+    /// The amount of bytes currently allocated.
     allocated: usize,
 }
 
@@ -68,18 +67,25 @@ pub struct GcRef<T: Managed> {
 }
 
 /// Allocates a managed object in memory.
-unsafe fn allocate_obj<T: Managed + 'static>(value: T) -> *mut T {
+/// 
+/// Returns a tuple containing a pointer to the allocated memory,
+/// as well as the amount of bytes allocated,
+unsafe fn allocate_obj<T: Managed + 'static>(value: T) -> (*mut T, usize) {
     let layout = Layout::for_value(&value);
     let ptr = alloc::alloc(layout) as *mut T;
     *ptr = value;
 
-    ptr
+    (ptr, layout.size())
 }
 
 /// Frees a managed object from memory.
-unsafe fn free_obj(obj: *mut dyn Managed) {
+/// 
+/// Returns the amount of bytes freed.
+unsafe fn free_obj(obj: *mut dyn Managed) -> usize {
     let layout = Layout::for_value(&obj);
     alloc::dealloc(obj as *mut u8, layout);
+
+    layout.size()
 }
 
 impl Gc {
@@ -117,12 +123,12 @@ impl Gc {
 
         let value = create(tracker);
 
-        let obj = unsafe {
+        let (obj, bytes) = unsafe {
             allocate_obj(value)
         };
 
         self.memory_head = Some(obj);
-        self.allocated += 1;
+        self.allocated += bytes;
 
         GcRef {
             ptr: obj
@@ -173,9 +179,9 @@ impl Gc {
                 (*prev).tracker().previous = (*obj).tracker().previous;
             }
 
-            free_obj(obj);
+            let bytes = free_obj(obj);
 
-            self.allocated -= 1;
+            self.allocated -= bytes;
         }
     }
 }
