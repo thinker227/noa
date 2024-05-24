@@ -54,14 +54,14 @@ pub trait Managed: Trace {
     fn tracker(&mut self) -> &mut GcTracker;
 }
 
+
+// Note:
+// This is just a 0-sized object which one purpose is to contain the visit function.
+// The function is kept associated with this object instead of being a free function
+// to avoid the ability to use a spy to mark objects outside of tracing,
+// since this object also cannot be instantiated outside this module.
 /// An object which traces through managed objects for references.
-// Note: this is just a 0-sized object which one purpose is to contain the visit function.
-// The function is kept associated with this object instead of as a free function
-// to avoid the ability to mark objects outside of tracing.
-// The purpose of the x field is to make this object only able to be created in this module.
-pub struct Spy {
-    x: (),
-}
+pub struct Spy(());
 
 /// Trait for types which can be traced for GC-managed references.
 pub trait Trace {
@@ -181,9 +181,7 @@ impl Gc {
     }
 
     fn mark_objects(source: &mut impl Trace) {
-        let spy = Spy {
-            x: ()
-        };
+        let spy = Spy(());
 
         source.trace(&spy);
     }
@@ -314,9 +312,7 @@ impl<T: Managed + ?Sized> Eq for GcRef<T> {}
 
 impl<T: Managed + ?Sized> Clone for GcRef<T> {
     fn clone(&self) -> Self {
-        Self {
-            ptr: self.ptr
-        }
+        *self // copy
     }
 }
 
