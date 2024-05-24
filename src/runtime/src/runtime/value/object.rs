@@ -11,6 +11,7 @@ pub enum ObjectMut<'a> {
 }
 
 /// An object representing a string.
+#[derive(Debug)]
 pub struct StringObject {
     tracker: GcTracker,
     string: String,
@@ -23,13 +24,5 @@ impl Trace for StringObject {
 impl Managed for StringObject {
     fn tracker(&mut self) -> &mut GcTracker {
         &mut self.tracker
-    }
-
-    fn as_object(&self) -> Object {
-        Object::String(self)
-    }
-
-    fn as_object_mut(&mut self) -> ObjectMut {
-        ObjectMut::String(self)
     }
 }

@@ -1,7 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use std::alloc::{self, Layout};
-
-use crate::runtime::value::object::{Object, ObjectMut};
+use std::fmt::{Debug, Formatter, Result};
 
 /// A garbage collector which allocates and manages memory.
 /// 
@@ -43,12 +42,6 @@ pub struct GcTracker {
 pub trait Managed: Trace {
     /// Gets the [GcTracker] for this managed instance.
     fn tracker(&mut self) -> &mut GcTracker;
-
-    /// Gets the managed object as an [Object].
-    fn as_object(&self) -> Object;
-
-    /// Gets the managed object as an [ObjectMut].
-    fn as_object_mut(&mut self) -> ObjectMut;
 }
 
 /// An object which traces through managed objects for references.
@@ -70,15 +63,12 @@ pub trait Trace {
 }
 
 /// A reference to a [Gc]-managed object.
-/// 
-/// This is just a convenience wrapper around a `*mut dyn Managed`.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct GcRef {
-    ptr: *mut dyn Managed
+pub struct GcRef<T: Managed> {
+    ptr: *mut T
 }
 
 /// Allocates a managed object in memory.
-unsafe fn allocate_obj<T: Managed + 'static>(value: T) -> *mut dyn Managed {
+unsafe fn allocate_obj<T: Managed + 'static>(value: T) -> *mut T {
     let layout = Layout::for_value(&value);
     let ptr = alloc::alloc(layout) as *mut T;
     *ptr = value;
@@ -119,7 +109,7 @@ impl Gc {
     /// The returned [GcRef] has the same lifetime as the [Gc] which allocated it.
     /// It is *extremely* unsafe to dereference the [GcRef] after the [Gc] has been dropped
     /// and the allocated memory of the reference freed.
-    pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef {
+    pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef<T> {
         let header = GcTracker {
             marked: false,
             previous: self.memory_head
@@ -219,7 +209,7 @@ impl Iterator for MemoryIterator {
 
 impl Spy {
     /// Visits a reference to a managed object.
-    pub fn visit(&self, reference: &mut GcRef) {
+    pub fn visit<T: Managed>(&self, reference: &mut GcRef<T>) {
         let marked = &mut reference.tracker().marked;
         
         if *marked {
@@ -234,10 +224,11 @@ impl Spy {
 
 // Note:
 // These are *extremely* unsafe if they're used after a reference
-// has been freed. Still they're nice for quality of life.
+// has been freed. In practice though, that should never happen,
+// and these are a nice quality of life regardless.
 
-impl Deref for GcRef {
-    type Target = dyn Managed;
+impl<T: Managed> Deref for GcRef<T> {
+    type Target = T;
 
     fn deref(&self) -> &Self::Target {
         unsafe {
@@ -246,10 +237,41 @@ impl Deref for GcRef {
     }
 }
 
-impl DerefMut for GcRef {
+impl<T: Managed> DerefMut for GcRef<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
             &mut *self.ptr
         }
     }
 }
+
+// Have to implement these manually because the derive macro
+// bildly requires that all type parameters also implement the derived trait.
+// Since GcRef just contains a pointer, this isn't applicable.
+
+impl<T: Managed + Debug> Debug for GcRef<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.debug_struct("GcRef")
+            .field("address", &self.ptr)
+            .field("value", &*self)
+            .finish()
+    }
+}
+
+impl<T: Managed> PartialEq for GcRef<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.ptr == other.ptr
+    }
+}
+
+impl<T: Managed> Eq for GcRef<T> {}
+
+impl<T: Managed> Clone for GcRef<T> {
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr
+        }
+    }
+}
+
+impl<T: Managed> Copy for GcRef<T> {}
