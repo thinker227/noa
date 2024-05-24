@@ -222,6 +222,13 @@ impl Spy {
     }
 }
 
+impl<T: Managed> GcRef<T> {
+    /// Gets the backing pointer to the managed object.
+    pub fn ptr(&self) -> *mut T {
+        self.ptr
+    }
+}
+
 // Note:
 // These are *extremely* unsafe if they're used after a reference
 // has been freed. In practice though, that should never happen,
