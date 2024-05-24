@@ -2,7 +2,7 @@
 
 use std::{fs, io};
 use std::path::Path;
-use std::process::ExitCode;
+use std::process::{ExitCode, Termination};
 
 use clap::Parser;
 use cli::Args;
@@ -17,14 +17,13 @@ mod ark;
 mod runtime;
 mod vm;
 
-fn main() -> ExitCode {
+fn main() -> Exit {
     let args = Args::parse();
 
     let ark_bytes = if let Some(path) = &args.bytecode_file_path {
         read_ark_from_file_path(path)
     } else {
-        eprintln!(".ark file path was not provided");
-        return ExitCode::FAILURE;
+        return Exit::Failure(".ark file path was not provided".into());
     };
 
     match ark_bytes {
@@ -32,20 +31,20 @@ fn main() -> ExitCode {
             let ark = match Ark::from_bytes(ark_bytes.as_slice()) {
                 Ok(ark) => ark,
                 Err(_) => {
-                    eprintln!("Error reading .ark file.");
-                    return ExitCode::FAILURE;
+                    return Exit::Failure("Error reading .ark file.".into());
                 }
             };
 
             let result = execute(ark, args.print_return_value);
 
-            result.map(|x| ExitCode::from(x as u8))
-                .unwrap_or(ExitCode::FAILURE)
+            match result {
+                Ok(exit_code) => Exit::Code(exit_code as u8),
+                Err(_) => Exit::QuietFailure,
+            }
         }
         Err(e) => match e {
             ArkReadError::IoError(e) => {
-                eprintln!("{e}");
-                ExitCode::FAILURE
+                Exit::Failure(e.to_string())
             }
         }
     }
@@ -96,4 +95,25 @@ enum ArkReadError {
 
 fn read_ark_from_file_path(path: &Path) -> Result<Vec<u8>, ArkReadError> {
     fs::read(path).map_err(|e| ArkReadError::IoError(e))
+}
+
+enum Exit {
+    Success,
+    Failure(String),
+    QuietFailure,
+    Code(u8),
+}
+
+impl Termination for Exit {
+    fn report(self) -> ExitCode {
+        match self {
+            Self::Success => ExitCode::SUCCESS,
+            Self::Failure(s) => {
+                eprintln!("{s}");
+                ExitCode::FAILURE
+            }
+            Self::QuietFailure => ExitCode::FAILURE,
+            Self::Code(x) => ExitCode::from(x),
+        }
+    }
 }
