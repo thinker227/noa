@@ -1,6 +1,7 @@
 #![allow(dead_code, unused_variables)]
 
 use std::{fs, io};
+use std::fmt::Write as _;
 use std::path::Path;
 use std::process::{ExitCode, Termination};
 
@@ -9,7 +10,7 @@ use cli::Args;
 
 use ark::Ark;
 use vm::VM;
-use runtime::exception::StackTraceAddress;
+use runtime::exception::{Exception, StackTraceAddress};
 
 mod cli;
 mod utility;
@@ -39,7 +40,7 @@ fn main() -> Exit {
 
             match result {
                 Ok(exit_code) => Exit::Code(exit_code as u8),
-                Err(_) => Exit::QuietFailure,
+                Err(message) => Exit::Failure(message),
             }
         }
         Err(e) => match e {
@@ -50,7 +51,7 @@ fn main() -> Exit {
     }
 }
 
-fn execute(ark: Ark, print_return_value: bool) -> Result<i32, ()> {
+fn execute(ark: Ark, print_return_value: bool) -> Result<i32, String> {
     let mut vm = VM::new(ark, 2_000, 10_000);
 
     let result = vm.execute_main();
@@ -68,24 +69,32 @@ fn execute(ark: Ark, print_return_value: bool) -> Result<i32, ()> {
             Ok(exit_code)
         },
         Err(e) => {
-            eprintln!("An exception occurred!");
-            eprintln!("  {}", e.data().to_string());
-            eprintln!();
-            eprintln!("  Stack trace:");
-            for f in e.stack_trace() {
-                let function = vm.functions().get(&f.function).unwrap();
-                let func_name = vm.get_string(function.name_index()).unwrap();
-                let address = match f.address {
-                    StackTraceAddress::Explicit(x) => format!("{x:x}"),
-                    StackTraceAddress::Implicit => "<runtime code>".into(),
-                };
-
-                eprintln!("    at address 0x{0} in {1}", address, func_name);
-            }
-
-            Err(())
+            // I don't think formatting an exception can ever fail.
+            let formatted = format_exception(&e, &vm).unwrap();
+            Err(formatted)
         }
     }
+}
+
+fn format_exception(e: &Exception, vm: &VM) -> Result<String, std::fmt::Error> {
+    let mut str = String::new();
+
+    writeln!(&mut str, "An exception occurred!")?;
+    writeln!(&mut str, "  {}", e.data().to_string())?;
+    writeln!(&mut str, "")?;
+    writeln!(&mut str, "  Stack trace:")?;
+    for f in e.stack_trace() {
+        let function = vm.functions().get(&f.function).unwrap();
+        let func_name = vm.get_string(function.name_index()).unwrap();
+        let address = match f.address {
+            StackTraceAddress::Explicit(x) => format!("{x:x}"),
+            StackTraceAddress::Implicit => "<runtime code>".into(),
+        };
+
+        writeln!(&mut str, "    at address 0x{0} in {1}", address, func_name)?;
+    }
+
+    Ok(str)
 }
 
 #[derive(Debug)]
