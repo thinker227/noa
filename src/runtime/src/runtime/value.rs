@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::vm::gc::{GcRef, Spy, Trace};
 use crate::ark::opcode::FuncId;
 use coercion::CoercionError;
+use object::{Object, ObjectRef};
 
 pub mod coercion;
 pub mod object;
@@ -45,7 +46,7 @@ pub enum Value {
     /// A function.
     Function(FuncId),
     /// A managed object.
-    Object(GcRef<dyn object::Object>),
+    Object(GcRef<dyn Object>),
     /// NIL / `()`
     Nil,
 }
@@ -57,7 +58,9 @@ impl Value {
             Value::Number(_) => Type::Number,
             Value::Bool(_) => Type::Bool,
             Value::Function(_) => Type::Function,
-            Value::Object(obj) => todo!(),
+            Value::Object(obj) => match obj.get_ref() {
+                ObjectRef::String(_) => Type::String,
+            },
             Value::Nil => Type::Nil,
         }
     }
