@@ -1,14 +1,12 @@
+use std::fmt::Debug;
 use crate::vm::gc::{GcTracker, Managed, Spy, Trace};
 
-/// An enum which contains a reference to a variant of a managed object.
-pub enum Object<'a> {
-    String(&'a StringObject),
+/// Trait for heap-allocated objects representing values.
+pub trait Object: Managed + Debug {
+    // todo
 }
 
-/// An enum which contains a mutable reference to a variant of a managed object.
-pub enum ObjectMut<'a> {
-    String(&'a mut StringObject),
-}
+// wip
 
 /// An object representing a string.
 #[derive(Debug)]
@@ -26,3 +24,5 @@ impl Managed for StringObject {
         &mut self.tracker
     }
 }
+
+impl Object for StringObject {}

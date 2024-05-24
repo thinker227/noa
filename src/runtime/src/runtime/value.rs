@@ -46,7 +46,7 @@ pub enum Value {
     Function(FuncId),
     /// A managed object.
     // Todo: use an actual object trait here.
-    Object(GcRef<object::StringObject>),
+    Object(GcRef<dyn object::Object>),
     /// NIL / `()`
     Nil,
 }
@@ -145,7 +145,7 @@ impl Display for Value {
 impl Trace for Value {
     fn trace(&mut self, spy: &Spy) {
         match self {
-            Self::Object(r) => spy.visit(r),
+            Self::Object(obj) => spy.visit(obj),
             _ => {},
         }
     }
