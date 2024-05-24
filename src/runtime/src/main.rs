@@ -107,22 +107,18 @@ fn read_ark_from_file_path(path: &Path) -> Result<Vec<u8>, ArkReadError> {
 }
 
 enum Exit {
-    Success,
-    Failure(String),
-    QuietFailure,
     Code(u8),
+    Failure(String),
 }
 
 impl Termination for Exit {
     fn report(self) -> ExitCode {
         match self {
-            Self::Success => ExitCode::SUCCESS,
+            Self::Code(x) => ExitCode::from(x),
             Self::Failure(s) => {
                 eprintln!("{s}");
                 ExitCode::FAILURE
             }
-            Self::QuietFailure => ExitCode::FAILURE,
-            Self::Code(x) => ExitCode::from(x),
         }
     }
 }
