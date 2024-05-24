@@ -50,7 +50,7 @@ pub trait Managed: Trace {
 // to avoid the ability to mark objects outside of tracing.
 // The purpose of the x field is to make this object only able to be created in this module.
 pub struct Spy {
-    pub(self) x: ()
+    x: (),
 }
 
 /// Trait for types which can be traced for GC-managed references.
@@ -64,7 +64,7 @@ pub trait Trace {
 
 /// A reference to a [Gc]-managed object.
 pub struct GcRef<T: Managed> {
-    ptr: *mut T
+    ptr: *mut T,
 }
 
 /// Allocates a managed object in memory.
@@ -110,12 +110,12 @@ impl Gc {
     /// It is *extremely* unsafe to dereference the [GcRef] after the [Gc] has been dropped
     /// and the allocated memory of the reference freed.
     pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef<T> {
-        let header = GcTracker {
+        let tracker = GcTracker {
             marked: false,
             previous: self.memory_head
         };
 
-        let value = create(header);
+        let value = create(tracker);
 
         let obj = unsafe {
             allocate_obj(value)
