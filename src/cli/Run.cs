@@ -10,7 +10,7 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
     [Command("run", Description = "Compiles and runs a source file")]
     public int Execute(
         [Argument("input-file", Description = "The file to run")] string inputFilePath,
-        [Option("output-file", ['o'], Description = "The output Ark file", ValueName = "path")] string? outputFilePath,
+        [Option("output-file", ['o'], Description = "The output .ark file", ValueName = "path")] string? outputFilePath,
         [Option("runtime", Description = "The path to the runtime executable", ValueName = "path")] string? runtimePath,
         [Option("print-ret", Description = "Prints the return value from the main function")] bool printReturnValue,
         [Option("time", Description = "Prints the execution time of the program")] bool doTime)
@@ -52,6 +52,20 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
             ast.Emit(stream);
         }
 
+        var result = ExecuteArk(runtimePath, outputFilePath, printReturnValue);
+        if (result is not var (time, exitCode)) return 1;
+
+        if (doTime)
+        {
+            var duration = DisplayDuration(time);
+            console.MarkupLine($"{Emoji.Known.Stopwatch}  Execution took [aqua]{duration}[/]");
+        }
+
+        return exitCode;
+    }
+
+    private (TimeSpan, int)? ExecuteArk(string? runtimePath, string arkFilePath, bool printReturnValue)
+    {
         if (runtimePath is null)
         {
             const string runtimePathEnvVar = "NOA_RUNTIME";
@@ -61,17 +75,17 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
                 console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The environment variable [/][aqua]{runtimePathEnvVar}[/] [red]is not set.[/]");
                 console.MarkupLine("[gray]Make sure the variable is set for the process and contains the path to the runtime executable, " +
                                    "or specify the [/][white]--runtime[/][gray] option with the path.[/]");
-                return 1;
+                return null;
             }
         }
 
         if (!File.Exists(runtimePath))
         {
             console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The specified runtime executable path [/][aqua]{runtimePath}[/][red] does not exist.[/]");
-            return 1;
+            return null;
         }
 
-        var runtimeArgs = new List<string> { $"-f {outputFilePath}" };
+        var runtimeArgs = new List<string> { $"-f {arkFilePath}" };
         if (printReturnValue) runtimeArgs.Add("--print-ret");
 
         var process = new Process()
@@ -85,6 +99,8 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
             }
         };
 
+        GC.Collect();
+        
         var timer = new Stopwatch();
         timer.Start();
         
@@ -94,12 +110,6 @@ public sealed class Run(IAnsiConsole console, CancellationToken ct) : CommandBas
         timer.Stop();
         var time = timer.Elapsed;
 
-        if (doTime)
-        {
-            var duration = DisplayDuration(time);
-            console.MarkupLine($"{Emoji.Known.Stopwatch}  Execution took [aqua]{duration}[/]");
-        }
-
-        return process.ExitCode;
+        return (time, process.ExitCode);
     }
 }
