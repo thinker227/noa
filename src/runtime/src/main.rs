@@ -91,7 +91,7 @@ fn format_exception(e: &Exception, vm: &VM) -> Result<String, std::fmt::Error> {
             StackTraceAddress::Implicit => "<runtime code>".into(),
         };
 
-        writeln!(&mut str, "    at address 0x{0} in {1}", address, func_name)?;
+        writeln!(&mut str, "    at address 0x{0} (in {1})", address, func_name)?;
     }
 
     Ok(str)
