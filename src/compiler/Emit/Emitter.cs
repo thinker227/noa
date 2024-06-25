@@ -24,19 +24,21 @@ internal static class Emitter
             })
             .Where(x => x is not null);
         
-        var functions = new Dictionary<IFunction, FunctionBuilder>();
+        var functionBuilders = new Dictionary<IFunction, FunctionBuilder>()
+        {
+            [ast.TopLevelFunction] = main
+        };
         foreach (var function in functionsForEmission)
         {
             var name = function!.GetFullName();
             var arity = (uint)function!.Parameters.Count;
             var builder = functionsBuilder.CreateFunction(strings.GetOrAdd(name), arity);
-            functions.Add(function!, builder);
+            functionBuilders.Add(function, builder);
         }
-        functions.Add(ast.TopLevelFunction, main);
 
-        foreach (var function in functions.Keys)
+        foreach (var function in functionBuilders.Keys)
         {
-            FunctionBodyEmitter.Emit(function, functions, strings);
+            FunctionBodyEmitter.Emit(function, functionBuilders, strings);
         }
 
         var ark = new Ark(functionsBuilder, strings);
