@@ -8,7 +8,7 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
 {
     private readonly IFunction function;
     private readonly FunctionBuilder builder;
-    private readonly IReadOnlyDictionary<IFunction, FunctionBuilder> builders;
+    private readonly IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders;
     private readonly StringSectionBuilder strings;
 
     private CodeBuilder Code => builder.Code;
@@ -18,23 +18,23 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     private FunctionBodyEmitter(
         IFunction function,
         FunctionBuilder builder,
-        IReadOnlyDictionary<IFunction, FunctionBuilder> builders,
+        IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
         StringSectionBuilder strings)
     {
         this.function = function;
         this.builder = builder;
-        this.builders = builders;
+        this.functionBuilders = functionBuilders;
         this.strings = strings;
     }
 
     public static void Emit(
         IFunction function,
-        IReadOnlyDictionary<IFunction, FunctionBuilder> builders,
+        IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
         StringSectionBuilder strings)
     {
-        var builder = builders[function];
+        var builder = functionBuilders[function];
         
-        var emitter = new FunctionBodyEmitter(function, builder, builders, strings);
+        var emitter = new FunctionBodyEmitter(function, builder, functionBuilders, strings);
         
         emitter.Visit(function.Body);
         emitter.Code.Ret();
@@ -204,7 +204,7 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
 
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
-        var lambdaFunctionId = builders[node.Function.Value].Id;
+        var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
         Code.PushFunc(lambdaFunctionId);
 
         return default;
@@ -215,7 +215,7 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         switch (node.ReferencedSymbol.Value)
         {
         case NomialFunction func:
-            var funcId = builders[func].Id;
+            var funcId = functionBuilders[func].Id;
             Code.PushFunc(funcId);
             break;
 
