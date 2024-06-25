@@ -4,42 +4,12 @@ using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.Emit;
 
-internal sealed class FunctionBodyEmitter : Visitor<int>
+internal class BlockEmitter(
+    IFunction function,
+    IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
+    StringSectionBuilder strings)
+    : FunctionEmitter(function, functionBuilders, strings)
 {
-    private readonly IFunction function;
-    private readonly FunctionBuilder builder;
-    private readonly IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders;
-    private readonly StringSectionBuilder strings;
-
-    private CodeBuilder Code => builder.Code;
-
-    private LocalsInator Locals => builder.Locals;
-
-    private FunctionBodyEmitter(
-        IFunction function,
-        FunctionBuilder builder,
-        IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
-        StringSectionBuilder strings)
-    {
-        this.function = function;
-        this.builder = builder;
-        this.functionBuilders = functionBuilders;
-        this.strings = strings;
-    }
-
-    public static void Emit(
-        IFunction function,
-        IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
-        StringSectionBuilder strings)
-    {
-        var builder = functionBuilders[function];
-        
-        var emitter = new FunctionBodyEmitter(function, builder, functionBuilders, strings);
-        
-        emitter.Visit(function.Body);
-        emitter.Code.Ret();
-    }
-
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
 
     protected override int VisitExpressionStatement(ExpressionStatement node)

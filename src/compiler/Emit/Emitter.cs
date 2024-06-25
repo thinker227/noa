@@ -38,7 +38,7 @@ internal static class Emitter
 
         foreach (var function in functionBuilders.Keys)
         {
-            FunctionBodyEmitter.Emit(function, functionBuilders, strings);
+            FunctionEmitter.EmitFunction(function, functionBuilders, strings);
         }
 
         var ark = new Ark(functionsBuilder, strings);
