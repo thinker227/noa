@@ -10,12 +10,17 @@ internal class BlockEmitter(
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {
+    private int stackSize = 0;
+    
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
 
     protected override int VisitExpressionStatement(ExpressionStatement node)
     {
         Visit(node.Expression);
+        
+        // Discard the evaluated value.
         Code.Pop();
+        stackSize--;
 
         return default;
     }
@@ -24,10 +29,15 @@ internal class BlockEmitter(
 
     protected override int VisitBlockExpression(BlockExpression node)
     {
-        Visit(node.Statements);
+        var emitter = new BlockEmitter(function, functionBuilders, strings);
+        
+        emitter.Visit(node.Statements);
 
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) emitter.Visit(node.TrailingExpression);
         else Code.PushNil();
+        
+        // Evaluating the block will always push one value onto the stack.
+        stackSize++;
 
         return default;
     }
@@ -40,7 +50,9 @@ internal class BlockEmitter(
         var target = (IdentifierExpression)node.Target;
 
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
+        
         Code.StoreVar(varIndex);
+        stackSize -= 1;
         
         return default;
     }
@@ -67,6 +79,8 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
+        
+        // The cumulative effect of evaluating any unary expression is the stack remaining the same size.
         
         return default;
     }
@@ -125,12 +139,16 @@ internal class BlockEmitter(
         default: throw new UnreachableException();
         }
         
+        // The cumulative effect of evaluating any binary expression is the stack decreasing by one.
+        stackSize -= 1;
+        
         return default;
     }
 
     protected override int VisitNumberExpression(NumberExpression node)
     {
         Code.PushInt(node.Value);
+        stackSize += 1;
 
         return default;
     }
@@ -138,6 +156,7 @@ internal class BlockEmitter(
     protected override int VisitBoolExpression(BoolExpression node)
     {
         Code.PushBool(node.Value);
+        stackSize += 1;
 
         return default;
     }
@@ -146,17 +165,22 @@ internal class BlockEmitter(
 
     protected override int VisitIfExpression(IfExpression node)
     {
+        var emitter = new BlockEmitter(function, functionBuilders, strings);
+        
         Visit(node.Condition);
 
         var jumpToTrue = Code.JumpIf();
 
-        Visit(node.IfFalse);
+        emitter.Visit(node.IfFalse);
         var jumpToEnd = Code.Jump();
         
         jumpToTrue.SetAddress(Code.AddressOffset);
-        Visit(node.IfTrue);
+        emitter.Visit(node.IfTrue);
         
         jumpToEnd.SetAddress(Code.AddressOffset);
+        
+        // The cumulative effect of evaluating an if expression is the stack remaining the same size
+        // (pop 1 for the conditional jump, push 1 for the evaluated value).
 
         return default;
     }
@@ -168,6 +192,9 @@ internal class BlockEmitter(
         Visit(node.Arguments);
         
         Code.Call((uint)node.Arguments.Length);
+        
+        // The arguments are popped off the stack, as well as the function itself.
+        stackSize -= node.Arguments.Length + 1;
 
         return default;
     }
@@ -175,7 +202,9 @@ internal class BlockEmitter(
     protected override int VisitLambdaExpression(LambdaExpression node)
     {
         var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
+        
         Code.PushFunc(lambdaFunctionId);
+        stackSize += 1;
 
         return default;
     }
@@ -186,14 +215,23 @@ internal class BlockEmitter(
         {
         case NomialFunction func:
             var funcId = functionBuilders[func].Id;
+            
             Code.PushFunc(funcId);
+            
             break;
 
         case IVariableSymbol var:
             var varIndex = Locals.GetOrCreateVariable(var);
+            
             Code.LoadVar(varIndex);
+            
             break;
+        
+        default: throw new UnreachableException();
         }
+        
+        // Stack increases by 1 regardless of whether a function or variable is pushed onto the stack.
+        stackSize += 1;
 
         return default;
     }
@@ -201,9 +239,14 @@ internal class BlockEmitter(
     protected override int VisitReturnExpression(ReturnExpression node)
     {
         if (node.Expression is not null) Visit(node.Expression);
-        else Code.PushNil();
+        else
+        {
+            Code.PushNil();
+            stackSize += 1;
+        }
 
         Code.Ret();
+        stackSize -= 1;
 
         return default;
     }
@@ -213,7 +256,9 @@ internal class BlockEmitter(
         Visit(node.Expression);
 
         var var = Locals.GetOrCreateVariable(node.Symbol.Value);
+        
         Code.StoreVar(var);
+        stackSize -= 1;
         
         return default;
     }
