@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
+using SuperLinq;
 
 namespace Noa.Compiler.Symbols;
 
@@ -78,13 +79,14 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
             func.Symbol = functionSymbol;
 
-            foreach (var param in func.Parameters)
+            foreach (var (index, param) in func.Parameters.Index())
             {
                 var parameterSymbol = new ParameterSymbol()
                 {
                     Name = param.Identifier.Name,
                     Declaration = param,
-                    Function = functionSymbol
+                    Function = functionSymbol,
+                    ParameterIndex = index
                 };
 
                 param.Symbol = parameterSymbol;
@@ -241,13 +243,14 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
         functionStack.Push(function);
         
-        foreach (var param in node.Parameters)
+        foreach (var (index, param) in node.Parameters.Index())
         {
             var symbol = new ParameterSymbol()
             {
                 Name = param.Identifier.Name,
                 Declaration = param,
-                Function = function
+                Function = function,
+                ParameterIndex = index
             };
 
             param.Symbol = symbol;
