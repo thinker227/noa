@@ -1,3 +1,5 @@
+using Noa.Compiler.Symbols;
+
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
@@ -8,6 +10,7 @@ internal sealed class LocalsInator(uint parameterCount)
 {
     private readonly uint parameterCount = parameterCount;
     private readonly Stack<uint> temporaries = [];
+    private readonly Dictionary<IVariableSymbol, VariableIndex> indices = [];
     private uint currentIndex = parameterCount;
 
     /// <summary>
@@ -37,17 +40,27 @@ internal sealed class LocalsInator(uint parameterCount)
         return new(new(index), () => temporaries.Push(index));
     }
 
-    /// <summary>
-    /// Creates a new variable.
-    /// </summary>
-    public VariableIndex CreateVariable() => new(currentIndex++);
+    private VariableIndex CreateVariable() => new(currentIndex++);
 
     /// <summary>
-    /// Gets the variable for a parameter.
+    /// Gets or creates a new variable index for a variable.
     /// </summary>
-    /// <param name="parameterIndex">The index of the parameter to get the variable for.</param>
-    /// <returns></returns>
-    public VariableIndex GetParameterVariable(int parameterIndex) => new((uint)parameterIndex);
+    /// <remarks>
+    /// Uses the <see cref="ParameterSymbol.ParameterIndex"/> for parameter symbols.
+    /// </remarks>
+    /// <param name="variable">The variable to get the index for.</param>
+    public VariableIndex GetOrCreateVariable(IVariableSymbol variable)
+    {
+        if (variable is ParameterSymbol parameter) return new((uint)parameter.ParameterIndex);
+
+        if (variable is not VariableSymbol) throw new UnreachableException();
+
+        if (indices.TryGetValue(variable, out var index)) return index;
+        
+        index = CreateVariable();
+        indices.Add(variable, index);
+        return index;
+    }
 }
 
 /// <summary>

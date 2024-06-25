@@ -1,7 +1,6 @@
 using Noa.Compiler.Bytecode.Builders;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
-using SuperLinq;
 
 namespace Noa.Compiler.Emit;
 
@@ -11,7 +10,6 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     private readonly FunctionBuilder builder;
     private readonly IReadOnlyDictionary<IFunction, FunctionBuilder> builders;
     private readonly StringSectionBuilder strings;
-    private readonly IReadOnlyDictionary<IVariableSymbol, VariableIndex> variableIndices;
 
     private CodeBuilder Code => builder.Code;
 
@@ -21,14 +19,12 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         IFunction function,
         FunctionBuilder builder,
         IReadOnlyDictionary<IFunction, FunctionBuilder> builders,
-        StringSectionBuilder strings,
-        IReadOnlyDictionary<IVariableSymbol, VariableIndex> variableIndices)
+        StringSectionBuilder strings)
     {
         this.function = function;
         this.builder = builder;
         this.builders = builders;
         this.strings = strings;
-        this.variableIndices = variableIndices;
     }
 
     public static void Emit(
@@ -37,32 +33,11 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         StringSectionBuilder strings)
     {
         var builder = builders[function];
-
-        var variableIndices = CreateVariables(function, builder);
         
-        var emitter = new FunctionBodyEmitter(function, builder, builders, strings, variableIndices);
+        var emitter = new FunctionBodyEmitter(function, builder, builders, strings);
         
         emitter.Visit(function.Body);
         emitter.Code.Ret();
-    }
-
-    private static IReadOnlyDictionary<IVariableSymbol, VariableIndex> CreateVariables(
-        IFunction function,
-        FunctionBuilder builder)
-    {
-        var variableIndices = new Dictionary<IVariableSymbol, VariableIndex>();
-        
-        foreach (var (paramIndex, param) in function.Parameters.Index())
-        {
-            variableIndices[param] = builder.Locals.GetParameterVariable(paramIndex);
-        }
-
-        foreach (var variable in function.GetLocals())
-        {
-            variableIndices[variable] = builder.Locals.CreateVariable();
-        }
-
-        return variableIndices;
     }
 
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
@@ -94,8 +69,8 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
         // TODO: refactor this to allow targets other than identifiers
         var target = (IdentifierExpression)node.Target;
 
-        var var = variableIndices[(IVariableSymbol)target.ReferencedSymbol.Value];
-        Code.StoreVar(var);
+        var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
+        Code.StoreVar(varIndex);
         
         return default;
     }
@@ -245,8 +220,8 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
             break;
 
         case IVariableSymbol var:
-            var index = variableIndices[var];
-            Code.LoadVar(index);
+            var varIndex = Locals.GetOrCreateVariable(var);
+            Code.LoadVar(varIndex);
             break;
         }
 
@@ -267,7 +242,7 @@ internal sealed class FunctionBodyEmitter : Visitor<int>
     {
         Visit(node.Expression);
 
-        var var = variableIndices[node.Symbol.Value];
+        var var = Locals.GetOrCreateVariable(node.Symbol.Value);
         Code.StoreVar(var);
         
         return default;
