@@ -90,6 +90,11 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     public required IFunction Function { get; init; }
     
     /// <summary>
+    /// The index of the parameter in its function.
+    /// </summary>
+    public required int ParameterIndex { get; init; }
+    
+    /// <summary>
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
