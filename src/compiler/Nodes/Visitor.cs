@@ -23,18 +23,24 @@ public abstract class Visitor<T>
     /// Visits a collection of nodes.
     /// </summary>
     /// <param name="nodes">The nodes to visit.</param>
-    /// <returns>The results of visiting the nodes.</returns>
-    public ImmutableArray<T> Visit(IEnumerable<Node> nodes)
+    /// <param name="useReturn">Specifies whether the method should return the results of visiting the nodes.</param>
+    /// <returns>
+    /// Either the results of visiting the nodes if <paramref name="useReturn"/> is true,
+    /// otherwise returns <see cref="ImmutableArray{T}.Empty"/>.
+    /// </returns>
+    public ImmutableArray<T> Visit(IEnumerable<Node> nodes, bool useReturn = false)
     {
-        var builder = ImmutableArray.CreateBuilder<T>();
+        var builder = useReturn
+            ? ImmutableArray.CreateBuilder<T>()
+            : null;
 
         foreach (var node in nodes)
         {
             var x = Visit(node);
-            builder.Add(x);
+            builder?.Add(x);
         }
 
-        return builder.ToImmutable();
+        return builder?.ToImmutable() ?? ImmutableArray<T>.Empty;
     }
     
     /// <summary>
