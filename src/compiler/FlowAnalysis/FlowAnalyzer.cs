@@ -28,8 +28,10 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 {
     private readonly Stack<IFunction> functions = [];
     private readonly Stack<LoopExpression?> loops = [];
-
+    
     public List<IDiagnostic> Diagnostics { get; } = [];
+    
+    protected override int GetDefault(Node? node) => default;
 
     protected override void BeforeVisit(Node node) =>
         cancellationToken.ThrowIfCancellationRequested();
