@@ -11,7 +11,14 @@ public abstract class Visitor<T>
     /// </summary>
     /// <param name="node">The node being visited.</param>
     protected virtual void BeforeVisit(Node node) {}
-
+    
+    /// <summary>
+    /// Called after visiting each node.
+    /// </summary>
+    /// <param name="node">The node being visited.</param>
+    /// <param name="result">The result of visiting the node.</param>
+    protected virtual void AfterVisit(Node node, T result) {}
+    
     /// <summary>
     /// Visits a collection of nodes.
     /// </summary>
@@ -41,7 +48,7 @@ public abstract class Visitor<T>
         
         BeforeVisit(node);
 
-        return node switch
+        var result = node switch
         {
             Root x => VisitRoot(x),
             Identifier x => VisitIdentifier(x),
@@ -50,6 +57,10 @@ public abstract class Visitor<T>
             Expression x => VisitExpression(x),
             _ => throw new UnreachableException()
         };
+        
+        AfterVisit(node, result);
+
+        return result;
     }
     
     protected virtual T VisitRoot(Root node)
