@@ -52,7 +52,7 @@ internal class BlockEmitter(
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
         
         Code.StoreVar(varIndex);
-        stackSize -= 1;
+        stackSize--;
         
         return default;
     }
@@ -140,7 +140,7 @@ internal class BlockEmitter(
         }
         
         // The cumulative effect of evaluating any binary expression is the stack decreasing by one.
-        stackSize -= 1;
+        stackSize--;
         
         return default;
     }
@@ -148,7 +148,7 @@ internal class BlockEmitter(
     protected override int VisitNumberExpression(NumberExpression node)
     {
         Code.PushInt(node.Value);
-        stackSize += 1;
+        stackSize++;
 
         return default;
     }
@@ -156,7 +156,7 @@ internal class BlockEmitter(
     protected override int VisitBoolExpression(BoolExpression node)
     {
         Code.PushBool(node.Value);
-        stackSize += 1;
+        stackSize++;
 
         return default;
     }
@@ -204,7 +204,7 @@ internal class BlockEmitter(
         var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
         
         Code.PushFunc(lambdaFunctionId);
-        stackSize += 1;
+        stackSize++;
 
         return default;
     }
@@ -242,11 +242,11 @@ internal class BlockEmitter(
         else
         {
             Code.PushNil();
-            stackSize += 1;
+            stackSize++;
         }
 
         Code.Ret();
-        stackSize -= 1;
+        stackSize--;
 
         return default;
     }
@@ -258,7 +258,7 @@ internal class BlockEmitter(
         var var = Locals.GetOrCreateVariable(node.Symbol.Value);
         
         Code.StoreVar(var);
-        stackSize -= 1;
+        stackSize--;
         
         return default;
     }
