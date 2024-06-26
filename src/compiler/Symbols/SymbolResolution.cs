@@ -33,7 +33,9 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 {
     private IScope currentScope = globalScope;
     private readonly Stack<IFunction> functionStack = [];
-    
+
+    protected override int Default => default;
+
     public List<IDiagnostic> Diagnostics { get; } = [];
 
     protected override void BeforeVisit(Node node)

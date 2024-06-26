@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Noa.Compiler.Nodes;
 
 /// <summary>
@@ -6,6 +8,8 @@ namespace Noa.Compiler.Nodes;
 /// <typeparam name="T">The type the visitor returns.</typeparam>
 public abstract class Visitor<T>
 {
+    protected abstract T Default { get; }
+    
     /// <summary>
     /// Called before visiting each node.
     /// </summary>
@@ -48,9 +52,12 @@ public abstract class Visitor<T>
     /// </summary>
     /// <param name="node">The node to visit.</param>
     /// <returns>The result of visiting the node.</returns>
-    public T Visit(Node? node)
+    // Technically since T can be null this is a lie,
+    // but it's much nicer to use NotNullIfNotNull here than not to.
+    [return: NotNullIfNotNull(nameof(node))]
+    public T? Visit(Node? node)
     {
-        if (node is null) return default!;
+        if (node is null) return default;
         
         BeforeVisit(node);
 
@@ -66,7 +73,7 @@ public abstract class Visitor<T>
         
         AfterVisit(node, result);
 
-        return result;
+        return result!;
     }
     
     protected virtual T VisitRoot(Root node)
@@ -74,7 +81,7 @@ public abstract class Visitor<T>
         Visit(node.Statements);
         Visit(node.TrailingExpression);
         
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitIdentifier(Identifier node) => default!;
@@ -91,7 +98,7 @@ public abstract class Visitor<T>
     {
         Visit(node.Identifier);
 
-        return default!;
+        return Default;
     }
 
     protected virtual T VisitDeclaration(Declaration node) => node switch
@@ -108,7 +115,7 @@ public abstract class Visitor<T>
         Visit(node.ExpressionBody);
         Visit(node.BlockBody);
         
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitLetDeclaration(LetDeclaration node)
@@ -116,7 +123,7 @@ public abstract class Visitor<T>
         Visit(node.Identifier);
         Visit(node.Expression);
         
-        return default!;
+        return Default;
     }
 
     protected virtual T VisitAssignmentStatement(AssignmentStatement node)
@@ -124,14 +131,14 @@ public abstract class Visitor<T>
         Visit(node.Target);
         Visit(node.Value);
 
-        return default!;
+        return Default;
     }
 
     protected virtual T VisitExpressionStatement(ExpressionStatement node)
     {
         Visit(node.Expression);
 
-        return default!;
+        return Default;
     }
 
     protected virtual T VisitExpression(Expression node) => node switch
@@ -162,7 +169,7 @@ public abstract class Visitor<T>
         Visit(node.Statements);
         Visit(node.TrailingExpression);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitCallExpression(CallExpression node)
@@ -170,7 +177,7 @@ public abstract class Visitor<T>
         Visit(node.Target);
         Visit(node.Arguments);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitLambdaExpression(LambdaExpression node)
@@ -178,14 +185,14 @@ public abstract class Visitor<T>
         Visit(node.Parameters);
         Visit(node.Body);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitTupleExpression(TupleExpression node)
     {
         Visit(node.Expressions);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitIfExpression(IfExpression node)
@@ -194,28 +201,28 @@ public abstract class Visitor<T>
         Visit(node.IfTrue);
         Visit(node.IfFalse);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitLoopExpression(LoopExpression node)
     {
         Visit(node.Block);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitReturnExpression(ReturnExpression node)
     {
         Visit(node.Expression);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitBreakExpression(BreakExpression node)
     {
         Visit(node.Expression);
 
-        return default!;
+        return Default;
     }
 
     protected virtual T VisitContinueExpression(ContinueExpression node) => default!;
@@ -224,7 +231,7 @@ public abstract class Visitor<T>
     {
         Visit(node.Operand);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitBinaryExpression(BinaryExpression node)
@@ -232,7 +239,7 @@ public abstract class Visitor<T>
         Visit(node.Left);
         Visit(node.Right);
 
-        return default!;
+        return Default;
     }
     
     protected virtual T VisitIdentifierExpression(IdentifierExpression node) => default!;
