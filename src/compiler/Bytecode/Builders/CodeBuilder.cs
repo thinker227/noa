@@ -45,17 +45,6 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         Add(instruction);
     }
 
-/// <summary>
-/// A wrapper around a byte array containing instruction data.
-/// </summary>
-/// <param name="Data">The instruction data.</param>
-internal readonly record struct PlainData(byte[] Data) : IWritable
-{
-    public uint Length => (uint)Data.Length;
-
-    public void Write(Carpenter writer) => writer.Bytes(Data);
-}
-
     private void Add(Opcode opcode, byte[] data)
     {
         var writableData = new PlainData(data);
@@ -68,32 +57,34 @@ internal readonly record struct PlainData(byte[] Data) : IWritable
         Add(instruction);
     }
 
-    private AddressHole JumpLike(Opcode opcode)
+    public void NoOp() => Add(Opcode.NoOp);
+
+    public AddressHole CreateAddressHole()
     {
         // Setting the initial offset to 0xFFFFFFFF ensures that in case the
         // address hole isn't filled then it's immediately obvious that this occurred.
         var data = new AddressOffsetData(this, 0xFFFFFFFF);
-        Add(opcode, data);
         return new(data);
     }
 
-    public void NoOp() => Add(Opcode.NoOp);
+    private AddressHole JumpLike(Opcode opcode)
+    {
+        var hole = CreateAddressHole();
+        Add(opcode, hole.Data);
+        return new(hole.Data);
+    }
     
     public AddressHole Jump() => JumpLike(Opcode.Jump);
 
-    public void Jump(uint addressOffset)
-    {
-        var data = new AddressOffsetData(this, addressOffset);
-        Add(Opcode.Jump, data);
-    }
+    public void Jump(AddressOffsetData data) => Add(Opcode.Jump, data);
+
+    public void Jump(uint addressOffset) => Jump(new AddressOffsetData(this, addressOffset));
     
     public AddressHole JumpIf() => JumpLike(Opcode.JumpIf);
 
-    public void JumpIf(uint addressOffset)
-    {
-        var data = new AddressOffsetData(this, addressOffset);
-        Add(Opcode.JumpIf, data);
-    }
+    public void JumpIf(AddressOffsetData data) => Add(Opcode.JumpIf, data);
+
+    public void JumpIf(uint addressOffset) => JumpIf(new AddressOffsetData(this, addressOffset));
 
     public void Call(uint argCount)
     {
@@ -183,6 +174,11 @@ internal readonly record struct Address(uint Value)
 internal readonly struct AddressHole(AddressOffsetData data)
 {
     /// <summary>
+    /// The writable data for the address hole.
+    /// </summary>
+    public AddressOffsetData Data => data;
+    
+    /// <summary>
     /// Fills the hole with a specified address offset.
     /// </summary>
     /// <param name="addressOffset">The address offset to write into the hole.</param>
@@ -202,12 +198,15 @@ internal readonly record struct PlainData(byte[] Data) : IWritable
 }
 
 /// <summary>
-/// An 
+/// A mutable wrapper around an address offset.
 /// </summary>
-/// <param name="builder"></param>
-/// <param name="offset"></param>
+/// <param name="builder">The code builder for the data.</param>
+/// <param name="offset">The initial address offset.</param>
 internal sealed class AddressOffsetData(CodeBuilder builder, uint offset) : IWritable
 {
+    /// <summary>
+    /// The address offset.
+    /// </summary>
     public uint Offset { get; set; } = offset;
 
     public uint Length => 4;
