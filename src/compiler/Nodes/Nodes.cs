@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
+using Noa.Compiler.ControlFlow;
 
 namespace Noa.Compiler.Nodes;
 
@@ -55,7 +56,10 @@ public sealed class Identifier : Node
     public override IEnumerable<Node> Children => [];
 }
 
-public abstract class Statement : Node;
+public abstract class Statement : Node
+{
+    public Semantic<Reachability> Reachability { get; internal set; }
+}
 
 public sealed class Parameter : Node
 {
@@ -119,7 +123,10 @@ public sealed class ExpressionStatement : Statement
     public override IEnumerable<Node> Children => [Expression];
 }
 
-public abstract class Expression : Node;
+public abstract class Expression : Node
+{
+    public Semantic<Reachability> Reachability { get; internal set; }
+}
 
 public sealed class ErrorExpression : Expression
 {
