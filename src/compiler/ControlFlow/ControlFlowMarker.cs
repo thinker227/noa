@@ -91,7 +91,7 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
     protected override ControlFlowResult VisitReturnExpression(ReturnExpression node)
     {
         var reachability = Visit(node.Expression).Next;
-        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Return));
+        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Never));
     }
 
     protected override ControlFlowResult VisitBreakExpression(BreakExpression node)

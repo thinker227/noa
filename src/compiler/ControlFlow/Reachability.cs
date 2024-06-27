@@ -87,8 +87,8 @@ public readonly struct Reachability : IEquatable<Reachability>
 
     private static UnreachabilitySource Join(UnreachabilitySource a, UnreachabilitySource b) => (a, b) switch
     {
-        (UnreachabilitySource.Return, _) => UnreachabilitySource.Return,
-        (_, UnreachabilitySource.Return) => UnreachabilitySource.Return,
+        (UnreachabilitySource.Never, _) => UnreachabilitySource.Never,
+        (_, UnreachabilitySource.Never) => UnreachabilitySource.Never,
         (UnreachabilitySource.Break, _) => UnreachabilitySource.Break,
         (_, UnreachabilitySource.Break) => UnreachabilitySource.Break,
         _ => UnreachabilitySource.Continue
@@ -120,7 +120,7 @@ public readonly struct Reachability : IEquatable<Reachability>
             : "unreachable";
         var sauce = source switch
         {
-            UnreachabilitySource.Return => "return",
+            UnreachabilitySource.Never => "return",
             UnreachabilitySource.Break => "break",
             UnreachabilitySource.Continue => "continue",
             _ => throw new UnreachableException()
@@ -140,9 +140,9 @@ public readonly struct Reachability : IEquatable<Reachability>
 public enum UnreachabilitySource
 {
     /// <summary>
-    /// The node is unreachable after a return expression.
+    /// The node is unreachable after either a return expression or infinite loop.
     /// </summary>
-    Return,
+    Never,
     /// <summary>
     /// The node is unreachable after a break expression.
     /// </summary>
