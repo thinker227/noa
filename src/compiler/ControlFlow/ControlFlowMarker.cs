@@ -91,27 +91,26 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
     protected override ControlFlowResult VisitReturnExpression(ReturnExpression node)
     {
         var reachability = Visit(node.Expression).Next;
-        return new(reachability, Reachability.Unreachable);
+        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Return));
     }
 
     protected override ControlFlowResult VisitBreakExpression(BreakExpression node)
     {
         var reachability = Visit(node.Expression).Next;
-        return new(reachability, Reachability.Unreachable);
+        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Break));
     }
 
     protected override ControlFlowResult VisitContinueExpression(ContinueExpression node) =>
-        new(current, Reachability.Unreachable);
+        new(current, Reachability.Unreachable(UnreachabilitySource.Continue));
 
     protected override ControlFlowResult VisitIfExpression(IfExpression node)
     {
         Visit(node.Condition);
         
-        var blockVisitor = CreateSubVisitor();
-        var ifTrueNext = blockVisitor.Visit(node.IfTrue).Next;
-        var ifFalseNext = blockVisitor.Visit(node.IfFalse).Next;
+        var ifTrueNext = CreateSubVisitor().Visit(node.IfTrue).Next;
+        var ifFalseNext = CreateSubVisitor().Visit(node.IfFalse).Next;
 
-        var next = ifTrueNext.Combine(ifFalseNext);
+        var next = ifTrueNext.Join(ifFalseNext);
 
         return new(current, next);
     }
@@ -132,7 +131,7 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
         var leftNext = Visit(node.Left).Next;
         var rightNext = Visit(node.Right).Next;
 
-        var next = leftNext.Combine(rightNext);
+        var next = leftNext.Join(rightNext);
 
         return new(current, next);
     }
