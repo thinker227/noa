@@ -30,10 +30,19 @@ public readonly record struct Reachability(
     public bool IsReachable => CanFallThrough;
 
     /// <summary>
-    /// The default reachable state.
+    /// The default unconditionally reachable state.
     /// </summary>
     public static Reachability Reachable { get; } = new(
         true,
+        false,
+        false,
+        false);
+
+    /// <summary>
+    /// An unconditionally unreachable state.
+    /// </summary>
+    public static Reachability Unreachable { get; } = new(
+        false,
         false,
         false,
         false);
