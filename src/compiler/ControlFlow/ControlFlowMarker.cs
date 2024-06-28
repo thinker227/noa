@@ -85,6 +85,8 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
             _ => current
         };
 
+        node.TailReachability = next;
+
         return new(current, next);
     }
 

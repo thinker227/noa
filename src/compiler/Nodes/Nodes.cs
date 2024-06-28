@@ -146,6 +146,11 @@ public class BlockExpression : Expression
     /// different from the scope the block is <i>in</i>.
     /// </summary>
     public Semantic<IScope> DeclaredScope { get; internal set; }
+    
+    /// <summary>
+    /// The reachability of the very end of the block, past the last statement or the trailing expression.
+    /// </summary>
+    public Semantic<Reachability> TailReachability { get; internal set; }
 }
 
 public sealed class CallExpression : Expression
