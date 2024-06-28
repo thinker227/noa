@@ -36,7 +36,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
     public List<IDiagnostic> Diagnostics { get; } = [];
 
-    protected override int GetDefault(Node? node) => default;
+    protected override int GetDefault(Node node) => default;
 
     protected override void BeforeVisit(Node node)
     {
