@@ -88,7 +88,7 @@ public abstract class Visitor<T>
         return GetDefault(node);
     }
     
-    protected virtual T VisitIdentifier(Identifier node) => default!;
+    protected virtual T VisitIdentifier(Identifier node) => GetDefault(node);
 
     protected virtual T VisitStatement(Statement node) => node switch
     {
@@ -166,7 +166,7 @@ public abstract class Visitor<T>
         _ => throw new UnreachableException()
     };
     
-    protected virtual T VisitErrorExpression(ErrorExpression node) => default!;
+    protected virtual T VisitErrorExpression(ErrorExpression node) => GetDefault(node);
 
     protected virtual T VisitBlockExpression(BlockExpression node)
     {
@@ -229,7 +229,7 @@ public abstract class Visitor<T>
         return GetDefault(node);
     }
 
-    protected virtual T VisitContinueExpression(ContinueExpression node) => default!;
+    protected virtual T VisitContinueExpression(ContinueExpression node) => GetDefault(node);
     
     protected virtual T VisitUnaryExpression(UnaryExpression node)
     {
