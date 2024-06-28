@@ -16,20 +16,13 @@
     "engines": {
         "vscode": "^1.86.0"
     },
-    "categories": [
-        "Programming Languages"
-    ],
+    "categories": ["Programming Languages"],
     "contributes": {
         "languages": [
             {
                 "id": "noa",
-                "aliases": [
-                    "Noa",
-                    "noa"
-                ],
-                "extensions": [
-                    ".noa"
-                ],
+                "aliases": ["Noa", "noa"],
+                "extensions": [".noa"],
                 "configuration": "./language-configuration.json"
             }
         ],
