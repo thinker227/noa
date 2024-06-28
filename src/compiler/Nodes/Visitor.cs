@@ -12,7 +12,7 @@ public abstract class Visitor<T>
     /// Gets the default return value for a node, or a general default value if the node is null.
     /// </summary>
     /// <param name="node">The node to get the default value for, or null to get a general default value.</param>
-    protected abstract T GetDefault(Node? node);
+    protected abstract T GetDefault(Node node);
     
     /// <summary>
     /// Called before visiting each node.

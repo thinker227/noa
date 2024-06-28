@@ -31,7 +31,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
     
     public List<IDiagnostic> Diagnostics { get; } = [];
     
-    protected override int GetDefault(Node? node) => default;
+    protected override int GetDefault(Node node) => default;
 
     protected override void BeforeVisit(Node node) =>
         cancellationToken.ThrowIfCancellationRequested();
