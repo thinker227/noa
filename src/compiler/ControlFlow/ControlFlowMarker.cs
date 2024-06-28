@@ -90,18 +90,25 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
 
     protected override ControlFlowResult VisitReturnExpression(ReturnExpression node)
     {
-        var reachability = Visit(node.Expression).Next;
-        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Never));
+        Visit(node.Expression);
+        
+        var next = current with { CanFallThrough = false, CanReturn = true };
+        return new(current, next);
     }
 
     protected override ControlFlowResult VisitBreakExpression(BreakExpression node)
     {
-        var reachability = Visit(node.Expression).Next;
-        return new(reachability, Reachability.Unreachable(UnreachabilitySource.Break));
+        Visit(node.Expression);
+
+        var next = current with { CanFallThrough = false, CanBreak = true };
+        return new(current, next);
     }
 
-    protected override ControlFlowResult VisitContinueExpression(ContinueExpression node) =>
-        new(current, Reachability.Unreachable(UnreachabilitySource.Continue));
+    protected override ControlFlowResult VisitContinueExpression(ContinueExpression node)
+    {
+        var next = current with { CanFallThrough = false, CanContinue = true };
+        return new(current, next);
+    }
 
     protected override ControlFlowResult VisitIfExpression(IfExpression node)
     {
@@ -110,7 +117,7 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
         var ifTrueNext = CreateSubVisitor().Visit(node.IfTrue).Next;
         var ifFalseNext = CreateSubVisitor().Visit(node.IfFalse).Next;
 
-        var next = ifTrueNext.Join(ifFalseNext);
+        var next = ifTrueNext | ifFalseNext;
 
         return new(current, next);
     }
@@ -128,12 +135,10 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
 
     protected override ControlFlowResult VisitBinaryExpression(BinaryExpression node)
     {
-        var leftNext = Visit(node.Left).Next;
-        var rightNext = Visit(node.Right).Next;
+        Visit(node.Left);
+        Visit(node.Right);
 
-        var next = leftNext.Join(rightNext);
-
-        return new(current, next);
+        return new(current, current);
     }
 
     protected override ControlFlowResult VisitCallExpression(CallExpression node)
