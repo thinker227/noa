@@ -77,20 +77,24 @@ public sealed class LineMap : IReadOnlyList<Line>
     public CharacterPosition GetCharacterPosition(int position)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(position);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(position, lines[^1].End);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(position, lines[^1].End + 1);
 
         var span = CollectionsMarshal.AsSpan(lines);
 
         while (true)
         {
+            Line line;
+            
             if (span.Length == 0)
             {
-                // This should be unreachable, but throw just in case.
-                throw new ArgumentOutOfRangeException(nameof(position));
+                // If execution gets here then that means we're past the last line
+                // and want to get the final character of the last line.
+                line = lines[^1];
+                return new(line, line.Length);
             }
 
             var index = span.Length / 2;
-            var line = span[index];
+            line = span[index];
 
             if (position >= line.Start && position < line.End)
             {
