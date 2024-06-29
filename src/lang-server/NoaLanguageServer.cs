@@ -1,56 +1,64 @@
-// ReSharper disable VariableHidesOuterVariable
-// ReSharper disable UnusedParameter.Local
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Server;
+using Draco.Lsp.Model;
+using Draco.Lsp.Server;
+using Noa.LangServer.Logging;
 using Serilog;
-using Serilog.Core;
 
 namespace Noa.LangServer;
 
-public sealed class NoaLanguageServer
+public sealed partial class NoaLanguageServer(
+    ILanguageClient client,
+    ILogger logger,
+    CancellationToken cancellationToken)
+    : ILanguageServer
 {
-    public static async Task RunAsync(string logFilePath, CancellationToken ct)
+    public InitializeResult.ServerInfoResult? Info { get; } = new()
     {
-        var server = await LanguageServer.From(
-            options => ConfigureServerOptions(options, logFilePath),
-            ct).ConfigureAwait(false);
+        Name = "Noa Language Server",
+        Version = "0.1.0"
+    };
 
-        await server.WaitForExit.ConfigureAwait(false);
-    }
+    public static IList<DocumentFilter> DocumentSelector { get; } =
+    [
+        new()
+        {
+            Language = "noa",
+            Pattern = "**/*.noa"
+        }
+    ];
 
-    private static void ConfigureServerOptions(LanguageServerOptions options, string logFilePath)
+    public static async Task RunAsync(string logFilePath, CancellationToken cancellationToken)
     {
-        var logger = CreateLogger(logFilePath);
-
-        logger.Information("Configuring server");
-
-        options.ConfigureLogging(x => x
-            .AddSerilog(logger)
-            .AddLanguageProtocolLogging()
-            .SetMinimumLevel(LogLevel.Debug));
-
-        options.WithInput(Console.OpenStandardInput());
-        options.WithOutput(Console.OpenStandardOutput());
-
-        options.OnInitialize(async (server, request, ct) =>
-        {
-            var logger = server.Services.GetRequiredService<ILogger<NoaLanguageServer>>();
-            logger.LogInformation("Initializing");
-        });
-
-        options.OnInitialized(async (server, request, response, ct) =>
-        {
-            var logger = server.Services.GetRequiredService<ILogger<NoaLanguageServer>>();
-            logger.LogInformation("Initialized");
-        });
-    }
-
-    private static Logger CreateLogger(string logFilePath) =>
-        new LoggerConfiguration()
+        var stream = new StdioDuplexPipe();
+        var client = LanguageServer.Connect(stream);
+        
+        var logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
-            .WriteTo.File(logFilePath)
+            .WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day)
+            .WriteTo.LanguageClient(client)
             .MinimumLevel.Verbose()
             .CreateLogger();
+        
+        var server = new NoaLanguageServer(client, logger, cancellationToken);
+        await client.RunAsync(server);
+    }
+
+    public Task InitializeAsync(InitializeParams param)
+    {
+        logger.Information("Initializing server.");
+        return Task.CompletedTask;
+    }
+
+    public Task InitializedAsync(InitializedParams param)
+    {
+        logger.Information("Server initialized.");
+        return Task.CompletedTask;
+    }
+
+    public Task ShutdownAsync()
+    {
+        logger.Information("Shutting down server.");
+        return Task.CompletedTask;
+    }
+    
+    public void Dispose() {}
 }
