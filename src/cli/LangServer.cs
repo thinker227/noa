@@ -22,7 +22,7 @@ public sealed class LangServer(IAnsiConsole console, CancellationToken ct)
         
         try
         {
-            await NoaLanguageServer.RunAsync(logFilePath, ct);
+            await NoaLanguageServer.RunAsync(logFilePath);
         }
         catch (TaskCanceledException) {}
         catch (OperationCanceledException) {}

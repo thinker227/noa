@@ -7,8 +7,7 @@ namespace Noa.LangServer;
 
 public sealed partial class NoaLanguageServer(
     ILanguageClient client,
-    ILogger logger,
-    CancellationToken cancellationToken)
+    ILogger logger)
     : ILanguageServer
 {
     private readonly Dictionary<DocumentUri, NoaDocument> documents = [];
