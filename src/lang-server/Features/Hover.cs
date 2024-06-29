@@ -21,12 +21,10 @@ public sealed partial class NoaLanguageServer : IHover
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
-
+        
         var hover = node switch
         {
-            Identifier { Parent.Value: FunctionDeclaration x } => GetHoverForSymbol(x.Symbol.Value),
-            Identifier { Parent.Value: LetDeclaration x } => GetHoverForSymbol(x.Symbol.Value),
-            IdentifierExpression x => GetHoverForSymbol(x.ReferencedSymbol.Value),
+            _ when GetSymbol(node) is {} symbol => GetHoverForSymbol(symbol),
             _ => null
         };
 

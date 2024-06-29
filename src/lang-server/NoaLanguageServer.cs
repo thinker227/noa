@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Draco.Lsp.Model;
 using Draco.Lsp.Server;
 using Noa.Compiler;
+using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
@@ -118,4 +119,13 @@ public sealed partial class NoaLanguageServer(
             _ => throw new UnreachableException()
         };
     }
+    
+    private static ISymbol? GetSymbol(Node? node) => node switch
+    {
+        Identifier { Parent.Value: FunctionDeclaration x } => x.Symbol.Value,
+        Identifier { Parent.Value: LetDeclaration x } => x.Symbol.Value,
+        Identifier { Parent.Value: Parameter x } => x.Symbol.Value,
+        IdentifierExpression x => x.ReferencedSymbol.Value,
+        _ => null
+    };
 }
