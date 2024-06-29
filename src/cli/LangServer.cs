@@ -9,7 +9,9 @@ public sealed class LangServer(IAnsiConsole console, CancellationToken ct)
     [Command("lang-server", Description = "Starts the Noa language server")]
     public async Task<int> Start(
         [Option("stdio", Description = "Specifies that the language server should communicate across standard IO")]
-        bool stdio)
+        bool stdio,
+        [Option("log", Description = "A path to a file to which logs will be written.")]
+        string? logFilePath)
     {
         if (!stdio)
         {
@@ -20,9 +22,12 @@ public sealed class LangServer(IAnsiConsole console, CancellationToken ct)
         
         try
         {
-            await NoaLanguageServer.RunAsync("this/is/very/obviously/a/path/lmao", ct);
+            await NoaLanguageServer.RunAsync(logFilePath, ct);
         }
         catch (TaskCanceledException) {}
+        catch (OperationCanceledException) {}
+
+        console.WriteLine("Language server died a peaceful death.");
 
         return 0;
     }

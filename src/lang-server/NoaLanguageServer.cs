@@ -26,20 +26,29 @@ public sealed partial class NoaLanguageServer(
         }
     ];
 
-    public static async Task RunAsync(string logFilePath, CancellationToken cancellationToken)
+    public static async Task RunAsync(string? logFilePath, CancellationToken cancellationToken)
     {
         var stream = new StdioDuplexPipe();
         var client = LanguageServer.Connect(stream);
         
-        var logger = new LoggerConfiguration()
-            .Enrich.FromLogContext()
-            .WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day)
-            .WriteTo.LanguageClient(client)
-            .MinimumLevel.Verbose()
-            .CreateLogger();
+        var logger = CreateLogger(logFilePath, client);
         
         var server = new NoaLanguageServer(client, logger, cancellationToken);
         await client.RunAsync(server);
+    }
+
+    private static ILogger CreateLogger(string? logFilePath, ILanguageClient client)
+    {
+        var config = new LoggerConfiguration();
+        
+        config.Enrich.FromLogContext();
+
+        config.WriteTo.LanguageClient(client);
+        if (logFilePath is not null) config.WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day);
+
+        config.MinimumLevel.Verbose();
+
+        return config.CreateLogger();
     }
 
     public Task InitializeAsync(InitializeParams param)

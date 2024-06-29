@@ -34,6 +34,29 @@
                 "scopeName": "source.noa",
                 "path": "./syntaxes/noa.tmLanguage.json"
             }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Noa",
+            "properties": {
+                "noa-lang.cliExecutable": {
+                    "type": "string",
+                    "default": null,
+                    "description": "A path to the executable for the Noa CLI. If not specified, invokes the default `noa` command. Requires restarting the extension to take effect."
+                },
+                "noa-lang.serverLogPath": {
+                    "type": "string",
+                    "default": null,
+                    "description": "A path to a file to which logs from the language server will be written. Will ignore writing to a log file if not specified. Requires restarting the extension to take effect."
+                }
+            }
+        },
+        "commands": [
+            {
+                "category": "Noa",
+                "title": "Restart language server",
+                "command": "noa-lang.restartLangServer"
+            }
         ]
     },
     "scripts": {
