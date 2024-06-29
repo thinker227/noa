@@ -60,4 +60,7 @@ public sealed partial class NoaLanguageServer(
         
         return new NoaDocument(ast, lineMap);
     }
+
+    private static int ToAbsolute(Position position, LineMap lineMap) =>
+        lineMap.GetLine((int)position.Line + 1).Start + (int)position.Character;
 }
