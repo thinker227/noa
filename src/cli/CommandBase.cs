@@ -88,8 +88,7 @@ public abstract class CommandBase(IAnsiConsole console)
 
     private static Grid DisplayDiagnosticsGrid(Source source, IEnumerable<IDiagnostic> diagnostics)
     {
-        // Todo: this is a massive hack to avoid getting out of range exceptions.
-        var lineMap = LineMap.Create(source.Text + " ");
+        var lineMap = LineMap.Create(source.Text);
 
         var grid = new Grid()
             .AddColumn(new GridColumn()

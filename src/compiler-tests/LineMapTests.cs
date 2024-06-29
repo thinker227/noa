@@ -86,6 +86,13 @@ public class LineMapTests
             lineEnd: 12,
             characterOffset: 1);
         
+        yield return Data(
+            position: 12,
+            lineNumber: 3,
+            lineStart: 10,
+            lineEnd: 12,
+            characterOffset: 2);
+        
         yield break;
         
         static object[] Data(int position, int lineNumber, int lineStart, int lineEnd, int characterOffset) =>
@@ -109,8 +116,8 @@ public class LineMapTests
     {
         yield return Data(-1);
         yield return Data(-2);
-        yield return Data(12);
         yield return Data(13);
+        yield return Data(14);
         
         yield break;
         
