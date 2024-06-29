@@ -7,6 +7,10 @@ using Serilog.Events;
 
 namespace Noa.LangServer.Logging;
 
+/// <summary>
+/// A Serilog sink which writes log messages to a language client's output.
+/// </summary>
+/// <param name="client"></param>
 internal sealed class LanguageClientLogSink(ILanguageClient client) : ILogEventSink
 {
     public void Emit(LogEvent logEvent)
@@ -34,6 +38,11 @@ internal sealed class LanguageClientLogSink(ILanguageClient client) : ILogEventS
 
 internal static class LoggerSinkConfigurationExtensions
 {
+    /// <summary>
+    /// Write log events to a language client's output.
+    /// </summary>
+    /// <param name="config">The logger sink configuration.</param>
+    /// <param name="client">The client which output to write to.</param>
     public static LoggerConfiguration LanguageClient(this LoggerSinkConfiguration config, ILanguageClient client) =>
         config.Sink(new LanguageClientLogSink(client));
 }
