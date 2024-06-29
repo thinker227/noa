@@ -30,6 +30,7 @@ public sealed partial class NoaLanguageServer : IGotoDefinition
         {
             Identifier { Parent.Value: FunctionDeclaration x } => x.Location,
             Identifier { Parent.Value: LetDeclaration x } => x.Location,
+            Identifier { Parent.Value: Parameter x } => x.Location,
             IdentifierExpression { ReferencedSymbol.Value: IDeclaredSymbol symbol } => symbol.Declaration.Location,
             _ => null
         };
