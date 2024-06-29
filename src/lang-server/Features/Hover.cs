@@ -19,7 +19,7 @@ public sealed partial class NoaLanguageServer : IHover
             param.Position.Character);
         
         var document = GetOrCreateDocument(documentUri, cancellationToken);
-        var position = ToAbsolute(param.Position, document.LineMap);
+        var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
 
         var hover = node switch

@@ -2,6 +2,8 @@ using Draco.Lsp.Model;
 using Draco.Lsp.Server;
 using Noa.Compiler;
 using Serilog;
+using Location = Draco.Lsp.Model.Location;
+using Range = Draco.Lsp.Model.Range;
 
 namespace Noa.LangServer;
 
@@ -58,9 +60,28 @@ public sealed partial class NoaLanguageServer(
         var ast = Ast.Create(source, cancellationToken);
         var lineMap = LineMap.Create(text);
         
-        return new NoaDocument(ast, lineMap);
+        return new NoaDocument(ast, lineMap, documentUri);
     }
 
-    private static int ToAbsolute(Position position, LineMap lineMap) =>
+    private static int ToAbsolutePosition(Position position, LineMap lineMap) =>
         lineMap.GetLine((int)position.Line + 1).Start + (int)position.Character;
+
+    private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument document) =>
+        new()
+        {
+            Range = ToRange(location, document),
+            Uri = document.Uri
+        };
+
+    private static Range ToRange(Noa.Compiler.Location location, NoaDocument document)
+    {
+        var start = document.LineMap.GetCharacterPosition(location.Start);
+        var end = document.LineMap.GetCharacterPosition(location.End);
+
+        return new()
+        {
+            Start = new() { Line = (uint)start.Line.LineNumber - 1, Character = (uint)start.Offset },
+            End = new() { Line = (uint)end.Line.LineNumber - 1, Character = (uint)end.Offset }
+        };
+    }
 }

@@ -40,19 +40,12 @@ public sealed partial class NoaLanguageServer : IDiagnostics
     private Draco.Lsp.Model.Diagnostic ConvertDiagnostic(IDiagnostic diagnostic, NoaDocument document)
     {
         var location = diagnostic.Location;
-        var start = document.LineMap.GetCharacterPosition(location.Start);
-        var end = document.LineMap.GetCharacterPosition(location.End);
-
         var message = diagnostic.WriteMessage(StringDiagnosticWriter.Writer);
 
         return new()
         {
             Message = message,
-            Range = new()
-            {
-                Start = new() { Character = (uint)start.Offset, Line = (uint)start.Line.LineNumber - 1 },
-                End = new() { Character = (uint)end.Offset, Line = (uint)end.Line.LineNumber - 1 }
-            },
+            Range = ToRange(location, document),
             Code = new OneOf<int, string>(diagnostic.Id.ToString()),
             Severity = diagnostic.Severity switch
             {
