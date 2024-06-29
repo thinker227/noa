@@ -2,26 +2,28 @@ using Draco.Lsp.Model;
 using Noa.Compiler;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
+using Location = Noa.Compiler.Location;
 
 namespace Noa.LangServer;
 
 public sealed record NoaDocument(Ast Ast, LineMap LineMap, DocumentUri Uri)
 {
-    private Dictionary<ISymbol, IReadOnlyCollection<Node>>? references = null;
+    private Dictionary<ISymbol, IReadOnlyCollection<Location>>? references = null;
 
-    public IReadOnlyCollection<Node> GetReferences(ISymbol symbol, bool includeDeclaration)
+    public IReadOnlyCollection<Location> GetReferences(ISymbol symbol, bool includeDeclaration)
     {
         references ??= [];
 
         if (references.TryGetValue(symbol, out var cached)) return cached;
 
-        var nodes = new List<Node>();
-        if (includeDeclaration && symbol is IDeclaredSymbol declared) nodes.Add(declared.Declaration);
+        var nodes = new List<Location>();
+        if (includeDeclaration && symbol is IDeclaredSymbol declared) nodes.Add(declared.DefinitionLocation);
 
-        var referenceNodes = Ast.Root.DescendantsAndSelf()
+        var referenceLocations = Ast.Root.DescendantsAndSelf()
             .OfType<IdentifierExpression>()
-            .Where(x => x.ReferencedSymbol.Value == symbol);
-        nodes.AddRange(referenceNodes);
+            .Where(x => x.ReferencedSymbol.Value == symbol)
+            .Select(x => x.Location);
+        nodes.AddRange(referenceLocations);
 
         references.Add(symbol, nodes);
         

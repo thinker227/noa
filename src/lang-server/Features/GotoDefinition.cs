@@ -28,10 +28,10 @@ public sealed partial class NoaLanguageServer : IGotoDefinition
 
         static Noa.Compiler.Location? GetDefinitionLocation(Node? node) => node switch
         {
-            Identifier { Parent.Value: FunctionDeclaration x } => x.Location,
-            Identifier { Parent.Value: LetDeclaration x } => x.Location,
+            Identifier { Parent.Value: FunctionDeclaration x } => x.Identifier.Location,
+            Identifier { Parent.Value: LetDeclaration x } => x.Identifier.Location,
             Identifier { Parent.Value: Parameter x } => x.Location,
-            IdentifierExpression { ReferencedSymbol.Value: IDeclaredSymbol symbol } => symbol.Declaration.Location,
+            IdentifierExpression { ReferencedSymbol.Value: IDeclaredSymbol symbol } => symbol.DefinitionLocation,
             _ => null
         };
     }

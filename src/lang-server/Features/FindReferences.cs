@@ -32,7 +32,7 @@ public sealed partial class NoaLanguageServer : IFindReferences
 
         var references = document.GetReferences(symbol, param.Context.IncludeDeclaration);
         var locations = references
-            .Select(x => ToLspLocation(x.Location, document))
+            .Select(x => ToLspLocation(x, document))
             .ToList();
 
         return Task.FromResult<IList<Location>>(locations);
