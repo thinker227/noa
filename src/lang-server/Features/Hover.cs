@@ -35,38 +35,12 @@ public sealed partial class NoaLanguageServer : IHover
 
     private static Hover? GetHoverForSymbol(ISymbol symbol)
     {
-        var markup = symbol switch
-        {
-            NomialFunction or ParameterSymbol or VariableSymbol =>
-                $"""
-                 ```noa
-                 {GetDisplayCode(symbol)}
-                 ```                                                   
-                 """,
-            _ => null
-        };
-        
+        var markup = GetMarkupForSymbol(symbol);
         if (markup is null) return null;
-        
-        var content = new MarkupContent()
-        {
-            Kind = MarkupKind.Markdown,
-            Value = markup
-        };
         
         return new()
         {
-            Contents = new(content)
-        };
-
-        static string GetDisplayCode(ISymbol symbol) => symbol switch
-        {
-            NomialFunction x => $"func {x.Name}(...)",
-            ParameterSymbol { Function: NomialFunction f } x => $"func {f.Name}({x.Name})",
-            ParameterSymbol { Function: LambdaFunction } x => $"({x.Name}) => ...",
-            VariableSymbol { IsMutable: false } x => $"let {x.Name}",
-            VariableSymbol { IsMutable: true } x => $"let mut {x.Name}",
-            _ => throw new UnreachableException()
+            Contents = new(markup)
         };
     }
 

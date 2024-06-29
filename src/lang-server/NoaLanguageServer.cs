@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Draco.Lsp.Model;
 using Draco.Lsp.Server;
 using Noa.Compiler;
+using Noa.Compiler.Symbols;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
 using Range = Draco.Lsp.Model.Range;
@@ -82,6 +84,38 @@ public sealed partial class NoaLanguageServer(
         {
             Start = new() { Line = (uint)start.Line.LineNumber - 1, Character = (uint)start.Offset },
             End = new() { Line = (uint)end.Line.LineNumber - 1, Character = (uint)end.Offset }
+        };
+    }
+    
+    private static MarkupContent? GetMarkupForSymbol(ISymbol symbol)
+    {
+        var markup = symbol switch
+        {
+            NomialFunction or ParameterSymbol or VariableSymbol =>
+                $"""
+                 ```noa
+                 {GetDisplayCode(symbol)}
+                 ```                                                   
+                 """,
+            _ => null
+        };
+        
+        if (markup is null) return null;
+        
+        return new()
+        {
+            Kind = MarkupKind.Markdown,
+            Value = markup
+        };
+
+        static string GetDisplayCode(ISymbol symbol) => symbol switch
+        {
+            NomialFunction x => $"func {x.Name}(...)",
+            ParameterSymbol { Function: NomialFunction f } x => $"func {f.Name}({x.Name})",
+            ParameterSymbol { Function: LambdaFunction } x => $"({x.Name}) => ...",
+            VariableSymbol { IsMutable: false } x => $"let {x.Name}",
+            VariableSymbol { IsMutable: true } x => $"let mut {x.Name}",
+            _ => throw new UnreachableException()
         };
     }
 }
