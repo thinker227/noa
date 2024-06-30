@@ -15,7 +15,12 @@ public sealed partial class NoaLanguageServer : ITextDocumentSync
         return Task.CompletedTask;
     }
 
-    public Task TextDocumentDidCloseAsync(DidCloseTextDocumentParams param) => Task.CompletedTask;
+    public Task TextDocumentDidCloseAsync(DidCloseTextDocumentParams param)
+    {
+        DeleteDocument(param.TextDocument.Uri);
+
+        return Task.CompletedTask;
+    }
 
     public Task TextDocumentDidChangeAsync(DidChangeTextDocumentParams param)
     {

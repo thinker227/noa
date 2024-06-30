@@ -66,6 +66,8 @@ public sealed partial class NoaLanguageServer(
         return new NoaDocument(ast, lineMap, documentUri);
     }
 
+    private void DeleteDocument(DocumentUri documentUri) => documents.Remove(documentUri);
+
     private static int ToAbsolutePosition(Position position, LineMap lineMap) =>
         lineMap.GetLine((int)position.Line + 1).Start + (int)position.Character;
 
