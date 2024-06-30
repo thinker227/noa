@@ -121,7 +121,7 @@ internal sealed class BlockScope(
         // We can't find the symbol in this scope.
 
         // Check if the symbol can be found in a parent scope.
-        if (Parent?.LookupSymbol(name, parentLookupNode, predicate) is { } parentLookup) return parentLookup;
+        if (Parent?.LookupSymbol(name, block, predicate) is { } parentLookup) return parentLookup;
         
         // We know at this point that the symbol is not accessible, but to provide better error reporting
         // we also check future points in the variable timeline to see if the symbol is accessible there.
@@ -157,7 +157,7 @@ internal sealed class BlockScope(
         var declared = Functions.Values
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
 
-        var parentAccessible = Parent?.AccessibleAt(statement) ?? [];
+        var parentAccessible = Parent?.AccessibleAt(block) ?? [];
 
         return declared.Concat(parentAccessible);
     }
