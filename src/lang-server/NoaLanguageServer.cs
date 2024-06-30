@@ -10,6 +10,11 @@ using Range = Draco.Lsp.Model.Range;
 
 namespace Noa.LangServer;
 
+/// <summary>
+/// The Noa language server.
+/// </summary>
+/// <param name="client">The language client for the server.</param>
+/// <param name="logger">The logger to log messages to.</param>
 public sealed partial class NoaLanguageServer(
     ILanguageClient client,
     ILogger logger)
@@ -32,6 +37,12 @@ public sealed partial class NoaLanguageServer(
         }
     ];
 
+    /// <summary>
+    /// Gets an existing document, or creates a new one and saves it if one doesn't already exist.
+    /// </summary>
+    /// <param name="documentUri">The URI of the document to get or create.</param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    /// <returns>The existing or the newly created document.</returns>
     private NoaDocument GetOrCreateDocument(
         DocumentUri documentUri,
         CancellationToken cancellationToken = default) =>
@@ -39,6 +50,17 @@ public sealed partial class NoaLanguageServer(
             ? document
             : UpdateOrCreateDocument(documentUri, cancellationToken: cancellationToken);
 
+    /// <summary>
+    /// Updates an existing document, or creates a new one if one doesn't already exist.
+    /// The updated or newly created document is subsequently saved.
+    /// </summary>
+    /// <param name="documentUri">The URI of the document to update or create.</param>
+    /// <param name="text">
+    /// The text to update or create the document from.
+    /// If not specified, reads the text from the document on disk.
+    /// </param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    /// <returns>The updated or newly created document.</returns>
     private NoaDocument UpdateOrCreateDocument(
         DocumentUri documentUri,
         string? text = null,
@@ -49,6 +71,16 @@ public sealed partial class NoaLanguageServer(
         return document;
     }
 
+    /// <summary>
+    /// Creates a new document. The created document is <b>not</b> saved after being created.
+    /// </summary>
+    /// <param name="documentUri">The URI of the document to create.</param>
+    /// <param name="text">
+    /// The text to create the document from.
+    /// If not specified, reads the text from the document on disk.
+    /// </param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    /// <returns>The newly created document.</returns>
     private NoaDocument CreateDocument(
         DocumentUri documentUri,
         string? text,
@@ -78,6 +110,11 @@ public sealed partial class NoaLanguageServer(
             Uri = document.Uri
         };
 
+    /// <summary>
+    /// Converts a <see cref="Noa.Compiler.Location"/> into a <see cref="Range"/>.
+    /// </summary>
+    /// <param name="location">The location to convert.</param>
+    /// <param name="document">The document the location is from.</param>
     private static Range ToRange(Noa.Compiler.Location location, NoaDocument document)
     {
         var start = document.LineMap.GetCharacterPosition(location.Start);
@@ -90,6 +127,10 @@ public sealed partial class NoaLanguageServer(
         };
     }
     
+    /// <summary>
+    /// Gets the markup text for displaying a symbol in a tooltip.
+    /// </summary>
+    /// <param name="symbol">The symbol to get the markup text for.</param>
     private static MarkupContent? GetMarkupForSymbol(ISymbol symbol)
     {
         var markup = symbol switch
@@ -131,12 +172,28 @@ public sealed partial class NoaLanguageServer(
         };
     }
     
+    /// <summary>
+    /// Gets the declared or referenced symbol for a node.
+    /// </summary>
+    /// <param name="node">The node to get the symbol for.</param>
+    /// <returns>
+    /// The symbol which <paramref name="node"/> declares or references,
+    /// or null if the node is null or doesn't declare or reference a symbol.
+    /// </returns>
     private static ISymbol? GetSymbol(Node? node) => node switch
     {
         IdentifierExpression x => x.ReferencedSymbol.Value,
         _ => GetDeclaredSymbol(node)
     };
 
+    /// <summary>
+    /// Gets the declared symbol for a node.
+    /// </summary>
+    /// <param name="node">The node to get the symbol for.</param>
+    /// <returns>
+    /// The symbol which <paramref name="node"/> declares,
+    /// or null if the node is null or doesn't declare a symbol.
+    /// </returns>
     private static IDeclaredSymbol? GetDeclaredSymbol(Node? node) => node switch
     {
         Identifier { Parent.Value: FunctionDeclaration x } => x.Symbol.Value,
