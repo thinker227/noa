@@ -36,6 +36,7 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
                     var item = new CompletionItem()
                     {
                         Label = x.Name,
+                        SortText = $"0{x.Name}",
                         Kind = GetCompletionKind(x)
                     };
                     
@@ -64,6 +65,7 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
         var keywordCompletions = keywords.Select(x => new CompletionItem()
         {
             Label = x,
+            SortText = $"1{x}",
             Kind = CompletionItemKind.Keyword
         });
 
