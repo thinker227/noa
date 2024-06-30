@@ -8,6 +8,13 @@ namespace Noa.LangServer;
 
 public sealed partial class NoaLanguageServer
 {
+    /// <summary>
+    /// Creates and runs a new instance of the language server.
+    /// </summary>
+    /// <param name="logFilePath">
+    /// The path to the file to output log messages to.
+    /// Will not output log messages to a file if not specified.
+    /// </param>
     public static async Task RunAsync(string? logFilePath)
     {
         var stream = new StdioDuplexPipe();

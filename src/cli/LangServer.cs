@@ -4,7 +4,7 @@ using Spectre.Console;
 
 namespace Noa.Cli;
 
-public sealed class LangServer(IAnsiConsole console, CancellationToken ct)
+public sealed class LangServer(IAnsiConsole console)
 {
     [Command("lang-server", Description = "Starts the Noa language server")]
     public async Task<int> Start(
