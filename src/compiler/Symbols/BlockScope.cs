@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -59,14 +58,12 @@ internal sealed class BlockScope(
     /// <param name="timelineIndex">The timeline index for the node.</param>
     private bool TryGetTimelineIndex(
         Node? node,
-        [NotNullWhen(true)] out Node? parentLookupNode,
         out int timelineIndex)
     {
         if (node is null)
         {
             // If the node we're trying to get the timeline index for is null,
             // that means we want to get the timeline index and parent lookup node for the very end of the scope.
-            parentLookupNode = block;
             timelineIndex = VariableTimeline.Count - 1;
             return true;
         }
@@ -78,7 +75,6 @@ internal sealed class BlockScope(
         if (statementLikeNode is null)
         {
             // If we can't find a node, we can't really do anything useful.
-            parentLookupNode = null;
             timelineIndex = -1;
             return false;
         }
@@ -86,11 +82,9 @@ internal sealed class BlockScope(
         if (timelineIndexMap.TryGetValue(statementLikeNode, out timelineIndex))
         {
             // The statement exists in this scope.
-            parentLookupNode = statementLikeNode;
             return true;
         }
 
-        parentLookupNode = null;
         timelineIndex = -1;
         return false;
     }
@@ -104,7 +98,7 @@ internal sealed class BlockScope(
             return new(function, SymbolAccessibility.Accessible);
         }
 
-        if (!TryGetTimelineIndex(at, out var parentLookupNode, out var timelineIndex))
+        if (!TryGetTimelineIndex(at, out var timelineIndex))
         {
             // If we can't find the timeline index for the node we're looking up at, we're heading to
             // the parent scope to check if it has a symbol available at the location of this block.
@@ -121,7 +115,7 @@ internal sealed class BlockScope(
         // We can't find the symbol in this scope.
 
         // Check if the symbol can be found in a parent scope.
-        if (Parent?.LookupSymbol(name, parentLookupNode, predicate) is { } parentLookup) return parentLookup;
+        if (Parent?.LookupSymbol(name, block, predicate) is { } parentLookup) return parentLookup;
         
         // We know at this point that the symbol is not accessible, but to provide better error reporting
         // we also check future points in the variable timeline to see if the symbol is accessible there.
@@ -140,7 +134,7 @@ internal sealed class BlockScope(
 
     public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at)
     {
-        if (!TryGetTimelineIndex(at, out _, out var timelineIndex)) return [];
+        if (!TryGetTimelineIndex(at, out var timelineIndex)) return [];
 
         var variables = VariableTimeline[timelineIndex];
 
@@ -150,14 +144,14 @@ internal sealed class BlockScope(
 
     public IEnumerable<ISymbol> AccessibleAt(Node? at)
     {
-        if (!TryGetTimelineIndex(at, out var statement, out var timelineIndex)) return [];
+        if (!TryGetTimelineIndex(at, out var timelineIndex)) return [];
 
         var variables = VariableTimeline[timelineIndex];
 
         var declared = Functions.Values
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
 
-        var parentAccessible = Parent?.AccessibleAt(statement) ?? [];
+        var parentAccessible = Parent?.AccessibleAt(block) ?? [];
 
         return declared.Concat(parentAccessible);
     }
