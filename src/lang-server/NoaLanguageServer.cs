@@ -96,7 +96,8 @@ public sealed partial class NoaLanguageServer(
                 $"""
                  ```noa
                  {GetDisplayCode(symbol)}
-                 ```                                                   
+                 ```
+                 ({GetSymbolKind(symbol)})                                                   
                  """,
             _ => null
         };
@@ -109,6 +110,14 @@ public sealed partial class NoaLanguageServer(
             Value = markup
         };
 
+        static string GetSymbolKind(ISymbol symbol) => symbol switch
+        {
+            NomialFunction => "function",
+            ParameterSymbol => "parameter",
+            VariableSymbol => "variable",
+            _ => throw new UnreachableException()
+        };
+            
         static string GetDisplayCode(ISymbol symbol) => symbol switch
         {
             NomialFunction x => $"func {x.Name}(...)",
