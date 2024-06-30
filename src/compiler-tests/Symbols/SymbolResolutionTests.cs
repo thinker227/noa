@@ -120,6 +120,50 @@ public class SymbolResolutionTests
     }
 
     [Fact]
+    public void ReferenceInSubNodeInBlock_LooksUpSymbol_InParentBlock()
+    {
+        var text = """
+        let x = 0;
+        {
+            print(x);
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        SymbolResolution.ResolveSymbols(ast);
+        
+        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", null)!.Value.Symbol;
+        
+        var assignmentIdentifier = (IdentifierExpression)ast.Root.FindNodeAt(23)!;
+        
+        assignmentIdentifier.ReferencedSymbol.Value.ShouldBe(x);
+    }
+
+    [Fact]
+    public void SymbolsInParentScopes_AreAccessible_InSubNodeInBlock()
+    {
+        var text = """
+        let x = 0;
+        {
+            let y = 1;
+            print(0);
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        SymbolResolution.ResolveSymbols(ast);
+        
+        var at = ast.Root.FindNodeAt(38)!;
+        
+        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", null)!.Value.Symbol;
+        var y = at.Scope.Value.LookupSymbol("y", null)!.Value.Symbol;
+        
+        at.Scope.Value.AccessibleAt(at).ShouldBe([x, y], ignoreOrder: true);
+    }
+    
+    [Fact]
     public void ReferenceInSubScope_LooksUpSymbol_InParentScopes()
     {
         var text = """
