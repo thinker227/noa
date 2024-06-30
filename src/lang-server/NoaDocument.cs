@@ -8,13 +8,13 @@ namespace Noa.LangServer;
 
 public sealed record NoaDocument(Ast Ast, LineMap LineMap, DocumentUri Uri)
 {
-    private Dictionary<ISymbol, IReadOnlyCollection<Location>>? references = null;
+    private Dictionary<(ISymbol, bool), IReadOnlyCollection<Location>>? references = null;
 
     public IReadOnlyCollection<Location> GetReferences(ISymbol symbol, bool includeDeclaration)
     {
         references ??= [];
 
-        if (references.TryGetValue(symbol, out var cached)) return cached;
+        if (references.TryGetValue((symbol, includeDeclaration), out var cached)) return cached;
 
         var nodes = new List<Location>();
         if (includeDeclaration && symbol is IDeclaredSymbol declared) nodes.Add(declared.DefinitionLocation);
@@ -25,7 +25,7 @@ public sealed record NoaDocument(Ast Ast, LineMap LineMap, DocumentUri Uri)
             .Select(x => x.Location);
         nodes.AddRange(referenceLocations);
 
-        references.Add(symbol, nodes);
+        references.Add((symbol, includeDeclaration), nodes);
         
         return nodes;
     }
