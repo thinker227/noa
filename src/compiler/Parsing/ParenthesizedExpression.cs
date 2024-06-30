@@ -141,11 +141,16 @@ internal sealed partial class Parser
 
         if (expressions.Length == 1) return expressions[0];
 
-        return new TupleExpression()
+        var tuple = new TupleExpression()
         {
             Ast = Ast,
             Location = parensLocation,
             Expressions = expressions
         };
+        
+        // Todo: this should probably be moved to a standalone analyzer since it doesn't really belong in the parser.
+        ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported.Format(tuple.Location));
+
+        return tuple;
     }
 }
