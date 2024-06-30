@@ -97,7 +97,7 @@ public sealed partial class NoaLanguageServer(
                  ```noa
                  {GetDisplayCode(symbol)}
                  ```
-                 ({GetSymbolKind(symbol)})                                                   
+                 ({GetSymbolDescription(symbol)})                                                   
                  """,
             _ => null
         };
@@ -110,7 +110,7 @@ public sealed partial class NoaLanguageServer(
             Value = markup
         };
 
-        static string GetSymbolKind(ISymbol symbol) => symbol switch
+        static string GetSymbolDescription(ISymbol symbol) => symbol switch
         {
             NomialFunction => "function",
             ParameterSymbol => "parameter",
@@ -120,9 +120,9 @@ public sealed partial class NoaLanguageServer(
             
         static string GetDisplayCode(ISymbol symbol) => symbol switch
         {
-            NomialFunction x => $"func {x.Name}(...)",
-            ParameterSymbol { Function: NomialFunction f } x => $"func {f.Name}({x.Name})",
-            ParameterSymbol { Function: LambdaFunction } x => $"({x.Name}) => ...",
+            NomialFunction x => $"func {x.Name}({string.Join(", ", x.Parameters.Select(GetDisplayCode))})",
+            ParameterSymbol { IsMutable: false } x => x.Name,
+            ParameterSymbol { IsMutable: true } x => $"mut {x.Name}",
             VariableSymbol { IsMutable: false } x => $"let {x.Name}",
             VariableSymbol { IsMutable: true } x => $"let mut {x.Name}",
             _ => throw new UnreachableException()
@@ -131,10 +131,15 @@ public sealed partial class NoaLanguageServer(
     
     private static ISymbol? GetSymbol(Node? node) => node switch
     {
+        IdentifierExpression x => x.ReferencedSymbol.Value,
+        _ => GetDeclaredSymbol(node)
+    };
+
+    private static IDeclaredSymbol? GetDeclaredSymbol(Node? node) => node switch
+    {
         Identifier { Parent.Value: FunctionDeclaration x } => x.Symbol.Value,
         Identifier { Parent.Value: LetDeclaration x } => x.Symbol.Value,
         Identifier { Parent.Value: Parameter x } => x.Symbol.Value,
-        IdentifierExpression x => x.ReferencedSymbol.Value,
         _ => null
     };
 }
