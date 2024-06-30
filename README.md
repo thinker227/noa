@@ -27,7 +27,7 @@ The compiler is implemented in C# and runtime in Rust.
 - [ ] Bytecode
 - [ ] Runtime
 - [x] CLI
-- [ ] Language server
+- [x] Language server
 
 ## Samples
 
