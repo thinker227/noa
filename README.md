@@ -42,7 +42,7 @@ After everything has been installed, you can invoke the Noa CLI using the `noa` 
 
 <summary>Compile from source</summary>
 
-Noa features an extension for VSCode. As with the compiler and runtime, you currently can only compiled and install it from source. To do so, you need [Node.js](https://nodejs.org) and [vsce](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#vsce). Also make sure you have `code` available from the command line.
+To compile and install the VSCode extension from source, you need [Node.js](https://nodejs.org) and [vsce](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#vsce). Also make sure you have `code` available from the command line.
 
 1. `cd` into `src/vscode-extension` and run `npm install` followed by `npm run compile`.
 2. Run `vsce package`. If it warns you that a license file cannot be found, type `y` and enter to continue.
