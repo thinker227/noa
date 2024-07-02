@@ -1,22 +1,56 @@
-# Noa
+<div align="center">
+<h1>Noa</h1>
+</div>
 
-Noa is a work-in-progress dynamically typed, imperative, compiled programming language with its own bytecode format ("Ark") which runs on a virtual machine. Noa takes heavy influence from Rust and Javascript for its featureset, and C# for the runtime.
+> [!NOTE]
+> Noa is currently a heavily work-in-progress project. The current state of the project does not fully represent what the final result is meant to look like.
 
-The compiler is implemented in C# and runtime in Rust.
+**Noa** is a *dynamically typed*, *imperative*, *compiled* programming language. The language features a familiar C/JS/Rust-like syntax with static variable resolution (so no "variable is not defined" errors!) and a lightweight featureset. Jump down to the [samples](#samples) section for some code samples!
 
-## Goals
+Noa compiles to its own cross-platform bytecode format *Ark* which in turn can be run through the Noa runtime.
 
-- Slim/minimal language
-- JS/Rust-like syntax
-- Dynamically typed
-- Static variable resolution
-- Compiles to bytecode
-- Runs on a VM
-- Compiler implemented in C#
-- Runtime implemented in Rust
-- Language server
+In addition to the language itself, Noa also features a **VSCode extension** with full(-ish) language support! The extension currently supports *basic syntax highlighting*, *error messages*, *basic intellisense*, *go to definition*, *find all references*, and *renaming symbols!*
 
-## Status 
+This merely a passion project of mine and is not meant to be taken seriously! It's not meant to be a "production-ready" language, but I hope to one day be able to write some somewhat useful programs in it.
+
+## Installation
+
+> [!NOTE]
+> Noa can currently only be compiled from source.
+
+<details>
+
+<summary>Compile from source</summary>
+
+To compile and install Noa from source, you need the [.NET 8 SDK and runtime](https://dotnet.microsoft.com/) and [Cargo](https://www.rust-lang.org/tools/install) to compile the compiler and runtime respectively. Once you have .NET and Cargo installed, follow these instructions:
+
+1. Clone the repo using `git clone https://github.com/thinker227/noa.git`.
+2. `cd` into the root of the project (the folder which contains this readme file).
+3. Run the `update-tool.sh` script (or the commands therein, they're all just .NET commands) which will compile and install the complier as a .NET tool. Worry not, you can easily uninstall it using `dotnet tool uninstall noa --global`.
+4. `cd` into `src/runtime` and run `cargo build -r` which will compile the runtime.
+5. Locate the produced executable (which should be in `target/release` named `noa_runtime` or `noa_runtime.exe` on Windows).
+6. Create an environment variable named `NOA_RUNTIME` containing the file path to the runtime executable. Alternatively you can specify the `--runtime <path>` command-line option when running `noa run` to manually specify the path to the runtime executable, however it's much simpler to use an environment variable.
+7. You'll usually have to restart your terminal and/or pc for the environment variable and .NET tool to be available.
+
+</details>
+
+After everything has been installed, you can invoke the Noa CLI using the `noa` command from your terminal!
+
+### VSCode extension
+
+<details>
+
+<summary>Compile from source</summary>
+
+To compile and install the VSCode extension from source, you need [Node.js](https://nodejs.org) and [vsce](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#vsce). Also make sure you have `code` available from the command line.
+
+1. `cd` into `src/vscode-extension` and run `npm install` followed by `npm run compile`.
+2. Run `vsce package`. If it warns you that a license file cannot be found, type `y` and enter to continue.
+3. Run `code --install-extension <path>`, replacing `<path>` with the file path to the `.vsix` file which `vsce` generated.
+
+</details>
+
+## Project status 
 
 - [x] AST
 - [x] Lexer
@@ -27,9 +61,12 @@ The compiler is implemented in C# and runtime in Rust.
 - [ ] Bytecode
 - [ ] Runtime
 - [x] CLI
-- [ ] Language server
+- [x] Language server
 
 ## Samples
+
+> [!WARNING]
+> Some of these samples may currently not work.
 
 ```js
 print("Hello world!");

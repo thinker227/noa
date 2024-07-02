@@ -1,5 +1,6 @@
 // ReSharper disable LocalVariableHidesMember
 
+using Noa.Compiler.ControlFlow;
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Emit;
 using Noa.Compiler.FlowAnalysis;
@@ -97,6 +98,8 @@ public sealed class Ast
 
         var flowDiagnostics = FlowAnalyzer.Analyze(ast, cancellationToken);
         ast.diagnostics.AddRange(flowDiagnostics);
+        
+        ControlFlowMarker.Mark(ast, cancellationToken);
 
         return ast;
     }

@@ -35,6 +35,14 @@ public interface IDeclaredSymbol : ISymbol, IFunctionNested
     /// The declaring node of the symbol.
     /// </summary>
     Node Declaration { get; }
+    
+    /// <summary>
+    /// The definition location for the symbol.
+    /// This differs from the <see cref="Node.Location"/> of <see cref="Declaration"/>
+    /// since the definition location may be, for instance, the identifier of a let declaration
+    /// and not the let declaration itself.
+    /// </summary>
+    Location DefinitionLocation { get; }
 }
 
 /// <summary>
@@ -69,6 +77,8 @@ public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
     
     Node IDeclaredSymbol.Declaration => Declaration;
 
+    public Location DefinitionLocation => Declaration.Identifier.Location;
+
     public override string ToString() => $"Variable {Name} declared at {Declaration.Location}";
 }
 
@@ -98,6 +108,8 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     /// The declaration of the parameter.
     /// </summary>
     public required Parameter Declaration { get; init; }
+
+    public Location DefinitionLocation => Declaration.Location;
 
     IFunction IFunctionNested.ContainingFunction => Function;
     

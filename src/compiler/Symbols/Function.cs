@@ -84,6 +84,8 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 
     Node IFunction.Declaration => Declaration;
 
+    public Location DefinitionLocation => Declaration.Identifier.Location;
+
     public IScope BodyScope => HasExpressionBody
         ? ExpressionBody.Scope.Value
         : BlockBody.DeclaredScope.Value;

@@ -2,36 +2,9 @@
     "comments": {
         "lineComment": "//"
     },
-    "brackets": [
-        [
-            "{",
-            "}"
-        ],
-        [
-            "(",
-            ")"
-        ]
-    ],
-    "autoClosingPairs": [
-        [
-            "{",
-            "}"
-        ],
-        [
-            "(",
-            ")"
-        ]
-    ],
-    "surroundingPairs": [
-        [
-            "{",
-            "}"
-        ],
-        [
-            "(",
-            ")"
-        ]
-    ],
+    "brackets": [["{", "}"], ["(", ")"]],
+    "autoClosingPairs": [["{", "}"], ["(", ")"]],
+    "surroundingPairs": [["{", "}"], ["(", ")"]],
     "folding": {
         "markers": {
             "start": "^.*{\\s*$",

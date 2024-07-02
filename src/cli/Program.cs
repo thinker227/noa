@@ -26,5 +26,6 @@ var app = builder.Build();
 app.AddCommands<Compile>();
 app.AddCommands<Run>();
 app.AddCommands<Watch>();
+app.AddCommands<LangServer>();
 
 await app.RunAsync(cts.Token);

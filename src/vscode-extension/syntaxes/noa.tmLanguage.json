@@ -52,8 +52,12 @@
             ]
         },
         "calls": {
-            "name": "entity.name.function.noa",
-            "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*\\("
+            "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*\\(",
+            "captures": {
+                "1": {
+                    "name": "entity.name.function.noa"
+                }
+            }
         },
         "numbers": {
             "name": "constant.numeric.noa",

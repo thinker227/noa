@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\compiler\Noa.Compiler.csproj" />
+    <ProjectReference Include="..\lang-server\Noa.LangServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
