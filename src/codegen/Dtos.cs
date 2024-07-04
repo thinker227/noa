@@ -38,6 +38,9 @@ public abstract class MemberDto
 
     [XmlAttribute("Optional")]
     public bool isOptional = false;
+
+    [XmlAttribute("Primitive")]
+    public bool isPrimitive = false;
 }
 
 public sealed class ValueDto : MemberDto;

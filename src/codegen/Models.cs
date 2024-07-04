@@ -36,6 +36,8 @@ public sealed class Member
     public required string Type { get; init; }
     
     public required bool IsOptional { get; init; }
+    
+    public required bool IsPrimitive { get; init; }
 
     public required bool IsList { get; init; }
 

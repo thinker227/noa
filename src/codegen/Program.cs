@@ -104,6 +104,7 @@ static Root ToModel(RootDto rootDto)
                 Name = memberDto.name,
                 Type = memberDto.type,
                 IsOptional = memberDto.isOptional,
+                IsPrimitive = memberDto.isPrimitive,
                 IsList = memberDto is ListDto
             });
         }
