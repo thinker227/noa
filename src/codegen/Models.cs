@@ -10,12 +10,16 @@ public sealed class Root
 public class NodeLike
 {
     public required string Name { get; init; }
+
+    public virtual bool IsRoot => true;
     
     public override string ToString() => Name;
 }
 
 public sealed class Node : NodeLike
 {
+    public override bool IsRoot => false;
+
     public NodeLike Parent { get; set; } = null!;
     
     public required bool IsAbstract { get; init; }
@@ -25,7 +29,7 @@ public sealed class Node : NodeLike
     public List<Member> Members { get; } = [];
 }
 
-public abstract class Member
+public sealed class Member
 {
     public required string Name { get; init; }
     
@@ -33,17 +37,13 @@ public abstract class Member
     
     public required bool IsOptional { get; init; }
 
-    public bool IsValue => this is Value;
+    public required bool IsList { get; init; }
 
-    public bool IsList => this is List;
-}
-
-public sealed class Value : Member
-{
-    public override string ToString() => $"{Type}{(IsOptional ? "?" : "")} {Name}";
-}
-
-public sealed class List : Member
-{
-    public override string ToString() => $"ImmutableArray<{Type}{(IsOptional ? "?" : "")}> {Name}";
+    public override string ToString()
+    {
+        var type = $"{Type}{(IsOptional ? "?" : "")}";
+        return IsList
+            ? $"ImmutableArray<{type}> {Name}"
+            : $"{type} {Name}";
+    }
 }

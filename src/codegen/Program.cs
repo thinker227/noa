@@ -99,24 +99,13 @@ static Root ToModel(RootDto rootDto)
 
         foreach (var memberDto in nodeDto.members)
         {
-            Member member = memberDto switch
+            node.Members.Add(new()
             {
-                ValueDto => new Value()
-                {
-                    Name = memberDto.name,
-                    Type = memberDto.type,
-                    IsOptional = memberDto.isOptional
-                },
-                ListDto => new List()
-                {
-                    Name = memberDto.name,
-                    Type = memberDto.type,
-                    IsOptional = memberDto.isOptional
-                },
-                _ => throw new UnreachableException()
-            };
-            
-            node.Members.Add(member);
+                Name = memberDto.name,
+                Type = memberDto.type,
+                IsOptional = memberDto.isOptional,
+                IsList = memberDto is ListDto
+            });
         }
     }
 
