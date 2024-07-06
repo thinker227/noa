@@ -131,7 +131,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         else
         {
             node.Function = null;
-            Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(node.Location));
+            Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(node.ReturnKeyword.Location));
         }
 
         Visit(node.Expression);
@@ -148,7 +148,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         else
         {
             node.Loop = null;
-            Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(node.Location));
+            Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(node.BreakKeyword.Location));
         }
 
         Visit(node.Expression);
