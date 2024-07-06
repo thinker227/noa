@@ -22,10 +22,10 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
         // and the completions will therefore be incomplete.
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position);
+        var result = document.Ast.Root.FindNextNodeInBlock(position);
 
         IEnumerable<CompletionItem> symbolCompletions;
-        if (node is null)
+        if (result is not var (block, node))
         {
             logger.Warning("Node at cursor position is null, " +
                            "cannot access current scope so can't get full completion list");
@@ -33,7 +33,7 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
         }
         else
         {
-            symbolCompletions = node.Scope.Value.AccessibleAt(node)
+            symbolCompletions = block.DeclaredScope.Value.AccessibleAt(node)
                 .Select(x =>
                 {
                     var item = new CompletionItem()

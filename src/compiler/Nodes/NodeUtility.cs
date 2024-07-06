@@ -123,4 +123,38 @@ public static class NodeUtility
             location.Contains(position) ||
             stickToEnd && position == location.End;
     }
+
+    /// <summary>
+    /// Finds the next statement or the trailing expression in a block at a specific position.
+    /// </summary>
+    /// <param name="node">The node to traverse from when finding the block.</param>
+    /// <param name="position">
+    /// The position at which to find the block and the next statement or the trailing expression.
+    /// </param>
+    /// <returns>
+    /// A tuple containing the block as well as the next statement or the trailing expression
+    /// at <paramref name="position"/>. If the position is past the last statement or the trailing expression
+    /// of the block then the returned node is null. If no block cannot be found, then the entire
+    /// tuple is null.
+    /// </returns>
+    public static (BlockExpression block, Node? node)? FindNextNodeInBlock(this Node node, int position)
+    {
+        // Find the block.
+        var block = node.FindNodeAt<BlockExpression>(position);
+        if (block is null) return null;
+
+        var elements = block.Statements.AsEnumerable<Node>();
+        if (block.TrailingExpression is not null) elements = elements.Append(block.TrailingExpression);
+
+        foreach (var element in elements)
+        {
+            // If the position is in or before the element, that's the element we're looking for.
+            if (position < element.Location.End) return (block, element);
+        }
+
+        // If we can't find anything, the position is probably
+        // after the last statement or the trailing expression,
+        // in which case we return null for the node.
+        return (block, null);
+    }
 }
