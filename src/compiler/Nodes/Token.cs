@@ -10,7 +10,7 @@ namespace Noa.Compiler.Nodes;
 /// or an expect will be thrown if the kind does not have a constant string.
 /// </param>
 /// <param name="Location">The location of the token in source.</param>
-internal readonly record struct Token(TokenKind Kind, string? Text, Location Location)
+public readonly record struct Token(TokenKind Kind, string? Text, Location Location)
 {
     public string Text { get; } =
         Text ?? Kind.ConstantString() ?? throw new InvalidOperationException(
@@ -23,7 +23,7 @@ internal readonly record struct Token(TokenKind Kind, string? Text, Location Loc
 /// <summary>
 /// The kind of a syntax token.
 /// </summary>
-internal enum TokenKind
+public enum TokenKind
 {
     // Meta
     Error = 0,
