@@ -82,14 +82,14 @@ public static class NodeUtility
     /// </summary>
     /// <param name="node">The node to find the node at the position within.</param>
     /// <param name="position">The position to find the node at.</param>
-    /// <param name="stickiness">Specifies how to handle sticking to nodes.</param>
+    /// <param name="stickToEnd">Whether to return a node if the position is at the very end of the node.</param>
     /// <returns>
     /// The node at <paramref name="position"/>, or null if the position is outside the node.
     /// </returns>
     public static Node? FindNodeAt(
         this Node node,
         int position,
-        FindNodeStickiness stickiness = FindNodeStickiness.None)
+        bool stickToEnd = false)
     {
         // This node doesn't contain the position.
         if (!IsInSpan(node.Location)) return null;
@@ -97,7 +97,7 @@ public static class NodeUtility
         foreach (var child in node.Children)
         {
             // If the child contains the position, or we should try stick to the end of it, search the child.
-            if (IsInSpan(child.Location)) return child.FindNodeAt(position, stickiness);
+            if (IsInSpan(child.Location)) return child.FindNodeAt(position, stickToEnd);
         }
 
         // If no child contains the position, it must be in this node.
@@ -105,7 +105,7 @@ public static class NodeUtility
 
         bool IsInSpan(Location location) =>
             location.Contains(position) ||
-            stickiness.HasFlag(FindNodeStickiness.AtEnd) && position == location.End;
+            stickToEnd && position == location.End;
     }
 }
 

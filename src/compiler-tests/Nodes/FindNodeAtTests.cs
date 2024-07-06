@@ -5,22 +5,22 @@ public class FindNodeAtTests
     private static Node? Run(
         string text,
         int position,
-        FindNodeStickiness stickiness = FindNodeStickiness.None)
+        bool stickToEnd = false)
     {
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        var node = ast.Root.FindNodeAt(position, stickiness);
+        var node = ast.Root.FindNodeAt(position, stickToEnd);
         return node;
     }
     
     private static T Run<T>(
         string text,
         int position,
-        FindNodeStickiness stickiness = FindNodeStickiness.None)
+        bool stickToEnd = false)
         where T : Node
     {
-        var node = Run(text, position, stickiness);
+        var node = Run(text, position, stickToEnd);
         return node.ShouldBeOfType<T>();
     }
     
@@ -66,5 +66,5 @@ public class FindNodeAtTests
             """,
             //   ^
             5,
-            FindNodeStickiness.AtEnd);
+            true);
 }

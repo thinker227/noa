@@ -18,7 +18,7 @@ public sealed partial class NoaLanguageServer : IFindReferences
         
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position, FindNodeStickiness.AtEnd);
+        var node = document.Ast.Root.FindNodeAt(position, true);
         
         var symbol = node switch
         {
