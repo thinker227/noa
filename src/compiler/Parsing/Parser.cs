@@ -120,6 +120,7 @@ internal sealed partial class Parser
         {
             Ast = Ast,
             Location = new(Source.Name, func.Location.Start, end),
+            FuncKeyword = func,
             Identifier = identifier,
             Parameters = parameters,
             ExpressionBody = expressionBody?.expression,
@@ -170,6 +171,7 @@ internal sealed partial class Parser
         {
             Ast = Ast,
             Location = new(Source.Name, let.Location.Start, semicolon.Location.End),
+            LetKeyword = let,
             IsMutable = isMutable,
             Identifier = identifier,
             Expression = expression
