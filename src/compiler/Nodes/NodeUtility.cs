@@ -76,7 +76,7 @@ public static class NodeUtility
     /// <param name="node">The node to get the descendants of.</param>
     public static IEnumerable<Node> DescendantNodesAndSelfInFunction(this Node node) =>
         node.DescendantNodesInFunction().Prepend(node);
-    
+
     /// <summary>
     /// Finds a node at a specified position in source.
     /// </summary>
@@ -86,42 +86,41 @@ public static class NodeUtility
     /// <returns>
     /// The node at <paramref name="position"/>, or null if the position is outside the node.
     /// </returns>
-    public static Node? FindNodeAt(
-        this Node node,
-        int position,
-        bool stickToEnd = false)
+    public static Node? FindNodeAt(this Node node, int position, bool stickToEnd = false) =>
+        node.FindNodeAt<Node>(position, stickToEnd);
+
+    /// <summary>
+    /// Finds a node of a specified type at a specified position in source.
+    /// </summary>
+    /// <param name="node">The node to find the node at the position within.</param>
+    /// <param name="position">The position to find the node at.</param>
+    /// <param name="stickToEnd">Whether to return a node if the position is at the very end of the node.</param>
+    /// <typeparam name="TNode">The type of the node to find.</typeparam>
+    /// <returns>
+    /// The node at <paramref name="position"/>, or null if the position is outside the node.
+    /// </returns>
+    public static TNode? FindNodeAt<TNode>(this Node node, int position, bool stickToEnd = false)
+        where TNode : Node
     {
         // This node doesn't contain the position.
         if (!IsInSpan(node.Location)) return null;
 
         foreach (var child in node.Children)
         {
-            // If the child contains the position, or we should try stick to the end of it, search the child.
-            if (IsInSpan(child.Location)) return child.FindNodeAt(position, stickToEnd);
+            // If the child contains the position, search the child.
+            
+            if (!IsInSpan(child.Location)) continue;
+            
+            var found = child.FindNodeAt<TNode>(position, stickToEnd);
+            if (found is not null) return found;
+            break;
         }
 
         // If no child contains the position, it must be in this node.
-        return node;
+        return node as TNode;
 
         bool IsInSpan(Location location) =>
             location.Contains(position) ||
             stickToEnd && position == location.End;
     }
-}
-
-/// <summary>
-/// The stickiness to use for <see cref="NodeUtility.FindNodeAt"/>.
-/// </summary>
-[Flags]
-public enum FindNodeStickiness
-{
-    /// <summary>
-    /// No stickiness should be applied.
-    /// </summary>
-    None = 0,
-    /// <summary>
-    /// A node should be returned if the position is at the very end of the node
-    /// unless there is a node beginning immediately after.
-    /// </summary>
-    AtEnd = 1 << 0
 }
