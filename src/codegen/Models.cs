@@ -11,22 +11,26 @@ public class NodeLike
 {
     public required string Name { get; init; }
 
-    public virtual bool IsRoot => true;
+    public virtual IEnumerable<Member> Members { get; } = [];
     
     public override string ToString() => Name;
 }
 
-public sealed class Node : NodeLike
+public sealed class Node(List<Member> members) : NodeLike
 {
-    public override bool IsRoot => false;
-
     public NodeLike Parent { get; set; } = null!;
     
     public required bool IsAbstract { get; init; }
 
     public List<Node> Children { get; } = [];
+
+    public override IEnumerable<Member> Members => Parent.Members.Concat(members);
+
+    public IEnumerable<Member> NonPrimitiveMembers => Members.Where(x => !x.IsPrimitive);
+
+    public bool HasMembers => Members.Any();
     
-    public List<Member> Members { get; } = [];
+    public bool HasNonPrimitiveMembers => NonPrimitiveMembers.Any();
 }
 
 public sealed class Member

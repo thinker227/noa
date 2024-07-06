@@ -90,24 +90,24 @@ static Root ToModel(RootDto rootDto)
 
     foreach (var nodeDto in rootDto.nodes)
     {
-        var node = new Node()
+        var members = nodeDto.members
+            .Select(x => new Member()
+            {
+                Name = x.name,
+                Type = x.type,
+                IsOptional = x.isOptional,
+                IsPrimitive = x.isPrimitive,
+                IsList = x is ListDto
+            })
+            .ToList();
+        
+        var node = new Node(members)
         {
             Name = nodeDto.name,
             IsAbstract = nodeDto.isAbstract
         };
+        
         nodes.Add(node.Name, node);
-
-        foreach (var memberDto in nodeDto.members)
-        {
-            node.Members.Add(new()
-            {
-                Name = memberDto.name,
-                Type = memberDto.type,
-                IsOptional = memberDto.isOptional,
-                IsPrimitive = memberDto.isPrimitive,
-                IsList = memberDto is ListDto
-            });
-        }
     }
 
     foreach (var nodeDto in rootDto.nodes)
