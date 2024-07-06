@@ -1,6 +1,4 @@
-using Noa.Compiler.Nodes;
-
-namespace Noa.Compiler.Parsing;
+namespace Noa.Compiler.Nodes;
 
 /// <summary>
 /// A syntax token, a single unit of syntax.
