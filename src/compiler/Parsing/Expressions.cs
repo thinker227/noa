@@ -174,6 +174,7 @@ internal sealed partial class Parser
                 {
                     Ast = Ast,
                     Location = new(Source.Name, loop.Location.Start, block.Location.End),
+                    LoopKeyword = loop,
                     Block = block
                 };
             }
@@ -190,6 +191,7 @@ internal sealed partial class Parser
                     Location = expression is not null
                         ? new Location(Source.Name, @return.Location.Start, expression.Location.End)
                         : @return.Location,
+                    ReturnKeyword = @return,
                     Expression = expression
                 };
             }
@@ -206,6 +208,7 @@ internal sealed partial class Parser
                     Location = expression is not null
                         ? new Location(Source.Name, @break.Location.Start, expression.Location.End)
                         : @break.Location,
+                    BreakKeyword = @break,
                     Expression = expression
                 };
             }
@@ -306,7 +309,7 @@ internal sealed partial class Parser
 
         var ifTrue = ParseBlockExpression();
 
-        Expect(TokenKind.Else);
+        var @else = Expect(TokenKind.Else);
 
         var ifFalse = ParseBlockExpression();
 
@@ -314,8 +317,10 @@ internal sealed partial class Parser
         {
             Ast = Ast,
             Location = new(Source.Name, @if.Location.Start, ifFalse.Location.End),
+            IfKeyword = @if,
             Condition = condition,
             IfTrue = ifTrue,
+            ElseKeyword = @else,
             IfFalse = ifFalse
         };
     }

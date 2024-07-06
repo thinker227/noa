@@ -100,7 +100,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             {
                 var diagnostic = SymbolDiagnostics.FunctionAlreadyDeclared.Format(
                     functionSymbol,
-                    func.Location);
+                    func.Identifier.Location);
                 Diagnostics.Add(diagnostic);
             }
         }
@@ -138,7 +138,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             {
                 var diagnostic = SymbolDiagnostics.VariableShadowsFunction.Format(
                     (variableSymbol, func),
-                    let.Location);
+                    let.Identifier.Location);
                 Diagnostics.Add(diagnostic);
             }
         }
@@ -201,7 +201,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             {
                 var diagnostic = SymbolDiagnostics.SymbolAlreadyDeclared.Format(
                     parameterSymbol.Name,
-                    param.Location);
+                    param.Identifier.Location);
                 Diagnostics.Add(diagnostic);
             }
             
@@ -264,7 +264,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             {
                 var diagnostic = SymbolDiagnostics.SymbolAlreadyDeclared.Format(
                     symbol.Name,
-                    param.Location);
+                    param.Identifier.Location);
                 Diagnostics.Add(diagnostic);
             }
             
