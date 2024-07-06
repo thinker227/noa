@@ -19,7 +19,7 @@ public sealed partial class NoaLanguageServer : IGotoDefinition
         
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position);
+        var node = document.Ast.Root.FindNodeAt(position, FindNodeStickiness.AtEnd);
 
         if (GetDefinitionLocation(node) is not {} location) return Task.FromResult<IList<Location>>([]);
         var lspLocation = ToLspLocation(location, document);

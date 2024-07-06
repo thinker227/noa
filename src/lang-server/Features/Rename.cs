@@ -23,7 +23,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
         
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position);
+        var node = document.Ast.Root.FindNodeAt(position, FindNodeStickiness.AtEnd);
         var symbol = GetSymbol(node);
 
         if (symbol is not IDeclaredSymbol declared) return Task.FromResult<OneOf<Range, PrepareRenameResult>?>(null);
@@ -45,7 +45,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
         
         var document = GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position);
+        var node = document.Ast.Root.FindNodeAt(position, FindNodeStickiness.AtEnd);
         var symbol = GetSymbol(node);
 
         if (symbol is not IDeclaredSymbol declared) return Task.FromResult<WorkspaceEdit?>(null);
