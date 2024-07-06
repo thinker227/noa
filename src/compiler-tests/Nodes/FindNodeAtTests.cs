@@ -2,23 +2,30 @@ namespace Noa.Compiler.Nodes.Tests;
 
 public class FindNodeAtTests
 {
-    private static Node? Run(string text, int position)
+    private static Node? Run(
+        string text,
+        int position,
+        FindNodeStickiness stickiness = FindNodeStickiness.None)
     {
         var source = new Source(text, "test-input");
         var ast = Ast.Parse(source);
 
-        var node = ast.Root.FindNodeAt(position);
+        var node = ast.Root.FindNodeAt(position, stickiness);
         return node;
     }
     
-    private static T Run<T>(string text, int position) where T : Node
+    private static T Run<T>(
+        string text,
+        int position,
+        FindNodeStickiness stickiness = FindNodeStickiness.None)
+        where T : Node
     {
-        var node = Run(text, position);
+        var node = Run(text, position, stickiness);
         return node.ShouldBeOfType<T>();
     }
     
     [Fact]
-    public void FindNodeAt_FindsNode_WithinChildren()
+    public void FindsNode_WithinChildren()
     {
         var node = Run<NumberExpression>(
             """
@@ -31,7 +38,7 @@ public class FindNodeAtTests
     }
 
     [Fact]
-    public void FindNodeAt_ReturnsNull_ForPositionOutsideNode()
+    public void ReturnsNull_ForPositionOutsideNode()
     {
         var node = Run(
             """
@@ -43,11 +50,21 @@ public class FindNodeAtTests
     }
 
     [Fact]
-    public void FindNodeAt_ReturnsContainingNode_ForPositionInWhitespace() =>
+    public void ReturnsContainingNode_ForPositionInWhitespace() =>
         Run<LetDeclaration>(
             """
             let x = 0;
             """,
             //   ^
             5);
+
+    [Fact]
+    public void ReturnsPreviousNode_ForPositionAfterNode_WithAtEndStickiness() =>
+        Run<Identifier>(
+            """
+            let x = 0;
+            """,
+            //   ^
+            5,
+            FindNodeStickiness.AtEnd);
 }
