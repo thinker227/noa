@@ -1,6 +1,6 @@
 namespace Noa.Compiler.Nodes.Tests;
 
-public class NodeUtilityTests
+public class FindNodeAtTests
 {
     [Fact]
     public void FindNodeAt_FindsNode_WithinChildren()
