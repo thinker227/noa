@@ -8,7 +8,7 @@
   </Node>
 
   <Node Name="Identifier">
-    <Value Name="Name" Type="String" Primitive="true"/>
+    <Value Name="Name" Type="string" Primitive="true"/>
   </Node>
 
   <Node Name="Statement" Abstract="true"/>

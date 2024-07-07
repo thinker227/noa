@@ -11,7 +11,7 @@ public sealed partial class Root : BlockExpression
 
 public sealed partial class Identifier : Node
 {
-    public required String Name { get; init; }
+    public required string Name { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
