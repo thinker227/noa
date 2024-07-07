@@ -86,45 +86,58 @@ static TRoot ReadXml<TRoot>(FileInfo file)
 static Root ToModel(RootDto rootDto)
 {
     var rootNode = new NodeLike() { Name = rootDto.rootName };
-    var nodes = new Dictionary<string, Node>();
-
-    foreach (var nodeDto in rootDto.nodes)
+    var nodes = rootDto.nodes
+        .ToDictionary(
+            x => x.name,
+            x => (dto: x, node: new Node() { Name = x.name, IsAbstract = x.isAbstract }));
+    
+    foreach (var (nodeDto, node) in nodes.Values)
     {
-        var members = nodeDto.members
-            .Select(x => new Member()
-            {
-                Name = x.name,
-                Type = x.type,
-                IsOptional = x.isOptional,
-                IsPrimitive = x.isPrimitive,
-                IsList = x is ListDto
-            })
-            .ToList();
-        
-        var node = new Node(members)
-        {
-            Name = nodeDto.name,
-            IsAbstract = nodeDto.isAbstract
-        };
-        
-        nodes.Add(node.Name, node);
-    }
-
-    foreach (var nodeDto in rootDto.nodes)
-    {
-        var node = nodes[nodeDto.name];
-
         var parent = nodeDto.parent is not null
-            ? nodes[nodeDto.parent]
+            ? nodes[nodeDto.parent].node
             : rootNode;
         
         node.Parent = parent;
         parent.Children.Add(node);
     }
 
+    var ordered = rootNode.Children.SelectMany(GetOrderedNodes);
+
+    foreach (var node in ordered)
+    {
+        var nodeDto = nodes[node.Name].dto;
+        
+        foreach (var memberDto in nodeDto.members)
+        {
+            var member = memberDto is ValueDto x
+                ? new Member()
+                {
+                    Name = x.name,
+                    Type = x.type,
+                    IsOptional = x.isOptional,
+                    IsPrimitive = x.isPrimitive,
+                    IsInherited = false,
+                    IsList = x is ListDto
+                }
+                : FindMember(memberDto.name, node) with { IsInherited = true };
+            
+            node.Members.Add(member);
+        }
+    }
+
     return new Root()
     {
         RootNode = rootNode,
-        Nodes = nodes.Values
+        Nodes = nodes.Values.Select(x => x.node).ToList()
     };
+
+    static IEnumerable<Node> GetOrderedNodes(Node node) =>
+        node.Children.SelectMany(GetOrderedNodes).Prepend(node);
+
+    static Member FindMember(string name, Node node)
+    {
+        if (node.Members.FirstOrDefault(x => x.Name == name) is { } member) return member;
+        if (node.Parent is Node parent) return FindMember(name, parent);
+        throw new InvalidOperationException($"No member with name {name}");
+    }
 }

@@ -11,23 +11,21 @@ public class NodeLike
 {
     public required string Name { get; init; }
 
-    public virtual IEnumerable<Member> Members { get; } = [];
+    public List<Member> Members { get; } = [];
 
     public List<Node> Children { get; } = [];
     
     public override string ToString() => Name;
 }
 
-public sealed class Node(List<Member> members) : NodeLike
+public sealed class Node : NodeLike
 {
     public NodeLike Parent { get; set; } = null!;
     
     public required bool IsAbstract { get; init; }
-
-    public override IEnumerable<Member> Members => members;
 }
 
-public sealed class Member
+public record Member
 {
     public required string Name { get; init; }
     
@@ -37,6 +35,8 @@ public sealed class Member
     
     public required bool IsPrimitive { get; init; }
 
+    public required bool IsInherited { get; init; }
+    
     public required bool IsList { get; init; }
 
     public override string ToString()

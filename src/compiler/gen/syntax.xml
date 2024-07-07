@@ -2,7 +2,10 @@
 
 <Root Name="Node">
 
-  <Node Name="Root" Parent="BlockExpression"/>
+  <Node Name="Root" Parent="BlockExpression">
+    <Inherited Name="Statements"/>
+    <Inherited Name="TrailingExpression"/>
+  </Node>
 
   <Node Name="Identifier">
     <Value Name="Name" Type="String" Primitive="true"/>

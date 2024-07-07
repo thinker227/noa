@@ -25,6 +25,7 @@ public class NodeDto
 
     [XmlElement("Value", typeof(ValueDto))]
     [XmlElement("List", typeof(ListDto))]
+    [XmlElement("Inherited", typeof(InheritedDto))]
     public required List<MemberDto> members = [];
 }
 
@@ -32,7 +33,10 @@ public abstract class MemberDto
 {
     [XmlAttribute("Name")]
     public required string name;
+}
 
+public class ValueDto : MemberDto
+{
     [XmlAttribute("Type")]
     public required string type;
 
@@ -43,6 +47,6 @@ public abstract class MemberDto
     public bool isPrimitive = false;
 }
 
-public sealed class ValueDto : MemberDto;
+public sealed class ListDto : ValueDto;
 
-public sealed class ListDto : MemberDto;
+public sealed class InheritedDto : MemberDto;
