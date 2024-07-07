@@ -1,3 +1,5 @@
+using Noa.Compiler.Nodes;
+
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer(Source source, CancellationToken cancellationToken)

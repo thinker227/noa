@@ -1,4 +1,5 @@
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
 

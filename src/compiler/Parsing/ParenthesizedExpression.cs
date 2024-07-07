@@ -98,7 +98,7 @@ internal sealed partial class Parser
             return null;
         }
 
-        Expect(TokenKind.EqualsGreaterThan);
+        var arrow = Expect(TokenKind.EqualsGreaterThan);
 
         var body = ParseExpressionOrError();
 
@@ -107,6 +107,7 @@ internal sealed partial class Parser
             Ast = Ast,
             Location = new(Source.Name, openParen.Location.Start, body.Location.End),
             Parameters = parameters.ToImmutable(),
+            ArrowToken = arrow,
             Body = body
         };
     }
