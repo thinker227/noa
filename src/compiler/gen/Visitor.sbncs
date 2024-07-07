@@ -23,13 +23,11 @@ public abstract partial class Visitor<T>
         {{~ end ~}}
         _ => throw new UnreachableException()
     };
-    {{~ else if node.members.size == 0 }} => GetDefault(node);
+    {{~ else if node.non_primitive_members.size == 0 }} => GetDefault(node);
     {{~ else }}
     {
-        {{~ for member in node.members ~}}
-        {{~ if !member.is_primitive ~}}
+        {{~ for member in node.non_primitive_members ~}}
         Visit(node.{{ member.name }});
-        {{~ end ~}}
         {{~ end ~}}
 
         return GetDefault(node);
@@ -72,13 +70,11 @@ public abstract partial class Visitor
             throw new UnreachableException();
         }
     }
-    {{~ else if !node.members }} {}
+    {{~ else if node.non_primitive_members.size == 0 }} {}
     {{~ else }}
     {
-        {{~ for member in node.members ~}}
-        {{~ if !member.is_primitive ~}}
+        {{~ for member in node.non_primitive_members ~}}
         Visit(node.{{ member.name }});
-        {{~ end ~}}
         {{~ end ~}}
     }
     {{~ end ~}}

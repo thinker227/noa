@@ -13,6 +13,10 @@ public class NodeLike
 
     public List<Member> Members { get; } = [];
 
+    public List<Member> NonPrimitiveMembers => Members.Where(x => !x.IsPrimitive).ToList();
+
+    public List<Member> NonInheritedMembers => Members.Where(x => !x.IsInherited).ToList();
+
     public List<Node> Children { get; } = [];
     
     public override string ToString() => Name;
