@@ -6,6 +6,14 @@ namespace Noa.Compiler.Nodes.Generated;
 
 public abstract partial class Visitor<T>
 {
+    public virtual T Visit({{ root_node.name }} node) => node switch
+    {
+        {{~ for child in root_node.children ~}}
+        {{ child.name }} x => Visit{{ child.name }}(x),
+        {{~ end ~}}
+        _ => throw new UnreachableException()
+    };
+
     {{~ for node in nodes ~}}
     public virtual T Visit{{ node.name }}({{ node.name }} node)
     {{- if node.is_abstract }} => node switch
@@ -14,11 +22,11 @@ public abstract partial class Visitor<T>
         {{ child.name }} x => Visit{{ child.name }}(x),
         {{~ end ~}}
         _ => throw new UnreachableException()
-    }
-    {{~ else if !node.has_non_primitive_members }} => GetDefault(node);
+    };
+    {{~ else if node.members.size == 0 }} => GetDefault(node);
     {{~ else }}
     {
-        {{~ for member in node.non_primitive_members ~}}
+        {{~ for member in node.members ~}}
         Visit(node.{{ member.name }});
         {{~ end ~}}
 
@@ -33,8 +41,22 @@ public abstract partial class Visitor<T>
 
 public abstract partial class Visitor
 {
+    public virtual void Visit({{ root_node.name }} node)
+    {
+        switch (node)
+        {
+        {{~ for child in root_node.children ~}}
+        case {{ child.name }} x:
+            Visit{{ child.name }}(x);
+            break;
+        {{~ end ~}}
+        default:
+            throw new UnreachableException();
+        }
+    }
+
     {{~ for node in nodes ~}}
-    public virtual T Visit{{ node.name }}({{ node.name }} node)
+    public virtual void Visit{{ node.name }}({{ node.name }} node)
     {{- if node.is_abstract }}
     {
         switch (node)
@@ -44,12 +66,14 @@ public abstract partial class Visitor
             Visit{{ child.name }}(x);
             break;
         {{~ end ~}}
+        default:
+            throw new UnreachableException();
         }
     }
-    {{~ else if !node.has_non_primitive_members }} {}
+    {{~ else if !node.members }} {}
     {{~ else }}
     {
-        {{~ for member in node.non_primitive_members ~}}
+        {{~ for member in node.members ~}}
         Visit(node.{{ member.name }});
         {{~ end ~}}
     }

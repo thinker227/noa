@@ -3,7 +3,7 @@
 namespace Noa.Compiler.Nodes.Generated;
 
 {{~ for node in nodes ~}}
-public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}sealed {{ end }}partial class {{ node.name }} : {{ node.parent.name }}{{ if node.is_abstract && !node.has_members }};
+public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}sealed {{ end }}partial class {{ node.name }} : {{ node.parent.name }}{{ if node.is_abstract }};
 {{ else }}
 {
     {{~ for member in node.members ~}}
