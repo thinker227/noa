@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-namespace Noa.Compiler.Nodes.Generated;
+namespace Noa.Compiler.Nodes;
 
 public abstract partial class Visitor<T>
 {
