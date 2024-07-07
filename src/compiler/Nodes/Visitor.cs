@@ -13,6 +13,18 @@ public abstract class Visitor<T>
     /// </summary>
     /// <param name="node">The node to get the default value for, or null to get a general default value.</param>
     protected abstract T GetDefault(Node node);
+
+    /// <summary>
+    /// Filters for nodes before visiting them.
+    /// </summary>
+    /// <param name="node">The node to filter.</param>
+    /// <param name="result">The return value of the visit if the method return false.</param>
+    /// <returns>True if the node should be visited, otherwise false.</returns>
+    protected virtual bool Filter(Node node, [MaybeNullWhen(false)] out T result)
+    {
+        result = GetDefault(node);
+        return true;
+    }
     
     /// <summary>
     /// Called before visiting each node.
@@ -62,10 +74,12 @@ public abstract class Visitor<T>
     public T? Visit(Node? node)
     {
         if (node is null) return default;
+
+        if (!Filter(node, out var result)) return result!;
         
         BeforeVisit(node);
 
-        var result = node switch
+        result = node switch
         {
             Root x => VisitRoot(x),
             Identifier x => VisitIdentifier(x),
