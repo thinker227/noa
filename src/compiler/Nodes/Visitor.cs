@@ -51,3 +51,30 @@ public abstract partial class Visitor<T>
         return builder?.ToImmutable() ?? ImmutableArray<T>.Empty;
     }
 }
+
+/// <summary>
+/// Visits AST nodes.
+/// </summary>
+public abstract partial class Visitor
+{
+    /// <summary>
+    /// Called before visiting each node.
+    /// </summary>
+    /// <param name="node">The node being visited.</param>
+    protected virtual void BeforeVisit(Node node) {}
+    
+    /// <summary>
+    /// Called after visiting each node.
+    /// </summary>
+    /// <param name="node">The node being visited.</param>
+    protected virtual void AfterVisit(Node node) {}
+    
+    /// <summary>
+    /// Visits a collection of nodes.
+    /// </summary>
+    /// <param name="nodes">The nodes to visit.</param>
+    public void Visit(IEnumerable<Node> nodes)
+    {
+        foreach (var node in nodes) Visit(node);
+    }
+}
