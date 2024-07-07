@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
 using Noa.Compiler.ControlFlow;
 
@@ -76,6 +75,8 @@ public abstract class Declaration : Statement;
 
 public sealed class FunctionDeclaration : Declaration
 {
+    public required Token FuncKeyword { get; init; }
+    
     public required Identifier Identifier { get; init; }
     
     public required ImmutableArray<Parameter> Parameters { get; init; }
@@ -96,6 +97,8 @@ public sealed class FunctionDeclaration : Declaration
 
 public sealed class LetDeclaration : Declaration
 {
+    public required Token LetKeyword { get; init; }
+    
     public required bool IsMutable { get; init; }
     
     public required Identifier Identifier { get; init; }
@@ -166,6 +169,8 @@ public sealed class LambdaExpression : Expression
 {
     public required ImmutableArray<Parameter> Parameters { get; init; }
     
+    public required Token ArrowToken { get; init; }
+    
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
@@ -182,9 +187,13 @@ public sealed class TupleExpression : Expression
 
 public sealed class IfExpression : Expression
 {
+    public required Token IfKeyword { get; init; }
+    
     public required Expression Condition { get; init; }
     
     public required BlockExpression IfTrue { get; init; }
+    
+    public required Token ElseKeyword { get; init; }
     
     public required BlockExpression IfFalse { get; init; }
 
@@ -193,6 +202,8 @@ public sealed class IfExpression : Expression
 
 public sealed class LoopExpression : Expression
 {
+    public required Token LoopKeyword { get; init; }
+    
     public required BlockExpression Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
@@ -200,6 +211,8 @@ public sealed class LoopExpression : Expression
 
 public sealed class ReturnExpression : Expression
 {
+    public required Token ReturnKeyword { get; init; }
+    
     public required Expression? Expression { get; init; }
 
     public override IEnumerable<Node> Children =>
@@ -212,6 +225,8 @@ public sealed class ReturnExpression : Expression
 
 public sealed class BreakExpression : Expression
 {
+    public required Token BreakKeyword { get; init; }
+    
     public required Expression? Expression { get; init; }
 
     public override IEnumerable<Node> Children =>
