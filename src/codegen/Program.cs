@@ -89,7 +89,7 @@ static Root ToModel(RootDto rootDto)
     var nodes = rootDto.nodes
         .ToDictionary(
             x => x.name,
-            x => (dto: x, node: new Node() { Name = x.name, IsAbstract = x.isAbstract }));
+            x => (dto: x, node: new Node() { Name = x.name, IsAbstract = x is VariantDto }));
     
     foreach (var (nodeDto, node) in nodes.Values)
     {
@@ -106,8 +106,10 @@ static Root ToModel(RootDto rootDto)
     foreach (var node in ordered)
     {
         var nodeDto = nodes[node.Name].dto;
+
+        if (nodeDto is not NodeDto { members: var dtoMembers }) continue;
         
-        foreach (var memberDto in nodeDto.members)
+        foreach (var memberDto in dtoMembers)
         {
             var member = memberDto is ValueDto x
                 ? new Member()

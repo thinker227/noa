@@ -11,14 +11,14 @@
     <Value Name="Name" Type="string" Primitive="true"/>
   </Node>
 
-  <Node Name="Statement" Abstract="true"/>
+  <Variant Name="Statement"/>
 
   <Node Name="Parameter">
     <Value Name="IsMutable" Type="bool" Primitive="true"/>
     <Value Name="Identifier" Type="Identifier"/>
   </Node>
 
-  <Node Name="Declaration" Parent="Statement" Abstract="true"/>
+  <Variant Name="Declaration" Parent="Statement"/>
 
   <Node Name="FunctionDeclaration" Parent="Declaration">
     <Value Name="FuncKeyword" Type="Token" Primitive="true"/>
@@ -44,7 +44,7 @@
     <Value Name="Expression" Type="Expression"/>
   </Node>
 
-  <Node Name="Expression" Abstract="true"/>
+  <Variant Name="Expression"/>
 
   <Node Name="ErrorExpression" Parent="Expression"/>
 

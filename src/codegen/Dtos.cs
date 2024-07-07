@@ -9,20 +9,23 @@ public sealed class RootDto
     public required string rootName;
 
     [XmlElement("Node", typeof(NodeDto))]
-    public required List<NodeDto> nodes = [];
+    [XmlElement("Variant", typeof(VariantDto))]
+    public required List<NodeBaseDto> nodes = [];
 }
 
-public class NodeDto
+public abstract class NodeBaseDto
 {
     [XmlAttribute("Name")]
     public required string name;
 
     [XmlAttribute("Parent")]
     public string? parent;
+}
 
-    [XmlAttribute("Abstract")]
-    public bool isAbstract = false;
+public sealed class VariantDto : NodeBaseDto;
 
+public class NodeDto : NodeBaseDto
+{
     [XmlElement("Value", typeof(ValueDto))]
     [XmlElement("List", typeof(ListDto))]
     [XmlElement("Inherited", typeof(InheritedDto))]
