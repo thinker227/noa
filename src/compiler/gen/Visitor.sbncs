@@ -15,7 +15,7 @@ public abstract partial class Visitor<T>
     };
 
     {{~ for node in nodes ~}}
-    public virtual T Visit{{ node.name }}({{ node.name }} node)
+    protected virtual T Visit{{ node.name }}({{ node.name }} node)
     {{- if node.is_abstract }} => node switch
     {
         {{~ for child in node.children ~}}
@@ -56,7 +56,7 @@ public abstract partial class Visitor
     }
 
     {{~ for node in nodes ~}}
-    public virtual void Visit{{ node.name }}({{ node.name }} node)
+    protected virtual void Visit{{ node.name }}({{ node.name }} node)
     {{- if node.is_abstract }}
     {
         switch (node)
