@@ -6,13 +6,24 @@ namespace Noa.Compiler.Nodes;
 
 public abstract partial class Visitor<T>
 {
-    public virtual T Visit({{ root_node.name }} node) => node switch
+    public virtual T Visit({{ root_node.name }} node)
     {
-        {{~ for child in root_node.children ~}}
-        {{ child.name }} x => Visit{{ child.name }}(x),
-        {{~ end ~}}
-        _ => throw new UnreachableException()
-    };
+        if (!Filter(node, out var result)) return result;
+
+        BeforeVisit(node);
+
+        result = node switch
+        {
+            {{~ for child in root_node.children ~}}
+            {{ child.name }} x => Visit{{ child.name }}(x),
+            {{~ end ~}}
+            _ => throw new UnreachableException()
+        };
+
+        AfterVisit(node, result);
+
+        return result;
+    }
 
     {{~ for node in nodes ~}}
     protected virtual T Visit{{ node.name }}({{ node.name }} node)
@@ -43,6 +54,10 @@ public abstract partial class Visitor
 {
     public virtual void Visit({{ root_node.name }} node)
     {
+        if (!Filter(node)) return;
+
+        BeforeVisit(node);
+
         switch (node)
         {
         {{~ for child in root_node.children ~}}
@@ -53,6 +68,8 @@ public abstract partial class Visitor
         default:
             throw new UnreachableException();
         }
+
+        AfterVisit(node);
     }
 
     {{~ for node in nodes ~}}
