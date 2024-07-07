@@ -11,7 +11,9 @@ internal class BlockEmitter(
     : FunctionEmitter(function, functionBuilders, strings)
 {
     private int stackSize = 0;
-    
+
+    protected override int GetDefault(Node node) => default;
+
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
 
     protected override int VisitExpressionStatement(ExpressionStatement node)
