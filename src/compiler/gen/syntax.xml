@@ -21,6 +21,7 @@
   <Node Name="Declaration" Parent="Statement" Abstract="true"/>
 
   <Node Name="FunctionDeclaration" Parent="Declaration">
+    <Value Name="FuncKeyword" Type="Token" Primitive="true"/>
     <Value Name="Identifier" Type="Identifier"/>
     <List Name="Parameters" Type="Parameter"/>
     <Value Name="ExpressionBody" Type="Expression" Optional="true"/>
@@ -28,6 +29,7 @@
   </Node>
 
   <Node Name="LetDeclaration" Parent="Declaration">
+    <Value Name="LetKeyword" Type="Token" Primitive="true"/>
     <Value Name="IsMutable" Type="bool" Primitive="true"/>
     <Value Name="Identifier" Type="Identifier"/>
     <Value Name="Expression" Type="Expression"/>
@@ -58,6 +60,7 @@
 
   <Node Name="LambdaExpression" Parent="Expression">
     <List Name="Parameters" Type="Parameter"/>
+    <Value Name="ArrowToken" Type="Token" Primitive="true"/>
     <Value Name="Body" Type="Expression"/>
   </Node>
 
@@ -66,20 +69,25 @@
   </Node>
 
   <Node Name="IfExpression" Parent="Expression">
+    <Value Name="IfKeyword" Type="Token" Primitive="true"/>
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>
+    <Value Name="ElseKeyword" Type="Token" Primitive="true"/>
     <Value Name="IfFalse" Type="BlockExpression"/>
   </Node>
 
   <Node Name="LoopExpression" Parent="Expression">
+    <Value Name="LoopKeyword" Type="Token" Primitive="true"/>
     <Value Name="Block" Type="BlockExpression"/>
   </Node>
 
   <Node Name="ReturnExpression" Parent="Expression">
+    <Value Name="ReturnKeyword" Type="Token" Primitive="true"/>
     <Value Name="Expression" Type="Expression" Optional="true"/>
   </Node>
 
   <Node Name="BreakExpression" Parent="Expression">
+    <Value Name="BreakKeyword" Type="Token" Primitive="true"/>
     <Value Name="Expression" Type="Expression" Optional="true"/>
   </Node>
 
