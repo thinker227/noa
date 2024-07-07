@@ -114,13 +114,12 @@ static Root ToModel(RootDto rootDto)
     {
         var node = nodes[nodeDto.name];
 
-        if (nodeDto.parent is not null)
-        {
-            var parent = nodes[nodeDto.parent];
-            node.Parent = parent;
-            parent.Children.Add(node);
-        }
-        else node.Parent = rootNode;
+        var parent = nodeDto.parent is not null
+            ? nodes[nodeDto.parent]
+            : rootNode;
+        
+        node.Parent = parent;
+        parent.Children.Add(node);
     }
 
     return new Root()

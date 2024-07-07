@@ -12,6 +12,8 @@ public class NodeLike
     public required string Name { get; init; }
 
     public virtual IEnumerable<Member> Members { get; } = [];
+
+    public List<Node> Children { get; } = [];
     
     public override string ToString() => Name;
 }
@@ -22,15 +24,7 @@ public sealed class Node(List<Member> members) : NodeLike
     
     public required bool IsAbstract { get; init; }
 
-    public List<Node> Children { get; } = [];
-
-    public override IEnumerable<Member> Members => Parent.Members.Concat(members);
-
-    public IEnumerable<Member> NonPrimitiveMembers => Members.Where(x => !x.IsPrimitive);
-
-    public bool HasMembers => Members.Any();
-    
-    public bool HasNonPrimitiveMembers => NonPrimitiveMembers.Any();
+    public override IEnumerable<Member> Members => members;
 }
 
 public sealed class Member
