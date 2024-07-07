@@ -18,7 +18,7 @@ internal static class SymbolResolution
     {
         var globalScope = new MapScope(null, ast.Root);
         
-        var visitor = new Visitor(globalScope, cancellationToken);
+        var visitor = new SymbolVisitor(globalScope, cancellationToken);
         visitor.Visit(ast.Root);
 
         ast.GlobalScope = globalScope;
@@ -29,14 +29,12 @@ internal static class SymbolResolution
 }
 
 // Int here is just used as a useless type.
-file sealed class Visitor(IScope globalScope, CancellationToken cancellationToken) : Visitor<int>
+file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellationToken) : Visitor
 {
     private IScope currentScope = globalScope;
     private readonly Stack<IFunction> functionStack = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
-
-    protected override int GetDefault(Node node) => default;
 
     protected override void BeforeVisit(Node node)
     {
@@ -149,7 +147,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         return new BlockScope(currentScope, block, functions, variableTimeline, timelineIndexMap);
     }
     
-    protected override int VisitRoot(Root node)
+    protected override void VisitRoot(Root node)
     {
         
         var function = new TopLevelFunction()
@@ -171,14 +169,12 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         });
 
         functionStack.Pop();
-
-        return default;
     }
     
     // No need to visit let declarations because they've already been fully declared
     // and their bodies don't need additional scopes.
 
-    protected override int VisitFunctionDeclaration(FunctionDeclaration node)
+    protected override void VisitFunctionDeclaration(FunctionDeclaration node)
     {
         // All symbols here *should* already have been set by DeclareBlock.
         
@@ -215,11 +211,9 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         });
 
         functionStack.Pop();
-
-        return default;
     }
 
-    protected override int VisitBlockExpression(BlockExpression node)
+    protected override void VisitBlockExpression(BlockExpression node)
     {
         var blockScope = DeclareBlock(node);
         node.DeclaredScope = new(blockScope);
@@ -228,11 +222,9 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Visit(node.Statements);
             Visit(node.TrailingExpression);
         });
-
-        return default;
     }
 
-    protected override int VisitLambdaExpression(LambdaExpression node)
+    protected override void VisitLambdaExpression(LambdaExpression node)
     {
         var paramScope = new MapScope(currentScope, node);
 
@@ -279,11 +271,9 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         });
 
         functionStack.Pop();
-
-        return default;
     }
 
-    protected override int VisitIdentifierExpression(IdentifierExpression node)
+    protected override void VisitIdentifierExpression(IdentifierExpression node)
     {
         var identifier = node.Identifier;
         
@@ -295,7 +285,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
             node.ReferencedSymbol = new ErrorSymbol();
             
-            return default;
+            return;
         }
 
         // The symbol is still *referenced* even if it's not accessible.
@@ -311,7 +301,5 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
             Diagnostics.Add(SymbolDiagnostics.DeclaredLater.Format(symbol, node.Location));
             break;
         }
-
-        return default;
     }
 }
