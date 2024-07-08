@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Cocona.Lite" Version="2.2.0" />
     <PackageReference Include="Scriban" Version="5.10.0" />
+    <PackageReference Include="Spectre.Console" Version="0.48.0" />
   </ItemGroup>
 
 </Project>

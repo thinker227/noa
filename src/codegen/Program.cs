@@ -3,6 +3,10 @@ using System.Xml.Serialization;
 using Cocona;
 using Noa.CodeGen;
 using Scriban;
+using Spectre.Console;
+
+var console = AnsiConsole.Create(new() { Out = new AnsiConsoleOutput(Console.Out) });
+var error = AnsiConsole.Create(new() { Out = new AnsiConsoleOutput(Console.Error) });
 
 var app = CoconaLiteApp.Create();
 
@@ -15,7 +19,7 @@ app.Run((
     var inputFolder = new DirectoryInfo(inputFolderPath);
     if (!inputFolder.Exists)
     {
-        Console.Error.WriteLine("Input folder does not exist");
+        error.MarkupLine($"[red]Input folder [/][aqua]{inputFolder.FullName}[/][red] does not exist[/]");
         return 1;
     }
 
@@ -26,7 +30,7 @@ app.Run((
     var xmlFile = new FileInfo(xmlFilePath);
     if (!xmlFile.Exists)
     {
-        Console.Error.WriteLine($"Cannot find input XML file at {xmlFile.FullName}");
+        error.MarkupLine($"[red]Cannot find input XML file at [/][aqua]{xmlFile.FullName}[/]");
         return 1;
     }
 
@@ -36,34 +40,47 @@ app.Run((
         {
             var templateText = File.ReadAllText(templatePath);
             var template = Template.Parse(templateText, templatePath);
-            
-            if (template.HasErrors) {
-                Console.Error.WriteLine($"Template {templatePath} has errors:");
-                foreach (var message in template.Messages) Console.Error.WriteLine(message);
-                Environment.Exit(1);
-            }
+            var name = Path.GetFileNameWithoutExtension(templatePath);
 
-            return (name: Path.GetFileNameWithoutExtension(templatePath), template);
+            if (!template.HasErrors) return (name, template) as (string, Template)?;
+            
+            error.MarkupLine($"[red]Template [/][aqua]{name}[/][red] has errors:[/]");
+            foreach (var message in template.Messages) error.MarkupLine($"  [gray]{message}[/]");
+            error.MarkupLine($"[aqua]{name}[/][red] will not be rendered.[/]");
+            error.WriteLine();
+            
+            return null;
+
         })
+        .Where(x => x is not null)
+        .Select(x => x!.Value)
         .ToList();
 
+    console.MarkupLine($"Parsing input [aqua]{xmlFile.FullName}[/]");
     var rootDto = ReadXml<RootDto>(xmlFile);
+    if (rootDto is null) return 1;
     var root = ToModel(rootDto);
 
+    console.MarkupLine($"Rendering [yellow]{templates.Count}[/] templates");
+    console.MarkupLine($"Outputting to folder [aqua]{outputFolder.FullName}[/]");
+    
     foreach (var (name, template) in templates)
     {
-        Console.WriteLine($"Rendering template {name}");
+        console.WriteLine();
+        
+        console.MarkupLine($"  Rendering template [aqua]{name}[/]");
         var text = template.Render(root);
 
-        var outputPath = Path.Combine(outputFolder.FullName, $"{name}.g.cs");
-        Console.WriteLine($"Outputting to {outputPath}");
+        var fileName = $"{name}.g.cs";
+        var outputPath = Path.Combine(outputFolder.FullName, fileName);
+        console.MarkupLine($"  Outputting to [aqua]{fileName}[/]");
         File.WriteAllText(outputPath, text);
     }
 
     return 0;
 });
 
-static TRoot ReadXml<TRoot>(FileInfo file)
+TRoot? ReadXml<TRoot>(FileInfo file) where TRoot : class
 {
     try
     {
@@ -74,9 +91,8 @@ static TRoot ReadXml<TRoot>(FileInfo file)
     }
     catch (InvalidOperationException e) when (e.InnerException is XmlException xmlException)
     {
-        Console.Error.WriteLine($"Error deserializing XML: {xmlException.Message}");
-        Environment.Exit(1);
-        return default!;
+        error.MarkupLine($"[red]Error deserializing XML: [/][gray]{xmlException.Message}[/]");
+        return null;
     }
 }
 
