@@ -18,6 +18,13 @@ public class NodeLike
     public List<Member> NonInheritedMembers => Members.Where(x => !x.IsInherited).ToList();
 
     public List<Node> Children { get; } = [];
+
+    public List<Node> TerminalDescendants => Children
+        .SelectMany(x => !x.IsAbstract
+            ? x.TerminalDescendants
+            : [])
+        .Concat(Children)
+        .ToList();
     
     public override string ToString() => Name;
 }

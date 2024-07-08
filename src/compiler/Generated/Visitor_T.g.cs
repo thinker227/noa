@@ -93,6 +93,7 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitExpression(Expression node) => node switch
     {
+        Root x => VisitRoot(x),
         ErrorExpression x => VisitErrorExpression(x),
         BlockExpression x => VisitBlockExpression(x),
         CallExpression x => VisitCallExpression(x),

@@ -30,7 +30,7 @@ public abstract partial class Visitor
     {
         switch (node)
         {
-        {{~ for child in node.children ~}}
+        {{~ for child in node.terminal_descendants ~}}
         case {{ child.name }} x:
             Visit{{ child.name }}(x);
             break;

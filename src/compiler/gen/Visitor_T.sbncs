@@ -29,7 +29,7 @@ public abstract partial class Visitor<T>
     protected virtual T Visit{{ node.name }}({{ node.name }} node)
     {{- if node.is_abstract }} => node switch
     {
-        {{~ for child in node.children ~}}
+        {{~ for child in node.terminal_descendants ~}}
         {{ child.name }} x => Visit{{ child.name }}(x),
         {{~ end ~}}
         _ => throw new UnreachableException()

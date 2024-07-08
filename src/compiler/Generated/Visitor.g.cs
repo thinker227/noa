@@ -106,6 +106,9 @@ public abstract partial class Visitor
     {
         switch (node)
         {
+        case Root x:
+            VisitRoot(x);
+            break;
         case ErrorExpression x:
             VisitErrorExpression(x);
             break;
