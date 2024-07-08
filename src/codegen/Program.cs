@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
 using Cocona;
 using Noa.CodeGen;
@@ -7,7 +6,7 @@ using Scriban;
 
 var app = CoconaLiteApp.Create();
 
-app.AddCommand("syntax", (
+app.Run((
     [Argument("input-folder", Description = "The path to the folder containing the input XML file and template files")]
     string inputFolderPath,
     [Argument("output-folder", Description = "The path to the folder to output generated files to")]
@@ -63,8 +62,6 @@ app.AddCommand("syntax", (
 
     return 0;
 });
-
-app.Run();
 
 static TRoot ReadXml<TRoot>(FileInfo file)
 {
