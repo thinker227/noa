@@ -22,7 +22,7 @@ app.Run((
     var outputFolder = new DirectoryInfo(outputFolderPath);
     if (!outputFolder.Exists) outputFolder.Create();
     
-    var xmlFilePath = Path.Combine(inputFolderPath, "syntax.xml");
+    var xmlFilePath = Path.Combine(inputFolderPath, "nodes.xml");
     var xmlFile = new FileInfo(xmlFilePath);
     if (!xmlFile.Exists)
     {
