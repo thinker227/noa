@@ -12,7 +12,7 @@ public abstract partial class Visitor<T>
     /// Gets the default return value for a node, or a general default value if the node is null.
     /// </summary>
     /// <param name="node">The node to get the default value for, or null to get a general default value.</param>
-    protected abstract T GetDefault(Node node);
+    protected abstract T GetDefault(Node? node);
 
     /// <summary>
     /// Filters for nodes before visiting them.
@@ -38,6 +38,28 @@ public abstract partial class Visitor<T>
     /// <param name="node">The node being visited.</param>
     /// <param name="result">The result of visiting the node.</param>
     protected virtual void AfterVisit(Node node, T result) {}
+
+    /// <summary>
+    /// Visits a node. Handles calling <see cref="Filter"/>, <see cref="BeforeVisit"/>,
+    /// and <see cref="AfterVisit"/>. This method should preferably always be called
+    /// instead of any specialized visit methods.
+    /// </summary>
+    /// <param name="node">The node to visit.</param>
+    /// <returns>
+    /// The result of visiting the node, or <see cref="GetDefault"/> if null.
+    /// </returns>
+    public T Visit(Node? node)
+    {
+        if (node is null) return GetDefault(null);
+
+        if (!Filter(node, out var result)) return result;
+
+        BeforeVisit(node);
+        result = CoreVisit(node);
+        AfterVisit(node, result);
+
+        return result;
+    }
     
     /// <summary>
     /// Visits a collection of nodes.
@@ -87,6 +109,23 @@ public abstract partial class Visitor
     /// </summary>
     /// <param name="node">The node being visited.</param>
     protected virtual void AfterVisit(Node node) {}
+
+    /// <summary>
+    /// Visits a node. Handles calling <see cref="Filter"/>, <see cref="BeforeVisit"/>,
+    /// and <see cref="AfterVisit"/>. This method should preferably always be called
+    /// instead of any specialized visit methods.
+    /// </summary>
+    /// <param name="node">The node to visit.</param>
+    public void Visit(Node? node)
+    {
+        if (node is null) return;
+
+        if (!Filter(node)) return;
+        
+        BeforeVisit(node);
+        CoreVisit(node);
+        AfterVisit(node);
+    }
     
     /// <summary>
     /// Visits a collection of nodes.
