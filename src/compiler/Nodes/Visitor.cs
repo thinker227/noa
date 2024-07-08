@@ -20,9 +20,9 @@ public abstract partial class Visitor<T>
     /// <param name="node">The node to filter.</param>
     /// <param name="result">The return value of the visit if the method return false.</param>
     /// <returns>True if the node should be visited, otherwise false.</returns>
-    protected virtual bool Filter(Node node, [MaybeNullWhen(false)] out T result)
+    protected virtual bool Filter(Node node, [MaybeNullWhen(true)] out T result)
     {
-        result = GetDefault(node);
+        result = default;
         return true;
     }
     
