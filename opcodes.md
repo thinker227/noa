@@ -47,7 +47,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 |------|-----------|-------------|--------------|
 | 0x64 | `Add` | Pops the two topmost values from the stack, adds them together, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x65 | `Sub` | Pops the two topmost values from the stack, subtracts the first value from the second, then pushes the result onto the stack. | Cumulative: pops 1 value. |
-| 0x66 | `Mult` | Pops the two topmost values from the stack, multiplies them together, then pushes the result onto the stack. |
+| 0x66 | `Mult` | Pops the two topmost values from the stack, multiplies them together, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x67 | `Div` | Pops the two topmost values from the stack, divides the second value by the first, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x68 | `Equal` | Pops the two topmost values from the stack, compares them for equality, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
 | 0x69 | `LessThan` | Pops the two topmost values on from the stack, checks whether the second value is less than the first, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
