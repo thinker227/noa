@@ -301,6 +301,13 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         // The symbol is still *referenced* even if it's not accessible.
         node.ReferencedSymbol = new(symbol);
 
+        if (accessibility is SymbolAccessibility.Accessible &&
+            symbol is VariableSymbol variable &&
+            !variable.ContainingFunction.Equals(functionStack.Peek()))
+        {
+            Diagnostics.Add(MiscellaneousDiagnostics.ClosuresUnsupported.Format(variable, node.Location));
+        }
+
         switch (accessibility)
         {
         case SymbolAccessibility.Blocked:

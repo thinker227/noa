@@ -2,6 +2,7 @@
 
 using Noa.Compiler.ControlFlow;
 using Noa.Compiler.Diagnostics;
+using Noa.Compiler.Emit;
 using Noa.Compiler.FlowAnalysis;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Parsing;
@@ -35,6 +36,11 @@ public sealed class Ast
     /// The diagnostics in the AST.
     /// </summary>
     public IReadOnlyCollection<IDiagnostic> Diagnostics => diagnostics;
+
+    /// <summary>
+    /// Whether the AST contains any errors.
+    /// </summary>
+    public bool HasErrors => Diagnostics.Any(x => x.Severity == Severity.Error);
     
     /// <summary>
     /// The global scope in which all top-level symbols are declared.
@@ -124,5 +130,28 @@ public sealed class Ast
                 Visit(child);
             }
         }
+    }
+
+    /// <summary>
+    /// Emits the AST as bytecode into a stream.
+    /// </summary>
+    /// <remarks>
+    /// The AST must not contain any errors when this method is called (see <see cref="HasErrors"/>).
+    /// The stream to emit into must be writable,
+    /// and its length will be set to be exactly the length of the emitted bytecode.
+    /// </remarks>
+    /// <param name="stream">The stream to emit into.</param>
+    public void Emit(Stream stream)
+    {
+        if (HasErrors) throw new InvalidOperationException("Cannot emit an AST which contains errors.");
+
+        if (!stream.CanWrite) throw new ArgumentException("Emit stream has to be writable.", nameof(stream));
+        
+        Emitter.Emit(this, stream);
+        
+        // If the stream already had contents (such as the stream being that of a file which already existed
+        // and is being overwritten), then in case the stream was longer than the bytes emitted into it,
+        // this should ensure any remaining bytes are cleared away.
+        stream.SetLength(stream.Position);
     }
 }

@@ -50,8 +50,6 @@ public abstract class CommandBase(IAnsiConsole console)
         console.WriteLine();
         if (diagnosticsResult.Count > 0)
             console.Write(diagnosticsDisplay);
-        else 
-            console.WriteLine();
     }
 
     private static Markup DisplayBuildStatusText(IReadOnlyDictionary<Severity, IDiagnostic[]> diagnostics)
@@ -131,10 +129,19 @@ public abstract class CommandBase(IAnsiConsole console)
 
     protected static Markup DisplayBuildDuration(TimeSpan time)
     {
-        var (duration, unit) = time.TotalMilliseconds >= 5
-            ? (time.TotalMilliseconds, "ms")
-            : (time.TotalMicroseconds, "μs");
+        var duration = DisplayDuration(time);
         
-        return new($"{Emoji.Known.Stopwatch}  Build took [aqua]{duration:F0}{unit}[/]");
+        return new($"{Emoji.Known.Stopwatch}  Build took [aqua]{duration}[/]");
     }
+
+    protected static string DisplayDuration(TimeSpan time) =>
+        (time.TotalMilliseconds, time.TotalSeconds, time.TotalMinutes, time.TotalHours) switch
+        {
+            (< 5, _, _, _) => $"{time.TotalMicroseconds:F0}μs",
+            (_, < 1, _, _) => $"{time.TotalMilliseconds:F0}ms",
+            (_, < 10, _, _) => $"{time.Seconds}s{time.Milliseconds}ms",
+            (_, _, < 1, _) => $"{time.Seconds}s",
+            (_, _, >= 1, < 1) => $"{time.Minutes}m{time.Seconds}s",
+            _ => $"{time.Hours}h{time.Minutes}m{time.Seconds}s"
+        };
 }

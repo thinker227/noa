@@ -4,3 +4,4 @@ package/
 .vs/
 .idea/
 *.sln.DotSettings.user
+*.ark

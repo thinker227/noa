@@ -8,24 +8,25 @@ public sealed class Compile(IAnsiConsole console, CancellationToken ct) : Comman
 {
     [Command("build", Description = "Compiles a source file")]
     public int Execute(
-        [Argument("input-file", Description = "The file to run")] string inputFile)
+        [Argument("input-file", Description = "The file to compile")] string inputFilePath,
+        [Option("output-file", ['o'], Description = "The output Ark file", ValueName = "path")] string? outputFilePath)
     {
-        var file = new FileInfo(inputFile);
-        var displayPath = GetDisplayPath(file);
+        var inputFile = new FileInfo(inputFilePath);
+        var inputDisplayPath = GetDisplayPath(inputFile);
         
-        if (!file.Exists)
+        if (!inputFile.Exists)
         {
-            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [aqua]{displayPath}[/] [red]does not exist.[/]");
+            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [aqua]{inputDisplayPath}[/] [red]does not exist.[/]");
             return 1;
         }
 
-        console.MarkupLine($"{Emoji.Known.Wrench} Building [aqua]{displayPath}[/]...");
+        console.MarkupLine($"{Emoji.Known.Wrench} Building [aqua]{inputDisplayPath}[/]...");
 
         Ast ast;
         TimeSpan time;
         try
         {
-            (ast, time) = CoreCompile(file, ct);
+            (ast, time) = CoreCompile(inputFile, ct);
         }
         catch (OperationCanceledException)
         {
@@ -37,6 +38,19 @@ public sealed class Compile(IAnsiConsole console, CancellationToken ct) : Comman
         console.Write(DisplayBuildDuration(time));
         console.WriteLine();
         PrintStatus(ast.Source, ast.Diagnostics);
+
+        if (ast.HasErrors) return 1;
+
+        var outputFileName = $"{Path.GetFileNameWithoutExtension(inputFile.Name)}.ark";
+        outputFilePath ??= Path.Combine(inputFile.Directory?.FullName ?? "", outputFileName);
+        
+        var outputFile = new FileInfo(outputFilePath);
+        var outputDisplayPath = GetDisplayPath(outputFile);
+        
+        console.MarkupLine($"{Emoji.Known.Hammer} Assembling ark to [aqua]{outputDisplayPath}[/]...");
+
+        using var stream = outputFile.OpenWrite();
+        ast.Emit(stream);
         
         return 0;
     }
