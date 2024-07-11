@@ -95,6 +95,10 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     
     public void Ret() => Add(Opcode.Ret);
 
+    public void EnterTempFrame() => Add(Opcode.EnterTempFrame);
+
+    public void ExitTempFrame() => Add(Opcode.ExitTempFrame);
+
     public void PushInt(int value)
     {
         var bytes = new byte[4];
