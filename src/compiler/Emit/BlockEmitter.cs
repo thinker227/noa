@@ -152,7 +152,34 @@ internal class BlockEmitter(
         return default;
     }
 
-    protected override int VisitLoopExpression(LoopExpression node) => throw new NotImplementedException();
+    protected override int VisitLoopExpression(LoopExpression node)
+    {
+        // Setting the start offset as the address of the enter temp frame instruction
+        // makes things a lot simpler when emitting continue expressions.
+        // However, break has to manually emit the instruction to exit the temp frame
+        // as it has to push a value onto the stack after exiting.
+        
+        var startOffset = Code.AddressOffset;
+        var endOffsetData = new AddressOffsetData(Code, 0xFFFFFFFF);
+        
+        Code.EnterTempFrame();
+
+        var emitter = new LoopEmitter(function, functionBuilders, strings, startOffset, endOffsetData);
+        emitter.Visit(node.Block);
+
+        Code.ExitTempFrame();
+        Code.Jump(startOffset);
+
+        endOffsetData.Offset = Code.AddressOffset;
+
+        return default;
+    }
+
+    protected override int VisitBreakExpression(BreakExpression node) =>
+        throw new InvalidOperationException("Cannot emit a break expression outside of a loop.");
+
+    protected override int VisitContinueExpression(ContinueExpression node) =>
+        throw new InvalidOperationException("Cannot emit a continue expression outside of a loop.");
 
     protected override int VisitIfExpression(IfExpression node)
     {
