@@ -55,38 +55,12 @@ impl StackFrame {
         }
     }
 
-    /// The function the stack frame represents an invocation of.
-    pub fn function(&self) -> FuncId {
-        self.as_function().function
-    }
-
     /// The stack position at the start of the stack frame.
     pub fn stack_start(&self) -> usize {
         match self {
             StackFrame::Function(f) => f.stack_start,
             StackFrame::Temporary { stack_start, .. } => *stack_start,
         }
-    }
-
-    /// Whether the call is explicit (i.e. from user code) or implicit (i.e. from runtime code).
-    pub fn call_is_implicit(&self) -> bool {
-        self.as_function().call.is_implicit
-    }
-    
-    /// The address to return to once the frame has finished.
-    /// 
-    /// Returns [`Some`] is the stack frame has a return address,
-    /// otherwise [`None`] in case the caller is implicit.
-    pub fn return_address(&self) -> Option<Address> {
-        self.as_function().return_address()
-    }
-
-    /// The address of the caller.
-    /// 
-    /// Returns [`Some`] is the stack frame has a caller address,
-    /// otherwise [`None`] in case the caller is implicit.
-    pub fn caller_address(&self) -> Option<Address> {
-        self.as_function().caller_address()
     }
 }
 

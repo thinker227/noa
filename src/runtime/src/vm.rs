@@ -93,11 +93,11 @@ impl VM {
         
         for frame in self.call_stack.iter().rev() {
             trace.push(StackTraceFrame {
-                function: frame.function(),
+                function: frame.as_function().function,
                 address: caller_address
             });
             
-            caller_address = match frame.caller_address() {
+            caller_address = match frame.as_function().caller_address() {
                 Some(x) => StackTraceAddress::Explicit(x.value()),
                 None => StackTraceAddress::Implicit,
             }
