@@ -3,6 +3,7 @@ use crate::vm::frame::{Call, Caller, StackFrame};
 use crate::runtime::exception::{ExceptionData, VMException};
 use crate::runtime::value::Value;
 
+use super::frame::FunctionStackFrame;
 use super::VM;
 
 impl VM {
@@ -20,9 +21,7 @@ impl VM {
         call_is_implicit: bool,
         caller: Caller,
     ) -> Result<(), ExceptionData> {
-        if self.call_stack.len() >= self.call_stack.capacity() {
-            return Err(ExceptionData::VM(VMException::CallStackOverflow));
-        }
+        self.check_stack_overflow()?;
 
         let function = self.functions.get(&id)
             .ok_or(ExceptionData::VM(VMException::InvalidFunction))?;
@@ -65,12 +64,12 @@ impl VM {
         let call = Call {
             is_implicit: call_is_implicit
         };
-        self.call_stack.push(StackFrame::new(
-            id,
-            frame_stack_start_position,
+        self.call_stack.push(StackFrame::Function(FunctionStackFrame {
+            function: id,
+            stack_start: frame_stack_start_position,
             call,
             caller
-        ));
+        }));
 
         self.code.jump(address.value());
 
@@ -84,9 +83,12 @@ impl VM {
         let frame = self.call_stack.pop()
             .expect("call stack should not be empty");
 
-        let stack_start = frame.stack_start();
+        // Make sure to use a function stack frame.
+        let frame = frame.as_function();
 
-        let stack_backtrack_position = if frame.call_is_implicit() {
+        let stack_start = frame.stack_start;
+
+        let stack_backtrack_position = if frame.call.is_implicit {
             // If the function was called implicitly then just the arguments need to be popped.
             stack_start
         } else {
@@ -101,6 +103,53 @@ impl VM {
         // If the stack frame caller was implicit then there is nowhere to return to.
         if let Some(return_address) = frame.return_address() {
             self.code.jump(return_address.value());
+        }
+    }
+
+    pub fn enter_temp_frame(&mut self) -> Result<(), ExceptionData> {
+        self.check_stack_overflow()?;
+
+        let function_frame = self.call_stack.last()
+            .expect("call stack should not be empty")
+            .as_function()
+            .clone();
+
+        let frame_stack_start_position = self.stack.head_position();
+
+        let frame = StackFrame::Temporary {
+            function: function_frame,
+            stack_start: frame_stack_start_position
+        };
+
+        self.call_stack.push(frame);
+
+        Ok(())
+    }
+
+    pub fn exit_stack_frame(&mut self) {
+        let function_frame = self.call_stack.last()
+            .expect("call stack should not be empty");
+
+        // If the current stack frame is not a temporary stack frame then there is an error in the bytecode.
+        // Todo: perhaps return an exception if this is the case.
+        let stack_backtrack_position = match function_frame {
+            StackFrame::Temporary { stack_start, .. } => *stack_start,
+            _ => panic!("cannot exit temporary stack frame when the current stack frame is not temporary"),
+        };
+
+        self.stack.clear_to(stack_backtrack_position);
+
+        // Since we've already checked whether the stack contains a last element
+        // then it is impossible for this to return an error.
+        self.call_stack.pop().unwrap();
+    }
+
+    #[must_use]
+    fn check_stack_overflow(&self) -> Result<(), ExceptionData> {
+        if self.call_stack.len() >= self.call_stack.capacity() {
+            Err(ExceptionData::VM(VMException::CallStackOverflow))
+        } else {
+            Ok(())
         }
     }
 }

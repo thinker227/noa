@@ -83,6 +83,12 @@ impl VM {
 
                 self.stack.push(ret_value)?;
             }
+            opcode::ENTER_TEMP_FRAME => {
+                self.enter_temp_frame()?;
+            },
+            opcode::EXIT_TEMP_FRAME => {
+                self.exit_stack_frame();
+            },
 
             opcode::PUSH_INT => {
                 let val = self.code.read_i32()?;
@@ -190,8 +196,9 @@ impl VM {
 
     fn get_variable_stack_index(&self, var: VarIndex) -> usize {
         let frame = self.call_stack.last()
-            .expect("call stack should not be empty");
+            .expect("call stack should not be empty")
+            .as_function();
 
-        frame.stack_start() + var.index() as usize
+        frame.stack_start + var.index() as usize
     }
 }
