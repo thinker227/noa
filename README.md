@@ -58,8 +58,8 @@ To compile and install the VSCode extension from source, you need [Node.js](http
 - [x] Scope/symbol resolution
 - [x] Flow analysis
 - [ ] Optimization
-- [ ] Bytecode
-- [ ] Runtime
+- [x] Bytecode
+- [x] Runtime
 - [x] CLI
 - [x] Language server
 
