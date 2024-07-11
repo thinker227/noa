@@ -83,6 +83,8 @@ impl VM {
 
                 self.stack.push(ret_value)?;
             }
+            opcode::ENTER_TEMP_FRAME => todo!(),
+            opcode::EXIT_TEMP_FRAME => todo!(),
 
             opcode::PUSH_INT => {
                 let val = self.code.read_i32()?;

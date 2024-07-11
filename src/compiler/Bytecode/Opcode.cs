@@ -12,6 +12,8 @@ internal enum Opcode : byte
     JumpIf = 0x2,
     Call = 0x3,
     Ret = 0x4,
+    EnterTempFrame = 0x5,
+    ExitTempFrame = 0x6,
 
     // Stack operations
     PushInt = 0x14,

@@ -16,6 +16,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x2 | `JumpIf <address>` | Pops the topmost value from the stack and jumps to `address` if the value is `true`. | Pops 1 value. |
 | 0x3 | `Call <arg count>` | Begins by looking up the element at `arg count` from the top of the stack and coerces it into a function. The remaining `arg count` elements on the top of the stack are used as arguments, and the function is called. After the function has returned, the arguments as well as the function are popped off the stack. | Cumulative: pops `arg count + 1` values. |
 | 0x4 | `Ret` | Pops the topmost value from the stack, returns from the current function, then pushes the value onto the stack. | Pops 1 value. |
+| 0x5 | `EnterTempFrame` | Enters a new temporary stack frame. | |
+| 0x6 | `ExitTempFrame` | Exits the current temporary stack frame. Throws a runtime exception if the current stack frame is not a temporary stack frame. | |
 
 ## Stack push operations (0x14-0x31)
 
