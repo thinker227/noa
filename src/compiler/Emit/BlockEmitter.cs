@@ -10,8 +10,6 @@ internal class BlockEmitter(
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {
-    private readonly StackTracker stack = new();
-
     protected override int GetDefault(Node node) => default;
 
     protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
@@ -22,7 +20,6 @@ internal class BlockEmitter(
         
         // Discard the evaluated value.
         Code.Pop();
-        stack.Decrement();
 
         return default;
     }
@@ -37,7 +34,6 @@ internal class BlockEmitter(
         else
         {
             Code.PushNil();
-            stack.Increment();
         }
 
         return default;
@@ -53,7 +49,6 @@ internal class BlockEmitter(
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
         
         Code.StoreVar(varIndex);
-        stack.Decrement();
         
         return default;
     }
@@ -140,16 +135,12 @@ internal class BlockEmitter(
         default: throw new UnreachableException();
         }
         
-        // The cumulative effect of evaluating any binary expression is the stack decreasing by one.
-        stack.Decrement();
-        
         return default;
     }
 
     protected override int VisitNumberExpression(NumberExpression node)
     {
         Code.PushInt(node.Value);
-        stack.Increment();
 
         return default;
     }
@@ -157,7 +148,6 @@ internal class BlockEmitter(
     protected override int VisitBoolExpression(BoolExpression node)
     {
         Code.PushBool(node.Value);
-        stack.Increment();
 
         return default;
     }
@@ -169,21 +159,15 @@ internal class BlockEmitter(
         Visit(node.Condition);
 
         var jumpToTrue = Code.JumpIf();
-        stack.Decrement();
 
         Visit(node.IfFalse);
-        stack.Decrement(); // The evaluated value essentially doesn't exist for the if true block.
         
         var jumpToEnd = Code.Jump();
         
         jumpToTrue.SetAddress(Code.AddressOffset);
         Visit(node.IfTrue);
-        stack.Decrement();
         
         jumpToEnd.SetAddress(Code.AddressOffset);
-        
-        // Stack increments by 1 because one and only one of the blocks must have been evaluated.
-        stack.Increment();
 
         return default;
     }
@@ -195,9 +179,6 @@ internal class BlockEmitter(
         Visit(node.Arguments);
         
         Code.Call((uint)node.Arguments.Length);
-        
-        // The arguments as well as the function itself are popped off the stack.
-        stack.Current -= node.Arguments.Length + 1;
 
         return default;
     }
@@ -207,7 +188,6 @@ internal class BlockEmitter(
         var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
         
         Code.PushFunc(lambdaFunctionId);
-        stack.Increment();
 
         return default;
     }
@@ -232,9 +212,6 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
-        
-        // Stack increases by 1 regardless of whether a function or variable is pushed onto the stack.
-        stack.Increment();
 
         return default;
     }
@@ -245,11 +222,9 @@ internal class BlockEmitter(
         else
         {
             Code.PushNil();
-            stack.Increment();
         }
 
         Code.Ret();
-        stack.Decrement();
 
         return default;
     }
@@ -261,7 +236,6 @@ internal class BlockEmitter(
         var var = Locals.GetOrCreateVariable(node.Symbol.Value);
         
         Code.StoreVar(var);
-        stack.Decrement();
         
         return default;
     }
