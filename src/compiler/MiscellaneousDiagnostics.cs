@@ -15,11 +15,11 @@ internal static class MiscellaneousDiagnostics
                 .Raw("."),
             Severity.Error);
 
-    public static DiagnosticTemplate<VariableSymbol> ClosuresUnsupported { get; } =
-        DiagnosticTemplate.Create<VariableSymbol>(
+    public static DiagnosticTemplate<IVariableSymbol> ClosuresUnsupported { get; } =
+        DiagnosticTemplate.Create<IVariableSymbol>(
             "NOA-MISC-002",
             (symbol, page) => page
-                .Raw("Cannot reference variable ")
+                .Raw("Cannot reference variable or parameter ")
                 .Symbol(symbol)
                 .Raw(" because it would cause a ")
                 .Keyword("closure")

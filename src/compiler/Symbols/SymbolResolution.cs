@@ -302,7 +302,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         node.ReferencedSymbol = new(symbol);
 
         if (accessibility is SymbolAccessibility.Accessible &&
-            symbol is VariableSymbol variable &&
+            symbol is IVariableSymbol variable &&
             !variable.ContainingFunction.Equals(functionStack.Peek()))
         {
             Diagnostics.Add(MiscellaneousDiagnostics.ClosuresUnsupported.Format(variable, node.Location));
