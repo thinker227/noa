@@ -28,7 +28,6 @@ internal static class SymbolResolution
     }
 }
 
-// Int here is just used as a useless type.
 file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellationToken) : Visitor
 {
     private IScope currentScope = globalScope;
