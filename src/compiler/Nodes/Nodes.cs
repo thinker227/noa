@@ -294,6 +294,11 @@ public sealed class NumberExpression : Expression
     public override IEnumerable<Node> Children => [];
 }
 
+public sealed class NilExpression : Expression
+{
+    public override IEnumerable<Node> Children => [];
+}
+
 public enum UnaryKind
 {
     Identity,

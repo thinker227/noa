@@ -171,6 +171,7 @@ public abstract class Visitor<T>
         LambdaExpression x => VisitLambdaExpression(x),
         LoopExpression x => VisitLoopExpression(x),
         NumberExpression x => VisitNumberExpression(x),
+        NilExpression x => VisitNilExpression(x),
         ReturnExpression x => VisitReturnExpression(x),
         StringExpression x => VisitStringExpression(x),
         TupleExpression x => VisitTupleExpression(x),
@@ -265,4 +266,6 @@ public abstract class Visitor<T>
     protected virtual T VisitBoolExpression(BoolExpression node) => GetDefault(node);
 
     protected virtual T VisitNumberExpression(NumberExpression node) => GetDefault(node);
+
+    protected virtual T VisitNilExpression(NilExpression node) => GetDefault(node);
 }

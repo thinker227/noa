@@ -152,6 +152,13 @@ internal class BlockEmitter(
         return default;
     }
 
+    protected override int VisitNilExpression(NilExpression node)
+    {
+        Code.PushNil();
+
+        return default;
+    }
+
     protected override int VisitLoopExpression(LoopExpression node)
     {
         // Setting the start offset as the address of the enter temp frame instruction
