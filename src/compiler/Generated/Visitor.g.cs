@@ -153,6 +153,9 @@ public abstract partial class Visitor
         case NumberExpression x:
             VisitNumberExpression(x);
             break;
+        case NilExpression x:
+            VisitNilExpression(x);
+            break;
         default:
             throw new UnreachableException();
         }
@@ -225,4 +228,6 @@ public abstract partial class Visitor
     protected virtual void VisitBoolExpression(BoolExpression node) {}
 
     protected virtual void VisitNumberExpression(NumberExpression node) {}
+
+    protected virtual void VisitNilExpression(NilExpression node) {}
 }

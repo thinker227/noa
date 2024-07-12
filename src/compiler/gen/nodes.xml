@@ -119,5 +119,7 @@
   <Node Name="NumberExpression" Parent="Expression">
     <Value Name="Value" Type="int" Primitive="true"/>
   </Node>
+  
+  <Node Name="NilExpression" Parent="Expression"/>
 
 </Root>

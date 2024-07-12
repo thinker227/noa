@@ -210,3 +210,8 @@ public sealed partial class NumberExpression : Expression
 
     public override IEnumerable<Node> Children => [];
 }
+
+public sealed partial class NilExpression : Expression
+{
+    public override IEnumerable<Node> Children => [];
+}

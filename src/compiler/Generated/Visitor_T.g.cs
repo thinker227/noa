@@ -101,6 +101,7 @@ public abstract partial class Visitor<T>
         StringExpression x => VisitStringExpression(x),
         BoolExpression x => VisitBoolExpression(x),
         NumberExpression x => VisitNumberExpression(x),
+        NilExpression x => VisitNilExpression(x),
         _ => throw new UnreachableException()
     };
 
@@ -191,4 +192,6 @@ public abstract partial class Visitor<T>
     protected virtual T VisitBoolExpression(BoolExpression node) => GetDefault(node);
 
     protected virtual T VisitNumberExpression(NumberExpression node) => GetDefault(node);
+
+    protected virtual T VisitNilExpression(NilExpression node) => GetDefault(node);
 }
