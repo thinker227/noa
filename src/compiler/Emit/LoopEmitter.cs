@@ -13,7 +13,7 @@ internal sealed class LoopEmitter(
     )
     : BlockEmitter(function, functionBuilders, strings)
 {
-    protected override int VisitBreakExpression(BreakExpression node)
+    protected override void VisitBreakExpression(BreakExpression node)
     {
         // Emit the code for the returned expression and store it in a temporary variable
         // to persist it across the stack frame exit.
@@ -29,18 +29,14 @@ internal sealed class LoopEmitter(
         }
         
         Code.Jump(endOffsetData);
-
-        return default;
     }
 
-    protected override int VisitContinueExpression(ContinueExpression node)
+    protected override void VisitContinueExpression(ContinueExpression node)
     {
         // A new temp frame is entered at the start of each loop,
         // so an enter temp frame instruction doesn't have to be emitted here.
         
         Code.ExitTempFrame();
         Code.Jump(startOffset);
-
-        return default;
     }
 }
