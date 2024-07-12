@@ -53,8 +53,8 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
     protected override ControlFlowResult VisitFunctionDeclaration(FunctionDeclaration node)
     {
         var bodyVisitor = CreateNewVisitor();
-        bodyVisitor.Visit(node.BlockBody);
-        bodyVisitor.Visit(node.ExpressionBody);
+        if (node.BlockBody is not null) bodyVisitor.Visit(node.BlockBody);
+        if (node.ExpressionBody is not null) bodyVisitor.Visit(node.ExpressionBody);
         
         return new(current, current);
     }
@@ -87,7 +87,7 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
 
     protected override ControlFlowResult VisitReturnExpression(ReturnExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         var next = current with
         {
@@ -99,7 +99,7 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
 
     protected override ControlFlowResult VisitBreakExpression(BreakExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         var next = current with
         {

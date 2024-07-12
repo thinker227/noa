@@ -1,4 +1,5 @@
 <div align="center">
+<img src="./noa.svg" alt="Noa logo" width="160", height="220">
 <h1>Noa</h1>
 </div>
 
@@ -58,8 +59,8 @@ To compile and install the VSCode extension from source, you need [Node.js](http
 - [x] Scope/symbol resolution
 - [x] Flow analysis
 - [ ] Optimization
-- [ ] Bytecode
-- [ ] Runtime
+- [x] Bytecode
+- [x] Runtime
 - [x] CLI
 - [x] Language server
 

@@ -39,7 +39,7 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
         functions.Push(node.Function.Value);
 
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         
         functions.Pop();
     }
@@ -54,8 +54,8 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
 
         Visit(node.Identifier);
         Visit(node.Parameters);
-        Visit(node.ExpressionBody);
-        Visit(node.BlockBody);
+        if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+        if (node.BlockBody is not null) Visit(node.BlockBody);
 
         functions.Pop();
         loops.Pop();
@@ -122,7 +122,7 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
             Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(node.ReturnKeyword.Location));
         }
 
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
     }
 
     protected override void VisitBreakExpression(BreakExpression node)
@@ -137,7 +137,7 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
             Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(node.BreakKeyword.Location));
         }
 
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
     }
 
     protected override void VisitContinueExpression(ContinueExpression node)

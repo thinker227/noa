@@ -165,7 +165,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
-            Visit(node.TrailingExpression);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         });
 
         functionStack.Pop();
@@ -206,8 +206,8 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
 
         InScope(bodyScope, () =>
         {
-            Visit(node.ExpressionBody);
-            Visit(node.BlockBody);
+            if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+            if (node.BlockBody is not null) Visit(node.BlockBody);
         });
 
         functionStack.Pop();
@@ -220,7 +220,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
-            Visit(node.TrailingExpression);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         });
     }
 
@@ -290,6 +290,13 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
 
         // The symbol is still *referenced* even if it's not accessible.
         node.ReferencedSymbol = new(symbol);
+
+        if (accessibility is SymbolAccessibility.Accessible &&
+            symbol is IVariableSymbol variable &&
+            !variable.ContainingFunction.Equals(functionStack.Peek()))
+        {
+            Diagnostics.Add(MiscellaneousDiagnostics.ClosuresUnsupported.Format(variable, node.Location));
+        }
 
         switch (accessibility)
         {
