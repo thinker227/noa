@@ -1,0 +1,15 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    aria-hidden="true"
+    role="img"
+    viewBox="0 0 200 256"
+>
+    <!-- #673CFF #3D94FF -->
+
+    <path fill="#673CFF" d="M0 0 V256 h40 V0 H0"/>
+    <path fill="#673CFF" d="M40 0 l110 256 h-40 l-110 -256"/>
+
+    <path fill="#3D94FF" d="M200 0 V256 h-40 V0 H0"/>
+    <path fill="#3D94FF" d="M90 0 l110 256 h-40 l-110 -256"/>
+</svg>
