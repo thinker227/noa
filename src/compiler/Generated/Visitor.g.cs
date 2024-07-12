@@ -30,7 +30,7 @@ public abstract partial class Visitor
     protected virtual void VisitRoot(Root node)
     {
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
     }
 
     protected virtual void VisitIdentifier(Identifier node) {}
@@ -77,8 +77,8 @@ public abstract partial class Visitor
     {
         Visit(node.Identifier);
         Visit(node.Parameters);
-        Visit(node.ExpressionBody);
-        Visit(node.BlockBody);
+        if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+        if (node.BlockBody is not null) Visit(node.BlockBody);
     }
 
     protected virtual void VisitLetDeclaration(LetDeclaration node)
@@ -166,7 +166,7 @@ public abstract partial class Visitor
     protected virtual void VisitBlockExpression(BlockExpression node)
     {
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
     }
 
     protected virtual void VisitCallExpression(CallExpression node)
@@ -200,12 +200,12 @@ public abstract partial class Visitor
 
     protected virtual void VisitReturnExpression(ReturnExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
     }
 
     protected virtual void VisitBreakExpression(BreakExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
     }
 
     protected virtual void VisitContinueExpression(ContinueExpression node) {}

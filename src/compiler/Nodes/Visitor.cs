@@ -48,10 +48,8 @@ public abstract partial class Visitor<T>
     /// <returns>
     /// The result of visiting the node, or <see cref="GetDefault"/> if null.
     /// </returns>
-    public T Visit(Node? node)
+    public T Visit(Node node)
     {
-        if (node is null) return GetDefault(null);
-
         if (!Filter(node, out var result)) return result;
 
         BeforeVisit(node);
@@ -116,10 +114,8 @@ public abstract partial class Visitor
     /// instead of any specialized visit methods.
     /// </summary>
     /// <param name="node">The node to visit.</param>
-    public void Visit(Node? node)
+    public void Visit(Node node)
     {
-        if (node is null) return;
-
         if (!Filter(node)) return;
         
         BeforeVisit(node);

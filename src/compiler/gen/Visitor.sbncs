@@ -39,7 +39,7 @@ public abstract partial class Visitor
     {{~ else }}
     {
         {{~ for member in node.non_primitive_members ~}}
-        Visit(node.{{ member.name }});
+        {{ if member.is_optional }}if (node.{{ member.name }} is not null) {{ end }}Visit(node.{{ member.name }});
         {{~ end ~}}
     }
     {{~ end ~}}
