@@ -126,14 +126,7 @@ internal sealed partial class Parser
 
         if (expressions.Length == 0)
         {
-            // () is just invalid syntax.
-            
-            var diagnostic = ParseDiagnostics.ExpectedKinds.Format(
-                SyntaxFacts.CanBeginExpression,
-                closeParen.Location);
-            ReportDiagnostic(diagnostic);
-
-            return new ErrorExpression()
+            return new NilExpression()
             {
                 Ast = Ast,
                 Location = parensLocation
