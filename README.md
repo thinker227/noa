@@ -1,4 +1,5 @@
 <div align="center">
+<img src="./noa.svg" alt="Noa logo" width="160", height="220">
 <h1>Noa</h1>
 </div>
 

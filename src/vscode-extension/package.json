@@ -3,6 +3,7 @@
     "displayName": "Noa",
     "description": "Language support for Noa",
     "version": "0.0.1",
+    "icon": "./icons/extension.png",
     "author": {
         "name": "thinker227"
     },
@@ -17,7 +18,7 @@
         "vscode": "^1.86.0"
     },
     "categories": ["Programming Languages"],
-    "main": "./out/src/extension",
+    "main": "./out/extension",
     "enabledApiProposals": [],
     "contributes": {
         "languages": [
@@ -25,7 +26,20 @@
                 "id": "noa",
                 "aliases": ["Noa", "noa"],
                 "extensions": [".noa"],
-                "configuration": "./language-configuration.json"
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "dark": "./icons/noa.svg",
+                    "light": "./icons/noa.svg"
+                }
+            },
+            {
+                "id": "noa-ark",
+                "aliases": ["Noa bytecode"],
+                "extensions": [".ark"],
+                "icon": {
+                    "dark": "./icons/ark.svg",
+                    "light": "./icons/ark.svg"
+                }
             }
         ],
         "grammars": [
