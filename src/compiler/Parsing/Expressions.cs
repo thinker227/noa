@@ -309,19 +309,33 @@ internal sealed partial class Parser
 
         var ifTrue = ParseBlockExpression();
 
-        var @else = Expect(TokenKind.Else);
+        var elseClause = null as ElseClause;
+        if (Current.Kind is TokenKind.Else)
+        {
+            var @else = Advance();
+            
+            var ifFalse = ParseBlockExpression();
 
-        var ifFalse = ParseBlockExpression();
+            elseClause = new()
+            {
+                Ast = Ast,
+                Location = new(Source.Name, @else.Location.Start, ifFalse.Location.End),
+                ElseKeyword = @else,
+                IfFalse = ifFalse
+            };
+        }
 
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, @if.Location.Start, ifFalse.Location.End),
+            Location = new(
+                Source.Name,
+                @if.Location.Start,
+                elseClause?.Location.End ?? ifTrue.Location.End),
             IfKeyword = @if,
             Condition = condition,
             IfTrue = ifTrue,
-            ElseKeyword = @else,
-            IfFalse = ifFalse
+            Else = elseClause
         };
     }
 
