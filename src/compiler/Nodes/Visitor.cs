@@ -71,10 +71,8 @@ public abstract class Visitor<T>
     // Technically since T can be null this is a lie,
     // but it's much nicer to use NotNullIfNotNull here than not to.
     [return: NotNullIfNotNull(nameof(node))]
-    public T? Visit(Node? node)
+    public T? Visit(Node node)
     {
-        if (node is null) return default;
-
         if (!Filter(node, out var result)) return result!;
         
         BeforeVisit(node);
@@ -97,7 +95,7 @@ public abstract class Visitor<T>
     protected virtual T VisitRoot(Root node)
     {
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         
         return GetDefault(node);
     }
@@ -130,8 +128,8 @@ public abstract class Visitor<T>
     {
         Visit(node.Identifier);
         Visit(node.Parameters);
-        Visit(node.ExpressionBody);
-        Visit(node.BlockBody);
+        if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+        if (node.BlockBody is not null) Visit(node.BlockBody);
         
         return GetDefault(node);
     }
@@ -185,7 +183,7 @@ public abstract class Visitor<T>
     protected virtual T VisitBlockExpression(BlockExpression node)
     {
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
 
         return GetDefault(node);
     }
@@ -231,14 +229,14 @@ public abstract class Visitor<T>
     
     protected virtual T VisitReturnExpression(ReturnExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         return GetDefault(node);
     }
     
     protected virtual T VisitBreakExpression(BreakExpression node)
     {
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         return GetDefault(node);
     }

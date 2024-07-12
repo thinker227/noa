@@ -41,7 +41,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         functions.Push(node.Function.Value);
 
         Visit(node.Statements);
-        Visit(node.TrailingExpression);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         
         functions.Pop();
 
@@ -58,8 +58,8 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
         Visit(node.Identifier);
         Visit(node.Parameters);
-        Visit(node.ExpressionBody);
-        Visit(node.BlockBody);
+        if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+        if (node.BlockBody is not null) Visit(node.BlockBody);
 
         functions.Pop();
         loops.Pop();
@@ -134,7 +134,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
             Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(node.ReturnKeyword.Location));
         }
 
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         return default;
     }
@@ -151,7 +151,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
             Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(node.BreakKeyword.Location));
         }
 
-        Visit(node.Expression);
+        if (node.Expression is not null) Visit(node.Expression);
 
         return default;
     }

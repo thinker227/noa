@@ -167,7 +167,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
-            Visit(node.TrailingExpression);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         });
 
         functionStack.Pop();
@@ -210,8 +210,8 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
 
         InScope(bodyScope, () =>
         {
-            Visit(node.ExpressionBody);
-            Visit(node.BlockBody);
+            if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
+            if (node.BlockBody is not null) Visit(node.BlockBody);
         });
 
         functionStack.Pop();
@@ -226,7 +226,7 @@ file sealed class Visitor(IScope globalScope, CancellationToken cancellationToke
         InScope(blockScope, () =>
         {
             Visit(node.Statements);
-            Visit(node.TrailingExpression);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         });
 
         return default;
