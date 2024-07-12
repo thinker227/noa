@@ -161,16 +161,31 @@ internal class BlockEmitter(
     {
         Visit(node.Condition);
 
-        var jumpToTrue = Code.JumpIf();
+        if (node.Else is { IfFalse: var ifFalse })
+        {
+            var jumpToTrue = Code.JumpIf();
 
-        Visit(node.IfFalse);
+            Visit(ifFalse);
         
-        var jumpToEnd = Code.Jump();
+            var jumpToEnd = Code.Jump();
         
-        jumpToTrue.SetAddress(Code.AddressOffset);
-        Visit(node.IfTrue);
+            jumpToTrue.SetAddress(Code.AddressOffset);
+            Visit(node.IfTrue);
         
-        jumpToEnd.SetAddress(Code.AddressOffset);
+            jumpToEnd.SetAddress(Code.AddressOffset);
+        }
+        else
+        {
+            Code.Not();
+            var jumpToEnd = Code.JumpIf();
+            
+            Visit(node.IfTrue);
+            Code.Pop();
+            
+            jumpToEnd.SetAddress(Code.AddressOffset);
+
+            Code.PushNil();
+        }
     }
 
     protected override void VisitCallExpression(CallExpression node)
