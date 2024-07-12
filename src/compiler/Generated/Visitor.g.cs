@@ -22,6 +22,9 @@ public abstract partial class Visitor
         case Expression x:
             VisitExpression(x);
             break;
+        case ElseClause x:
+            VisitElseClause(x);
+            break;
         default:
             throw new UnreachableException();
         }
@@ -190,6 +193,11 @@ public abstract partial class Visitor
     {
         Visit(node.Condition);
         Visit(node.IfTrue);
+        if (node.Else is not null) Visit(node.Else);
+    }
+
+    protected virtual void VisitElseClause(ElseClause node)
+    {
         Visit(node.IfFalse);
     }
 

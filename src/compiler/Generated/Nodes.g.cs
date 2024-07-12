@@ -124,11 +124,18 @@ public sealed partial class IfExpression : Expression
 
     public required BlockExpression IfTrue { get; init; }
 
+    public required ElseClause? Else { get; init; }
+
+    public override IEnumerable<Node> Children => [Condition, IfTrue, ..EmptyIfNull(Else)];
+}
+
+public sealed partial class ElseClause : Node
+{
     public required Token ElseKeyword { get; init; }
 
     public required BlockExpression IfFalse { get; init; }
 
-    public override IEnumerable<Node> Children => [Condition, IfTrue, IfFalse];
+    public override IEnumerable<Node> Children => [IfFalse];
 }
 
 public sealed partial class LoopExpression : Expression
