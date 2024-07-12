@@ -16,7 +16,7 @@ internal static class FlowAnalyzer
         Ast ast,
         CancellationToken cancellationToken = default)
     {
-        var visitor = new Visitor(cancellationToken);
+        var visitor = new FlowVisitor(cancellationToken);
         
         visitor.Visit(ast.Root);
 
@@ -24,19 +24,17 @@ internal static class FlowAnalyzer
     }
 }
 
-file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
+file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
 {
     private readonly Stack<IFunction> functions = [];
     private readonly Stack<LoopExpression?> loops = [];
     
     public List<IDiagnostic> Diagnostics { get; } = [];
-    
-    protected override int GetDefault(Node node) => default;
 
     protected override void BeforeVisit(Node node) =>
         cancellationToken.ThrowIfCancellationRequested();
 
-    protected override int VisitRoot(Root node)
+    protected override void VisitRoot(Root node)
     {
         functions.Push(node.Function.Value);
 
@@ -44,11 +42,9 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
         
         functions.Pop();
-
-        return default;
     }
 
-    protected override int VisitFunctionDeclaration(FunctionDeclaration node)
+    protected override void VisitFunctionDeclaration(FunctionDeclaration node)
     {
         functions.Push(node.Symbol.Value);
         
@@ -63,11 +59,9 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
         functions.Pop();
         loops.Pop();
-        
-        return default;
     }
 
-    protected override int VisitAssignmentStatement(AssignmentStatement node)
+    protected override void VisitAssignmentStatement(AssignmentStatement node)
     {
         if (node.Target is IdentifierExpression identifier)
         {
@@ -76,8 +70,6 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         
         Visit(node.Target);
         Visit(node.Value);
-
-        return default;
     }
 
     private void CheckAssignmentTargetSymbol(Expression target, ISymbol symbol)
@@ -96,7 +88,7 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         }
     }
 
-    protected override int VisitLambdaExpression(LambdaExpression node)
+    protected override void VisitLambdaExpression(LambdaExpression node)
     {
         functions.Push(node.Function.Value);
         
@@ -107,22 +99,18 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
 
         functions.Pop();
         loops.Pop();
-        
-        return default;
     }
 
-    protected override int VisitLoopExpression(LoopExpression node)
+    protected override void VisitLoopExpression(LoopExpression node)
     {
         loops.Push(node);
 
         Visit(node.Block);
         
         loops.Pop();
-        
-        return default;
     }
 
-    protected override int VisitReturnExpression(ReturnExpression node)
+    protected override void VisitReturnExpression(ReturnExpression node)
     {
         if (functions.TryPeek(out var func))
         {
@@ -135,11 +123,9 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         }
 
         if (node.Expression is not null) Visit(node.Expression);
-
-        return default;
     }
 
-    protected override int VisitBreakExpression(BreakExpression node)
+    protected override void VisitBreakExpression(BreakExpression node)
     {
         if (loops.TryPeek(out var loop) && loop is not null)
         {
@@ -152,11 +138,9 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
         }
 
         if (node.Expression is not null) Visit(node.Expression);
-
-        return default;
     }
 
-    protected override int VisitContinueExpression(ContinueExpression node)
+    protected override void VisitContinueExpression(ContinueExpression node)
     {
         if (loops.TryPeek(out var loop) && loop is not null)
         {
@@ -167,7 +151,5 @@ file sealed class Visitor(CancellationToken cancellationToken) : Visitor<int>
             node.Loop = null;
             Diagnostics.Add(FlowDiagnostics.ContinueOutsideFunction.Format(node.Location));
         }
-
-        return default;
     }
 }

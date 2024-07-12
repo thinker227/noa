@@ -10,23 +10,19 @@ internal class BlockEmitter(
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {
-    protected override int GetDefault(Node node) => default;
+    protected override void VisitFunctionDeclaration(FunctionDeclaration node) {}
 
-    protected override int VisitFunctionDeclaration(FunctionDeclaration node) => default;
-
-    protected override int VisitExpressionStatement(ExpressionStatement node)
+    protected override void VisitExpressionStatement(ExpressionStatement node)
     {
         Visit(node.Expression);
         
         // Discard the evaluated value.
         Code.Pop();
-
-        return default;
     }
 
-    protected override int VisitRoot(Root node) => VisitBlockExpression(node);
+    protected override void VisitRoot(Root node) => VisitBlockExpression(node);
 
-    protected override int VisitBlockExpression(BlockExpression node)
+    protected override void VisitBlockExpression(BlockExpression node)
     {
         Visit(node.Statements);
 
@@ -35,11 +31,9 @@ internal class BlockEmitter(
         {
             Code.PushNil();
         }
-
-        return default;
     }
 
-    protected override int VisitAssignmentStatement(AssignmentStatement node)
+    protected override void VisitAssignmentStatement(AssignmentStatement node)
     {
         Visit(node.Value);
         
@@ -49,11 +43,9 @@ internal class BlockEmitter(
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
         
         Code.StoreVar(varIndex);
-        
-        return default;
     }
 
-    protected override int VisitUnaryExpression(UnaryExpression node)
+    protected override void VisitUnaryExpression(UnaryExpression node)
     {
         Visit(node.Operand);
         
@@ -75,13 +67,9 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
-        
-        // The cumulative effect of evaluating any unary expression is the stack remaining the same size.
-        
-        return default;
     }
 
-    protected override int VisitBinaryExpression(BinaryExpression node)
+    protected override void VisitBinaryExpression(BinaryExpression node)
     {
         Visit(node.Left);
         Visit(node.Right);
@@ -134,32 +122,15 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
-        
-        return default;
     }
 
-    protected override int VisitNumberExpression(NumberExpression node)
-    {
-        Code.PushInt(node.Value);
+    protected override void VisitNumberExpression(NumberExpression node) => Code.PushInt(node.Value);
 
-        return default;
-    }
+    protected override void VisitBoolExpression(BoolExpression node) => Code.PushBool(node.Value);
 
-    protected override int VisitBoolExpression(BoolExpression node)
-    {
-        Code.PushBool(node.Value);
+    protected override void VisitNilExpression(NilExpression node) => Code.PushNil();
 
-        return default;
-    }
-
-    protected override int VisitNilExpression(NilExpression node)
-    {
-        Code.PushNil();
-
-        return default;
-    }
-
-    protected override int VisitLoopExpression(LoopExpression node)
+    protected override void VisitLoopExpression(LoopExpression node)
     {
         // Setting the start offset as the address of the enter temp frame instruction
         // makes things a lot simpler when emitting continue expressions.
@@ -178,17 +149,15 @@ internal class BlockEmitter(
         Code.Jump(startOffset);
 
         endOffsetData.Offset = Code.AddressOffset;
-
-        return default;
     }
 
-    protected override int VisitBreakExpression(BreakExpression node) =>
+    protected override void VisitBreakExpression(BreakExpression node) =>
         throw new InvalidOperationException("Cannot emit a break expression outside of a loop.");
 
-    protected override int VisitContinueExpression(ContinueExpression node) =>
+    protected override void VisitContinueExpression(ContinueExpression node) =>
         throw new InvalidOperationException("Cannot emit a continue expression outside of a loop.");
 
-    protected override int VisitIfExpression(IfExpression node)
+    protected override void VisitIfExpression(IfExpression node)
     {
         Visit(node.Condition);
 
@@ -202,31 +171,25 @@ internal class BlockEmitter(
         Visit(node.IfTrue);
         
         jumpToEnd.SetAddress(Code.AddressOffset);
-
-        return default;
     }
 
-    protected override int VisitCallExpression(CallExpression node)
+    protected override void VisitCallExpression(CallExpression node)
     {
         Visit(node.Target);
 
         Visit(node.Arguments);
         
         Code.Call((uint)node.Arguments.Length);
-
-        return default;
     }
 
-    protected override int VisitLambdaExpression(LambdaExpression node)
+    protected override void VisitLambdaExpression(LambdaExpression node)
     {
         var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
         
         Code.PushFunc(lambdaFunctionId);
-
-        return default;
     }
 
-    protected override int VisitIdentifierExpression(IdentifierExpression node)
+    protected override void VisitIdentifierExpression(IdentifierExpression node)
     {
         switch (node.ReferencedSymbol.Value)
         {
@@ -246,11 +209,9 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
-
-        return default;
     }
 
-    protected override int VisitReturnExpression(ReturnExpression node)
+    protected override void VisitReturnExpression(ReturnExpression node)
     {
         if (node.Expression is not null) Visit(node.Expression);
         else
@@ -259,18 +220,14 @@ internal class BlockEmitter(
         }
 
         Code.Ret();
-
-        return default;
     }
 
-    protected override int VisitLetDeclaration(LetDeclaration node)
+    protected override void VisitLetDeclaration(LetDeclaration node)
     {
         Visit(node.Expression);
 
         var var = Locals.GetOrCreateVariable(node.Symbol.Value);
         
         Code.StoreVar(var);
-        
-        return default;
     }
 }

@@ -6,7 +6,7 @@ namespace Noa.Compiler.Nodes;
 /// Visits AST nodes.
 /// </summary>
 /// <typeparam name="T">The type the visitor returns.</typeparam>
-public abstract class Visitor<T>
+public abstract partial class Visitor<T>
 {
     /// <summary>
     /// Gets the default return value for a node, or a general default value if the node is null.
@@ -20,9 +20,9 @@ public abstract class Visitor<T>
     /// <param name="node">The node to filter.</param>
     /// <param name="result">The return value of the visit if the method return false.</param>
     /// <returns>True if the node should be visited, otherwise false.</returns>
-    protected virtual bool Filter(Node node, [MaybeNullWhen(false)] out T result)
+    protected virtual bool Filter(Node node, [MaybeNullWhen(true)] out T result)
     {
-        result = GetDefault(node);
+        result = default;
         return true;
     }
     
@@ -38,6 +38,26 @@ public abstract class Visitor<T>
     /// <param name="node">The node being visited.</param>
     /// <param name="result">The result of visiting the node.</param>
     protected virtual void AfterVisit(Node node, T result) {}
+
+    /// <summary>
+    /// Visits a node. Handles calling <see cref="Filter"/>, <see cref="BeforeVisit"/>,
+    /// and <see cref="AfterVisit"/>. This method should preferably always be called
+    /// instead of any specialized visit methods.
+    /// </summary>
+    /// <param name="node">The node to visit.</param>
+    /// <returns>
+    /// The result of visiting the node, or <see cref="GetDefault"/> if null.
+    /// </returns>
+    public T Visit(Node node)
+    {
+        if (!Filter(node, out var result)) return result;
+
+        BeforeVisit(node);
+        result = CoreVisit(node);
+        AfterVisit(node, result);
+
+        return result;
+    }
     
     /// <summary>
     /// Visits a collection of nodes.
@@ -62,210 +82,53 @@ public abstract class Visitor<T>
 
         return builder?.ToImmutable() ?? ImmutableArray<T>.Empty;
     }
+}
+
+/// <summary>
+/// Visits AST nodes.
+/// </summary>
+public abstract partial class Visitor
+{
+    /// <summary>
+    /// Filters for nodes before visiting them.
+    /// </summary>
+    /// <param name="node">The node to filter.</param>
+    /// <returns>True if the node should be visited, otherwise false.</returns>
+    protected virtual bool Filter(Node node) => true;
     
     /// <summary>
-    /// Visits a node.
+    /// Called before visiting each node.
+    /// </summary>
+    /// <param name="node">The node being visited.</param>
+    protected virtual void BeforeVisit(Node node) {}
+    
+    /// <summary>
+    /// Called after visiting each node.
+    /// </summary>
+    /// <param name="node">The node being visited.</param>
+    protected virtual void AfterVisit(Node node) {}
+
+    /// <summary>
+    /// Visits a node. Handles calling <see cref="Filter"/>, <see cref="BeforeVisit"/>,
+    /// and <see cref="AfterVisit"/>. This method should preferably always be called
+    /// instead of any specialized visit methods.
     /// </summary>
     /// <param name="node">The node to visit.</param>
-    /// <returns>The result of visiting the node.</returns>
-    // Technically since T can be null this is a lie,
-    // but it's much nicer to use NotNullIfNotNull here than not to.
-    [return: NotNullIfNotNull(nameof(node))]
-    public T? Visit(Node node)
+    public void Visit(Node node)
     {
-        if (!Filter(node, out var result)) return result!;
+        if (!Filter(node)) return;
         
         BeforeVisit(node);
-
-        result = node switch
-        {
-            Root x => VisitRoot(x),
-            Identifier x => VisitIdentifier(x),
-            Statement x => VisitStatement(x),
-            Parameter x => VisitParameter(x),
-            Expression x => VisitExpression(x),
-            _ => throw new UnreachableException()
-        };
-        
-        AfterVisit(node, result);
-
-        return result!;
+        CoreVisit(node);
+        AfterVisit(node);
     }
     
-    protected virtual T VisitRoot(Root node)
+    /// <summary>
+    /// Visits a collection of nodes.
+    /// </summary>
+    /// <param name="nodes">The nodes to visit.</param>
+    public void Visit(IEnumerable<Node> nodes)
     {
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
-        
-        return GetDefault(node);
+        foreach (var node in nodes) Visit(node);
     }
-    
-    protected virtual T VisitIdentifier(Identifier node) => GetDefault(node);
-
-    protected virtual T VisitStatement(Statement node) => node switch
-    {
-        Declaration x => VisitDeclaration(x),
-        AssignmentStatement x => VisitAssignmentStatement(x),
-        ExpressionStatement x => VisitExpressionStatement(x),
-        _ => throw new UnreachableException()
-    };
-    
-    protected virtual T VisitParameter(Parameter node)
-    {
-        Visit(node.Identifier);
-
-        return GetDefault(node);
-    }
-
-    protected virtual T VisitDeclaration(Declaration node) => node switch
-    {
-        FunctionDeclaration x => VisitFunctionDeclaration(x),
-        LetDeclaration x => VisitLetDeclaration(x),
-        _ => throw new UnreachableException()
-    };
-    
-    protected virtual T VisitFunctionDeclaration(FunctionDeclaration node)
-    {
-        Visit(node.Identifier);
-        Visit(node.Parameters);
-        if (node.ExpressionBody is not null) Visit(node.ExpressionBody);
-        if (node.BlockBody is not null) Visit(node.BlockBody);
-        
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitLetDeclaration(LetDeclaration node)
-    {
-        Visit(node.Identifier);
-        Visit(node.Expression);
-        
-        return GetDefault(node);
-    }
-
-    protected virtual T VisitAssignmentStatement(AssignmentStatement node)
-    {
-        Visit(node.Target);
-        Visit(node.Value);
-
-        return GetDefault(node);
-    }
-
-    protected virtual T VisitExpressionStatement(ExpressionStatement node)
-    {
-        Visit(node.Expression);
-
-        return GetDefault(node);
-    }
-
-    protected virtual T VisitExpression(Expression node) => node switch
-    {
-        BinaryExpression x => VisitBinaryExpression(x),
-        BlockExpression x => VisitBlockExpression(x),
-        BoolExpression x => VisitBoolExpression(x),
-        BreakExpression x => VisitBreakExpression(x),
-        CallExpression x => VisitCallExpression(x),
-        ContinueExpression x => VisitContinueExpression(x),
-        ErrorExpression x => VisitErrorExpression(x),
-        IdentifierExpression x => VisitIdentifierExpression(x),
-        IfExpression x => VisitIfExpression(x),
-        LambdaExpression x => VisitLambdaExpression(x),
-        LoopExpression x => VisitLoopExpression(x),
-        NumberExpression x => VisitNumberExpression(x),
-        NilExpression x => VisitNilExpression(x),
-        ReturnExpression x => VisitReturnExpression(x),
-        StringExpression x => VisitStringExpression(x),
-        TupleExpression x => VisitTupleExpression(x),
-        UnaryExpression x => VisitUnaryExpression(x),
-        _ => throw new UnreachableException()
-    };
-    
-    protected virtual T VisitErrorExpression(ErrorExpression node) => GetDefault(node);
-
-    protected virtual T VisitBlockExpression(BlockExpression node)
-    {
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitCallExpression(CallExpression node)
-    {
-        Visit(node.Target);
-        Visit(node.Arguments);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitLambdaExpression(LambdaExpression node)
-    {
-        Visit(node.Parameters);
-        Visit(node.Body);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitTupleExpression(TupleExpression node)
-    {
-        Visit(node.Expressions);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitIfExpression(IfExpression node)
-    {
-        Visit(node.Condition);
-        Visit(node.IfTrue);
-        Visit(node.IfFalse);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitLoopExpression(LoopExpression node)
-    {
-        Visit(node.Block);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitReturnExpression(ReturnExpression node)
-    {
-        if (node.Expression is not null) Visit(node.Expression);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitBreakExpression(BreakExpression node)
-    {
-        if (node.Expression is not null) Visit(node.Expression);
-
-        return GetDefault(node);
-    }
-
-    protected virtual T VisitContinueExpression(ContinueExpression node) => GetDefault(node);
-    
-    protected virtual T VisitUnaryExpression(UnaryExpression node)
-    {
-        Visit(node.Operand);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitBinaryExpression(BinaryExpression node)
-    {
-        Visit(node.Left);
-        Visit(node.Right);
-
-        return GetDefault(node);
-    }
-    
-    protected virtual T VisitIdentifierExpression(IdentifierExpression node) => GetDefault(node);
-
-    protected virtual T VisitStringExpression(StringExpression node) => GetDefault(node);
-
-    protected virtual T VisitBoolExpression(BoolExpression node) => GetDefault(node);
-
-    protected virtual T VisitNumberExpression(NumberExpression node) => GetDefault(node);
-
-    protected virtual T VisitNilExpression(NilExpression node) => GetDefault(node);
 }

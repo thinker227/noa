@@ -26,12 +26,16 @@ indent_size = 2
 [*.json]
 indent_size = 4
 
+# XML files
+[*.xml]
+indent_size = 2
+
 # Markdown files
 [*.md]
 indent_size = 2
 
 # Code files
-[*.{cs,rs,noa}]
+[*.{cs,sbncs,rs,noa}]
 indent_size = 4
 
 

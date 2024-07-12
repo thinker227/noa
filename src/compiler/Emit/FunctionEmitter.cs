@@ -7,7 +7,7 @@ namespace Noa.Compiler.Emit;
 internal abstract class FunctionEmitter(
     IFunction function,
     IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
-    StringSectionBuilder strings) : Visitor<int>
+    StringSectionBuilder strings) : Visitor
 {
     protected readonly IFunction function = function;
     protected readonly FunctionBuilder builder = functionBuilders[function];
