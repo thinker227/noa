@@ -5,14 +5,20 @@ root = statement* expression? ;
 statement = functionDeclaration
           | letDeclaration
           | assignmentStatement
-          | callExpression      ';'
-          | returnExpression    ';'
-          | breakExpression     ';'
-          | continueExpression  ';'
-          | blockExpression
-          | ifExpression
-          | loopExpression
+          | expressionStatement ';'
+          | flowControlStatement
           ;
+
+expressionStatement = callExpression
+                    | returnExpression
+                    | breakExpression
+                    | continueExpression
+                    ;
+
+flowControlStatement = blockExpression
+                     | ifExpression
+                     | loopExpression
+                     ;
 
 
 
