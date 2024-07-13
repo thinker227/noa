@@ -119,7 +119,7 @@ internal sealed partial class Parser
         }
         
         // Try parse a flow control expression.
-        if (ParseFlowControlExpressionOrNull() is { } flowControlExpression)
+        if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Statement) is { } flowControlExpression)
         {
             return (null, flowControlExpression);
         }

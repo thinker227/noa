@@ -83,4 +83,15 @@ internal static class ParseDiagnostics
                 .Emphasized("left-hand side of an assignment statement")
                 .Raw("."),
             Severity.Error);
+
+    public static DiagnosticTemplate ElseOmitted { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-007",
+            page => page
+                .Raw("The ")
+                .Keyword("else branch")
+                .Raw(" of an ")
+                .Keyword("if expression")
+                .Raw(" can only be omitted when the expression is used as a statement."),
+            Severity.Error);
 }

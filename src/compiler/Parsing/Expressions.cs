@@ -153,7 +153,7 @@ internal sealed partial class Parser
 
     internal Expression ParsePrimaryExpression()
     {
-        if (ParseFlowControlExpressionOrNull() is { } flowControlExpression)
+        if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Expression) is { } flowControlExpression)
             return flowControlExpression;
         
         switch (Expect(SyntaxFacts.CanBeginPrimaryExpression)?.Kind)
@@ -283,7 +283,7 @@ internal sealed partial class Parser
         };
     }
 
-    internal Expression? ParseFlowControlExpressionOrNull()
+    internal Expression? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
     {
         switch (Current.Kind)
         {
@@ -298,10 +298,19 @@ internal sealed partial class Parser
 
                 var ifTrue = ParseBlockExpression();
 
+                // Parse an else clause if the current token is an else keyword
+                // or the context is an expression, in which case the else clause is required.
                 var elseClause = null as ElseClause;
-                if (Current.Kind is TokenKind.Else)
+                if (Current.Kind is TokenKind.Else || ctx is FlowControlExpressionContext.Expression)
                 {
-                    var @else = Advance();
+                    // In case the else clause is omitted and the context is an expression,
+                    // report an additional little informational error.
+                    if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
+                    {
+                        ReportDiagnostic(ParseDiagnostics.ElseOmitted.Format(@if.Location));
+                    }
+                    
+                    var @else = Expect(TokenKind.Else);
             
                     var ifFalse = ParseBlockExpression();
 
