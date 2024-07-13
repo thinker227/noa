@@ -453,7 +453,10 @@ public class RootAndBlockExpressionTests
 
                 p.N<BlockExpression>();
 
-                p.N<BlockExpression>();
+                p.N<ElseClause>();
+                {
+                    p.N<BlockExpression>();
+                }
             }
         }
 
@@ -529,7 +532,10 @@ public class RootAndBlockExpressionTests
 
                     p.N<BlockExpression>();
 
-                    p.N<BlockExpression>();
+                    p.N<ElseClause>();
+                    {
+                        p.N<BlockExpression>();
+                    }
                 }
             }
 
@@ -620,7 +626,10 @@ public class RootAndBlockExpressionTests
 
                     p.N<BlockExpression>();
 
-                    p.N<BlockExpression>();
+                    p.N<ElseClause>();
+                    {
+                        p.N<BlockExpression>();
+                    }
                 }
             }
 
