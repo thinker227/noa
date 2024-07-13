@@ -30,7 +30,6 @@ internal sealed partial class Parser
                 continue;
             }
             
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (statement is not null)
             {
                 // A statement expecting a semicolon is dependent on the syntax of each kind of statement.
@@ -110,49 +109,54 @@ internal sealed partial class Parser
     
     internal (Statement?, Expression?)? ParseStatementOrExpressionOrNull()
     {
-
+        // Begin by checking whether the current token can begin a statement at all.
         if (Expect(SyntaxFacts.CanBeginStatement) is not { Kind: var kind }) return null;
 
+        // Try to begin a declaration.
         if (SyntaxFacts.CanBeginDeclaration.Contains(kind))
         {
-            var declaration = ParseDeclaration();
-            return (declaration, null);
-        }
-
-        if (SyntaxFacts.CanBeginExpression.Contains(kind))
-        {
-            return ParseExpressionOrAssignmentStatement();
+            return (ParseDeclaration(), null);
         }
         
-        throw new UnreachableException(
-            "Kind could begin a statement but neither a declaration nor expression");
-    }
-
-    internal (Statement?, Expression?) ParseExpressionOrAssignmentStatement()
-    {
+        // Try parse a flow control expression.
+        if (ParseFlowControlExpressionOrNull() is { } flowControlExpression)
+        {
+            return (null, flowControlExpression);
+        }
+        
         var expression = ParseExpressionOrError();
 
-        if (Current.Kind is not TokenKind.Equals) return (null, expression);
-        
-        Advance();
+        // Parse an assignment statement if we find an equals token.
+        if (Current.Kind is TokenKind.Equals)
+        {
+            return (ContinueParsingAssignmentStatement(expression), null);
+        }
+
+        // Finally, just return the expression.
+        // We don't make this into an expression statement because the expression may be used as a trailing expression.
+        return (null, expression);
+    }
+
+    private AssignmentStatement ContinueParsingAssignmentStatement(Expression target)
+    {
+        Expect(TokenKind.Equals);
 
         var value = ParseExpressionOrError();
 
         Expect(TokenKind.Semicolon);
 
-        if (!expression.IsValidLValue())
+        if (!target.IsValidLValue())
         {
-            var diagnostic = ParseDiagnostics.InvalidLValue.Format(expression.Location);
+            var diagnostic = ParseDiagnostics.InvalidLValue.Format(target.Location);
             ReportDiagnostic(diagnostic);
         }
 
-        var assignment = new AssignmentStatement()
+        return new AssignmentStatement()
         {
             Ast = Ast,
-            Location = new(Source.Name, expression.Location.Start, value.Location.End),
-            Target = expression,
+            Location = new(Source.Name, target.Location.Start, value.Location.End),
+            Target = target,
             Value = value,
         };
-        return (assignment, null);
     }
 }

@@ -153,31 +153,13 @@ internal sealed partial class Parser
 
     internal Expression ParsePrimaryExpression()
     {
+        if (ParseFlowControlExpressionOrNull() is { } flowControlExpression)
+            return flowControlExpression;
+        
         switch (Expect(SyntaxFacts.CanBeginPrimaryExpression)?.Kind)
         {
-        case TokenKind.OpenBrace:
-            return ParseBlockExpression();
-        
         case TokenKind.OpenParen:
             return ParseParenthesizedOrLambdaExpression();
-        
-        case TokenKind.If:
-            return ParseIfExpression();
-
-        case TokenKind.Loop:
-            {
-                var loop = Advance();
-
-                var block = ParseBlockExpression();
-
-                return new LoopExpression()
-                {
-                    Ast = Ast,
-                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
-                    LoopKeyword = loop,
-                    Block = block
-                };
-            }
 
         case TokenKind.Return:
             {
@@ -301,42 +283,68 @@ internal sealed partial class Parser
         };
     }
 
-    internal IfExpression ParseIfExpression()
+    internal Expression? ParseFlowControlExpressionOrNull()
     {
-        var @if = Expect(TokenKind.If);
-
-        var condition = ParseExpressionOrError();
-
-        var ifTrue = ParseBlockExpression();
-
-        var elseClause = null as ElseClause;
-        if (Current.Kind is TokenKind.Else)
+        switch (Current.Kind)
         {
-            var @else = Advance();
-            
-            var ifFalse = ParseBlockExpression();
+        case TokenKind.OpenBrace:
+            return ParseBlockExpression();
 
-            elseClause = new()
+        case TokenKind.If:
             {
-                Ast = Ast,
-                Location = new(Source.Name, @else.Location.Start, ifFalse.Location.End),
-                ElseKeyword = @else,
-                IfFalse = ifFalse
-            };
-        }
+                var @if = Expect(TokenKind.If);
 
-        return new()
-        {
-            Ast = Ast,
-            Location = new(
-                Source.Name,
-                @if.Location.Start,
-                elseClause?.Location.End ?? ifTrue.Location.End),
-            IfKeyword = @if,
-            Condition = condition,
-            IfTrue = ifTrue,
-            Else = elseClause
-        };
+                var condition = ParseExpressionOrError();
+
+                var ifTrue = ParseBlockExpression();
+
+                var elseClause = null as ElseClause;
+                if (Current.Kind is TokenKind.Else)
+                {
+                    var @else = Advance();
+            
+                    var ifFalse = ParseBlockExpression();
+
+                    elseClause = new()
+                    {
+                        Ast = Ast,
+                        Location = new(Source.Name, @else.Location.Start, ifFalse.Location.End),
+                        ElseKeyword = @else,
+                        IfFalse = ifFalse
+                    };
+                }
+
+                return new IfExpression()
+                {
+                    Ast = Ast,
+                    Location = new(
+                        Source.Name,
+                        @if.Location.Start,
+                        elseClause?.Location.End ?? ifTrue.Location.End),
+                    IfKeyword = @if,
+                    Condition = condition,
+                    IfTrue = ifTrue,
+                    Else = elseClause
+                };
+            }
+
+        case TokenKind.Loop:
+            {
+                var loop = Advance();
+
+                var block = ParseBlockExpression();
+
+                return new LoopExpression()
+                {
+                    Ast = Ast,
+                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
+                    LoopKeyword = loop,
+                    Block = block
+                };
+            }
+        }
+        
+        return null;
     }
 
     /// <summary>
