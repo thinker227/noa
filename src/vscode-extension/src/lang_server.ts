@@ -1,6 +1,7 @@
 import { window, workspace } from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, Trace, TransportKind } from "vscode-languageclient/node";
-import { getConfig } from "./config";
+import { getCliCommand, getConfig, getServerLogPath } from "./config";
+import { checkForCli } from "./command_line";
 
 let client: LanguageClient | undefined = undefined;
 
@@ -9,14 +10,8 @@ export function getClient(): LanguageClient | undefined {
 }
 
 function getExecutableInfo(): [string, string[]] {
-    let config = getConfig();
-
-    let cliExecutable: string = config.get("cliExecutable");
-    let serverLogPath: string | null = config.get("serverLogPath");
-
-    let command = cliExecutable
-        ? cliExecutable
-        : "noa";
+    let command = getCliCommand();
+    let serverLogPath = getServerLogPath();
 
     let args = ["lang-server"];
     if (serverLogPath) args.push("--log", serverLogPath);
@@ -26,6 +21,15 @@ function getExecutableInfo(): [string, string[]] {
 
 export async function startLanguageServer() {
     await stopLanguageServer();
+
+    if (!await checkForCli()) {
+        let command = getCliCommand();
+        await window.showErrorMessage(
+            `Cannot find the Noa CLI (${command})`
+        );
+
+        return;
+    }
 
     let [command, args] = getExecutableInfo();
 
