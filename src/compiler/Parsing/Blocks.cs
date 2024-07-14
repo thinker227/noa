@@ -42,9 +42,13 @@ internal sealed partial class Parser
             // If the statement is null then the expression should never be null.
             if (expression is null) throw new UnreachableException();
 
-            // If the token after the expression is not a semicolon and cannot start another statement,
-            // then it's most likely a trailing expression.
+            // If the token after the expression is not a semicolon, cannot start another statement,
+            // and is allowed as a trailing expression, then it's most likely a trailing expression.
+            // We need to check whether the expression is allowed as a trailing expression because
+            // the expression might be an if expression without an else clause, which is only allowed
+            // as an expression statement.
             if (allowTrailingExpression &&
+                expression.IsAllowedAsTrailingExpression() &&
                 Current.Kind is not TokenKind.Semicolon &&
                 !SyntaxFacts.CanBeginStatement.Contains(Current.Kind))
             {

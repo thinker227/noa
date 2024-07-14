@@ -70,4 +70,25 @@ public sealed class IfExpressionTests
             }
         }
     }
+
+    [Fact]
+    public void IfWithoutElse_InBlock_ParsesAsStatement()
+    {
+        var p = ParseAssertion.Create(
+            "if true {}",
+            p => p.ParseRoot());
+
+        p.N<Root>();
+        {
+            p.N<ExpressionStatement>();
+            {
+                p.N<IfExpression>();
+                {
+                    p.N<BoolExpression>();
+
+                    p.N<BlockExpression>();
+                }
+            }
+        }
+    }
 }

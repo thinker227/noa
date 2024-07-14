@@ -158,6 +158,13 @@ internal static class SyntaxFacts
         or LoopExpression;
 
     /// <summary>
+    /// Returns whether an expression is allowed as a trailing expression at the end of a block.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool IsAllowedAsTrailingExpression(this Expression expression) => expression
+        is not IfExpression { Else: null };
+
+    /// <summary>
     /// Returns whether an expression is a valid l-value.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
