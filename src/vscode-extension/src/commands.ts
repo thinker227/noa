@@ -1,6 +1,9 @@
 import { window } from "vscode";
 import { restartLanguageServer } from "./lang_server";
 
+/**
+ * Restarts the language server.
+ */
 export async function restartLangServer() {
     let success = await restartLanguageServer();
 
