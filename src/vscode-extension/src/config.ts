@@ -9,5 +9,9 @@ export function getCliCommand(): string {
 }
 
 export function getServerLogPath(): string | undefined {
-    return getConfig().get("serverLogPath");
+    return getConfig().get("serverLogPath") || undefined;
+}
+
+export function getLogLevel(): string {
+    return getConfig().get("logLevel") || "info";
 }

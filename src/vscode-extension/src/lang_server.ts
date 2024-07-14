@@ -1,6 +1,6 @@
 import { window, workspace } from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, Trace, TransportKind } from "vscode-languageclient/node";
-import { getCliCommand, getConfig, getServerLogPath } from "./config";
+import { getCliCommand, getLogLevel, getServerLogPath } from "./config";
 import { checkForCli } from "./command_line";
 
 let client: LanguageClient | undefined = undefined;
@@ -12,9 +12,12 @@ export function getClient(): LanguageClient | undefined {
 function getExecutableInfo(): [string, string[]] {
     let command = getCliCommand();
     let serverLogPath = getServerLogPath();
+    let logLevel = getLogLevel();
 
     let args = ["lang-server"];
     if (serverLogPath) args.push("--log", serverLogPath);
+    
+    args.push("--log-level", logLevel);
 
     return [command, args];
 }

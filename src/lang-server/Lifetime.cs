@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using Draco.Lsp.Model;
 using Draco.Lsp.Server;
 using Noa.LangServer.Logging;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace Noa.LangServer;
 
@@ -15,18 +17,19 @@ public sealed partial class NoaLanguageServer
     /// The path to the file to output log messages to.
     /// Will not output log messages to a file if not specified.
     /// </param>
-    public static async Task RunAsync(string? logFilePath)
+    /// <param name="logLevel">The level of the messages to log from the server.</param>
+    public static async Task RunAsync(string? logFilePath, LogLevel logLevel)
     {
         var stream = new StdioDuplexPipe();
         var client = LanguageServer.Connect(stream);
         
-        var logger = CreateLogger(logFilePath, client);
+        var logger = CreateLogger(logFilePath, logLevel, client);
         
         var server = new NoaLanguageServer(client, logger);
         await client.RunAsync(server);
     }
 
-    private static Logger CreateLogger(string? logFilePath, ILanguageClient client)
+    private static Logger CreateLogger(string? logFilePath, LogLevel logLevel, ILanguageClient client)
     {
         var config = new LoggerConfiguration();
         
@@ -35,7 +38,13 @@ public sealed partial class NoaLanguageServer
         config.WriteTo.LanguageClient(client);
         if (logFilePath is not null) config.WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day);
 
-        config.MinimumLevel.Verbose();
+        var loggingLevelSwitch = new LoggingLevelSwitch(logLevel switch
+        {
+            LogLevel.Info => LogEventLevel.Information,
+            LogLevel.Debug => LogEventLevel.Verbose,
+            _ => throw new UnreachableException()
+        });
+        config.MinimumLevel.ControlledBy(loggingLevelSwitch);
 
         return config.CreateLogger();
     }
