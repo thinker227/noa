@@ -20,13 +20,13 @@ public class ParenthesizedOrLambdaTests
     }
 
     [Fact]
-    public void Parses_EmptyList_WithoutArrow_AsError()
+    public void Parses_EmptyList_WithoutArrow_AsNil()
     {
         var p = ParseAssertion.Create(
             "()",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<ErrorExpression>();
+        p.N<NilExpression>();
 
         p.End();
     }
