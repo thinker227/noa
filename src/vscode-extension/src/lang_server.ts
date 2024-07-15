@@ -1,31 +1,45 @@
 import { window, workspace } from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, Trace, TransportKind } from "vscode-languageclient/node";
-import { getConfig } from "./config";
+import { getCliCommand, getLogLevel, getServerLogPath } from "./config";
+import { checkForCli } from "./command_line";
 
 let client: LanguageClient | undefined = undefined;
 
+/**
+ * Returns the language client, or `undefined` if none has been started.
+ */
 export function getClient(): LanguageClient | undefined {
     return client;
 }
 
 function getExecutableInfo(): [string, string[]] {
-    let config = getConfig();
-
-    let cliExecutable: string = config.get("cliExecutable");
-    let serverLogPath: string | null = config.get("serverLogPath");
-
-    let command = cliExecutable
-        ? cliExecutable
-        : "noa";
+    let command = getCliCommand();
+    let serverLogPath = getServerLogPath();
+    let logLevel = getLogLevel();
 
     let args = ["lang-server"];
     if (serverLogPath) args.push("--log", serverLogPath);
+    
+    args.push("--log-level", logLevel);
 
     return [command, args];
 }
 
-export async function startLanguageServer() {
+/**
+ * Attempts to start a new language client.
+ * @returns The started language client, or `undefined` if none could be started.
+ */
+export async function startLanguageServer(): Promise<LanguageClient | undefined> {
     await stopLanguageServer();
+
+    if (!await checkForCli()) {
+        let command = getCliCommand();
+        await window.showErrorMessage(
+            `Cannot find the Noa CLI (${command})`
+        );
+
+        return undefined;
+    }
 
     let [command, args] = getExecutableInfo();
 
@@ -69,6 +83,10 @@ export async function startLanguageServer() {
     return client;
 }
 
+/**
+ * Stops the currently running language client.
+ * @returns Whether the language client existed and therefore could be stopped.
+ */
 export async function stopLanguageServer() {
     if (!client) return false;
 
@@ -76,6 +94,10 @@ export async function stopLanguageServer() {
     return true;
 }
 
+/**
+ * Restarts the currently running language client.
+ * @returns Whether the language client existed and therefore could be restarted.
+ */
 export async function restartLanguageServer() {
     if (!client) return false;
 

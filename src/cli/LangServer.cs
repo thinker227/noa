@@ -11,7 +11,9 @@ public sealed class LangServer(IAnsiConsole console)
         [Option("stdio", Description = "Specifies that the language server should communicate across standard IO")]
         bool stdio,
         [Option("log", Description = "A path to a file to which logs will be written.")]
-        string? logFilePath)
+        string? logFilePath,
+        [Option("log-level", Description = "The level of messages to log from the language server.")]
+        LogLevel logLevel = LogLevel.Info)
     {
         if (!stdio)
         {
@@ -22,7 +24,7 @@ public sealed class LangServer(IAnsiConsole console)
         
         try
         {
-            await NoaLanguageServer.RunAsync(logFilePath);
+            await NoaLanguageServer.RunAsync(logFilePath, logLevel);
         }
         catch (TaskCanceledException) {}
         catch (OperationCanceledException) {}

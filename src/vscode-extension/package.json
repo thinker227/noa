@@ -62,6 +62,19 @@
                     "type": "string",
                     "default": null,
                     "description": "A path to a file to which logs from the language server will be written. Will ignore writing to a log file if not specified. Requires restarting the extension to take effect."
+                },
+                "noa-lang.logLevel": {
+                    "type": "string",
+                    "default": "info",
+                    "description": "Dictates what kinds of log messages will be written to the extension output and log file (if specified). Requires restarting the extension to take effect.",
+                    "enum": [
+                        "info",
+                        "debug"
+                    ],
+                    "enumDescriptions": [
+                        "The language server will only log informational messages such as startup/shutdown events, as well as warnings and errors.",
+                        "The language server will log additional messages useful for debugging such as compilation logs and detailed descriptions of received requests."
+                    ]
                 }
             }
         },
