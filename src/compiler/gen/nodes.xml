@@ -72,6 +72,10 @@
     <Value Name="IfKeyword" Type="Token" Primitive="true"/>
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>
+    <Value Name="Else" Type="ElseClause" Optional="true"/>
+  </Node>
+  
+  <Node Name="ElseClause">
     <Value Name="ElseKeyword" Type="Token" Primitive="true"/>
     <Value Name="IfFalse" Type="BlockExpression"/>
   </Node>

@@ -153,31 +153,13 @@ internal sealed partial class Parser
 
     internal Expression ParsePrimaryExpression()
     {
+        if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Expression) is { } flowControlExpression)
+            return flowControlExpression;
+        
         switch (Expect(SyntaxFacts.CanBeginPrimaryExpression)?.Kind)
         {
-        case TokenKind.OpenBrace:
-            return ParseBlockExpression();
-        
         case TokenKind.OpenParen:
             return ParseParenthesizedOrLambdaExpression();
-        
-        case TokenKind.If:
-            return ParseIfExpression();
-
-        case TokenKind.Loop:
-            {
-                var loop = Advance();
-
-                var block = ParseBlockExpression();
-
-                return new LoopExpression()
-                {
-                    Ast = Ast,
-                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
-                    LoopKeyword = loop,
-                    Block = block
-                };
-            }
 
         case TokenKind.Return:
             {
@@ -301,28 +283,77 @@ internal sealed partial class Parser
         };
     }
 
-    internal IfExpression ParseIfExpression()
+    internal Expression? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
     {
-        var @if = Expect(TokenKind.If);
-
-        var condition = ParseExpressionOrError();
-
-        var ifTrue = ParseBlockExpression();
-
-        var @else = Expect(TokenKind.Else);
-
-        var ifFalse = ParseBlockExpression();
-
-        return new()
+        switch (Current.Kind)
         {
-            Ast = Ast,
-            Location = new(Source.Name, @if.Location.Start, ifFalse.Location.End),
-            IfKeyword = @if,
-            Condition = condition,
-            IfTrue = ifTrue,
-            ElseKeyword = @else,
-            IfFalse = ifFalse
-        };
+        case TokenKind.OpenBrace:
+            return ParseBlockExpression();
+
+        case TokenKind.If:
+            {
+                var @if = Expect(TokenKind.If);
+
+                var condition = ParseExpressionOrError();
+
+                var ifTrue = ParseBlockExpression();
+
+                // Parse an else clause if the current token is an else keyword
+                // or the context is an expression, in which case the else clause is required.
+                var elseClause = null as ElseClause;
+                if (Current.Kind is TokenKind.Else || ctx is FlowControlExpressionContext.Expression)
+                {
+                    // In case the else clause is omitted and the context is an expression,
+                    // report an additional little informational error.
+                    if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
+                    {
+                        ReportDiagnostic(ParseDiagnostics.ElseOmitted.Format(@if.Location));
+                    }
+                    
+                    var @else = Expect(TokenKind.Else);
+            
+                    var ifFalse = ParseBlockExpression();
+
+                    elseClause = new()
+                    {
+                        Ast = Ast,
+                        Location = new(Source.Name, @else.Location.Start, ifFalse.Location.End),
+                        ElseKeyword = @else,
+                        IfFalse = ifFalse
+                    };
+                }
+
+                return new IfExpression()
+                {
+                    Ast = Ast,
+                    Location = new(
+                        Source.Name,
+                        @if.Location.Start,
+                        elseClause?.Location.End ?? ifTrue.Location.End),
+                    IfKeyword = @if,
+                    Condition = condition,
+                    IfTrue = ifTrue,
+                    Else = elseClause
+                };
+            }
+
+        case TokenKind.Loop:
+            {
+                var loop = Advance();
+
+                var block = ParseBlockExpression();
+
+                return new LoopExpression()
+                {
+                    Ast = Ast,
+                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
+                    LoopKeyword = loop,
+                    Block = block
+                };
+            }
+        }
+        
+        return null;
     }
 
     /// <summary>

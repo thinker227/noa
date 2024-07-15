@@ -124,7 +124,9 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
         Visit(node.Condition);
         
         var ifTrueNext = CreateSubVisitor().Visit(node.IfTrue).Next;
-        var ifFalseNext = CreateSubVisitor().Visit(node.IfFalse).Next;
+        var ifFalseNext = node.Else is { IfFalse: var ifFalse }
+            ? CreateSubVisitor().Visit(ifFalse).Next
+            : current;
 
         var next = ifTrueNext | ifFalseNext;
 

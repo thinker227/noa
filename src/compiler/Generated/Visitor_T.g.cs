@@ -14,6 +14,7 @@ public abstract partial class Visitor<T>
         Statement x => VisitStatement(x),
         Parameter x => VisitParameter(x),
         Expression x => VisitExpression(x),
+        ElseClause x => VisitElseClause(x),
         _ => throw new UnreachableException()
     };
 
@@ -142,6 +143,13 @@ public abstract partial class Visitor<T>
     {
         Visit(node.Condition);
         Visit(node.IfTrue);
+        if (node.Else is not null) Visit(node.Else);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitElseClause(ElseClause node)
+    {
         Visit(node.IfFalse);
 
         return GetDefault(node);
