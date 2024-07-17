@@ -21,7 +21,7 @@ internal sealed partial class Parser
     internal Parser(
         Source source,
         Ast ast,
-        IEnumerable<Token> tokenSource,
+        ImmutableArray<Token> tokenSource,
         CancellationToken cancellationToken)
     {
         state = new(source, ast, tokenSource);
