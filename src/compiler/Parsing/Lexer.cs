@@ -174,10 +174,13 @@ internal sealed partial class Lexer
 
             // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
             // Include the final character in the returned text.
-            if (current is '"' && Rest[i - 1] is not '\\') return Rest[..(i + 1)];
+            if (current is '"') return Rest[..(i + 1)];
             
             // Encountered an unterminated string, either because of a newline or end of input.
             if (current is '\n' || i == Rest.Length - 1) break;
+
+            // Skip escape sequences.
+            if (Rest[i..] is ['\\', not '\n', ..]) i++;
         }
 
         var location = Location.FromLength(source.Name, position + i, 1);
