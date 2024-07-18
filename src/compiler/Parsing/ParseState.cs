@@ -1,6 +1,5 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
-using SuperLinq;
 
 namespace Noa.Compiler.Parsing;
 
@@ -9,9 +8,8 @@ namespace Noa.Compiler.Parsing;
 /// </summary>
 internal sealed class ParseState
 {
-    private readonly IBuffer<Token> tokenSource;
-    private readonly IEnumerator<Token> tokens;
-    private Token current;
+    private readonly ImmutableArray<Token> tokens;
+    private int position;
     
     /// <summary>
     /// The source which is being parsed.
@@ -26,7 +24,7 @@ internal sealed class ParseState
     /// <summary>
     /// The current token.
     /// </summary>
-    public Token Current => current;
+    public Token Current => tokens[position];
     
     /// <summary>
     /// The diagnostics produced so far by the parser.
@@ -36,18 +34,16 @@ internal sealed class ParseState
     private ParseState(
         Source source,
         Ast ast,
-        IBuffer<Token> tokenSource,
-        IEnumerator<Token> tokens,
-        Token current,
+        ImmutableArray<Token> tokens,
+        int position,
         IEnumerable<IDiagnostic> diagnostics)
     {
         Source = source;
         Ast = ast;
         Diagnostics = diagnostics.ToList();
         
-        this.tokenSource = tokenSource;
         this.tokens = tokens;
-        this.current = current;
+        this.position = position;
     }
 
     /// <summary>
@@ -56,18 +52,14 @@ internal sealed class ParseState
     /// <param name="source">The source which is being parsed.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
     /// <param name="tokens">The tokens to parse.</param>
-    public ParseState(Source source, Ast ast, IEnumerable<Token> tokens)
+    public ParseState(Source source, Ast ast, ImmutableArray<Token> tokens)
     {
         Source = source;
         Ast = ast;
         Diagnostics = [];
         
-        tokenSource = tokens.Publish();
-        this.tokens = tokenSource.GetEnumerator();
-        
-        // Advance to the first token.
-        // The input sequence should always contain at least one token, so this should always work.
-        Advance();
+        this.tokens = tokens;
+        position = 0;
     }
     
     /// <summary>
@@ -76,27 +68,10 @@ internal sealed class ParseState
     /// </summary>
     public Token Advance()
     {
-        var token = current;
+        var token = Current;
 
-        // If we're at the end of the input, the end of file token should be persistent.
-        if (!tokens.MoveNext()) return token;
-        
-        var next = tokens.Current;
-
-        // Loop through and skip any erroneous tokens
-        while (next.Kind is TokenKind.Error)
-        {
-            var diagnostic = ParseDiagnostics.UnexpectedCharacter.Format(next.Text, next.Location);
-            Diagnostics.Add(diagnostic);
-                
-            // This should never occur because there should always be an end of file token
-            // at the very end of the input, but just in case.
-            if (!tokens.MoveNext()) break;
-
-            next = tokens.Current;
-        }
-            
-        current = next;
+        // Ensure that the position does not progress past the end of the tokens.
+        if (position < tokens.Length - 1) position += 1;
 
         return token;
     }
@@ -108,8 +83,7 @@ internal sealed class ParseState
     public ParseState Branch() => new(
         Source,
         Ast,
-        tokenSource,
-        tokenSource.GetEnumerator(),
-        current,
+        tokens,
+        position,
         Diagnostics);
 }

@@ -1,64 +1,79 @@
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer
 {
-    public static IEnumerable<Token> Lex(Source source, CancellationToken cancellationToken)
+    public static (ImmutableArray<Token>, IReadOnlyCollection<IDiagnostic>) Lex(
+        Source source,
+        CancellationToken cancellationToken)
     {
         var lexer = new Lexer(source, cancellationToken);
-
-        while (!lexer.AtEnd)
-        {
-            var token = lexer.NextToken();
-            if (token is not null) yield return token.Value;
-        }
-
-        var endLocation = Location.FromLength(source.Name, source.Text.Length, 0);
-        yield return new(TokenKind.EndOfFile, null, endLocation);
+        lexer.Lex();
+        return (lexer.tokens.ToImmutable(), lexer.diagnostics);
     }
 
-    private Token? NextToken()
+    private void Lex()
     {
-        // Whitespace
-        while (SyntaxFacts.IsWhitespace(Current))
+        while (!AtEnd)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            
-            Progress(1);
-        }
-
-        // Comments
-        if (Get(2) is "//")
-        {
-            while (!AtEnd && Current is not '\n')
+            // Whitespace
+            while (SyntaxFacts.IsWhitespace(Current))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 Progress(1);
             }
-            
-            return null;
+
+            // Comments
+            if (Get(2) is "//")
+            {
+                while (!AtEnd && Current is not '\n')
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    Progress(1);
+                }
+
+                continue;
+            }
+
+            // If there is trailing whitespace before the end of the source,
+            // the previous step has eaten all the whitespace, and we need to break
+            // to avoid choking on the end.
+            if (AtEnd) break;
+
+            // Symbol clusters
+            if (TrySymbol() is var (kind, tokenLength))
+            {
+                ConstructToken(kind, tokenLength);
+                continue;
+            }
+
+            // Identifiers and keywords
+            if (TryName() is { IsEmpty: false } name)
+            {
+                ConstructToken(KeywordKind(name) ?? TokenKind.Name, name.Length);
+                continue;
+            }
+
+            // Numbers
+            if (TryNumber() is { IsEmpty: false } number)
+            {
+                ConstructToken(TokenKind.Number, number.Length);
+                continue;
+            }
+
+            // Unknown
+            var unexpectedLocation = Location.FromLength(source.Name, position, 1);
+            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedLocation);
+            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, unexpectedLocation));
+            Progress(1);
         }
-
-        // If there is trailing whitespace before the end of the source,
-        // the previous step has eaten all the whitespace, and we need to return null
-        // to avoid choking on the end.
-        if (AtEnd) return null;
-
-        // Symbol clusters
-        if (TrySymbol() is var (kind, tokenLength)) return ConstructToken(kind, tokenLength);
         
-        // Identifiers and keywords
-        if (TryName() is { IsEmpty: false } name)
-            return ConstructToken(KeywordKind(name) ?? TokenKind.Name, name.Length);
-
-        // Numbers
-        if (TryNumber() is { IsEmpty: false } number)
-            return ConstructToken(TokenKind.Number, number.Length);
-        
-        // Unknown
-        return ConstructToken(TokenKind.Error, 1);
+        var endLocation = Location.FromLength(source.Name, source.Text.Length, 0);
+        AddToken(new(TokenKind.EndOfFile, null, endLocation));
     }
 
     private (TokenKind, int)? TrySymbol()

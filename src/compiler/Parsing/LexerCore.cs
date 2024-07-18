@@ -1,9 +1,12 @@
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer(Source source, CancellationToken cancellationToken)
 {
+    private readonly ImmutableArray<Token>.Builder tokens = ImmutableArray.CreateBuilder<Token>();
+    private readonly List<IDiagnostic> diagnostics = [];
     private readonly string text = source.Text;
     private int position = 0;
 
@@ -28,13 +31,15 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
             ? Rest.Slice(from, length)
             : [];
 
-    private Token ConstructToken(TokenKind kind, int length)
+    private void ConstructToken(TokenKind kind, int length)
     {
         var location = Location.FromLength(source.Name, position, length);
         var text = kind.ConstantString() ?? Rest[..length].ToString();
         
         Progress(length);
 
-        return new(kind, text, location);
+        AddToken(new(kind, text, location));
     }
+
+    private void AddToken(Token token) => tokens.Add(token);
 }
