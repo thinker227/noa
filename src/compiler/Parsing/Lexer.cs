@@ -64,6 +64,13 @@ internal sealed partial class Lexer
                 ConstructToken(TokenKind.Number, number.Length);
                 continue;
             }
+            
+            // Strings
+            if (TryString() is { IsEmpty: false } str)
+            {
+                ConstructToken(TokenKind.String, str.Length);
+                continue;
+            }
 
             // Unknown
             var unexpectedLocation = Location.FromLength(source.Name, position, 1);
@@ -153,6 +160,29 @@ internal sealed partial class Lexer
             if (!SyntaxFacts.IsDigit(Rest[i])) break;
         }
 
+        return Rest[..i];
+    }
+
+    private ReadOnlySpan<char> TryString()
+    {
+        if (Get(1) is not "\"") return null;
+
+        var i = 1;
+        for (; i < Rest.Length; i++)
+        {
+            var current = Rest[i];
+
+            // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
+            // Include the final character in the returned text.
+            if (current is '"' && Rest[i - 1] is not '\\') return Rest[..(i + 1)];
+            
+            // Encountered an unterminated string, either because of a newline or end of input.
+            if (current is '\n' || i == Rest.Length - 1) break;
+        }
+
+        var location = Location.FromLength(source.Name, position + i, 1);
+        diagnostics.Add(ParseDiagnostics.UnterminatedString.Format(location));
+        
         return Rest[..i];
     }
 }
