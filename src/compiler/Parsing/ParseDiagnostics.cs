@@ -103,4 +103,13 @@ internal static class ParseDiagnostics
                 .Keyword("string literal")
                 .Raw("."),
             Severity.Error);
+
+    public static DiagnosticTemplate<string> UnknownEscapeSequence { get; } =
+        DiagnosticTemplate.Create<string>(
+            "NOA-SYN-009",
+            (sequence, page) => page
+                .Raw("Unrecognized escape sequence ")
+                .Source($"\\{sequence}")
+                .Raw("."),
+            Severity.Error);
 }

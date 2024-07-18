@@ -253,6 +253,20 @@ internal sealed partial class Parser
                     Location = number.Location
                 };
             }
+
+        case TokenKind.String:
+            {
+                var str = Advance();
+                
+                var text = ParseStringText(str);
+
+                return new StringExpression()
+                {
+                    Ast = Ast,
+                    Location = str.Location,
+                    Value = text
+                };
+            }
         
         default:
             return new ErrorExpression()

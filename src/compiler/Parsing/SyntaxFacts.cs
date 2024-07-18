@@ -53,7 +53,8 @@ internal static class SyntaxFacts
         TokenKind.Name,
         TokenKind.True,
         TokenKind.False,
-        TokenKind.Number
+        TokenKind.Number,
+        TokenKind.String
     }.ToFrozenSet();
 
     /// <summary>
