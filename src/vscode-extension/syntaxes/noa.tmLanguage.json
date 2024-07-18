@@ -6,6 +6,9 @@
             "include": "#comments"
         },
         {
+            "include": "#strings"
+        },
+        {
             "include": "#keywords"
         },
         {
@@ -70,6 +73,20 @@
         "comments": {
             "name": "comment.line.double-slash.noa",
             "match": "\\/\\/.*"
+        },
+        "strings": {
+            "name": "string.quoted.double.noa",
+            "begin": "\"",
+            "end": "\"|$",
+            "patterns": [
+                {
+                    "include": "#escape-sequence"
+                }
+            ]
+        },
+        "escape-sequence": {
+            "name": "constant.character.escape.noa",
+            "match": "\\\\[\\\\0nrt\"]"
         }
     },
     "scopeName": "source.noa"
