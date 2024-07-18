@@ -22,12 +22,12 @@ internal sealed class ParseAssertion
     {
         var source = new Source(text, "test-input");
         var ast = new Ast();
-        var tokens = Lexer.Lex(source, default);
+        var (tokens, lexDiagnostics) = Lexer.Lex(source, default);
 
         var parser = new Parser(source, ast, tokens, default);
 
         var root = parse(parser);
-        var diagnostics = parser.Diagnostics;
+        var diagnostics = lexDiagnostics.Concat(parser.Diagnostics).ToList();
 
         var nodes = EnumerateNodes(root);
 

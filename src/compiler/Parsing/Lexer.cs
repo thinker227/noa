@@ -1,14 +1,17 @@
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer
 {
-    public static ImmutableArray<Token> Lex(Source source, CancellationToken cancellationToken)
+    public static (ImmutableArray<Token>, IReadOnlyCollection<IDiagnostic>) Lex(
+        Source source,
+        CancellationToken cancellationToken)
     {
         var lexer = new Lexer(source, cancellationToken);
         lexer.Lex();
-        return lexer.tokens.ToImmutable();
+        return (lexer.tokens.ToImmutable(), lexer.diagnostics);
     }
 
     private void Lex()
@@ -63,7 +66,10 @@ internal sealed partial class Lexer
             }
 
             // Unknown
-            ConstructToken(TokenKind.Error, 1);
+            var unexpectedLocation = Location.FromLength(source.Name, position, 1);
+            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedLocation);
+            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, unexpectedLocation));
+            Progress(1);
         }
         
         var endLocation = Location.FromLength(source.Name, source.Text.Length, 0);

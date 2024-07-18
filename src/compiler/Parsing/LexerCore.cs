@@ -1,3 +1,4 @@
+using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Parsing;
@@ -5,6 +6,7 @@ namespace Noa.Compiler.Parsing;
 internal sealed partial class Lexer(Source source, CancellationToken cancellationToken)
 {
     private readonly ImmutableArray<Token>.Builder tokens = ImmutableArray.CreateBuilder<Token>();
+    private readonly List<IDiagnostic> diagnostics = [];
     private readonly string text = source.Text;
     private int position = 0;
 

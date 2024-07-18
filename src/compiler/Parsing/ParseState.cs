@@ -60,29 +60,6 @@ internal sealed class ParseState
         
         this.tokens = tokens;
         position = 0;
-
-        SkipErroneous();
-    }
-
-    private bool Proceed()
-    {
-        if (position >= tokens.Length - 1) return false;
-        
-        position += 1;
-        return true;
-    }
-
-    private void SkipErroneous()
-    {
-        while (Current.Kind is TokenKind.Error)
-        {
-            var diagnostic = ParseDiagnostics.UnexpectedCharacter.Format(Current.Text, Current.Location);
-            Diagnostics.Add(diagnostic);
-                
-            // This should never occur because there should always be an end of file token
-            // at the very end of the input, but just in case.
-            if (!Proceed()) break;
-        }
     }
     
     /// <summary>
@@ -92,10 +69,9 @@ internal sealed class ParseState
     public Token Advance()
     {
         var token = Current;
-        
-        Proceed();
-        
-        SkipErroneous();
+
+        // Ensure that the position does not progress past the end of the tokens.
+        if (position < tokens.Length - 1) position += 1;
 
         return token;
     }

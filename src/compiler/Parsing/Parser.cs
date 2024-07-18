@@ -20,13 +20,13 @@ internal sealed partial class Parser
         Ast ast,
         CancellationToken cancellationToken)
     {
-        var tokens = Lexer.Lex(source, cancellationToken);
+        var (tokens, lexDiagnostics) = Lexer.Lex(source, cancellationToken);
         var parser = new Parser(source, ast, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
         var diagnostics = parser.Diagnostics;
         
-        return (root, diagnostics);
+        return (root, lexDiagnostics.Concat(diagnostics).ToList());
     }
 
     internal Root ParseRoot()
