@@ -154,6 +154,87 @@ public class ControlFlowMarkerTests
         
         b.Reachability.Value.CanFallThrough.ShouldBeTrue();
     }
+
+    [Fact]
+    public void Loop_WithConditionalBreak_Produces_CanBreak_AfterNestedLoop_WithUnconditionalBreak()
+    {
+        var text = """
+        loop {
+            if (true) {
+                break;
+            }
+        
+            loop {
+                break;
+            }
+        
+            let x = 0;
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        ControlFlowMarker.Mark(ast);
+
+        var x = (LetDeclaration)ast.Root.FindNodeAt(82)!;
+
+        x.Reachability.Value.CanFallThrough.ShouldBeTrue();
+        x.Reachability.Value.CanBreak.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Loop_WithConditionalContinue_Produces_CanContinue_AfterNestedLoop_WithUnconditionalBreak()
+    {
+        var text = """
+        loop {
+            if (true) {
+                continue;
+            }
+        
+            loop {
+                break;
+            }
+        
+            let x = 0;
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        ControlFlowMarker.Mark(ast);
+
+        var x = (LetDeclaration)ast.Root.FindNodeAt(85)!;
+
+        x.Reachability.Value.CanFallThrough.ShouldBeTrue();
+        x.Reachability.Value.CanContinue.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Loop_WithConditionalReturn_Produces_CanReturn_AfterNestedLoop_WithUnconditionalBreak()
+    {
+        var text = """
+        loop {
+            if (true) {
+                return;
+            }
+        
+            loop {
+                break;
+            }
+        
+            let x = 0;
+        }
+        """;
+        var source = new Source(text, "test-input");
+        var ast = Ast.Parse(source);
+
+        ControlFlowMarker.Mark(ast);
+
+        var x = (LetDeclaration)ast.Root.FindNodeAt(83)!;
+
+        x.Reachability.Value.CanFallThrough.ShouldBeTrue();
+        x.Reachability.Value.CanReturn.ShouldBeTrue();
+    }
     
     [Fact]
     public void Return_Shadows_Break()

@@ -134,10 +134,13 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
 
     protected override ControlFlowResult VisitLoopExpression(LoopExpression node)
     {
-        var blockVisitor = CreateSubVisitor();
-        var tail = blockVisitor.Visit(node.Block).Next;
+        var tail = CreateSubVisitor().Visit(node.Block).Next;
 
-        var next = new Reachability(tail.CanBreak, tail.CanReturn, false, false);
+        var next = current with
+        {
+            CanFallThrough = tail.CanBreak,
+            CanReturn = tail.CanReturn
+        };
 
         return new(current, next);
     }
