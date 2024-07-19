@@ -20,6 +20,8 @@ internal static class ControlFlowMarker
 file sealed class Visitor(Reachability current, CancellationToken cancellationToken)
     : Visitor<ControlFlowResult>
 {
+    private Reachability current = current;
+    
     protected override ControlFlowResult GetDefault(Node node) => new(current, current);
 
     protected override void BeforeVisit(Node node) =>
