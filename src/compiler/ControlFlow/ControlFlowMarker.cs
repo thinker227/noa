@@ -47,9 +47,6 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
 
     protected override ControlFlowResult VisitRoot(Root node) => VisitBlockExpression(node);
 
-    protected override ControlFlowResult VisitExpressionStatement(ExpressionStatement node) =>
-        Visit(node.Expression);
-
     protected override ControlFlowResult VisitFunctionDeclaration(FunctionDeclaration node)
     {
         var bodyVisitor = CreateNewVisitor();
@@ -138,57 +135,15 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
         var blockVisitor = CreateSubVisitor();
         var tail = blockVisitor.Visit(node.Block).Next;
 
-        var next = tail switch
-        {
-            // The code can return and might be able to fall through using a break.
-            (_, true, var @break, _) =>
-                new(@break, true, false, false),
-            
-            // The code can fall through using a break.
-            (_, false, true, _) =>
-                Reachability.Reachable,
-            
-            // The code won't be able to fall through.
-            (true, false, false, _) or 
-            (_, false, false, true) =>
-                Reachability.Unreachable,
-            
-            (false, false, false, false) => Reachability.Unreachable
-        };
+        var next = new Reachability(tail.CanBreak, tail.CanReturn, false, false);
 
         return new(current, next);
-    }
-
-    protected override ControlFlowResult VisitUnaryExpression(UnaryExpression node) =>
-        Visit(node.Operand);
-
-    protected override ControlFlowResult VisitBinaryExpression(BinaryExpression node)
-    {
-        Visit(node.Left);
-        Visit(node.Right);
-
-        return new(current, current);
-    }
-
-    protected override ControlFlowResult VisitCallExpression(CallExpression node)
-    {
-        Visit(node.Target);
-        Visit(node.Arguments);
-
-        return new(current, current);
     }
 
     protected override ControlFlowResult VisitLambdaExpression(LambdaExpression node)
     {
         var bodyVisitor = CreateNewVisitor();
         bodyVisitor.Visit(node.Body);
-
-        return new(current, current);
-    }
-
-    protected override ControlFlowResult VisitTupleExpression(TupleExpression node)
-    {
-        Visit(node.Expressions);
 
         return new(current, current);
     }
