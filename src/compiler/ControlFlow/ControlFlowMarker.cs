@@ -11,13 +11,13 @@ internal static class ControlFlowMarker
     /// <param name="cancellationToken">The cancellation token which signals the marker to cancel.</param>
     public static void Mark(Ast ast, CancellationToken cancellationToken = default)
     {
-        var visitor = new Visitor(Reachability.Reachable, cancellationToken);
+        var visitor = new ControlFlowVisitor(Reachability.Reachable, cancellationToken);
 
         visitor.Visit(ast.Root);
     }
 }
 
-file sealed class Visitor(Reachability current, CancellationToken cancellationToken)
+file sealed class ControlFlowVisitor(Reachability current, CancellationToken cancellationToken)
     : Visitor<ControlFlowResult>
 {
     private Reachability current = current;
@@ -42,9 +42,9 @@ file sealed class Visitor(Reachability current, CancellationToken cancellationTo
         current = result.Next;
     }
 
-    private Visitor CreateSubVisitor() => new(current, cancellationToken);
+    private ControlFlowVisitor CreateSubVisitor() => new(current, cancellationToken);
 
-    private Visitor CreateNewVisitor() =>
+    private ControlFlowVisitor CreateNewVisitor() =>
         new(Reachability.Reachable, cancellationToken);
 
     protected override ControlFlowResult VisitRoot(Root node) => VisitBlockExpression(node);
