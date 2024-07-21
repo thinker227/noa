@@ -10,8 +10,6 @@ internal sealed partial class Parser
 
     internal IReadOnlyCollection<IDiagnostic> Diagnostics => state.Diagnostics;
     
-    private Source Source => state.Source;
-    
     private Ast Ast => state.Ast;
 
     private Token Current => state.Current;
@@ -30,7 +28,7 @@ internal sealed partial class Parser
 
     private void ReportDiagnostic(DiagnosticTemplate template, TextSpan span)
     {
-        var location = new Location(Source.Name, span);
+        var location = new Location(state.Source.Name, span);
         var diagnostic = template.Format(location);
         state.Diagnostics.Add(diagnostic);
     }
@@ -40,7 +38,7 @@ internal sealed partial class Parser
 
     private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, TextSpan span)
     {
-        var location = new Location(Source.Name, span);
+        var location = new Location(state.Source.Name, span);
         var diagnostic = template.Format(arg, location);
         state.Diagnostics.Add(diagnostic);
     }
