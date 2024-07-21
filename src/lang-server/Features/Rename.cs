@@ -28,7 +28,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
 
         if (symbol is not IDeclaredSymbol declared) return Task.FromResult<OneOf<Range, PrepareRenameResult>?>(null);
 
-        var range = ToRange(declared.DefinitionLocation, document);
+        var range = ToLspRange(declared.DefinitionLocation.Span, document);
 
         return Task.FromResult(new OneOf<Range, PrepareRenameResult>?(range));
     }
@@ -54,7 +54,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
 
         var textEdits = references.Select(x => new TextEdit()
         {
-            Range = ToRange(x, document),
+            Range = ToLspRange(x.Span, document),
             NewText = param.NewName
         });
         var textDocumentEdit = new TextDocumentEdit()

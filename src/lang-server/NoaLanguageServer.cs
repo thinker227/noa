@@ -106,19 +106,19 @@ public sealed partial class NoaLanguageServer(
     private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument document) =>
         new()
         {
-            Range = ToRange(location, document),
+            Range = ToLspRange(location.Span, document),
             Uri = document.Uri
         };
 
     /// <summary>
-    /// Converts a <see cref="Noa.Compiler.Location"/> into a <see cref="Range"/>.
+    /// Converts a <see cref="TextSpan"/> into a <see cref="Range"/>.
     /// </summary>
-    /// <param name="location">The location to convert.</param>
+    /// <param name="span">The span to convert.</param>
     /// <param name="document">The document the location is from.</param>
-    private static Range ToRange(Noa.Compiler.Location location, NoaDocument document)
+    private static Range ToLspRange(TextSpan span, NoaDocument document)
     {
-        var start = document.LineMap.GetCharacterPosition(location.Start);
-        var end = document.LineMap.GetCharacterPosition(location.End);
+        var start = document.LineMap.GetCharacterPosition(span.Start);
+        var end = document.LineMap.GetCharacterPosition(span.End);
 
         return new()
         {

@@ -45,7 +45,7 @@ public sealed partial class NoaLanguageServer : IDiagnostics
         return new()
         {
             Message = message,
-            Range = ToRange(location, document),
+            Range = ToLspRange(location.Span, document),
             Code = new OneOf<int, string>(diagnostic.Id.ToString()),
             Severity = diagnostic.Severity switch
             {
