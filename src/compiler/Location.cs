@@ -4,30 +4,17 @@ namespace Noa.Compiler;
 /// A location in source code.
 /// </summary>
 /// <param name="SourceName">The name of the source.</param>
-/// <param name="Start">The start position in the source.</param>
-/// <param name="End">The end position in the source.</param>
-public readonly record struct Location(string SourceName, int Start, int End)
+/// <param name="Span">The text span of the location within the source.</param>
+public readonly record struct Location(string SourceName, TextSpan Span)
 {
     /// <summary>
-    /// The length of the location in the source.
-    /// </summary>
-    public int Length => End - Start;
-
-    /// <summary>
-    /// Creates a new location from a start position and length.
+    /// Creates a new location.
     /// </summary>
     /// <param name="sourceName">The name of the source.</param>
-    /// <param name="start">The start position in the source.</param>
-    /// <param name="length">The length of the location in source.</param>
-    public static Location FromLength(string sourceName, int start, int length) =>
-        new(sourceName, start, start + length);
-
-    /// <summary>
-    /// Returns whether a position is within the location.
-    /// </summary>
-    /// <param name="position">The position to check.</param>
-    public bool Contains(int position) =>
-        position >= Start && position < End;
-
-    public override string ToString() => $"{Start} to {End} in '{SourceName}'";
+    /// <param name="start">The start of the location from the start of the text.</param>
+    /// <param name="end">The end of the location from the start of the text.</param>
+    public Location(string sourceName, int start, int end)
+        : this(sourceName, new(start, end)) {}
+    
+    public override string ToString() => $"{Span} in '{SourceName}'";
 }

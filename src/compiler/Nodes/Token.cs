@@ -9,15 +9,15 @@ namespace Noa.Compiler.Nodes;
 /// If not specified, <see cref="TokenKindExtensions.ConstantString"/> will be used,
 /// or an expect will be thrown if the kind does not have a constant string.
 /// </param>
-/// <param name="Location">The location of the token in source.</param>
-public readonly record struct Token(TokenKind Kind, string? Text, Location Location)
+/// <param name="Span">The span of the token within its text.</param>
+public readonly record struct Token(TokenKind Kind, string? Text, TextSpan Span)
 {
     public string Text { get; } =
         Text ?? Kind.ConstantString() ?? throw new InvalidOperationException(
             $"Cannot create a token with kind '{Kind}' without explicitly " +
             $"specifying its text because the kind does not have a constant string");
 
-    public override string ToString() => $"{Kind} '{Text}' at {Location}";
+    public override string ToString() => $"{Kind} '{Text}' at {Span}";
 }
 
 /// <summary>
