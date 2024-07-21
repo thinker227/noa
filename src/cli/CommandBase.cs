@@ -39,8 +39,8 @@ public abstract class CommandBase(IAnsiConsole console)
             .GetValueOrDefault(Severity.Error, [])
             .Concat(collectedDiagnostics.GetValueOrDefault(Severity.Warning, []))
             .OrderBy(x => x.Location.SourceName)
-            .ThenBy(x => x.Location.Start)
-            .ThenBy(x => x.Location.Length);
+            .ThenBy(x => x.Location.Span.Start)
+            .ThenBy(x => x.Location.Span.Length);
 
         var statusText = DisplayBuildStatusText(collectedDiagnostics);
         var diagnosticsGrid = DisplayDiagnosticsGrid(source, diagnostics);
@@ -107,8 +107,8 @@ public abstract class CommandBase(IAnsiConsole console)
     private static Markup DisplayDiagnostic(LineMap lineMap, IDiagnostic diagnostic)
     {
         var location = diagnostic.Location;
-        var start = lineMap.GetCharacterPosition(location.Start);
-        var end = lineMap.GetCharacterPosition(location.End);
+        var start = lineMap.GetCharacterPosition(location.Span.Start);
+        var end = lineMap.GetCharacterPosition(location.Span.End);
         
         var color = diagnostic.Severity switch
         {

@@ -21,8 +21,7 @@ internal sealed partial class Parser
             if (statementOrExpression is not var (statement, expression))
             {
                 // An unexpected token was encountered.
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
                 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);
@@ -60,8 +59,7 @@ internal sealed partial class Parser
 
                 // If the current token is not a closing brace, then there's an unexpected token here.
 
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);
@@ -89,8 +87,7 @@ internal sealed partial class Parser
 
             if (!expression.IsExpressionStatement())
             {
-                var diagnostic = ParseDiagnostics.InvalidExpressionStatement.Format(expression.Location);
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression.Span);
             }
             
             // If the expression is a control flow expression statement then we don't expect a semicolon.
@@ -98,12 +95,10 @@ internal sealed partial class Parser
                 ? null as Token?
                 : Expect(TokenKind.Semicolon);
 
-            var end = semicolon?.Location.End ?? expression.Location.End;
-
             statements.Add(new ExpressionStatement()
             {
                 Ast = Ast,
-                Location = new(Source.Name, expression.Location.Start, end),
+                Span = expression.Span with { End = semicolon?.Span.End ?? expression.Span.End },
                 Expression = expression
             });
         }
@@ -151,14 +146,13 @@ internal sealed partial class Parser
 
         if (!target.IsValidLValue())
         {
-            var diagnostic = ParseDiagnostics.InvalidLValue.Format(target.Location);
-            ReportDiagnostic(diagnostic);
+            ReportDiagnostic(ParseDiagnostics.InvalidLValue, target.Span);
         }
 
         return new AssignmentStatement()
         {
             Ast = Ast,
-            Location = new(Source.Name, target.Location.Start, value.Location.End),
+            Span = TextSpan.Between(target.Span, value.Span),
             Target = target,
             Value = value,
         };

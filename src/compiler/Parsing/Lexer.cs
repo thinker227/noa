@@ -66,14 +66,14 @@ internal sealed partial class Lexer
             }
 
             // Unknown
-            var unexpectedLocation = Location.FromLength(source.Name, position, 1);
-            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedLocation);
-            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, unexpectedLocation));
+            var unexpectedSpan = TextSpan.FromLength(position, 1);
+            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedSpan);
+            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, new(source.Name, unexpectedSpan)));
             Progress(1);
         }
         
-        var endLocation = Location.FromLength(source.Name, source.Text.Length, 0);
-        AddToken(new(TokenKind.EndOfFile, null, endLocation));
+        var endSpan = TextSpan.FromLength(source.Text.Length, 0);
+        AddToken(new(TokenKind.EndOfFile, null, endSpan));
     }
 
     private (TokenKind, int)? TrySymbol()

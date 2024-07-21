@@ -20,9 +20,14 @@ public abstract class Node
     public Semantic<Node> Parent => Ast.GetParent(this)!;
     
     /// <summary>
+    /// The span of the node within the text.
+    /// </summary>
+    public required TextSpan Span { get; init; }
+
+    /// <summary>
     /// The source location of the node.
     /// </summary>
-    public required Location Location { get; init; }
+    public Location Location => new(Ast.Source.Name, Span);
     
     /// <summary>
     /// The child nodes of the node.

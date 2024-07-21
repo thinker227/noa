@@ -29,7 +29,7 @@ internal sealed partial class Parser
             return new UnaryExpression()
             {
                 Ast = parser.Ast,
-                Location = new(parser.Source.Name, kindToken.Location.Start, operand.Location.End),
+                Span = TextSpan.Between(kindToken.Span, operand.Span),
                 Kind = kind,
                 Operand = operand
             };
@@ -60,7 +60,7 @@ internal sealed partial class Parser
                 result = new BinaryExpression()
                 {
                     Ast = parser.Ast,
-                    Location = new(parser.Source.Name, result.Location.Start, right.Location.End),
+                    Span = TextSpan.Between(result.Span, right.Span),
                     Left = result,
                     Kind = kind,
                     Right = right
@@ -93,7 +93,7 @@ internal sealed partial class Parser
             return new BinaryExpression()
             {
                 Ast = parser.Ast,
-                Location = new(parser.Source.Name, result.Location.Start, right.Location.End),
+                Span = TextSpan.Between(result.Span, right.Span),
                 Left = result,
                 Kind = kind,
                 Right = right
@@ -142,7 +142,7 @@ internal sealed partial class Parser
             expression = new CallExpression()
             {
                 Ast = Ast,
-                Location = new(Source.Name, expression.Location.Start, closeParen.Location.End),
+                Span = TextSpan.Between(expression.Span, closeParen.Span),
                 Target = expression,
                 Arguments = arguments
             };
@@ -170,9 +170,7 @@ internal sealed partial class Parser
                 return new ReturnExpression()
                 {
                     Ast = Ast,
-                    Location = expression is not null
-                        ? new Location(Source.Name, @return.Location.Start, expression.Location.End)
-                        : @return.Location,
+                    Span = TextSpan.Between(@return.Span, expression?.Span),
                     ReturnKeyword = @return,
                     Expression = expression
                 };
@@ -187,9 +185,7 @@ internal sealed partial class Parser
                 return new BreakExpression()
                 {
                     Ast = Ast,
-                    Location = expression is not null
-                        ? new Location(Source.Name, @break.Location.Start, expression.Location.End)
-                        : @break.Location,
+                    Span = TextSpan.Between(@break.Span, expression?.Span),
                     BreakKeyword = @break,
                     Expression = expression
                 };
@@ -202,7 +198,7 @@ internal sealed partial class Parser
                 return new ContinueExpression()
                 {
                     Ast = Ast,
-                    Location = @continue.Location
+                    Span = @continue.Span
                 };
             }
 
@@ -213,7 +209,7 @@ internal sealed partial class Parser
                 return new IdentifierExpression()
                 {
                     Ast = Ast,
-                    Location = identifier.Location,
+                    Span = identifier.Span,
                     Identifier = identifier.Text
                 };
             }
@@ -225,7 +221,7 @@ internal sealed partial class Parser
                 return new BoolExpression()
                 {
                     Ast = Ast,
-                    Location = @bool.Location,
+                    Span = @bool.Span,
                     Value = @bool.Kind is TokenKind.True
                 };
             }
@@ -239,18 +235,17 @@ internal sealed partial class Parser
                     return new NumberExpression()
                     {
                         Ast = Ast,
-                        Location = number.Location,
+                        Span = number.Span,
                         Value = value
                     };
                 }
 
-                var diagnostic = ParseDiagnostics.LiteralTooLarge.Format(number.Text, number.Location);
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.LiteralTooLarge, number.Text, number.Span);
                     
                 return new ErrorExpression()
                 {
                     Ast = Ast,
-                    Location = number.Location
+                    Span = number.Span
                 };
             }
         
@@ -258,7 +253,7 @@ internal sealed partial class Parser
             return new ErrorExpression()
             {
                 Ast = Ast,
-                Location = Location.FromLength(Source.Name, Current.Location.Start, 0)
+                Span = TextSpan.FromLength(Current.Span.Start, 0)
             };
         }
     }
@@ -277,7 +272,7 @@ internal sealed partial class Parser
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, openBrace.Location.Start, closeBrace.Location.End),
+            Span = TextSpan.Between(openBrace.Span, closeBrace.Span),
             Statements = statements,
             TrailingExpression = trailingExpression
         };
@@ -307,7 +302,7 @@ internal sealed partial class Parser
                     // report an additional little informational error.
                     if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
                     {
-                        ReportDiagnostic(ParseDiagnostics.ElseOmitted.Format(@if.Location));
+                        ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if.Span);
                     }
                     
                     var @else = Expect(TokenKind.Else);
@@ -317,7 +312,7 @@ internal sealed partial class Parser
                     elseClause = new()
                     {
                         Ast = Ast,
-                        Location = new(Source.Name, @else.Location.Start, ifFalse.Location.End),
+                        Span = TextSpan.Between(@else.Span, ifFalse.Span),
                         ElseKeyword = @else,
                         IfFalse = ifFalse
                     };
@@ -326,10 +321,7 @@ internal sealed partial class Parser
                 return new IfExpression()
                 {
                     Ast = Ast,
-                    Location = new(
-                        Source.Name,
-                        @if.Location.Start,
-                        elseClause?.Location.End ?? ifTrue.Location.End),
+                    Span = @if.Span with { End = elseClause?.Span.End ?? ifTrue.Span.End },
                     IfKeyword = @if,
                     Condition = condition,
                     IfTrue = ifTrue,
@@ -346,7 +338,7 @@ internal sealed partial class Parser
                 return new LoopExpression()
                 {
                     Ast = Ast,
-                    Location = new(Source.Name, loop.Location.Start, block.Location.End),
+                    Span = TextSpan.Between(loop.Span, block.Span),
                     LoopKeyword = loop,
                     Block = block
                 };

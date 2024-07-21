@@ -38,15 +38,14 @@ internal sealed partial class Parser
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
-        var start = statements.FirstOrDefault()?.Location.Start
-                    ?? trailingExpression?.Location.Start
-                    ?? endOfFile.Location.Start;
-        var location = new Location(Source.Name, start, endOfFile.Location.End);
+        var start = statements.FirstOrDefault()?.Span.Start
+                    ?? trailingExpression?.Span.Start
+                    ?? endOfFile.Span.Start;
 
         return new()
         {
             Ast = Ast,
-            Location = location,
+            Span = endOfFile.Span with { Start = start },
             Statements = statements,
             TrailingExpression = trailingExpression
         };
@@ -59,7 +58,7 @@ internal sealed partial class Parser
         return new()
         {
             Ast = Ast,
-            Location = name.Location,
+            Span = name.Span,
             Name = name.Text
         };
     }
@@ -110,8 +109,8 @@ internal sealed partial class Parser
 
         var end = (expressionBody, blockBody) switch
         {
-            (var (_, semicolon), null) => semicolon.Location.End,
-            (null, not null) => blockBody.Location.End,
+            (var (_, semicolon), null) => semicolon.Span.End,
+            (null, not null) => blockBody.Span.End,
             // It's impossible for the expression body and block body to both be null or both not be null.
             _ => throw new UnreachableException()
         };
@@ -119,7 +118,7 @@ internal sealed partial class Parser
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, func.Location.Start, end),
+            Span = func.Span with { End = end },
             FuncKeyword = func,
             Identifier = identifier,
             Parameters = parameters,
@@ -136,12 +135,12 @@ internal sealed partial class Parser
 
         var identifier = ParseIdentifier();
 
-        var start = mutToken?.Location.Start ?? identifier.Location.Start;
+        var start = mutToken?.Span.Start ?? identifier.Span.Start;
         
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, start, identifier.Location.End),
+            Span = identifier.Span with { Start = start },
             IsMutable = mutToken is not null,
             Identifier = identifier
         };
@@ -170,7 +169,7 @@ internal sealed partial class Parser
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, let.Location.Start, semicolon.Location.End),
+            Span = TextSpan.Between(let.Span, semicolon.Span),
             LetKeyword = let,
             IsMutable = isMutable,
             Identifier = identifier,
