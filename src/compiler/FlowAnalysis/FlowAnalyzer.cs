@@ -119,7 +119,8 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
         else
         {
             node.Function = null;
-            Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(node.ReturnKeyword.Location));
+            var location = new Location(node.Ast.Source.Name, node.ReturnKeyword.Span);
+            Diagnostics.Add(FlowDiagnostics.ReturnOutsideFunction.Format(location));
         }
 
         if (node.Expression is not null) Visit(node.Expression);
@@ -134,7 +135,8 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
         else
         {
             node.Loop = null;
-            Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(node.BreakKeyword.Location));
+            var location = new Location(node.Ast.Source.Name, node.BreakKeyword.Span);
+            Diagnostics.Add(FlowDiagnostics.BreakOutsideFunction.Format(location));
         }
 
         if (node.Expression is not null) Visit(node.Expression);
