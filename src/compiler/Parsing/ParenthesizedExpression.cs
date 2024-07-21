@@ -59,7 +59,7 @@ internal sealed partial class Parser
             if (Current.Kind is not TokenKind.Name)
             {
                 // An unexpected token was encountered.
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, new(Source.Name, Current.Span));
                 ReportDiagnostic(diagnostic);
             
                 // Try synchronize with the next parameter.
@@ -74,12 +74,12 @@ internal sealed partial class Parser
             
             var identifier = ParseIdentifier();
 
-            var start = mutToken?.Location.Start ?? identifier.Location.Start;
+            var start = mutToken?.Span.Start ?? identifier.Span.Start;
             
             parameters.Add(new()
             {
                 Ast = Ast,
-                Location = new(Source.Name, start, identifier.Location.End),
+                Span = identifier.Span with { Start = start },
                 Identifier = identifier,
                 IsMutable = mutToken is not null
             });
@@ -105,7 +105,7 @@ internal sealed partial class Parser
         return new()
         {
             Ast = Ast,
-            Location = new(Source.Name, openParen.Location.Start, body.Location.End),
+            Span = TextSpan.Between(openParen.Span, body.Span),
             Parameters = parameters.ToImmutable(),
             ArrowToken = arrow,
             Body = body
@@ -122,14 +122,14 @@ internal sealed partial class Parser
 
         var closeParen = Expect(TokenKind.CloseParen);
 
-        var parensLocation = new Location(Source.Name, openParen.Location.Start, closeParen.Location.End);
+        var parensSpan = TextSpan.Between(openParen.Span, closeParen.Span);
 
         if (expressions.Length == 0)
         {
             return new NilExpression()
             {
                 Ast = Ast,
-                Location = parensLocation
+                Span = parensSpan
             };
         }
 
@@ -138,7 +138,7 @@ internal sealed partial class Parser
         var tuple = new TupleExpression()
         {
             Ast = Ast,
-            Location = parensLocation,
+            Span = parensSpan,
             Expressions = expressions
         };
         

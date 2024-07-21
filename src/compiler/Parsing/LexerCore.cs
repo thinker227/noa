@@ -33,12 +33,12 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
 
     private void ConstructToken(TokenKind kind, int length)
     {
-        var location = Location.FromLength(source.Name, position, length);
+        var span = TextSpan.FromLength(position, length);
         var text = kind.ConstantString() ?? Rest[..length].ToString();
         
         Progress(length);
 
-        AddToken(new(kind, text, location));
+        AddToken(new(kind, text, span));
     }
 
     private void AddToken(Token token) => tokens.Add(token);

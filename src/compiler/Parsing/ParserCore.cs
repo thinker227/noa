@@ -37,18 +37,18 @@ internal sealed partial class Parser
     {
         if (Current.Kind == kind) return Advance();
 
-        var diagnostic = ParseDiagnostics.ExpectedKinds.Format([kind], Current.Location);
+        var diagnostic = ParseDiagnostics.ExpectedKinds.Format([kind], new(Source.Name, Current.Span));
         ReportDiagnostic(diagnostic);
         
-        var location = Location.FromLength(Source.Name, Current.Location.Start, 0);
-        return new(TokenKind.Error, "", location);
+        var span = TextSpan.FromLength(Current.Span.Start, 0);
+        return new(TokenKind.Error, "", span);
     }
 
     private Token? Expect(IReadOnlySet<TokenKind> kinds)
     {
         if (kinds.Contains(Current.Kind)) return Current;
 
-        var diagnostic = ParseDiagnostics.ExpectedKinds.Format(kinds, Current.Location);
+        var diagnostic = ParseDiagnostics.ExpectedKinds.Format(kinds, new(Source.Name, Current.Span));
         ReportDiagnostic(diagnostic);
         
         return null;
@@ -99,7 +99,7 @@ internal sealed partial class Parser
             // Check whether the parser parsed anything at all to prevent it from getting stuck.
             if (Current == previousToken)
             {
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, Current.Location);
+                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, new(Source.Name, Current.Span));
                 ReportDiagnostic(diagnostic);
 
                 Advance();
