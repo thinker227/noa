@@ -59,8 +59,7 @@ internal sealed partial class Parser
             if (Current.Kind is not TokenKind.Name)
             {
                 // An unexpected token was encountered.
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, new(Source.Name, Current.Span));
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
             
                 // Try synchronize with the next parameter.
                 Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
@@ -143,7 +142,7 @@ internal sealed partial class Parser
         };
         
         // Todo: this should probably be moved to a standalone analyzer since it doesn't really belong in the parser.
-        ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported.Format(tuple.Location));
+        ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported, tuple.Span);
 
         return tuple;
     }

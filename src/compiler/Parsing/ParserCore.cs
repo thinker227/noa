@@ -28,8 +28,22 @@ internal sealed partial class Parser
         this.cancellationToken = cancellationToken;
     }
 
-    private void ReportDiagnostic(IDiagnostic diagnostic) =>
+    private void ReportDiagnostic(DiagnosticTemplate template, TextSpan span)
+    {
+        var location = new Location(Source.Name, span);
+        var diagnostic = template.Format(location);
         state.Diagnostics.Add(diagnostic);
+    }
+
+    private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token) =>
+        ReportDiagnostic(template, token, token.Span);
+
+    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, TextSpan span)
+    {
+        var location = new Location(Source.Name, span);
+        var diagnostic = template.Format(arg, location);
+        state.Diagnostics.Add(diagnostic);
+    }
     
     private Token Advance() => state.Advance();
 
@@ -37,8 +51,7 @@ internal sealed partial class Parser
     {
         if (Current.Kind == kind) return Advance();
 
-        var diagnostic = ParseDiagnostics.ExpectedKinds.Format([kind], new(Source.Name, Current.Span));
-        ReportDiagnostic(diagnostic);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current.Span);
         
         var span = TextSpan.FromLength(Current.Span.Start, 0);
         return new(TokenKind.Error, "", span);
@@ -48,8 +61,7 @@ internal sealed partial class Parser
     {
         if (kinds.Contains(Current.Kind)) return Current;
 
-        var diagnostic = ParseDiagnostics.ExpectedKinds.Format(kinds, new(Source.Name, Current.Span));
-        ReportDiagnostic(diagnostic);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, kinds, Current.Span);
         
         return null;
     }
@@ -99,8 +111,7 @@ internal sealed partial class Parser
             // Check whether the parser parsed anything at all to prevent it from getting stuck.
             if (Current == previousToken)
             {
-                var diagnostic = ParseDiagnostics.UnexpectedToken.Format(Current, new(Source.Name, Current.Span));
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
 
                 Advance();
             }

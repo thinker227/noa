@@ -240,8 +240,7 @@ internal sealed partial class Parser
                     };
                 }
 
-                var diagnostic = ParseDiagnostics.LiteralTooLarge.Format(number.Text, new(Source.Name, number.Span));
-                ReportDiagnostic(diagnostic);
+                ReportDiagnostic(ParseDiagnostics.LiteralTooLarge, number.Text, number.Span);
                     
                 return new ErrorExpression()
                 {
@@ -303,7 +302,7 @@ internal sealed partial class Parser
                     // report an additional little informational error.
                     if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
                     {
-                        ReportDiagnostic(ParseDiagnostics.ElseOmitted.Format(new(Source.Name, @if.Span)));
+                        ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if.Span);
                     }
                     
                     var @else = Expect(TokenKind.Else);
