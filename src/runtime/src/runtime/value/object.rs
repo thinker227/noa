@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use crate::vm::gc::{GcTracker, Managed, Spy, Trace};
+use crate::vm::gc::{GcRef, GcTracker, Managed, Spy, Trace};
 
 // I really wish there was a more elegant way to be able to match on the type of an
 // object stored in a `dyn Object`, but afaik this is probably the most painless way.
@@ -25,6 +25,16 @@ pub trait Object: Managed + Debug {
 
     /// Gets an [ObjectRefMut] containing a mutable reference to [self].
     fn get_ref_mut(&mut self) -> ObjectRefMut;
+}
+
+// Utility for turning GC refs of specific object types into refs to generic objects.
+impl<T: Object + 'static> From<GcRef<T>> for GcRef<dyn Object> {
+    fn from(value: GcRef<T>) -> Self {
+        value.map_gc_ref(|obj| {
+            let x: *mut dyn Object = obj;
+            x
+        })
+    }
 }
 
 // wip

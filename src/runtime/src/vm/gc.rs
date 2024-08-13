@@ -264,6 +264,13 @@ impl<T: Managed + ?Sized> GcRef<T> {
     pub fn ptr(&self) -> *mut T {
         self.ptr
     }
+
+    /// Maps the pointer of the GC ref to a pointer to another type.
+    pub fn map_gc_ref<U: Managed + ?Sized>(self, f: impl FnOnce(*mut T) -> *mut U) -> GcRef<U> {
+        GcRef {
+            ptr: f(self.ptr)
+        }
+    }
 }
 
 // Note:
