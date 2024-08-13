@@ -27,6 +27,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x15 | `PushBool <bool>` | Pushes the boolean `bool` onto the stack. | Pushes 1 value. |
 | 0x16 | `PushFunc <func id>` | Pushes the function with the ID `func id` onto the stack. | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
+| 0x18 | `PushString <string index>` | Pushes the string with the index `string index` onto the stack. | Push 1 value. |
 
 ## Miscellaneous stack operations (0x32-0x45)
 
