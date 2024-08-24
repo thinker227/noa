@@ -56,8 +56,11 @@ fn execute(ark: Ark, print_return_value: bool) -> Result<i32, String> {
 
     let result = vm.execute_main();
 
+    println!("return");
+
     match result {
         Ok(ret_value) => {
+            println!("ok");
             let main = vm.functions().get(&vm.main()).unwrap();
             let main_name = vm.get_string_or_fallback(main.name_index(), "?");
             let exit_code = ret_value.exit_code();
@@ -69,6 +72,7 @@ fn execute(ark: Ark, print_return_value: bool) -> Result<i32, String> {
             Ok(exit_code)
         },
         Err(e) => {
+            println!("err");
             // I don't think formatting an exception can ever fail.
             let formatted = format_exception(&e, &vm).unwrap();
             Err(formatted)

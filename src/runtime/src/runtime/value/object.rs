@@ -42,8 +42,8 @@ impl<T: Object + 'static> From<GcRef<T>> for GcRef<dyn Object> {
 /// An object representing a string.
 #[derive(Debug)]
 pub struct StringObject {
-    tracker: GcTracker,
-    string: String,
+    pub tracker: GcTracker,
+    pub string: String,
 }
 
 impl Trace for StringObject {

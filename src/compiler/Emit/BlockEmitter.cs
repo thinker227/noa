@@ -128,7 +128,11 @@ internal class BlockEmitter(
 
     protected override void VisitBoolExpression(BoolExpression node) => Code.PushBool(node.Value);
 
-    protected override void VisitStringExpression(StringExpression node) => throw new NotImplementedException();
+    protected override void VisitStringExpression(StringExpression node)
+    {
+        var index = strings.GetOrAdd(node.Value);
+        Code.PushString(index);
+    }
 
     protected override void VisitNilExpression(NilExpression node) => Code.PushNil();
 

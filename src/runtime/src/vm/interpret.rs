@@ -1,4 +1,5 @@
 use crate::ark::opcode::{self, Address, FuncId, VarIndex};
+use crate::runtime::value::object::StringObject;
 use crate::runtime::value::Value;
 use crate::runtime::exception::{CodeException, Exception, ExceptionData, VMException};
 use super::frame::Caller;
@@ -104,6 +105,24 @@ impl VM {
             }
             opcode::PUSH_NIL => {
                 self.stack.push(Value::Nil)?;
+            }
+            opcode::PUSH_STRING => {
+                let index = self.code.read_u32()?;
+
+                let string = self.strings.get(index as usize)
+                    .ok_or(ExceptionData::VM(VMException::InvalidString))?
+                    .clone();
+
+                dbg!(&string);
+
+                let obj = self.gc.allocate(|tracker| StringObject {
+                    tracker,
+                    string
+                });
+
+                println!("string fully allocated");
+
+                self.stack.push(Value::Object(obj.into()))?;
             }
 
             opcode::POP => {

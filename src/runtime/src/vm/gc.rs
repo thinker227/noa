@@ -82,9 +82,16 @@ pub struct GcRef<T: Managed + ?Sized> {
 /// Returns a tuple containing a pointer to the allocated memory,
 /// as well as the amount of bytes allocated,
 unsafe fn allocate_obj<T: Managed + 'static>(value: T) -> (*mut T, usize) {
-    let layout = Layout::for_value(&value);
+    println!("enter allocate_obj");
+    // let layout = Layout::for_value(&value);
+    let layout = Layout::new::<T>();
+    dbg!(&layout);
+    println!("created layout");
     let ptr = alloc::alloc(layout) as *mut T;
-    *ptr = value;
+    println!("alloc called");
+    // dbg!(ptr);
+    *ptr = value; // this crashes
+    println!("value at pointer set");
 
     (ptr, layout.size())
 }
@@ -128,6 +135,7 @@ impl Gc {
     /// It is *extremely* unsafe to dereference the [GcRef] after the [Gc] has been dropped
     /// and the allocated memory of the reference freed.
     pub fn allocate<T: Managed + 'static>(& mut self, create: impl FnOnce(GcTracker) -> T) -> GcRef<T> {
+        println!("enter allocate");
         let tracker = GcTracker {
             marked: false,
             previous: self.memory_head
@@ -138,6 +146,7 @@ impl Gc {
         let (obj, bytes) = unsafe {
             allocate_obj(value)
         };
+        println!("object allocated");
 
         self.memory_head = Some(obj);
         self.allocated += bytes;
@@ -145,6 +154,7 @@ impl Gc {
         let gc_ref = GcRef {
             ptr: obj
         };
+        println!("created gc ref");
 
         gc_ref
     }
