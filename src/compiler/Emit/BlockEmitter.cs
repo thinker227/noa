@@ -5,8 +5,8 @@ using Noa.Compiler.Symbols;
 namespace Noa.Compiler.Emit;
 
 internal class BlockEmitter(
-    IFunction function,
-    IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
+    IDeclaredFunction function,
+    IReadOnlyDictionary<IDeclaredFunction, FunctionBuilder> functionBuilders,
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {

@@ -5,8 +5,8 @@ using Noa.Compiler.Symbols;
 namespace Noa.Compiler.Emit;
 
 internal sealed class LoopEmitter(
-    IFunction function,
-    IReadOnlyDictionary<IFunction, FunctionBuilder> functionBuilders,
+    IDeclaredFunction function,
+    IReadOnlyDictionary<IDeclaredFunction, FunctionBuilder> functionBuilders,
     StringSectionBuilder strings,
     uint startOffset,
     AddressOffsetData endOffsetData

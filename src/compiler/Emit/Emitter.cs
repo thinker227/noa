@@ -16,7 +16,7 @@ internal static class Emitter
             strings.GetOrAdd(MainName));
         
         var functionsForEmission = ast.Root.DescendantsAndSelf()
-            .Select(IFunction? (x) => x switch
+            .Select(IDeclaredFunction? (x) => x switch
             {
                 FunctionDeclaration f => f.Symbol.Value,
                 LambdaExpression l => l.Function.Value,
@@ -24,7 +24,7 @@ internal static class Emitter
             })
             .Where(x => x is not null);
         
-        var functionBuilders = new Dictionary<IFunction, FunctionBuilder>()
+        var functionBuilders = new Dictionary<IDeclaredFunction, FunctionBuilder>()
         {
             [ast.TopLevelFunction] = main
         };

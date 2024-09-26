@@ -25,25 +25,29 @@ public interface IFunctionNested
     /// </summary>
     IFunction ContainingFunction { get; }
 }
-
 /// <summary>
-/// A symbol which is declared in source and has a corresponding AST node.
+/// A semantic element which is declared in source and has a corresponding AST node.
 /// </summary>
-public interface IDeclaredSymbol : ISymbol, IFunctionNested
+public interface IDeclared
 {
     /// <summary>
-    /// The declaring node of the symbol.
+    /// The declaring node of the element.
     /// </summary>
     Node Declaration { get; }
     
     /// <summary>
-    /// The definition location for the symbol.
+    /// The definition location for the element.
     /// This differs from the <see cref="Node.Location"/> of <see cref="Declaration"/>
     /// since the definition location may be, for instance, the identifier of a let declaration
     /// and not the let declaration itself.
     /// </summary>
     Location DefinitionLocation { get; }
 }
+
+/// <summary>
+/// A symbol which is declared in source and has a corresponding AST node.
+/// </summary>
+public interface IDeclaredSymbol : ISymbol, IDeclared, IFunctionNested;
 
 /// <summary>
 /// Represents a variable-like symbol.
@@ -75,17 +79,30 @@ public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
     
     public required IFunction ContainingFunction { get; init; }
     
-    Node IDeclaredSymbol.Declaration => Declaration;
+    Node IDeclared.Declaration => Declaration;
 
     public Location DefinitionLocation => Declaration.Identifier.Location;
 
     public override string ToString() => $"Variable {Name} declared at {Declaration.Location}";
 }
 
+public interface IParameterSymbol : IVariableSymbol
+{
+    /// <summary>
+    /// The function symbol which the parameter belongs to.
+    /// </summary>
+    IFunction Function { get; }
+    
+    /// <summary>
+    /// The index of the parameter in its function.
+    /// </summary>
+    int ParameterIndex { get; init; }
+}
+
 /// <summary>
 /// Represents a parameter declared by a function expression.
 /// </summary>
-public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
+public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
 {
     public required string Name { get; init; }
 
@@ -97,7 +114,9 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
     /// <summary>
     /// The function symbol which the parameter belongs to.
     /// </summary>
-    public required IFunction Function { get; init; }
+    public required IDeclaredFunction Function { get; init; }
+
+    IFunction IParameterSymbol.Function => Function;
     
     /// <summary>
     /// The index of the parameter in its function.
@@ -113,7 +132,7 @@ public sealed class ParameterSymbol : IVariableSymbol, IDeclaredSymbol
 
     IFunction IFunctionNested.ContainingFunction => Function;
     
-    Node IDeclaredSymbol.Declaration => Declaration;
+    Node IDeclared.Declaration => Declaration;
     
     public override string ToString() => $"Parameter {Name} declared at {Declaration.Location}";
 }

@@ -9,14 +9,22 @@ namespace Noa.Compiler.Symbols;
 public interface IFunction
 {
     /// <summary>
-    /// The declaration of the function.
+    /// The parameters to the function.
     /// </summary>
-    Node Declaration { get; }
-    
+    IReadOnlyList<IParameterSymbol> Parameters { get; }
+}
+
+/// <summary>
+/// A semantic representation of a function declared in source.
+/// </summary>
+public interface IDeclaredFunction : IFunction, IDeclared
+{
     /// <summary>
     /// The parameters to the function.
     /// </summary>
-    IReadOnlyList<ParameterSymbol> Parameters { get; }
+    new IReadOnlyList<ParameterSymbol> Parameters { get; }
+
+    IReadOnlyList<IParameterSymbol> IFunction.Parameters => Parameters;
     
     /// <summary>
     /// The scope of the body of the function.
@@ -63,7 +71,7 @@ public interface IFunction
 /// <summary>
 /// Represents a function declared by a function declaration.
 /// </summary>
-public sealed class NomialFunction : IFunction, IDeclaredSymbol
+public sealed class NomialFunction : IDeclaredFunction, IDeclaredSymbol
 {
     internal readonly List<ParameterSymbol> parameters = [];
     private IReadOnlyCollection<VariableSymbol>? locals = null;
@@ -80,11 +88,9 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
     /// </summary>
     public required FunctionDeclaration Declaration { get; init; }
 
-    Node IDeclaredSymbol.Declaration => Declaration;
+    Node IDeclared.Declaration => Declaration;
 
-    Node IFunction.Declaration => Declaration;
-
-    public Location DefinitionLocation => Declaration.Identifier.Location;
+    Location IDeclared.DefinitionLocation => Declaration.Identifier.Location;
 
     public IScope BodyScope => HasExpressionBody
         ? ExpressionBody.Scope.Value
@@ -120,7 +126,7 @@ public sealed class NomialFunction : IFunction, IDeclaredSymbol
 /// <summary>
 /// A semantic representation of a lambda expression.
 /// </summary>
-public sealed class LambdaFunction : IFunction, IFunctionNested
+public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
     private IReadOnlyCollection<VariableSymbol>? locals = null;
@@ -131,17 +137,19 @@ public sealed class LambdaFunction : IFunction, IFunctionNested
     /// </summary>
     public required LambdaExpression Declaration { get; init; }
 
-    Node IFunction.Declaration => Declaration;
+    Node IDeclared.Declaration => Declaration;
+
+    Location IDeclared.DefinitionLocation => Declaration.Location with { Span = Declaration.ArrowToken.Span };
 
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
 
     public IScope BodyScope => Body.Scope.Value;
 
-    bool IFunction.HasExpressionBody => true;
+    bool IDeclaredFunction.HasExpressionBody => true;
 
-    Expression? IFunction.ExpressionBody => Body;
+    Expression? IDeclaredFunction.ExpressionBody => Body;
 
-    BlockExpression? IFunction.BlockBody => null;
+    BlockExpression? IDeclaredFunction.BlockBody => null;
 
     /// <summary>
     /// The body of the lambda.
@@ -188,7 +196,7 @@ public sealed class LambdaFunction : IFunction, IFunctionNested
 /// <summary>
 /// The top-level function of a program.
 /// </summary>
-public sealed class TopLevelFunction : IFunction
+public sealed class TopLevelFunction : IDeclaredFunction
 {
     private IReadOnlyCollection<VariableSymbol>? locals = null;
     
@@ -197,17 +205,19 @@ public sealed class TopLevelFunction : IFunction
     /// </summary>
     public required Root Declaration { get; init; }
 
-    Node IFunction.Declaration => Declaration;
-    
-    IReadOnlyList<ParameterSymbol> IFunction.Parameters { get; } = [];
+    Node IDeclared.Declaration => Declaration;
+
+    Location IDeclared.DefinitionLocation => Declaration.Location;
+
+    IReadOnlyList<ParameterSymbol> IDeclaredFunction.Parameters { get; } = [];
 
     public IScope BodyScope => Declaration.DeclaredScope.Value;
 
-    bool IFunction.HasExpressionBody => false;
+    bool IDeclaredFunction.HasExpressionBody => false;
 
-    Expression? IFunction.ExpressionBody => null;
+    Expression? IDeclaredFunction.ExpressionBody => null;
 
-    BlockExpression? IFunction.BlockBody => Declaration;
+    BlockExpression? IDeclaredFunction.BlockBody => Declaration;
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
