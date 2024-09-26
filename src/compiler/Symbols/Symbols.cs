@@ -138,6 +138,25 @@ public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
 }
 
 /// <summary>
+/// Represents a parameter declared by a <see cref="NativeFunction"/>.
+/// </summary>
+public sealed class NativeParameterSymbol : IParameterSymbol
+{
+    public required string Name { get; init;  }
+    
+    // Mutability for externally defined parameters doesn't actually matter.
+    bool IVariableSymbol.IsMutable => false;
+    
+    public required NativeFunction Function { get; init; }
+
+    IFunction IParameterSymbol.Function => Function;
+    
+    public required int ParameterIndex { get; init; }
+
+    IFunction IFunctionNested.ContainingFunction => Function;
+}
+
+/// <summary>
 /// Represents a symbol which is the result of some kind of error.
 /// </summary>
 public sealed class ErrorSymbol : ISymbol
