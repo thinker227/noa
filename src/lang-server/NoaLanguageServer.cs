@@ -135,7 +135,7 @@ public sealed partial class NoaLanguageServer(
     {
         var markup = symbol switch
         {
-            NomialFunction or ParameterSymbol or VariableSymbol =>
+            NomialFunction or NativeFunction or ParameterSymbol or VariableSymbol =>
                 $"""
                  ```noa
                  {GetDisplayCode(symbol)}
@@ -156,6 +156,7 @@ public sealed partial class NoaLanguageServer(
         static string GetSymbolDescription(ISymbol symbol) => symbol switch
         {
             NomialFunction => "function",
+            NativeFunction => "native function",
             ParameterSymbol => "parameter",
             VariableSymbol => "variable",
             _ => throw new UnreachableException()
@@ -163,11 +164,11 @@ public sealed partial class NoaLanguageServer(
             
         static string GetDisplayCode(ISymbol symbol) => symbol switch
         {
-            NomialFunction x => $"func {x.Name}({string.Join(", ", x.Parameters.Select(GetDisplayCode))})",
-            ParameterSymbol { IsMutable: false } x => x.Name,
-            ParameterSymbol { IsMutable: true } x => $"mut {x.Name}",
-            VariableSymbol { IsMutable: false } x => $"let {x.Name}",
-            VariableSymbol { IsMutable: true } x => $"let mut {x.Name}",
+            IFunction { Parameters: var parameters } => $"func {symbol.Name}({string.Join(", ", parameters.Select(GetDisplayCode))})",
+            IParameterSymbol { IsMutable: false } => symbol.Name,
+            IParameterSymbol { IsMutable: true } => $"mut {symbol.Name}",
+            VariableSymbol { IsMutable: false } => $"let {symbol.Name}",
+            VariableSymbol { IsMutable: true } => $"let mut {symbol.Name}",
             _ => throw new UnreachableException()
         };
     }
