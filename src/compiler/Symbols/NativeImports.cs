@@ -8,19 +8,42 @@ internal static class NativeImports
     /// <summary>
     /// Constructs a <see cref="ImportScope"/> containing a set of imported native symbols.
     /// </summary>
-    /// <returns></returns>
     public static ImportScope GetImports()
     {
         var scope = new ImportScope();
 
-        var print = new NativeFunction() { Name = "print" }
-            .AddParameter("what")
-            .AddParameter("appendNewline");
-        scope.Declare(print);
-
-        var input = new NativeFunction() { Name = "input" };
-        scope.Declare(input);
+        // Console IO
+        Declare("print", ["what", "appendNewline"]);
+        Declare("getInput", []);
+        
+        // File IO
+        Declare("readFile", ["path"]);
+        Declare("writeFile", ["path", "content"]);
+        
+        // // Lists
+        // Declare("push", ["list", "value"]);
+        // Declare("pop", ["list"]);
+        //
+        // // Functional
+        // Declare("append", ["list", "value"]);
+        // Declare("concat", ["list", "values"]);
+        // Declare("slice", ["list", "start", "end"]);
+        // Declare("map", ["list", "transform"]);
+        // Declare("flatMap", ["list", "transform"]);
+        // Declare("filter", ["list", "predicate"]);
+        // Declare("reduce", ["list", "seed", "function"]);
+        // Declare("reverse", ["list"]);
+        // Declare("any", ["list", "predicate"]);
+        // Declare("all", ["list", "predicate"]);
+        // Declare("find", ["list", "predicate", "fromEnd"]);
         
         return scope;
+
+        void Declare(string name, string[] parameters)
+        {
+            var function = new NativeFunction() { Name = name };
+            foreach (var param in parameters) function.AddParameter(param);
+            scope.Declare(function);
+        }
     }
 }
