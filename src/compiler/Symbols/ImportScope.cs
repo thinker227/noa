@@ -6,7 +6,7 @@ namespace Noa.Compiler.Symbols;
 /// A scope which contains a map of imported symbols.
 /// </summary>
 /// <remarks>
-/// Import scopes are always the root scope so they don't have a parent.
+/// Import scopes are always the root scope, so they don't have a parent.
 /// </remarks>
 public sealed class ImportScope : IScope
 {
@@ -22,7 +22,7 @@ public sealed class ImportScope : IScope
     {
         if (!symbols.TryAdd(symbol.Name, symbol))
             throw new InvalidOperationException($"Cannot import symbol {symbol} because another symbol with " +
-                                                $"the same name has already been imported into the scope.");
+                                                "the same name has already been imported into the scope.");
     }
     
     public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null) =>
@@ -32,6 +32,6 @@ public sealed class ImportScope : IScope
 
     public IEnumerable<ISymbol> AccessibleAt(Node? at) => symbols.Values;
 
-    // An import doesn't declare any symbols because all of its symbols are imported.
+    // An import scope doesn't declare any symbols because all of its symbols are externally defined.
     IEnumerable<IDeclaredSymbol> IScope.DeclaredAt(Node? at) => [];
 }
