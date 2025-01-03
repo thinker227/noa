@@ -147,7 +147,7 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 
     bool IDeclaredFunction.HasExpressionBody => true;
 
-    Expression? IDeclaredFunction.ExpressionBody => Body;
+    Expression IDeclaredFunction.ExpressionBody => Body;
 
     BlockExpression? IDeclaredFunction.BlockBody => null;
 
