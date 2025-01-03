@@ -1,4 +1,3 @@
-using Noa.Compiler.Bytecode;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
 using Noa.Compiler.Text;
@@ -18,16 +17,30 @@ public sealed record NoaDocument<TUri>(Ast Ast, Source Source, LineMap LineMap, 
 {
     private Dictionary<(ISymbol, bool), IReadOnlyCollection<Location>>? references = null;
 
+    /// <summary>
+    /// Gets all references to a specified symbol within the document.
+    /// </summary>
+    /// <param name="symbol">The symbol to get the references to.</param>
+    /// <param name="includeDeclaration">Whether to include the location of the declaration in the list of references.</param>
     public IReadOnlyCollection<Location> GetReferences(ISymbol symbol, bool includeDeclaration)
     {
+        if (references is not null &&
+            references.TryGetValue((symbol, includeDeclaration), out var cached))
+            return cached;
+        
         references ??= [];
-
-        if (references.TryGetValue((symbol, includeDeclaration), out var cached)) return cached;
 
         var nodes = new List<Location>();
         if (includeDeclaration && symbol is IDeclaredSymbol declared) nodes.Add(declared.DefinitionLocation);
 
-        var referenceLocations = Ast.Root.DescendantsAndSelf()
+        var root = symbol switch
+        {
+            IFunctionNested { ContainingFunction: IDeclaredFunction declaredFunction } =>
+                declaredFunction.Declaration,
+            _ => Ast.Root
+        };
+
+        var referenceLocations = root.DescendantsAndSelf()
             .OfType<IdentifierExpression>()
             .Where(x => x.ReferencedSymbol.Value == symbol)
             .Select(x => x.Location);
