@@ -1,3 +1,5 @@
+using Noa.Compiler.Text;
+
 namespace Noa.Compiler;
 
 /// <summary>

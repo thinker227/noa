@@ -1,4 +1,5 @@
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Text;
 
 namespace Noa.Compiler.Parsing;
 

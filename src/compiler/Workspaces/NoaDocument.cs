@@ -1,6 +1,7 @@
 using Noa.Compiler.Bytecode;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
+using Noa.Compiler.Text;
 
 namespace Noa.Compiler.Workspaces;
 

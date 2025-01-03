@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Collections;
 
-namespace Noa.Compiler;
+namespace Noa.Compiler.Text;
 
 /// <summary>
 /// A mapping between lines and character positions of a text.

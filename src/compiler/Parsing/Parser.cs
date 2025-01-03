@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Text;
 using Expression = Noa.Compiler.Nodes.Expression;
 
 namespace Noa.Compiler.Parsing;

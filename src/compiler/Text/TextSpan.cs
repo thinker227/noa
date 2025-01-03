@@ -1,4 +1,4 @@
-namespace Noa.Compiler;
+namespace Noa.Compiler.Text;
 
 /// <summary>
 /// A span of characters within a text.

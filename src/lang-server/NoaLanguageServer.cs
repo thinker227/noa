@@ -4,6 +4,7 @@ using Draco.Lsp.Server;
 using Noa.Compiler;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
+using Noa.Compiler.Text;
 using Noa.Compiler.Workspaces;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
