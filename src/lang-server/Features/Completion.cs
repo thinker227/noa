@@ -20,7 +20,7 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
         // Todo:
         // In certain situations, the node here will be (for instance) the surrounding block
         // and the completions will therefore be incomplete.
-        var document = GetOrCreateDocument(documentUri, cancellationToken);
+        var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
 

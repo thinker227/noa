@@ -1,12 +1,19 @@
-using Draco.Lsp.Model;
-using Noa.Compiler;
+using Noa.Compiler.Bytecode;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
-using Location = Noa.Compiler.Location;
 
-namespace Noa.LangServer;
+namespace Noa.Compiler.Workspaces;
 
-public sealed record NoaDocument(Ast Ast, LineMap LineMap, DocumentUri Uri)
+/// <summary>
+/// Represents a single version of a document in a <see cref="Workspace{TUri}"/>.
+/// </summary>
+/// <typeparam name="TUri">The type of the URI of the document.</typeparam>
+/// <param name="Ast">The AST of the document.</param>
+/// <param name="Source"></param>
+/// <param name="LineMap"></param>
+/// <param name="Uri"></param>
+public sealed record NoaDocument<TUri>(Ast Ast, Source Source, LineMap LineMap, TUri Uri)
+    where TUri : notnull
 {
     private Dictionary<(ISymbol, bool), IReadOnlyCollection<Location>>? references = null;
 

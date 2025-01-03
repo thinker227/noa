@@ -21,7 +21,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
             param.Position.Line,
             param.Position.Character);
         
-        var document = GetOrCreateDocument(documentUri, cancellationToken);
+        var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
         var symbol = GetSymbol(node);
@@ -43,7 +43,7 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
             param.Position.Line,
             param.Position.Character);
         
-        var document = GetOrCreateDocument(documentUri, cancellationToken);
+        var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
         var symbol = GetSymbol(node);
