@@ -15,23 +15,19 @@ namespace Noa.Compiler.Workspaces;
 public sealed record NoaDocument<TUri>(Ast Ast, Source Source, LineMap LineMap, TUri Uri)
     where TUri : notnull
 {
-    private Dictionary<(ISymbol, bool), IReadOnlyCollection<Location>>? references = null;
+    private Dictionary<ISymbol, IReadOnlyCollection<IdentifierExpression>>? references = null;
 
     /// <summary>
     /// Gets all references to a specified symbol within the document.
     /// </summary>
     /// <param name="symbol">The symbol to get the references to.</param>
-    /// <param name="includeDeclaration">Whether to include the location of the declaration in the list of references.</param>
-    public IReadOnlyCollection<Location> GetReferences(ISymbol symbol, bool includeDeclaration)
+    public IReadOnlyCollection<IdentifierExpression> GetReferences(ISymbol symbol)
     {
         if (references is not null &&
-            references.TryGetValue((symbol, includeDeclaration), out var cached))
+            references.TryGetValue(symbol, out var cached))
             return cached;
         
         references ??= [];
-
-        var nodes = new List<Location>();
-        if (includeDeclaration && symbol is IDeclaredSymbol declared) nodes.Add(declared.DefinitionLocation);
 
         var root = symbol switch
         {
@@ -40,13 +36,12 @@ public sealed record NoaDocument<TUri>(Ast Ast, Source Source, LineMap LineMap, 
             _ => Ast.Root
         };
 
-        var referenceLocations = root.DescendantsAndSelf()
+        var nodes = root.DescendantsAndSelf()
             .OfType<IdentifierExpression>()
             .Where(x => x.ReferencedSymbol.Value == symbol)
-            .Select(x => x.Location);
-        nodes.AddRange(referenceLocations);
+            .ToList();
 
-        references.Add((symbol, includeDeclaration), nodes);
+        references.Add(symbol, nodes);
         
         return nodes;
     }
