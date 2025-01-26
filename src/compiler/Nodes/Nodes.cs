@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
 using Noa.Compiler.ControlFlow;
-using Noa.Compiler.Text;
+using TextMappingUtils;
 
 namespace Noa.Compiler.Nodes;
 

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Noa.Compiler;
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Text;
+using TextMappingUtils;
 using Spectre.Console;
 
 namespace Noa.Cli;

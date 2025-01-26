@@ -4,7 +4,7 @@ using Draco.Lsp.Server;
 using Noa.Compiler;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
-using Noa.Compiler.Text;
+using TextMappingUtils;
 using Noa.Compiler.Workspaces;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
@@ -41,7 +41,7 @@ public sealed partial class NoaLanguageServer(
         }
     ];
     private static int ToAbsolutePosition(Position position, LineMap lineMap) =>
-        lineMap.GetLine((int)position.Line + 1).Start + (int)position.Character;
+        lineMap.GetLine((int)position.Line + 1).Span.Start + (int)position.Character;
 
     private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument<DocumentUri> document) =>
         new()

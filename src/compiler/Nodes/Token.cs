@@ -1,4 +1,4 @@
-using Noa.Compiler.Text;
+using TextMappingUtils;
 
 namespace Noa.Compiler.Nodes;
 

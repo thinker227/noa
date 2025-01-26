@@ -1,5 +1,5 @@
 using Noa.Compiler.Nodes;
-using Noa.Compiler.Text;
+using TextMappingUtils;
 
 namespace Noa.Compiler.Parsing;
 
