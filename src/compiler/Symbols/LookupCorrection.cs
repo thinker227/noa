@@ -26,16 +26,6 @@ internal static class LookupCorrection
     // ------------------------------------------------------------------------------------------------------------
     private static int Distance(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2, int limit)
     {
-        if (s1 == null)
-        {
-            throw new ArgumentNullException(nameof(s1));
-        }
-
-        if (s2 == null)
-        {
-            throw new ArgumentNullException(nameof(s2));
-        }
-
         if (s1.SequenceEqual(s2))
         {
             return 0;
