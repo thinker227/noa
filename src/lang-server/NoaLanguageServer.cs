@@ -41,7 +41,7 @@ public sealed partial class NoaLanguageServer(
         }
     ];
     private static int ToAbsolutePosition(Position position, LineMap lineMap) =>
-        lineMap.GetLine((int)position.Line + 1).Span.Start + (int)position.Character;
+        lineMap.GetLine((int)position.Line).Span.Start + (int)position.Character;
 
     private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument<DocumentUri> document) =>
         new()
@@ -62,8 +62,8 @@ public sealed partial class NoaLanguageServer(
 
         return new()
         {
-            Start = new() { Line = (uint)start.Line.LineNumber - 1, Character = (uint)start.Offset },
-            End = new() { Line = (uint)end.Line.LineNumber - 1, Character = (uint)end.Offset }
+            Start = new() { Line = (uint)start.Line.LineNumber, Character = (uint)start.Offset },
+            End = new() { Line = (uint)end.Line.LineNumber, Character = (uint)end.Offset }
         };
     }
     
