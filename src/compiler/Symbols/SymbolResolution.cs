@@ -1,6 +1,5 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
-using SuperLinq;
 
 namespace Noa.Compiler.Symbols;
 
