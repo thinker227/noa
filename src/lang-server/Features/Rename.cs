@@ -50,13 +50,16 @@ public sealed partial class NoaLanguageServer : IRename, IPrepareRename
 
         if (symbol is not IDeclaredSymbol declared) return Task.FromResult<WorkspaceEdit?>(null);
 
-        var references = document.GetReferences(declared, true);
+        var references = document.GetReferences(declared);
 
-        var textEdits = references.Select(x => new TextEdit()
-        {
-            Range = ToLspRange(x.Span, document),
-            NewText = param.NewName
-        });
+        var textEdits = references
+            .Select(x => x.Span)
+            .Prepend(declared.DefinitionLocation.Span)
+            .Select(span => new TextEdit()
+            {
+                Range = ToLspRange(span, document),
+                NewText = param.NewName
+            });
         var textDocumentEdit = new TextDocumentEdit()
         {
             TextDocument = new() { Uri = documentUri, Version = null },
