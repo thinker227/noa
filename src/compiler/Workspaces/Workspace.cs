@@ -13,25 +13,6 @@ public sealed class Workspace<TUri>(ISourceProvider<TUri> sourceProvider)
     where TUri : notnull
 {
     private readonly Dictionary<TUri, NoaDocument<TUri>> documents = [];
-    private readonly HashSet<TUri> outOfDate = [];
-
-    /// <summary>
-    /// Marks a document URI as "updated" or "out of date",
-    /// indicating that the next time <see cref="GetOrCreateDocument"/> or <see cref="UpdateOrCreateDocument"/>
-    /// is called, the document with the specified URI should be re-compiled
-    /// and a new <see cref="NoaDocument{TUri}"/> returned.
-    /// </summary>
-    /// <param name="uri">The URI of the document to mark as updated.</param>
-    public void MarkAsUpdated(TUri uri) =>
-        outOfDate.Add(uri);
-    
-    /// <summary>
-    /// Returns whether a document URI is marked as "updated" or "out of date".
-    /// </summary>
-    /// <param name="uri">The URI of the document to check.</param>
-    /// <seealso cref="MarkAsUpdated"/>
-    public bool IsUpdated(TUri uri) =>
-        outOfDate.Contains(uri);
 
     /// <summary>
     /// Gets an existing document, or creates a new one and saves it if one doesn't already exist.
@@ -43,7 +24,7 @@ public sealed class Workspace<TUri>(ISourceProvider<TUri> sourceProvider)
     public NoaDocument<TUri> GetOrCreateDocument(
         TUri uri,
         CancellationToken cancellationToken = default) =>
-        !IsUpdated(uri) && documents.TryGetValue(uri, out var document)
+        documents.TryGetValue(uri, out var document)
             ? document
             : UpdateOrCreateDocument(uri, null, cancellationToken);
     
@@ -88,9 +69,11 @@ public sealed class Workspace<TUri>(ISourceProvider<TUri> sourceProvider)
         CancellationToken cancellationToken = default)
     {
         var source = text is not null
-            ? sourceProvider.CreateSourceFrom(uri, text)
+            ? new(text, sourceProvider.GetSourceName(uri, cancellationToken))
             : sourceProvider.GetSource(uri, cancellationToken);
+
         var ast = Ast.Create(source, cancellationToken);
+        
         var lineMap = LineMap.Create(source.Text);
 
         return new(ast, source, lineMap, uri);

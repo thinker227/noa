@@ -8,19 +8,35 @@ public interface ISourceProvider<TUri>
     where TUri : notnull
 {
     /// <summary>
-    /// Gets the source for a document with a specified URI.
+    /// Gets the source text for a document with a specified URI.
     /// </summary>
     /// <param name="uri">The URI of the document.</param>
     /// <param name="cancellationToken">The cancellation token for the operation.</param>
-    Source GetSource(TUri uri, CancellationToken cancellationToken);
+    string GetSourceText(TUri uri, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Constructs a source from a URI and an existing text.
-    /// The returned source is expected to have a <see cref="Source.Name"/>
-    /// extrapolated from the <paramref name="uri"/>,
-    /// and a <see cref="Source.Text"/> equal to <paramref name="text"/>.
+    /// Gets the source name for a document with a specified URI.
     /// </summary>
-    /// <param name="uri">The URI to create the source from.</param>
-    /// <param name="text">The text of the source.</param>
-    Source CreateSourceFrom(TUri uri, string text);
+    /// <param name="uri">The URI of the document.</param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    string GetSourceName(TUri uri, CancellationToken cancellationToken);
+}
+
+public static class SourceProviderExtensions
+{
+    /// <summary>
+    /// Gets a full <see cref="Source"/> for a document with a specified URI.
+    /// </summary>
+    /// <param name="uri">The URI of the document.</param>
+    /// <param name="cancellationToken">The cancellation token for the operation.</param>
+    public static Source GetSource<TUri>(
+        this ISourceProvider<TUri> sourceProvider,
+        TUri uri,
+        CancellationToken cancellationToken = default)
+        where TUri : notnull
+    {
+        var text = sourceProvider.GetSourceText(uri, cancellationToken);
+        var name = sourceProvider.GetSourceName(uri, cancellationToken);
+        return new(text, name);
+    }
 }
