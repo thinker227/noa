@@ -1,0 +1,8 @@
+[package]
+name = "noa_runtime_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noa_runtime = { path = "../runtime2", version = "0.1.0" }
+clap = "4.5.27"
