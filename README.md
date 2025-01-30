@@ -23,7 +23,7 @@ This merely a passion project of mine and is not meant to be taken seriously! It
 
 <summary>Compile from source</summary>
 
-To compile and install Noa from source, you need the [.NET 8 SDK and runtime](https://dotnet.microsoft.com/) and [Cargo](https://www.rust-lang.org/tools/install) to compile the compiler and runtime respectively. Once you have .NET and Cargo installed, follow these instructions:
+To compile and install Noa from source, you need the [.NET 9 SDK and runtime](https://dotnet.microsoft.com/) and [Cargo](https://www.rust-lang.org/tools/install) to compile the compiler and runtime respectively. Once you have .NET and Cargo installed, follow these instructions:
 
 1. Clone the repo using `git clone https://github.com/thinker227/noa.git`.
 2. `cd` into the root of the project (the folder which contains this readme file).
