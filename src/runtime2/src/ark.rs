@@ -14,10 +14,14 @@ pub struct Ark {
 #[derive(Debug)]
 #[binread]
 pub struct Header {
-    #[br(magic = b"totheark")]
     pub identifier: [u8; 8],
     pub main: FuncId,
 }
+
+#[derive(Debug)]
+#[binread]
+#[br(magic = b"totheark")]
+pub struct Identifier;
 
 #[derive(Debug)]
 #[binread]
