@@ -46,6 +46,18 @@ impl From<bool> for Value {
     }
 }
 
+impl From<Closure> for Value {
+    fn from(value: Closure) -> Self {
+        Self::Function(value)
+    }
+}
+
+impl From<HeapAddress> for Value {
+    fn from(value: HeapAddress) -> Self {
+        Self::Object(value)
+    }
+}
+
 impl From<()> for Value {
     fn from(_: ()) -> Self {
         Self::Nil
@@ -69,6 +81,28 @@ impl TryFrom<&Value> for bool {
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         match value {
             Value::Bool(x) => Ok(*x),
+            _ => Err(())
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a Value> for &'a Closure {
+    type Error = ();
+
+    fn try_from(value: &'a Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::Function(x) => Ok(x),
+            _ => Err(())
+        }
+    }
+}
+
+impl TryFrom<&Value> for HeapAddress {
+    type Error = ();
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::Object(x) => Ok(*x),
             _ => Err(())
         }
     }
