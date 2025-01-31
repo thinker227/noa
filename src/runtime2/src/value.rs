@@ -1,3 +1,4 @@
+use crate::vm::heap::HeapAddress;
 use crate::ark::FuncId;
 
 /// The type of a runtime value.
@@ -21,7 +22,7 @@ pub enum Value {
     /// A function.
     Function(FuncId), // todo, should store a closure
     /// A heap-allocated object.
-    Object(!), // todo
+    Object(HeapAddress),
     /// `()`
     Nil
 }
