@@ -14,7 +14,7 @@ pub struct Ark {
 #[derive(Debug)]
 #[binread]
 pub struct Header {
-    pub identifier: [u8; 8],
+    pub identifier: Identifier,
     pub main: FuncId,
 }
 
