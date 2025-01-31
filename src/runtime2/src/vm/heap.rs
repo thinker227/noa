@@ -37,6 +37,7 @@ impl MemorySlot {
     }
 }
 
+/// Data about a free memory slot.
 #[derive(Debug)]
 struct Free {
     next_free: Option<usize>
@@ -57,7 +58,7 @@ pub enum HeapValue {
     Object(HashMap<String, Value>),
 }
 
-/// A memory heap for managing heap-allocated data.
+/// A memory heap for managing heap-allocated data and garbage collection of that data.
 #[derive(Debug)]
 pub struct Heap {
     mem: Vec<MemorySlot>,
@@ -65,9 +66,12 @@ pub struct Heap {
     first_free: Option<usize>,
 }
 
+/// An error produced by [`Heap::get`] and [`Heap::get_mut`].
 #[derive(Debug)]
 pub enum HeapGetError {
+    /// The specified address was out of bounds of the heap.
     OutOfBounds,
+    /// The slot at the specified address is free and doesn't contain any data.
     SlotFreed,
 }
 
