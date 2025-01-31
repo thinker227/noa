@@ -12,6 +12,13 @@ pub enum Type {
     Nil
 }
 
+/// A closure over a function and an object containing captured variables.
+#[derive(Debug)]
+pub struct Closure {
+    pub function: FuncId,
+    pub object: HeapAddress,
+}
+
 /// A runtime value.
 #[derive(Debug)]
 pub enum Value {
@@ -20,7 +27,7 @@ pub enum Value {
     /// A boolean.
     Bool(bool),
     /// A function.
-    Function(FuncId), // todo, should store a closure
+    Function(Closure),
     /// A heap-allocated object.
     Object(HeapAddress),
     /// `()`
