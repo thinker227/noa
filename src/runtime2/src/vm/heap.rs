@@ -11,6 +11,7 @@ pub struct HeapAddress(pub usize);
 /// 
 /// A slot can be either free - containing an address to the next free slot on the heap,
 /// or be filled - containing the heap data allocated in the slot.
+#[derive(Debug)]
 enum MemorySlot {
     Free(Free),
     Filled(HeapData),
@@ -36,17 +37,20 @@ impl MemorySlot {
     }
 }
 
+#[derive(Debug)]
 struct Free {
     next_free: Option<usize>
 }
 
 /// Data stored on a [`Heap`] and containing additional metadata.
+#[derive(Debug)]
 struct HeapData {
     marked: bool,
     value: HeapValue,
 }
 
 /// A value allocated on a [`Heap`].
+#[derive(Debug)]
 pub enum HeapValue {
     String(String),
     List(Vec<Value>),
@@ -54,12 +58,14 @@ pub enum HeapValue {
 }
 
 /// A memory heap for managing heap-allocated data.
+#[derive(Debug)]
 pub struct Heap {
     mem: Vec<MemorySlot>,
     used: usize,
     first_free: Option<usize>,
 }
 
+#[derive(Debug)]
 pub enum HeapGetError {
     OutOfBounds,
     SlotFreed,
