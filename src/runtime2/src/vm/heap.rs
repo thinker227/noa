@@ -209,3 +209,41 @@ impl Heap {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::assert_matches::assert_matches;
+
+    #[test]
+    fn new_initializes_data() {
+        let heap = Heap::new(3);
+
+        assert_matches!(&heap.mem[..], [
+            MemorySlot::Free(Free { next_free: Some(1) }),
+            MemorySlot::Free(Free { next_free: Some(2) }),
+            MemorySlot::Free(Free { next_free: None })
+        ]);
+        assert_eq!(heap.used, 0);
+        assert_eq!(heap.first_free, Some(0));
+    }
+
+    #[test]
+    fn allocate_allocates_object() {
+        let mut heap = Heap::new(3);
+        
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+
+        assert_matches!(&heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(s),
+                ..
+            }),
+            MemorySlot::Free(Free { next_free: Some(2) }),
+            MemorySlot::Free(Free { next_free: None })
+        ] if s == "uwu");
+
+        assert_eq!(heap.used, 1);
+        assert_eq!(heap.first_free, Some(1));
+    }
+}
