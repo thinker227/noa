@@ -23,7 +23,7 @@ pub struct Header {
 #[br(magic = b"totheark")]
 pub struct Identifier;
 
-#[derive(Debug, Clone, Copy, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[binread]
 pub struct FuncId(pub u32);
 

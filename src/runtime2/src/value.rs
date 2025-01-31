@@ -13,7 +13,7 @@ pub enum Type {
 }
 
 /// A closure over a function and an object containing captured variables.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Closure {
     pub function: FuncId,
     pub object: HeapAddress,
