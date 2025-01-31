@@ -26,7 +26,7 @@ The function section specifies the functions of the program.
 
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
-| 0 | 4 | `functions_length` | The length of the following functions in bytes. |
+| 0 | 4 | `functions_length` | The amount of following functions. |
 | 4 | * | `functions` | A list of [functions](#function), of which the first one begins at the current byte offset. |
 
 ## Function
@@ -47,7 +47,7 @@ The code section contains all the bytecode which makes up the body of each funct
 
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
-| 0 | 4 | `code_length` | The length of the following bytecode in bytes. |
+| 0 | 4 | `code_length` | The amount of following bytecode bytes. |
 | 4 | * | `code` | A list of byte-encoded [opcodes](./opcodes.md). |
 
 ## String section
@@ -56,7 +56,7 @@ The string section contains all the constant strings of the program, like functi
 
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
-| 0 | 4 | `strings_length` | The length of the following strings in bytes. |
+| 0 | 4 | `strings_length` | The amount of following strings. |
 | 4 | * | `strings` | A list of [strings](#string), of which the first one begins at the current byte offset. |
 
 ## String
