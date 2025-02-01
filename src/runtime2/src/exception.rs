@@ -3,7 +3,10 @@ use crate::ark::FuncId;
 
 /// A runtime exception.
 pub enum Exception {
-
+    StackOverflow,
+    StackUnderflow,
+    Overrun,
+    UnknownOpcode,
 }
 
 /// An [`Exception`] formatted with a stack trace.
