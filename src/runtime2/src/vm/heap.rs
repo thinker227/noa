@@ -67,12 +67,19 @@ pub struct Heap {
 }
 
 /// An error produced by [`Heap::get`] and [`Heap::get_mut`].
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HeapGetError {
     /// The specified address was out of bounds of the heap.
     OutOfBounds,
     /// The slot at the specified address is free and doesn't contain any data.
     SlotFreed,
+}
+
+/// An error produced by [`Heap::alloc`].
+#[derive(Debug, PartialEq, Eq)]
+pub enum HeapAllocError {
+    /// The heap is out of available memory.
+    OutOfNoMemory,
 }
 
 impl Heap {
@@ -113,11 +120,11 @@ impl Heap {
     }
 
     /// Allocates a value on the heap.
-    pub fn alloc(&mut self, value: HeapValue) -> Result<(), ()> {
+    pub fn alloc(&mut self, value: HeapValue) -> Result<(), HeapAllocError> {
         // First just check whether there even is memory left to allocate at.
         let address = match self.first_free {
             Some(x) => x,
-            None => return Err(()), // no more memory
+            None => return Err(HeapAllocError::OutOfNoMemory), // no more memory
         };
 
         let slot = &mut self.mem[address];
@@ -284,5 +291,56 @@ mod tests {
 
         assert_eq!(heap.used, 1);
         assert_eq!(heap.first_free, Some(1));
+    }
+
+    #[test]
+    fn allocate_allocates_until_end() {
+        let mut heap = Heap::new(3);
+        
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+        
+        assert_eq!(
+            heap.alloc(HeapValue::String(";w;".into())),
+            Err(HeapAllocError::OutOfNoMemory)
+        );
+
+        assert_matches!(&heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(a),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(b),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(c),
+                ..
+            })
+        ] if a == "uwu" && b == "owo" && c == "^w^");
+
+        assert_eq!(heap.used, 3);
+        assert_eq!(heap.first_free, None);
+    }
+
+    #[test]
+    fn get_returns_references_to_allocated_data() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+
+        let val = heap.get(HeapAddress(0)).unwrap();
+        assert_matches!(
+            val,
+            HeapValue::String(s) if s == "uwu"
+        );
+
+        let val = heap.get(HeapAddress(1));
+        assert_matches!(val, Err(HeapGetError::SlotFreed));
+
+        let val = heap.get(HeapAddress(2));
+        assert_matches!(val, Err(HeapGetError::OutOfBounds));
     }
 }
