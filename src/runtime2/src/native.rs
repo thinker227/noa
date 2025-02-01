@@ -1,3 +1,4 @@
+use crate::exception::Exception;
 use crate::value::{Closure, Value};
 use crate::vm::Vm;
 
@@ -28,5 +29,5 @@ pub enum NativeCallControlFlow {
 pub trait NativeCall {
     /// Executes a 'step' of the native function.
     /// If the native function is implemented as a state machine, this should advance it.
-    fn execute(&mut self, vm: &mut Vm) -> Result<NativeCallControlFlow, ()>;
+    fn execute(&mut self, vm: &mut Vm) -> Result<NativeCallControlFlow, Exception>;
 }

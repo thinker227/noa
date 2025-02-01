@@ -5,7 +5,7 @@ use crate::ark::Function;
 use crate::value::Value;
 
 pub mod heap;
-mod frame;
+pub mod frame;
 
 /// The runtime virtual machine.
 pub struct Vm {
