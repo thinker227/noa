@@ -1,10 +1,9 @@
 use frame::Frame;
-use heap::Heap;
 
 use crate::ark::Function;
 use crate::value::Value;
+use crate::heap::Heap;
 
-pub mod heap;
 pub mod frame;
 
 /// The runtime virtual machine.

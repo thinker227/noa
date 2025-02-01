@@ -1,4 +1,4 @@
-use crate::vm::heap::HeapAddress;
+use crate::heap::HeapAddress;
 use crate::ark::FuncId;
 
 /// The type of a runtime value.
