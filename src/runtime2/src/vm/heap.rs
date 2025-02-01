@@ -215,7 +215,7 @@ impl Heap {
                     // Reset this slot to be unmarked for the next run.
                     *marked = false;
                 },
-                MemorySlot::Filled(HeapData { marked: true, .. }) => {
+                MemorySlot::Filled(HeapData { marked: false, .. }) => {
                     // Decrease the amount of used memory.
                     self.used -= 1;
 
