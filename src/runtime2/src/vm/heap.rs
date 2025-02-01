@@ -360,4 +360,105 @@ mod tests {
         let val = heap.get(HeapAddress(2));
         assert_matches!(val, Err(HeapGetError::OutOfBounds));
     }
+
+    #[test]
+    fn collect_collects_unreferenced_data() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+
+        heap.collect(&vec![]);
+
+        assert_eq!(heap.used, 0);
+        assert_eq!(heap.first_free, Some(0));
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Free(Free { next_free: Some(1) }),
+            MemorySlot::Free(Free { next_free: None })
+        ]);
+    }
+
+    #[test]
+    fn collect_sets_next_free_to_next_unused_free_slot() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+
+        heap.collect(&vec![]);
+
+        assert_eq!(heap.used, 0);
+        assert_eq!(heap.first_free, Some(0));
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Free(Free { next_free: Some(1) }),
+            MemorySlot::Free(Free { next_free: None })
+        ]);
+    }
+
+    #[test]
+    fn collect_handles_holes() {
+        let mut heap = Heap::new(4);
+        
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+
+        heap.collect(&vec![
+            Value::Object(HeapAddress(0)),
+            Value::Object(HeapAddress(2))
+        ]);
+
+        assert_eq!(heap.used, 3);
+        assert_eq!(heap.first_free, Some(1));
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(..),
+                ..
+            }),
+            MemorySlot::Free(Free { next_free: None }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(..),
+                ..
+            }),
+        ]);
+    }
+
+    #[test]
+    fn collect_marks_references_through_objects() {
+        let mut heap = Heap::new(4);
+        
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(1))
+        ])).unwrap();
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(3))
+        ])).unwrap();
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+
+        heap.collect(&vec![
+            Value::Object(HeapAddress(0))
+        ]);
+
+        assert_eq!(heap.used, 4);
+        assert_eq!(heap.first_free, Some(2));
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::List(..),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::List(..),
+                ..
+            }),
+            MemorySlot::Free(Free { next_free: None }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(..),
+                ..
+            }),
+        ]);
+    }
 }
