@@ -20,7 +20,7 @@ pub struct Closure {
 }
 
 /// A runtime value.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Value {
     /// A number.
     Number(f64),
