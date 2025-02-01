@@ -139,16 +139,51 @@ impl Heap {
     /// Any data not referenced directly or indirectly by a value in the vector
     /// will be freed.
     pub fn collect(&mut self, referenced: &Vec<Value>) {
-        for value in referenced {
-            self.mark(value);
-        }
-
+        self.mark(referenced);
         self.core_collect();
     }
 
     /// Marks all heap-allocated data referenced directly or indirectly by a value.
-    fn mark(&mut self, _value: &Value) {
-        todo!()
+    fn mark(&mut self, referenced: &Vec<Value>) {
+        // This is just simple depth-first graph traversal.
+
+        let mut to_visit: Vec<usize> = Self::extact_references(referenced.iter()).collect();
+
+        while let Some(address) = to_visit.pop() {
+            let data = match self.mem.get_mut(address) {
+                Some(MemorySlot::Filled(data)) => data,
+                _ => continue
+            };
+
+            // If the data has already been marked, that means we've already visited it
+            // and its contained references.
+            if data.marked {
+                return;
+            }
+
+            data.marked = true;
+
+            // Add the contained references to the list of addresses to visit.
+            match &data.value  {
+                HeapValue::String(_) => {},
+                HeapValue::List(xs) => {
+                    let addresses = Self::extact_references(xs.iter());
+                    to_visit.extend(addresses);
+                },
+                HeapValue::Object(map) => {
+                    let addresses = Self::extact_references(map.values());
+                    to_visit.extend(addresses);
+                },
+            }
+        }
+    }
+
+    /// Extracts referenced heap addresses from an iterator of values.
+    fn extact_references<'a>(values: impl Iterator<Item = &'a Value> + 'a) -> impl Iterator<Item = usize> + 'a {
+        values.filter_map(|x| match x {
+            Value::Object(adr) => Some(adr.0),
+            _ => None
+        })
     }
 
     /// Core implementation of a run of garbage collection.
@@ -168,6 +203,10 @@ impl Heap {
                     // We found free memory! Place a pointer to its `next_free` field into `last_free`
                     // so we can later update it once we encounter newly freed memory.
                     last_free = Some(ptr::from_mut(next_free));
+                },
+                MemorySlot::Filled(HeapData { marked, .. }) if *marked => {
+                    // Reset this slot to be unmarked for the next run.
+                    *marked = false;
                 },
                 MemorySlot::Filled(HeapData { marked: true, .. }) => {
                     // Decrease the amount of used memory.
