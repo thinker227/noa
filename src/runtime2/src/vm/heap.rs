@@ -61,8 +61,11 @@ pub enum HeapValue {
 /// A memory heap for managing heap-allocated data and garbage collection of that data.
 #[derive(Debug)]
 pub struct Heap {
+    /// The raw memory within the heap.
     mem: Vec<MemorySlot>,
+    /// The size (from the start of memory) of the block of memory which currently contains filled slots.
     used: usize,
+    /// An index into memory which marks the first free slot from the start of memory.
     first_free: Option<usize>,
 }
 
@@ -204,6 +207,9 @@ impl Heap {
     fn core_collect(&mut self) {
         let is_full = self.is_full();
 
+        // Tracks the new size of the block of used memory.
+        let mut new_used_size = 0;
+
         // Get a reference to the space on the heap currently being used.
         let used = &mut self.mem[..self.used];
 
@@ -221,8 +227,13 @@ impl Heap {
                     last_free = Some(ptr::from_mut(next_free));
                 },
                 MemorySlot::Filled(HeapData { marked, .. }) if *marked => {
+                    // This slot is actively used memory.
+                    
                     // Reset this slot to be unmarked for the next run.
                     *marked = false;
+
+                    // Update the new size of the block of used memory.
+                    new_used_size = address + 1;
                 },
                 MemorySlot::Filled(HeapData { marked: false, .. }) => {
                     if let Some(last_free_next_free) = last_free {
@@ -263,13 +274,13 @@ impl Heap {
                         // Finally, update `last_free` to be the `next_free` field of the current slot.
                         last_free = Some(&mut r.as_free_mut().next_free);
                     }
-
-                    // Decrease the amount of used memory.
-                    self.used -= 1;
                 },
                 _ => {}
             }
         }
+
+        // Lastly, update the size of the block of used memory.
+        self.used = new_used_size;
     }
 }
 
@@ -397,8 +408,8 @@ mod tests {
     }
 
     #[test]
-    fn collect_handles_holes() {
-        let mut heap = Heap::new(4);
+    fn collect_handles_non_contiguous_blocks() {
+        let mut heap = Heap::new(3);
         
         heap.alloc(HeapValue::String("uwu".into())).unwrap();
         heap.alloc(HeapValue::String("owo".into())).unwrap();
