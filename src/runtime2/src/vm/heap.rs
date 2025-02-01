@@ -195,6 +195,8 @@ impl Heap {
 
     /// Core implementation of a run of garbage collection.
     fn core_collect(&mut self) {
+        let is_full = self.is_full();
+
         // Get a reference to the space on the heap currently being used.
         let used = &mut self.mem[..self.used];
 
@@ -216,9 +218,6 @@ impl Heap {
                     *marked = false;
                 },
                 MemorySlot::Filled(HeapData { marked: false, .. }) => {
-                    // Decrease the amount of used memory.
-                    self.used -= 1;
-
                     if let Some(last_free_next_free) = last_free {
                         // Get the next free address pointed to by the last free slot.
                         let next_free = unsafe {
@@ -242,13 +241,24 @@ impl Heap {
                         // meaning that this is the new first free address.
                         self.first_free = Some(address);
 
+                        // If the heap is full then there is no more memory, so the next free memory is None.
+                        // Otherwise, it is the next slot after the space of currently used memory.
+                        let next_free = if is_full {
+                            None
+                        } else {
+                            Some(self.used)
+                        };
+
                         // Free and set the current slot.
                         let r = &mut used[address];
-                        *r = MemorySlot::Free(Free { next_free: None });
+                        *r = MemorySlot::Free(Free { next_free });
 
                         // Finally, update `last_free` to be the `next_free` field of the current slot.
                         last_free = Some(&mut r.as_free_mut().next_free);
                     }
+
+                    // Decrease the amount of used memory.
+                    self.used -= 1;
                 },
                 _ => {}
             }
