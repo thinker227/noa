@@ -5,3 +5,4 @@ pub mod opcode;
 pub mod ark;
 pub mod value;
 pub mod vm;
+mod native;
