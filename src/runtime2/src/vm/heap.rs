@@ -130,7 +130,7 @@ impl Heap {
     }
 
     /// Allocates a value on the heap.
-    pub fn alloc(&mut self, value: HeapValue) -> Result<(), HeapAllocError> {
+    pub fn alloc(&mut self, value: HeapValue) -> Result<HeapAddress, HeapAllocError> {
         // First just check whether there even is memory left to allocate at.
         let address = match self.first_free {
             Some(x) => x,
@@ -153,7 +153,7 @@ impl Heap {
         // Now! We allocate!
         *slot = MemorySlot::Filled(HeapData { value, marked: false });
 
-        Ok(())
+        Ok(HeapAddress(address))
     }
 
     /// Runs a garbage collection, freeing any unreferenced data.
@@ -294,6 +294,14 @@ mod tests {
     use super::*;
     use std::assert_matches::assert_matches;
 
+    fn alloc(heap: &mut Heap, value: HeapValue, expected_address: usize) -> HeapAddress {
+        let address = heap.alloc(value);
+
+        assert_eq!(address, Ok(HeapAddress(expected_address)));
+
+        address.unwrap()
+    }
+
     #[test]
     fn new_initializes_data() {
         let heap = Heap::new(3);
@@ -311,7 +319,7 @@ mod tests {
     fn allocate_allocates_object() {
         let mut heap = Heap::new(3);
         
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
 
         assert_matches!(&heap.mem[..], [
             MemorySlot::Filled(HeapData {
@@ -330,9 +338,9 @@ mod tests {
     fn allocate_allocates_until_end() {
         let mut heap = Heap::new(3);
         
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
-        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
+        alloc(&mut heap, HeapValue::String("owo".into()), 1);
+        alloc(&mut heap, HeapValue::String("^w^".into()), 2);
         
         assert_eq!(
             heap.alloc(HeapValue::String(";w;".into())),
@@ -362,7 +370,7 @@ mod tests {
     fn get_returns_references_to_allocated_data() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
 
         let val = heap.get(HeapAddress(0)).unwrap();
         assert_matches!(
@@ -381,8 +389,8 @@ mod tests {
     fn collect_collects_unreferenced_data() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
+        alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
         heap.collect(&vec![]);
 
@@ -399,7 +407,7 @@ mod tests {
     fn collect_sets_next_free_to_next_unused_free_slot() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
 
         heap.collect(&vec![]);
 
@@ -416,9 +424,9 @@ mod tests {
     fn collect_handles_non_contiguous_blocks() {
         let mut heap = Heap::new(3);
         
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
-        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
+        alloc(&mut heap, HeapValue::String("owo".into()), 1);
+        alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
         heap.collect(&vec![
             Value::Object(HeapAddress(0)),
@@ -445,14 +453,14 @@ mod tests {
     fn collect_marks_references_through_objects() {
         let mut heap = Heap::new(4);
         
-        heap.alloc(HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(1))
-        ])).unwrap();
-        heap.alloc(HeapValue::List(vec![
+        ]), 0);
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(3))
-        ])).unwrap();
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        ]), 1);
+        alloc(&mut heap, HeapValue::String("uwu".into()), 2);
+        alloc(&mut heap, HeapValue::String("owo".into()), 3);
 
         heap.collect(&vec![
             Value::Object(HeapAddress(0))
@@ -482,12 +490,12 @@ mod tests {
     fn collect_handles_cyclic_references() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(1))
-        ])).unwrap();
-        heap.alloc(HeapValue::List(vec![
+        ]), 0);
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(0))
-        ])).unwrap();
+        ]), 1);
 
         heap.collect(&vec![
             Value::Object(HeapAddress(0))
@@ -512,12 +520,12 @@ mod tests {
     fn collect_collects_unreferenced_cyclic_references() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(1))
-        ])).unwrap();
-        heap.alloc(HeapValue::List(vec![
+        ]), 0);
+        alloc(&mut heap, HeapValue::List(vec![
             Value::Object(HeapAddress(0))
-        ])).unwrap();
+        ]), 1);
 
         heap.collect(&vec![]);
 
@@ -534,14 +542,14 @@ mod tests {
     fn allocate_reuses_previously_freed_memory() {
         let mut heap = Heap::new(2);
 
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
+        alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
         heap.collect(&vec![
             Value::Object(HeapAddress(1))
         ]);
 
-        heap.alloc(HeapValue::String(";w;".into())).unwrap();
+        alloc(&mut heap, HeapValue::String(";w;".into()), 0);
 
         assert_eq!(heap.used, 2);
         assert_eq!(heap.first_free, None);
@@ -562,16 +570,16 @@ mod tests {
     fn allocate_uses_next_free_memory() {
         let mut heap = Heap::new(3);
 
-        heap.alloc(HeapValue::String("uwu".into())).unwrap();
-        heap.alloc(HeapValue::String("owo".into())).unwrap();
-        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+        alloc(&mut heap, HeapValue::String("uwu".into()), 0);
+        alloc(&mut heap, HeapValue::String("owo".into()), 1);
+        alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
         heap.collect(&vec![
             Value::Object(HeapAddress(1))
         ]);
 
-        heap.alloc(HeapValue::String(";w;".into())).unwrap();
-        heap.alloc(HeapValue::String("qwq".into())).unwrap();
+        alloc(&mut heap, HeapValue::String(";w;".into()), 0);
+        alloc(&mut heap, HeapValue::String("qwq".into()), 2);
 
         assert_eq!(heap.used, 3);
         assert_eq!(heap.first_free, None);
