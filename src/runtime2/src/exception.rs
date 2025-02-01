@@ -24,7 +24,7 @@ impl From<&Frame> for TraceFrame {
             function: value.function,
             address: match value.ret {
                 FrameReturn::User(adr) => Some(adr),
-                FrameReturn::Native(_) => None
+                _ => None
             }
         }
     }

@@ -16,11 +16,14 @@ pub enum FrameReturn {
     User(usize),
     /// Return to a native call.
     Native(Box<dyn NativeCall>),
+    /// Return to the root of execution in the virtual machine.
+    /// Only the stack frame for the main function will have this frame return.
+    ExecutionRoot,
 }
 
 /// The kind of a stack frame.
 pub enum FrameKind {
-    /// A stack frame for a call of a function.
+    /// A stack frame for a function call.
     Function,
     /// A temporary stack frame used for block expressions.
     Temp,
