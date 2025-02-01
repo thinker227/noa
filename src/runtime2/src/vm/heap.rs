@@ -210,12 +210,12 @@ impl Heap {
         // Tracks the new size of the block of used memory.
         let mut new_used_size = 0;
 
-        // Get a reference to the space on the heap currently being used.
-        let used = &mut self.mem[..self.used];
-
         // A raw pointer to the `next_free` field of the last encountered free memory slot.
         // Starts off as None, because at the start, no last free memory slot has been encountered yet.
         let mut last_free: Option<*mut Option<usize>> = None;
+
+        // Get a reference to the space on the heap currently being used.
+        let used = &mut self.mem[..self.used];
         
         for address in 0..self.used {
             let slot = &mut used[address];
