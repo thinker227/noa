@@ -542,11 +542,7 @@ mod tests {
             Value::Object(HeapAddress(1))
         ]);
 
-        dbg!(&heap);
-
         heap.alloc(HeapValue::String(";w;".into())).unwrap();
-
-        dbg!(&heap);
 
         assert_eq!(heap.used, 2);
         assert_eq!(heap.first_free, None);
