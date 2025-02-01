@@ -1,17 +1,20 @@
+use frame::Frame;
 use heap::Heap;
 
 use crate::ark::Function;
 use crate::value::Value;
 
 pub mod heap;
+mod frame;
 
 /// The runtime virtual machine.
 pub struct Vm {
     functions: Vec<Function>,
     strings: Vec<String>,
+    code: Vec<u8>,
     stack: Vec<Value>,
     heap: Heap,
-    code: Vec<u8>,
+    call_stack: Vec<Frame>,
     ip: usize,
 }
 
@@ -21,9 +24,10 @@ impl Vm {
         Self {
             functions,
             strings,
+            code,
             stack: Vec::new(),
             heap: Heap::new(heap_size),
-            code,
+            call_stack: Vec::new(),
             ip: 0
         }
     }
