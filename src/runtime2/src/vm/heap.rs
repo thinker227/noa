@@ -158,9 +158,8 @@ impl Heap {
 
     /// Runs a garbage collection, freeing any unreferenced data.
     /// 
-    /// Takes a vector to a stack of values to search for references to heap-allocated data.
-    /// Any data not referenced directly or indirectly by a value in the vector
-    /// will be freed.
+    /// Takes a reference to a vector of values to search for references to heap-allocated data.
+    /// Any data not referenced directly or indirectly by a value in the vector will be freed.
     pub fn collect(&mut self, referenced: &Vec<Value>) {
         self.mark(referenced);
         self.core_collect();
