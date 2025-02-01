@@ -11,8 +11,8 @@ pub enum Exception {
 
 /// An [`Exception`] formatted with a stack trace.
 pub struct FormattedException {
-    exception: Exception,
-    stack_trace: Vec<TraceFrame>,
+    pub exception: Exception,
+    pub stack_trace: Vec<TraceFrame>,
 }
 
 /// A frame in a stack trace.

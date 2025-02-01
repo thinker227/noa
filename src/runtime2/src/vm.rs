@@ -1,6 +1,7 @@
-use frame::Frame;
+use frame::{Frame, FrameKind};
 
 use crate::ark::Function;
+use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::value::Value;
 use crate::heap::Heap;
 
@@ -30,5 +31,30 @@ impl Vm {
             call_stack: Vec::new(),
             ip: 0
         }
+    }
+
+    /// Formats an [`Exception`] into a [`FormattedException`].
+    fn _format_exception(&self, exception: Exception) -> FormattedException {
+        let stack_trace = self._construct_stack_trace();
+
+        FormattedException {
+            exception,
+            stack_trace
+        }
+    }
+
+    /// Constructs a stack trace from the current call stack.
+    fn _construct_stack_trace(&self) -> Vec<TraceFrame> {
+        self.call_stack.iter()
+            .filter_map(|frame| -> Option<TraceFrame> {
+                match frame.kind {
+                    FrameKind::Function => Some(frame.into()),
+                    _ => None,
+                }
+            })
+            // Have to reverse the stack since the latest frame, where the current execution is at,
+            // sits at the very end of the call stack.
+            .rev()
+            .collect()
     }
 }
