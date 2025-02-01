@@ -472,4 +472,122 @@ mod tests {
             }),
         ]);
     }
+
+    #[test]
+    fn collect_handles_cyclic_references() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(1))
+        ])).unwrap();
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(0))
+        ])).unwrap();
+
+        heap.collect(&vec![
+            Value::Object(HeapAddress(0))
+        ]);
+
+        assert_eq!(heap.used, 2);
+        assert_eq!(heap.first_free, None);
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::List(..),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::List(..),
+                ..
+            })
+        ]);
+    }
+
+    #[test]
+    fn collect_collects_unreferenced_cyclic_references() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(1))
+        ])).unwrap();
+        heap.alloc(HeapValue::List(vec![
+            Value::Object(HeapAddress(0))
+        ])).unwrap();
+
+        heap.collect(&vec![]);
+
+        assert_eq!(heap.used, 0);
+        assert_eq!(heap.first_free, Some(0));
+
+        assert_matches!(heap.mem[..], [
+            MemorySlot::Free(Free { next_free: Some(1) }),
+            MemorySlot::Free(Free { next_free: None })
+        ]);
+    }
+
+    #[test]
+    fn allocate_reuses_previously_freed_memory() {
+        let mut heap = Heap::new(2);
+
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+
+        heap.collect(&vec![
+            Value::Object(HeapAddress(1))
+        ]);
+
+        dbg!(&heap);
+
+        heap.alloc(HeapValue::String(";w;".into())).unwrap();
+
+        dbg!(&heap);
+
+        assert_eq!(heap.used, 2);
+        assert_eq!(heap.first_free, None);
+
+        assert_matches!(&heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(a),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(b),
+                ..
+            })
+        ] if a == ";w;" && b == "owo");
+    }
+
+    #[test]
+    fn allocate_uses_next_free_memory() {
+        let mut heap = Heap::new(3);
+
+        heap.alloc(HeapValue::String("uwu".into())).unwrap();
+        heap.alloc(HeapValue::String("owo".into())).unwrap();
+        heap.alloc(HeapValue::String("^w^".into())).unwrap();
+
+        heap.collect(&vec![
+            Value::Object(HeapAddress(1))
+        ]);
+
+        heap.alloc(HeapValue::String(";w;".into())).unwrap();
+        heap.alloc(HeapValue::String("qwq".into())).unwrap();
+
+        assert_eq!(heap.used, 3);
+        assert_eq!(heap.first_free, None);
+
+        assert_matches!(&heap.mem[..], [
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(a),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(b),
+                ..
+            }),
+            MemorySlot::Filled(HeapData {
+                value: HeapValue::String(c),
+                ..
+            })
+        ] if a == ";w;" && b == "owo" && c == "qwq");
+    }
 }
