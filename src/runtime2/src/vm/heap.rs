@@ -143,9 +143,15 @@ impl Heap {
         // the slot we're currently gonna allocate at.
         self.first_free = slot.as_free().next_free;
 
+        // Update the size of the block of used memory only if the current address is outside it.
+        // Otherwise, we're allocating at some address which is already inside the block of used memory,
+        // so we don't need to update its size.
+        if address >= self.used {
+            self.used = address + 1;
+        }
+
         // Now! We allocate!
         *slot = MemorySlot::Filled(HeapData { value, marked: false });
-        self.used += 1;
 
         Ok(())
     }
