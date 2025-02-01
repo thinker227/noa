@@ -119,6 +119,13 @@ impl Heap {
         }
     }
 
+    /// Returns whether the heap is currently full and no more memory can be allocated.
+    pub fn is_full(&self) -> bool {
+        // Should be impossible for there to be more used memory than there is available,
+        // but using >= just to be safe.
+        self.used >= self.mem.len()
+    }
+
     /// Allocates a value on the heap.
     pub fn alloc(&mut self, value: HeapValue) -> Result<(), HeapAllocError> {
         // First just check whether there even is memory left to allocate at.
