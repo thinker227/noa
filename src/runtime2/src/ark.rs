@@ -23,9 +23,24 @@ pub struct Header {
 #[br(magic = b"totheark")]
 pub struct Identifier;
 
+/// An encoded ID of a function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[binread]
 pub struct FuncId(pub u32);
+
+impl FuncId {
+    const MSB: u32 = u32::MAX << (u32::BITS - 1);
+
+    /// Returns whether the function is native or not.
+    pub fn is_native(&self) -> bool {
+        self.0 & Self::MSB == Self::MSB
+    }
+
+    /// Decodes the ID into a non-encoded format.
+    pub fn decode(&self) -> u32 {
+        self.0 & !Self::MSB
+    }
+}
 
 #[derive(Debug)]
 #[binread]
@@ -75,4 +90,27 @@ struct LenString {
     pub length: u32,
     #[br(count = length)]
     pub bytes: Vec<u8>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn funcid_is_native() {
+        let id = FuncId(0b00000000_00000000_00000010_01101101);
+        assert!(!id.is_native());
+
+        let id = FuncId(0b10000000_00000000_00000011_10011110);
+        assert!(id.is_native());
+    }
+
+    #[test]
+    fn funcid_decode() {
+        let id = FuncId(0b00000000_00000000_00000010_01101101);
+        assert_eq!(id.decode(), 621);
+
+        let id = FuncId(0b10000000_00000000_00000011_10011110);
+        assert_eq!(id.decode(), 926);
+    }
 }
