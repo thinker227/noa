@@ -3,10 +3,11 @@ use crate::vm::Vm;
 
 /// A function implemented natively within the runtime.
 /// 
-/// Alias for a function pointer which returns a `Box<dyn NativeCall>`,
-/// where the returned [`NativeCall`] is an initialized state machine
+/// Alias for a function pointer.
+/// The function is given a slice of values as the arguments to the native function,
+/// and returns a `Box<dyn NativeCall>` which should be an initialized state machine
 /// for the execution of the function.
-pub type NativeFunction = fn() -> Box<dyn NativeCall>;
+pub type NativeFunction = fn(&[Value]) -> Box<dyn NativeCall>;
 
 /// Controls the behavior of the virtual machine after calling [`NativeCall::execute`].
 pub enum NativeCallControlFlow {
