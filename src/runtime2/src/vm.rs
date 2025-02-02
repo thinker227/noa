@@ -7,6 +7,7 @@ use crate::heap::Heap;
 
 pub mod frame;
 mod interpret;
+mod stack;
 
 /// The runtime virtual machine.
 pub struct Vm {
