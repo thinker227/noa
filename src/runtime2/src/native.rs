@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use crate::exception::Exception;
 use crate::value::{Closure, Value};
 use crate::vm::Vm;
@@ -6,9 +8,9 @@ use crate::vm::Vm;
 /// 
 /// Alias for a function pointer.
 /// The function is given a slice of values as the arguments to the native function,
-/// and returns a `Box<dyn NativeCall>` which should be an initialized state machine
+/// and returns a `RefCell<Box<dyn NativeCall>>` which should contain an initialized state machine
 /// for the execution of the function.
-pub type NativeFunction = fn(&[Value]) -> Box<dyn NativeCall>;
+pub type NativeFunction = fn(&[Value]) -> Box<RefCell<dyn NativeCall>>;
 
 /// Controls the behavior of the virtual machine after calling [`NativeCall::execute`].
 pub enum NativeCallControlFlow {

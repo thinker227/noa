@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use crate::native::NativeCall;
 use crate::ark::FuncId;
 
@@ -15,7 +17,7 @@ pub enum FrameReturn {
     /// Return to an address within user code.
     User(usize),
     /// Return to a native call.
-    Native(Box<dyn NativeCall>),
+    Native(Box<RefCell<dyn NativeCall>>),
     /// Return to the root of execution in the virtual machine.
     /// Only the stack frame for the main function will have this frame return.
     ExecutionRoot,
