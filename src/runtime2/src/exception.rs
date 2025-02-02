@@ -1,11 +1,21 @@
+use thiserror::Error;
+
 use crate::vm::frame::{Frame, FrameReturn};
 use crate::ark::FuncId;
 
 /// A runtime exception.
+#[derive(Debug, Error)]
 pub enum Exception {
+    #[error("stack overflow")]
     StackOverflow,
+
+    #[error("stack underflow")]
     StackUnderflow,
+
+    #[error("execution continued past the bounds of the current function")]
     Overrun,
+
+    #[error("unknown opcode `{0}`")]
     UnknownOpcode(u8),
 }
 
