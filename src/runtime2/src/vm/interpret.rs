@@ -74,7 +74,7 @@ impl Vm {
 
             opcode::BOUNDARY => return Err(Exception::Overrun),
 
-            _ => return Err(Exception::UnknownOpcode)
+            _ => return Err(Exception::UnknownOpcode(*opcode))
         }
 
         self.ip += 1;

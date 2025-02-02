@@ -6,7 +6,7 @@ pub enum Exception {
     StackOverflow,
     StackUnderflow,
     Overrun,
-    UnknownOpcode,
+    UnknownOpcode(u8),
 }
 
 /// An [`Exception`] formatted with a stack trace.
