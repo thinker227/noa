@@ -48,7 +48,7 @@ impl Vm {
         self.call_stack.iter()
             .filter_map(|frame| -> Option<TraceFrame> {
                 match frame.kind {
-                    FrameKind::Function => Some(frame.into()),
+                    FrameKind::UserFunction => Some(frame.into()),
                     _ => None,
                 }
             })

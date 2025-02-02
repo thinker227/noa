@@ -23,8 +23,10 @@ pub enum FrameReturn {
 
 /// The kind of a stack frame.
 pub enum FrameKind {
-    /// A stack frame for a function call.
-    Function,
+    /// A stack frame for a call to a user function.
+    UserFunction,
+    /// A stack frame for a call to a native function.
+    NativeFunction,
     /// A temporary stack frame used for block expressions.
     Temp,
 }
