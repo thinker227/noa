@@ -19,23 +19,55 @@ struct VmConsts {
     pub code: Vec<u8>,
 }
 
+/// The vm's call stack.
+struct CallStack {
+    pub stack: Vec<Frame>,
+}
+
 /// The runtime virtual machine.
-pub struct Vm {
+pub struct Vm<'a> {
     consts: VmConsts,
     stack: Stack,
     heap: Heap,
-    call_stack: Vec<Frame>,
+    call_stack: &'a mut CallStack,
     ip: usize,
 }
 
-impl Vm {
+pub fn execute(
+    functions: Vec<Function>,
+    strings: Vec<String>,
+    code: Vec<u8>,
+    stack_size: usize,
+    call_stack_size: usize,
+    heap_size: usize,
+    mut run: impl FnMut(&mut Vm) -> Result<Value, FormattedException>
+) -> Result<Value, FormattedException> {
+    let mut call_stack = CallStack {
+        stack: Vec::with_capacity(call_stack_size)
+    };
+
+    let mut vm = Vm::new(
+        functions,
+        strings,
+        code,
+        stack_size,
+        &mut call_stack,
+        heap_size
+    );
+
+    let res = run(&mut vm);
+
+    res
+}
+
+impl<'a> Vm<'a> {
     /// Creates a new [`Vm`].
-    pub fn new(
+    fn new(
         functions: Vec<Function>,
         strings: Vec<String>,
         code: Vec<u8>,
         stack_size: usize,
-        call_stack_size: usize,
+        call_stack: &'a mut CallStack,
         heap_size: usize
     ) -> Self {
         Self {
@@ -47,7 +79,7 @@ impl Vm {
             },
             stack: Stack::new(stack_size),
             heap: Heap::new(heap_size),
-            call_stack: Vec::with_capacity(call_stack_size),
+            call_stack,
             ip: 0
         }
     }
@@ -64,7 +96,7 @@ impl Vm {
 
     /// Constructs a stack trace from the current call stack.
     fn _construct_stack_trace(&self) -> Vec<TraceFrame> {
-        self.call_stack.iter()
+        self.call_stack.stack.iter()
             .filter_map(|frame| -> Option<TraceFrame> {
                 match frame.kind {
                     FrameKind::UserFunction => Some(frame.into()),

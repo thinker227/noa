@@ -7,7 +7,9 @@ use exit::{Exit, IntoExit};
 use binrw::BinRead;
 use clap::Parser;
 
-use noa_runtime::vm::Vm;
+use noa_runtime::exception::FormattedException;
+use noa_runtime::value::Value;
+use noa_runtime::vm::{self, Vm};
 use noa_runtime::ark::{Ark, CodeSection, FunctionSection, StringSection};
 
 mod args;
@@ -38,7 +40,19 @@ fn main() -> Exit<()> {
         ..
     } = ark;
 
-    let _vm = Vm::new(functions, strings, code, 100_000);
+    let res = vm::execute(
+        functions,
+        strings,
+        code,
+        100_000,
+        10_000,
+        100_000,
+        run
+    );
 
     Exit::ok()
+}
+
+fn run(vm: &mut Vm) -> Result<Value, FormattedException> {
+    todo!()
 }

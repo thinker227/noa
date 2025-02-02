@@ -6,11 +6,7 @@ use crate::vm::frame::{Frame, FrameKind, FrameReturn};
 
 use super::Vm;
 
-impl Vm {
-    pub fn execute(&mut self, _function: FuncId, _args: &Vec<Value>) {
-        todo!()
-    }
-
+impl Vm<'_> {
     fn _call_from_user(&mut self, function: FuncId, arg_count: u32) -> Result<(), Exception> {
         if function.is_native() {
             self._call_native(function, arg_count)
@@ -55,7 +51,7 @@ impl Vm {
             self.stack.push(Value::Nil)?;
         }
 
-        let ret = match self.call_stack.last() {
+        let ret = match self.call_stack.stack.last() {
             Some(frame) => match &frame.kind {
                 // Return back to the current instruction pointer.
                 FrameKind::UserFunction | FrameKind::Temp { .. } =>
@@ -79,7 +75,7 @@ impl Vm {
             kind: FrameKind::UserFunction,
         };
 
-        self.call_stack.push_within_capacity(frame)
+        self.call_stack.stack.push_within_capacity(frame)
             .map_err(|_| Exception::CallStackOverflow)?;
 
         self.ip = address;
@@ -97,7 +93,7 @@ impl Vm {
 
     /// Runs the interpreter indefinitely until an exception occurs, or the call stack runs out.
     fn _run(&mut self) -> Result<(), Exception> {
-        while !self.call_stack.is_empty() {
+        while !self.call_stack.stack.is_empty() {
             self._interpret_instruction()?;
         }
 
