@@ -14,6 +14,10 @@ impl Stack {
         }
     }
 
+    pub fn head(&self) -> usize {
+        self.stack.len()
+    }
+
     pub fn get(&self, at: usize) -> Option<&Value> {
         self.stack.get(at)
     }

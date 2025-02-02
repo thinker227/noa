@@ -28,5 +28,8 @@ pub enum FrameKind {
     /// A stack frame for a call to a native function.
     NativeFunction,
     /// A temporary stack frame used for block expressions.
-    Temp,
+    Temp {
+        /// The index on the call stack where the parent function frame is located.
+        parent_function_index: usize,
+    },
 }

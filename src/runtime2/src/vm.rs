@@ -1,7 +1,9 @@
 use frame::{Frame, FrameKind};
+use stack::Stack;
 
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
+use crate::native::NativeFunction;
 use crate::value::Value;
 use crate::heap::Heap;
 
@@ -9,12 +11,18 @@ pub mod frame;
 mod interpret;
 mod stack;
 
+/// Constants for a single execution of the virtual machine.
+struct VmConsts {
+    pub functions: Vec<Function>,
+    pub native_functions: Vec<NativeFunction>,
+    pub strings: Vec<String>,
+    pub code: Vec<u8>,
+}
+
 /// The runtime virtual machine.
 pub struct Vm {
-    functions: Vec<Function>,
-    strings: Vec<String>,
-    code: Vec<u8>,
-    stack: Vec<Value>,
+    consts: VmConsts,
+    stack: Stack,
     heap: Heap,
     call_stack: Vec<Frame>,
     ip: usize,
@@ -22,14 +30,24 @@ pub struct Vm {
 
 impl Vm {
     /// Creates a new [`Vm`].
-    pub fn new(functions: Vec<Function>, strings: Vec<String>, code: Vec<u8>, heap_size: usize) -> Self {
+    pub fn new(
+        functions: Vec<Function>,
+        strings: Vec<String>,
+        code: Vec<u8>,
+        stack_size: usize,
+        call_stack_size: usize,
+        heap_size: usize
+    ) -> Self {
         Self {
-            functions,
-            strings,
-            code,
-            stack: Vec::new(),
+            consts: VmConsts {
+                functions,
+                native_functions: vec![],
+                strings,
+                code
+            },
+            stack: Stack::new(stack_size),
             heap: Heap::new(heap_size),
-            call_stack: Vec::new(),
+            call_stack: Vec::with_capacity(call_stack_size),
             ip: 0
         }
     }

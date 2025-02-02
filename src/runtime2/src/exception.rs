@@ -17,6 +17,15 @@ pub enum Exception {
 
     #[error("unknown opcode `{0}`")]
     UnknownOpcode(u8),
+
+    #[error("invalid function `{0}`")]
+    InvalidUserFunction(u32),
+
+    #[error("invalid native function `{0}`")]
+    InvalidNativeFunction(u32),
+
+    #[error("call stack overflow")]
+    CallStackOverflow,
 }
 
 /// An [`Exception`] formatted with a stack trace.
