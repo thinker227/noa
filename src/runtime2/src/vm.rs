@@ -1,9 +1,11 @@
+use std::cell::RefCell;
+
 use frame::{Frame, FrameKind};
 use stack::Stack;
 
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
-use crate::native::NativeFunction;
+use crate::native::{NativeCall, NativeFunction};
 use crate::value::Value;
 use crate::heap::Heap;
 
@@ -24,15 +26,23 @@ struct CallStack {
     pub stack: Vec<Frame>,
 }
 
+/// The instruction pointer for the vm.
+enum Ip<'a> {
+    User(usize),
+    Native(&'a Box<RefCell<dyn NativeCall>>),
+}
+
 /// The runtime virtual machine.
 pub struct Vm<'a> {
     consts: VmConsts,
     stack: Stack,
     heap: Heap,
     call_stack: &'a mut CallStack,
-    ip: usize,
+    ip: Ip<'a>,
 }
 
+/// Creates a new [`Vm`] and passes it to a closure
+/// which should appropriately call into the vm to begin execution.
 pub fn execute(
     functions: Vec<Function>,
     strings: Vec<String>,
@@ -80,7 +90,8 @@ impl<'a> Vm<'a> {
             stack: Stack::new(stack_size),
             heap: Heap::new(heap_size),
             call_stack,
-            ip: 0
+            // Placeholder value, will be overridden once a function starts executing.
+            ip: Ip::User(0),
         }
     }
 
