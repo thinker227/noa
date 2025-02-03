@@ -131,14 +131,14 @@ impl Vm<'_> {
 
     /// Interprets the next action based on the current instruction pointer.
     fn _interpret(&mut self) -> Result<(), Exception> {
-        let native_ret = match &self.ip {
+        let native_ret = match self.ip {
             Ip::User(ip) => {
-                let ip = self._interpret_instruction(*ip)?;
+                let ip = self._interpret_instruction(ip)?;
                 self.ip = Ip::User(ip);
 
                 None
             },
-            Ip::Native(native_call) => {
+            Ip::Native(ref native_call) => {
                 let args = NativeCallArgs {};
 
                 let mut native_call = native_call.borrow_mut();
