@@ -26,6 +26,10 @@ impl Stack {
         self.stack.get_mut(at)
     }
 
+    pub fn slice_from_end(&self, size: usize) -> Option<&[Value]> {
+        self.stack.get((self.head() - size)..)
+    }
+
     pub fn push(&mut self, value: Value) -> Result<(), Exception> {
         self.stack.push_within_capacity(value)
             .map_err(|_| Exception::StackOverflow)

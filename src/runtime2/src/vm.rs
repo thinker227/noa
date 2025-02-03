@@ -27,9 +27,10 @@ struct CallStack {
 }
 
 /// The instruction pointer for the vm.
-enum Ip<'a> {
+enum Ip {
     User(usize),
-    Native(&'a Box<RefCell<dyn NativeCall>>),
+    Native(Box<RefCell<dyn NativeCall>>),
+    None,
 }
 
 /// The runtime virtual machine.
@@ -38,7 +39,7 @@ pub struct Vm<'a> {
     stack: Stack,
     heap: Heap,
     call_stack: &'a mut CallStack,
-    ip: Ip<'a>,
+    ip: Ip,
 }
 
 /// Creates a new [`Vm`] and passes it to a closure
@@ -90,8 +91,7 @@ impl<'a> Vm<'a> {
             stack: Stack::new(stack_size),
             heap: Heap::new(heap_size),
             call_stack,
-            // Placeholder value, will be overridden once a function starts executing.
-            ip: Ip::User(0),
+            ip: Ip::None,
         }
     }
 

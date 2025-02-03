@@ -2,7 +2,6 @@ use std::cell::RefCell;
 
 use crate::exception::Exception;
 use crate::value::{Closure, Value};
-use crate::vm::Vm;
 
 /// A function implemented natively within the runtime.
 /// 
@@ -13,6 +12,7 @@ use crate::vm::Vm;
 pub type NativeFunction = fn(&[Value]) -> Box<RefCell<dyn NativeCall>>;
 
 /// Controls the behavior of the virtual machine after calling [`NativeCall::execute`].
+#[derive(Debug, /*Clone, Copy*/)]
 pub enum NativeCallControlFlow {
     /// The vm will invoke a closure.
     /// After the closure has finished execution,
@@ -31,5 +31,10 @@ pub enum NativeCallControlFlow {
 pub trait NativeCall {
     /// Executes a 'step' of the native function.
     /// If the native function is implemented as a state machine, this should advance it.
-    fn execute(&mut self, vm: &mut Vm) -> Result<NativeCallControlFlow, Exception>;
+    fn execute(&mut self, args: NativeCallArgs) -> Result<NativeCallControlFlow, Exception>;
+}
+
+#[derive(Debug)]
+pub struct NativeCallArgs {
+
 }
