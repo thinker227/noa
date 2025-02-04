@@ -1,6 +1,8 @@
+# Ark bytecode format
+
 This is a "specification" of the `.ark` file format which is used as Noa's IR format.
 
-Ark file parsing is implemented in [ark.rs](src/runtime/src/ark.rs), [function.rs](src/runtime/src/runtime/function.rs), [strings.rs](src/runtime/src/runtime/strings.rs), and [opcode.rs](src/runtime/src/runtime/opcode.rs).
+Ark file parsing is implemented in [ark.rs](/src/runtime/src/ark.rs), [function.rs](/src/runtime/src/runtime/function.rs), [strings.rs](/src/runtime/src/runtime/strings.rs), and [opcode.rs](/src/runtime/src/runtime/opcode.rs).
 
 ## Structure
 

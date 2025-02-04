@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csdevkit",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "EditorConfig.EditorConfig",
+        "davidanson.vscode-markdownlint",
+        "ms-vscode.hexeditor", // hex editor for viewing ark files
+    ]
+}

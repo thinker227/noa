@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
 <div align="center">
 <img src="./noa.svg" alt="Noa logo" width="160", height="220">
 <h1>Noa</h1>
@@ -51,7 +53,7 @@ To compile and install the VSCode extension from source, you need [Node.js](http
 
 </details>
 
-## Project status 
+## Project status
 
 - [x] AST
 - [x] Lexer
