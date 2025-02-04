@@ -160,16 +160,16 @@ impl Heap {
     /// 
     /// Takes a reference to a vector of values to search for references to heap-allocated data.
     /// Any data not referenced directly or indirectly by a value in the vector will be freed.
-    pub fn collect(&mut self, referenced: &Vec<Value>) {
+    pub fn collect(&mut self, referenced: impl Iterator<Item = Value>) {
         self.mark(referenced);
         self.core_collect();
     }
 
     /// Marks all heap-allocated data referenced directly or indirectly by a value.
-    fn mark(&mut self, referenced: &Vec<Value>) {
+    fn mark(&mut self, referenced: impl Iterator<Item = Value>) {
         // This is just simple depth-first graph traversal.
 
-        let mut to_visit: Vec<usize> = Self::extract_references(referenced.iter()).collect();
+        let mut to_visit: Vec<usize> = Self::extract_references(referenced).collect();
 
         while let Some(address) = to_visit.pop() {
             let data = match self.mem.get_mut(address) {
@@ -189,11 +189,15 @@ impl Heap {
             match &data.value  {
                 HeapValue::String(_) => {},
                 HeapValue::List(xs) => {
-                    let addresses = Self::extract_references(xs.iter());
+                    let addresses = Self::extract_references(
+                        xs.iter().copied()
+                    );
                     to_visit.extend(addresses);
                 },
                 HeapValue::Object(map) => {
-                    let addresses = Self::extract_references(map.values());
+                    let addresses = Self::extract_references(
+                        map.values().copied()
+                    );
                     to_visit.extend(addresses);
                 },
             }
@@ -201,7 +205,7 @@ impl Heap {
     }
 
     /// Extracts referenced heap addresses from an iterator of values.
-    fn extract_references<'a>(values: impl Iterator<Item = &'a Value> + 'a) -> impl Iterator<Item = usize> + 'a {
+    fn extract_references(values: impl Iterator<Item = Value>) -> impl Iterator<Item = usize> {
         values.filter_map(|x| match x {
             Value::Object(adr) => Some(adr.0),
             Value::Function(Closure { captures: Some(captures), .. }) => Some(captures.0),
@@ -294,6 +298,7 @@ impl Heap {
 mod tests {
     use super::*;
     use std::assert_matches::assert_matches;
+    use std::iter;
 
     fn alloc(heap: &mut Heap, value: HeapValue, expected_address: usize) -> HeapAddress {
         let address = heap.alloc(value);
@@ -393,7 +398,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 0);
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
-        heap.collect(&vec![]);
+        heap.collect(iter::empty());
 
         assert_eq!(heap.used, 0);
         assert_eq!(heap.first_free, Some(0));
@@ -410,7 +415,7 @@ mod tests {
 
         alloc(&mut heap, HeapValue::String("uwu".into()), 0);
 
-        heap.collect(&vec![]);
+        heap.collect(iter::empty());
 
         assert_eq!(heap.used, 0);
         assert_eq!(heap.first_free, Some(0));
@@ -429,10 +434,10 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(&vec![
+        heap.collect(vec![
             Value::Object(HeapAddress(0)),
             Value::Object(HeapAddress(2))
-        ]);
+        ].iter().copied());
 
         assert_eq!(heap.used, 3);
         assert_eq!(heap.first_free, Some(1));
@@ -463,9 +468,9 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 2);
         alloc(&mut heap, HeapValue::String("owo".into()), 3);
 
-        heap.collect(&vec![
+        heap.collect(vec![
             Value::Object(HeapAddress(0))
-        ]);
+        ].iter().copied());
 
         assert_eq!(heap.used, 4);
         assert_eq!(heap.first_free, Some(2));
@@ -498,9 +503,9 @@ mod tests {
             Value::Object(HeapAddress(0))
         ]), 1);
 
-        heap.collect(&vec![
+        heap.collect(vec![
             Value::Object(HeapAddress(0))
-        ]);
+        ].iter().copied());
 
         assert_eq!(heap.used, 2);
         assert_eq!(heap.first_free, None);
@@ -528,7 +533,7 @@ mod tests {
             Value::Object(HeapAddress(0))
         ]), 1);
 
-        heap.collect(&vec![]);
+        heap.collect(iter::empty());
 
         assert_eq!(heap.used, 0);
         assert_eq!(heap.first_free, Some(0));
@@ -546,9 +551,9 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 0);
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
-        heap.collect(&vec![
+        heap.collect(vec![
             Value::Object(HeapAddress(1))
-        ]);
+        ].iter().copied());
 
         alloc(&mut heap, HeapValue::String(";w;".into()), 0);
 
@@ -575,9 +580,9 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(&vec![
+        heap.collect(vec![
             Value::Object(HeapAddress(1))
-        ]);
+        ].iter().copied());
 
         alloc(&mut heap, HeapValue::String(";w;".into()), 0);
         alloc(&mut heap, HeapValue::String("qwq".into()), 2);
