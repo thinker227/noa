@@ -35,6 +35,9 @@ pub enum Exception {
 
     #[error("tried to reference a heap address which memory has been freed")]
     FreedHeapAddress,
+
+    #[error("cannot coerce {0} to into {1}")]
+    CoercionError(String, String),
 }
 
 /// An [`Exception`] formatted with a stack trace.
