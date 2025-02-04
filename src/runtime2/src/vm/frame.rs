@@ -7,7 +7,7 @@ pub struct Frame {
     /// The index which marks the start of the frame's allocated space on the stack.
     pub stack_start: usize,
     /// The bytecode address to return to once execution of the function has finished.
-    /// Is only [`None`] if the frame is the bottom-most frame.
+    /// Is [`None`] if the previous frame is a native function or the execution root.
     pub ret: Option<usize>,
     /// The kind of the frame.
     pub kind: FrameKind,

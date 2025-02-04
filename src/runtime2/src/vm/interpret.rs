@@ -131,12 +131,16 @@ impl Vm<'_> {
 
     /// Gets the return address for a function invocation during the current state of the vm.
     fn get_return_address(&self) -> Option<usize> {
-        // If the call stack is empty there we must be calling from the execution root,
-        // meaning that the instruction pointer is just placeholder/garbage data.
-        if !self.call_stack.stack.is_empty() {
-            Some(self.ip)
-        } else {
-            None
+        // The return address for a new function call is the current instruction pointer
+        // if the current stack frame is a user function frame or a temporary frame.
+        // For native functions, having a specific return address wouldn't make a lot of sense.
+        // For the case that the call stack is empty, the caller must be the execution root.
+        match self.call_stack.stack.last() {
+            Some(frame) => match frame.kind {
+                FrameKind::UserFunction | FrameKind::Temp { .. } => Some(self.ip),
+                FrameKind::NativeFunction => None,
+            },
+            None => None,
         }
     }
 
