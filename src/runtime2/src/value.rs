@@ -15,8 +15,20 @@ pub enum Type {
 /// A closure over a function and an object containing captured variables.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Closure {
+    /// The ID of the function the closure calls.
     pub function: FuncId,
-    pub object: HeapAddress,
+    /// The object containing the captured variables for the closure,
+    /// or [`None`] if the closure contains no captured variables.
+    pub captures: Option<HeapAddress>,
+}
+
+impl From<FuncId> for Closure {
+    fn from(value: FuncId) -> Self {
+        Self {
+            function: value,
+            captures: None
+        }
+    }
 }
 
 /// A runtime value.

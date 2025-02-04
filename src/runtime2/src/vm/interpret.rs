@@ -16,42 +16,46 @@ enum InterpretControlFlow {
 }
 
 impl Vm<'_> {
+    /// Calls a closure with specified arguments, runs until it returns, then returns the return value of the closure.
     pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value, Exception> {
         // Push arguments onto the stack.
         for value in args {
             self.stack.push(*value)?;
         }
 
-        self.call(function, args.len() as u32)?;
+        self.call(function.into(), args.len() as u32)?;
         let res = self.run_function()?;
 
         Ok(res)
     }
 
-    /// Calls a function with a specified amount of arguments from the stack.
-    fn call(&mut self, function: FuncId, arg_count: u32) -> Result<(), Exception> {
-        if function.is_native() {
-            self._call_native(function, arg_count)
+    /// Calls a closure with a specified amount of arguments from the stack.
+    fn call(&mut self, closure: Closure, arg_count: u32) -> Result<(), Exception> {
+        if closure.function.is_native() {
+            // It shouldn't be possible in any way for a native function to capture variables.
+            assert!(closure.captures.is_none(), "Native function cannot be called with captures.");
+            self.call_native(closure.function, arg_count)
         } else {
-            self._call_user(function, arg_count)
+            self.call_user(closure, arg_count)
         }
     }
 
-    /// Calls a closure with a specified amount of arguments from the stack.
-    fn call_closure(&mut self, _closure: Closure, _arg_count: u32) -> Result<(), Exception> {
-        todo!()
-    }
+    /// Calls a user function as a closure.
+    fn call_user(&mut self, closure: Closure, arg_count: u32) -> Result<(), Exception> {
+        // todo: figure out how to support captured variables
+        // they should probably just be some variety of function arguments
+        if closure.captures.is_some() {
+            todo!("figure out how to support captured variables")
+        }
 
-    /// Calls a user function.
-    fn _call_user(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
-        let user_index = id.decode();
+        let user_index = closure.function.decode();
         let function = self.consts.functions.get(user_index as usize)
             .ok_or_else(|| Exception::InvalidUserFunction(user_index))?;
 
         let arity = function.arity;
         let locals_count = function.locals_count;
         let address = function.address as usize;
-        let ret = self._get_return_address();
+        let ret = self.get_return_address();
 
         // Get rid of any additional arguments outside of what the function expects.
         if arg_count > arity {
@@ -81,7 +85,7 @@ impl Vm<'_> {
         }
 
         let frame = Frame {
-            function: id,
+            function: function.id,
             stack_start,
             ret,
             kind: FrameKind::UserFunction,
@@ -96,7 +100,7 @@ impl Vm<'_> {
     }
 
     /// Calls a native function.
-    fn _call_native(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
+    fn call_native(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
         let native_index = id.decode();
         let _function = self.consts.native_functions.get(native_index as usize)
             .ok_or_else(|| Exception::InvalidNativeFunction(native_index))?;
@@ -106,7 +110,7 @@ impl Vm<'_> {
         let _args = self.stack.slice_from_end(arg_count as usize)
             .ok_or(Exception::StackUnderflow)?;
 
-        let ret = self._get_return_address();
+        let ret = self.get_return_address();
 
         let frame = Frame {
             function: id,
@@ -122,7 +126,7 @@ impl Vm<'_> {
     }
 
     /// Gets the return address for a function invocation during the current state of the vm.
-    fn _get_return_address(&self) -> Option<usize> {
+    fn get_return_address(&self) -> Option<usize> {
         // If the call stack is empty there we must be calling from the execution root,
         // meaning that the instruction pointer is just placeholder/garbage data.
         if !self.call_stack.stack.is_empty() {
@@ -132,6 +136,7 @@ impl Vm<'_> {
         }
     }
 
+    /// Returns from the current user function and returns the current top-most value on the stack.
     fn ret_user(&mut self) -> Result<Value, Exception> {
         todo!()
     }
@@ -144,7 +149,7 @@ impl Vm<'_> {
             match ctrl_flw {
                 InterpretControlFlow::Continue => {},
                 InterpretControlFlow::Call { closure, arg_count } => {
-                    self.call_closure(closure, arg_count)?;
+                    self.call(closure, arg_count)?;
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
@@ -164,7 +169,7 @@ impl Vm<'_> {
             match ctrl_flw {
                 InterpretControlFlow::Continue => {},
                 InterpretControlFlow::Call { closure, arg_count } => {
-                    self.call_closure(closure, arg_count)?;
+                    self.call(closure, arg_count)?;
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
@@ -173,6 +178,7 @@ impl Vm<'_> {
             }
         }
 
+        // If we got here then the call stack somehow ran out without the function returning.
         Err(Exception::NoReturn)
     }
 
