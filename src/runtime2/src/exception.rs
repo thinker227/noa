@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::vm::frame::{Frame, FrameReturn};
+use crate::vm::frame::Frame;
 use crate::ark::FuncId;
 
 /// A runtime exception.
@@ -26,6 +26,9 @@ pub enum Exception {
 
     #[error("call stack overflow")]
     CallStackOverflow,
+
+    #[error("function exhausted the call stack without returning")]
+    NoReturn,
 }
 
 /// An [`Exception`] formatted with a stack trace.
@@ -41,13 +44,7 @@ pub struct TraceFrame {
 }
 
 impl From<&Frame> for TraceFrame {
-    fn from(value: &Frame) -> Self {
-        Self {
-            function: value.function,
-            address: match value.ret {
-                FrameReturn::User(adr) => Some(adr),
-                _ => None
-            }
-        }
+    fn from(_value: &Frame) -> Self {
+        todo!()
     }
 }

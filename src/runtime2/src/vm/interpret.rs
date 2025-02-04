@@ -1,18 +1,35 @@
-use std::cell::RefCell;
-use std::mem;
-
 use crate::ark::FuncId;
 use crate::exception::Exception;
-use crate::native::{NativeCall, NativeCallArgs, NativeCallControlFlow};
 use crate::opcode;
 use crate::value::{Closure, Value};
-use crate::vm::frame::{Frame, FrameKind, FrameReturn};
+use crate::vm::frame::{Frame, FrameKind};
 
-use super::{Vm, Ip};
+use super::Vm;
+
+enum InterpretControlFlow {
+    Continue,
+    Call {
+        closure: Closure,
+        arg_count: u32,
+    },
+    Return,
+}
 
 impl Vm<'_> {
+    pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value, Exception> {
+        // Push arguments onto the stack.
+        for value in args {
+            self.stack.push(*value)?;
+        }
+
+        self.call(function, args.len() as u32)?;
+        let res = self.run_function()?;
+
+        Ok(res)
+    }
+
     /// Calls a function with a specified amount of arguments from the stack.
-    fn _call(&mut self, function: FuncId, arg_count: u32) -> Result<(), Exception> {
+    fn call(&mut self, function: FuncId, arg_count: u32) -> Result<(), Exception> {
         if function.is_native() {
             self._call_native(function, arg_count)
         } else {
@@ -21,7 +38,7 @@ impl Vm<'_> {
     }
 
     /// Calls a closure with a specified amount of arguments from the stack.
-    fn _call_closure(&mut self, _closure: Closure, _arg_count: u32) -> Result<(), Exception> {
+    fn call_closure(&mut self, _closure: Closure, _arg_count: u32) -> Result<(), Exception> {
         todo!()
     }
 
@@ -34,7 +51,7 @@ impl Vm<'_> {
         let arity = function.arity;
         let locals_count = function.locals_count;
         let address = function.address as usize;
-        let ret = self._replace_ip_into_frame_return(Ip::User(address));
+        let ret = self._get_return_address();
 
         // Get rid of any additional arguments outside of what the function expects.
         if arg_count > arity {
@@ -72,6 +89,8 @@ impl Vm<'_> {
 
         self.call_stack.stack.push_within_capacity(frame)
             .map_err(|_| Exception::CallStackOverflow)?;
+        
+        self.ip = address;
 
         Ok(())
     }
@@ -79,17 +98,15 @@ impl Vm<'_> {
     /// Calls a native function.
     fn _call_native(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
         let native_index = id.decode();
-        let function = self.consts.native_functions.get(native_index as usize)
+        let _function = self.consts.native_functions.get(native_index as usize)
             .ok_or_else(|| Exception::InvalidNativeFunction(native_index))?;
 
         let stack_start = self.stack.head() - arg_count as usize;
 
-        let args = self.stack.slice_from_end(arg_count as usize)
+        let _args = self.stack.slice_from_end(arg_count as usize)
             .ok_or(Exception::StackUnderflow)?;
 
-        let call: Box<RefCell<dyn NativeCall>> = function(args);
-
-        let ret = self._replace_ip_into_frame_return(Ip::Native(call));
+        let ret = self._get_return_address();
 
         let frame = Frame {
             function: id,
@@ -104,77 +121,65 @@ impl Vm<'_> {
         todo!()
     }
 
-    /// Replaces the current instruction pointer with a new one,
-    /// and constructs a [`FrameReturn`] from the old instruction pointer.
-    fn _replace_ip_into_frame_return(&mut self, new_ip: Ip) -> FrameReturn {
-        let old_ip = mem::replace(&mut self.ip, new_ip);
-        match old_ip {
-            Ip::User(adr) => FrameReturn::User(adr),
-            Ip::Native(native_call) => FrameReturn::Native(native_call),
-            Ip::None => FrameReturn::ExecutionRoot,
+    /// Gets the return address for a function invocation during the current state of the vm.
+    fn _get_return_address(&self) -> Option<usize> {
+        // If the call stack is empty there we must be calling from the execution root,
+        // meaning that the instruction pointer is just placeholder/garbage data.
+        if !self.call_stack.stack.is_empty() {
+            Some(self.ip)
+        } else {
+            None
         }
     }
 
-    /// Returns from a native function.
-    fn _return_from_native(&mut self, _value: Value) {
+    fn ret_user(&mut self) -> Result<Value, Exception> {
         todo!()
     }
 
-    /// Runs the interpreter indefinitely until an exception occurs, or the call stack runs out.
+    /// Runs the interpreter until the call stack runs out, or an exception occurs.
     fn _run(&mut self) -> Result<(), Exception> {
         while !self.call_stack.stack.is_empty() {
-            self._interpret()?;
+            let ctrl_flw = self.interpret_instruction()?;
+
+            match ctrl_flw {
+                InterpretControlFlow::Continue => {},
+                InterpretControlFlow::Call { closure, arg_count } => {
+                    self.call_closure(closure, arg_count)?;
+                },
+                InterpretControlFlow::Return => {
+                    let ret = self.ret_user()?;
+                    self.stack.push(ret)?;
+                },
+            }
         }
 
         Ok(())
     }
 
-    /// Interprets the next action based on the current instruction pointer.
-    fn _interpret(&mut self) -> Result<(), Exception> {
-        let native_ret = match self.ip {
-            Ip::User(ip) => {
-                let ip = self._interpret_instruction(ip)?;
-                self.ip = Ip::User(ip);
+    /// Runs the interpreter until the current function returns, or an exception occurs.
+    fn run_function(&mut self) -> Result<Value, Exception> {
+        while !self.call_stack.stack.is_empty() {
+            let ctrl_flw = self.interpret_instruction()?;
 
-                None
-            },
-            Ip::Native(ref native_call) => {
-                let args = NativeCallArgs {};
-
-                let mut native_call = native_call.borrow_mut();
-                let ret = native_call.execute(args)?;
-
-                Some(ret)
-            },
-            Ip::None => {
-                // The instruction pointer should only be `None` before the main function is called,
-                // i.e. before any stack frame has been entered. Otherwise, there's no reasonable thing to do.
-                assert!(
-                    self.call_stack.stack.is_empty(),
-                    "Instruction pointer is `None`, but the call stack isn't empty. The vm has nowhere to go."
-                );
-
-                None
-            },
-        };
-
-        match native_ret {
-            Some(NativeCallControlFlow::Call(closure)) => {
-                self._call_closure(closure, 0)?;
-            },
-            Some(NativeCallControlFlow::Return(value)) => {
-                self._return_from_native(value);
-            },
-            None => {},
+            match ctrl_flw {
+                InterpretControlFlow::Continue => {},
+                InterpretControlFlow::Call { closure, arg_count } => {
+                    self.call_closure(closure, arg_count)?;
+                },
+                InterpretControlFlow::Return => {
+                    let ret = self.ret_user()?;
+                    return Ok(ret);
+                },
+            }
         }
 
-        Ok(())
+        Err(Exception::NoReturn)
     }
 
     /// Interprets the current instruction pointed to by `ip`.
     /// Returns the new value the instruction pointer should progress to.
-    fn _interpret_instruction(&mut self, mut ip: usize) -> Result<usize, Exception> {
-        let opcode = self.consts.code.get(ip)
+    fn interpret_instruction(&mut self) -> Result<InterpretControlFlow, Exception> {
+        let opcode = self.consts.code.get(self.ip)
             .ok_or(Exception::Overrun)?;
 
         match *opcode {
@@ -234,9 +239,7 @@ impl Vm<'_> {
 
             _ => return Err(Exception::UnknownOpcode(*opcode))
         }
-
-        ip += 1;
-
-        Ok(ip)
+        
+        Ok(InterpretControlFlow::Continue)
     }
 }

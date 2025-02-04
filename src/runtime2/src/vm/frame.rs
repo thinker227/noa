@@ -1,37 +1,27 @@
-use std::cell::RefCell;
-
-use crate::native::NativeCall;
 use crate::ark::FuncId;
 
 /// A stack frame. Represents a single execution of a function.
 pub struct Frame {
-    /// The function the 
+    /// The function the frame is for an execution of.
     pub function: FuncId,
+    /// The index which marks the start of the frame's allocated space on the stack.
     pub stack_start: usize,
-    pub ret: FrameReturn,
+    /// The bytecode address to return to once execution of the function has finished.
+    /// Is only [`None`] if the frame is the bottom-most frame.
+    pub ret: Option<usize>,
+    /// The kind of the frame.
     pub kind: FrameKind,
-}
-
-/// What to return to when a stack frame has finished.
-pub enum FrameReturn {
-    /// Return to an address within user code.
-    User(usize),
-    /// Return to a native call.
-    Native(Box<RefCell<dyn NativeCall>>),
-    /// Return to the root of execution in the virtual machine.
-    /// Only the stack frame for the main function will have this frame return.
-    ExecutionRoot,
 }
 
 /// The kind of a stack frame.
 pub enum FrameKind {
-    /// A stack frame for a call to a user function.
+    /// The frame is for a call to a user function.
     UserFunction,
-    /// A stack frame for a call to a native function.
+    /// The frame is for a call to a native function.
     NativeFunction,
-    /// A temporary stack frame used for block expressions.
+    /// The frame is a temporary stack frame used for block expressions.
     Temp {
-        /// The index on the call stack where the parent function frame is located.
+        /// The index on the call stack where the parent user function frame is located.
         parent_function_index: usize,
     },
 }
