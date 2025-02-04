@@ -1,3 +1,5 @@
+# Ark opcodes
+
 This file contains an overview of the bytecode opcodes which can be used in function bodies.
 
 Each table specifies the byte representing the opcode, the "signature" (i.e. the name and arguments) of the opcode, a description of what the opcode does, and what effect executing the opcode has on the runtime stack.
