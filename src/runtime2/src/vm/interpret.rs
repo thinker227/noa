@@ -146,7 +146,59 @@ impl Vm<'_> {
 
     /// Returns from the current user function and returns the current top-most value on the stack.
     fn ret_user(&mut self) -> Result<Value> {
-        todo!()
+        // The return value will be at the very top of the stack when returning.
+        let ret = self.stack.pop()
+            .map_err(|e| self.exception(e))?;
+
+        let frame = self.call_stack.stack.pop()
+            .expect("call stack cannot be empty when returning from a user function");
+
+        let stack_start = frame.stack_start;
+
+        // When calling a function from a user function, the stack will approximately look like this:
+        // 
+        // [ ..., <closure>, arg1, arg2, arg3, ... ]
+        //                   ^
+        //       this is the current frame's
+        //       (the one we just popped's)
+        //           stack start index
+        // 
+        // This way, if we shrink the stack back to the frame's stack start index - 1,
+        // we get rid of the closure since that has been "consumed" by calling the function.
+        // However, if the function was called from a native function or the execution root,
+        // there won't be a closure there, so we don't want to shrink by the additional index backwards.
+        
+        let stack_backtrack_index = match self.get_top_non_temp_frame() {
+            Some(Frame { kind: FrameKind::NativeFunction, .. }) | None => stack_start,
+            _ => stack_start - 1
+        };
+
+        self.stack.shrink(stack_backtrack_index);
+
+        // If the frame has no assigned return address
+        // then we're returning to a native function or the execution root.
+        // Not setting the instruction pointer in this case is slightly dangerous in case this assumption is wrong
+        // or something tries to read the instruction pointer before it's been set back to a meaningful value,
+        // which will most likely be an extremely annoying bug to track down, but it's more annoying
+        // to have the instruction pointer be an `Option<usize>` or something, so this will have to do.
+
+        if let Some(ret_ip) = frame.ret {
+            self.ip = ret_ip;
+        }
+
+        Ok(ret)
+    }
+
+    /// Gets the top-most stack frame off of the call stack which is not a temporary frame.
+    fn get_top_non_temp_frame(&self) -> Option<&Frame> {
+        match self.call_stack.stack.last() {
+            Some(Frame { kind: FrameKind::Temp { parent_function_index }, .. }) => Some(
+                self.call_stack.stack.get(*parent_function_index)
+                    .expect("parent function index of temporary stack frame should point to a valid stack frame")
+            ),
+            Some(frame) => Some(frame),
+            None => None,
+        }
     }
 
     /// Runs the interpreter until the call stack runs out, or an exception occurs.
