@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ptr;
 
-use crate::value::Value;
+use crate::value::{Closure, Value};
 
 /// An address to data on a [`Heap`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -204,6 +204,7 @@ impl Heap {
     fn extract_references<'a>(values: impl Iterator<Item = &'a Value> + 'a) -> impl Iterator<Item = usize> + 'a {
         values.filter_map(|x| match x {
             Value::Object(adr) => Some(adr.0),
+            Value::Function(Closure { captures: Some(captures), .. }) => Some(captures.0),
             _ => None
         })
     }
