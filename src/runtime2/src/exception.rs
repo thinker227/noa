@@ -1,8 +1,5 @@
 use thiserror::Error;
 
-use crate::vm::frame::Frame;
-use crate::ark::FuncId;
-
 /// A runtime exception.
 #[derive(Debug, Error)]
 pub enum Exception {
