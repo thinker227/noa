@@ -42,9 +42,3 @@ pub struct TraceFrame {
     pub function: FuncId,
     pub address: Option<usize>,
 }
-
-impl From<&Frame> for TraceFrame {
-    fn from(_value: &Frame) -> Self {
-        todo!()
-    }
-}

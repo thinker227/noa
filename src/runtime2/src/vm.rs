@@ -11,6 +11,8 @@ pub mod frame;
 mod interpret;
 mod stack;
 
+type Result<T> = std::result::Result<T, FormattedException>;
+
 /// Constants for a single execution of the virtual machine.
 struct VmConsts {
     pub functions: Vec<Function>,
@@ -42,8 +44,8 @@ pub fn execute(
     stack_size: usize,
     call_stack_size: usize,
     heap_size: usize,
-    mut run: impl FnMut(&mut Vm) -> Result<Value, FormattedException>
-) -> Result<Value, FormattedException> {
+    mut run: impl FnMut(&mut Vm) -> Result<Value>
+) -> Result<Value> {
     let mut call_stack = CallStack {
         stack: Vec::with_capacity(call_stack_size)
     };
@@ -88,7 +90,7 @@ impl<'a> Vm<'a> {
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].
-    fn _format_exception(&self, exception: Exception) -> FormattedException {
+    fn exception(&self, exception: Exception) -> FormattedException {
         let stack_trace = self._construct_stack_trace();
 
         FormattedException {
@@ -99,16 +101,6 @@ impl<'a> Vm<'a> {
 
     /// Constructs a stack trace from the current call stack.
     fn _construct_stack_trace(&self) -> Vec<TraceFrame> {
-        self.call_stack.stack.iter()
-            .filter_map(|frame| -> Option<TraceFrame> {
-                match frame.kind {
-                    FrameKind::UserFunction => Some(frame.into()),
-                    _ => None,
-                }
-            })
-            // Have to reverse the stack since the latest frame, where the current execution is at,
-            // sits at the very end of the call stack.
-            .rev()
-            .collect()
+        todo!()
     }
 }

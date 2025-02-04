@@ -4,7 +4,7 @@ use crate::opcode;
 use crate::value::{Closure, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
-use super::Vm;
+use super::{Vm, Result};
 
 enum InterpretControlFlow {
     Continue,
@@ -17,10 +17,11 @@ enum InterpretControlFlow {
 
 impl Vm<'_> {
     /// Calls a closure with specified arguments, runs until it returns, then returns the return value of the closure.
-    pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value, Exception> {
+    pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value> {
         // Push arguments onto the stack.
-        for value in args {
-            self.stack.push(*value)?;
+        for _value in args {
+            todo!()
+            // self.stack.push(*value)?;
         }
 
         self.call(function.into(), args.len() as u32)?;
@@ -30,7 +31,7 @@ impl Vm<'_> {
     }
 
     /// Calls a closure with a specified amount of arguments from the stack.
-    fn call(&mut self, closure: Closure, arg_count: u32) -> Result<(), Exception> {
+    fn call(&mut self, closure: Closure, arg_count: u32) -> Result<()> {
         if closure.function.is_native() {
             // It shouldn't be possible in any way for a native function to capture variables.
             assert!(closure.captures.is_none(), "Native function cannot be called with captures.");
@@ -41,7 +42,7 @@ impl Vm<'_> {
     }
 
     /// Calls a user function as a closure.
-    fn call_user(&mut self, closure: Closure, arg_count: u32) -> Result<(), Exception> {
+    fn call_user(&mut self, closure: Closure, arg_count: u32) -> Result<()> {
         // todo: figure out how to support captured variables
         // they should probably just be some variety of function arguments
         if closure.captures.is_some() {
@@ -50,7 +51,7 @@ impl Vm<'_> {
 
         let user_index = closure.function.decode();
         let function = self.consts.functions.get(user_index as usize)
-            .ok_or_else(|| Exception::InvalidUserFunction(user_index))?;
+            .ok_or_else(|| self.exception(Exception::InvalidUserFunction(user_index)))?;
 
         let arity = function.arity;
         let locals_count = function.locals_count;
@@ -60,14 +61,16 @@ impl Vm<'_> {
         // Get rid of any additional arguments outside of what the function expects.
         if arg_count > arity {
             for _ in arity..arg_count {
-                self.stack.pop()?;
+                todo!()
+                // self.stack.pop()?;
             }
         }
 
         // Fill out the stack with missing arguments if there are not enough.
         if arg_count < arity {
             for _ in arg_count..arity {
-                self.stack.push(Value::Nil)?;
+                todo!()
+                // self.stack.push(Value::Nil)?;
             }
         }
 
@@ -81,7 +84,8 @@ impl Vm<'_> {
         // Push values onto the stack as placeholders for the function's locals.
         // These will later be overridden once the locals are assigned.
         for _ in 0..locals_count {
-            self.stack.push(Value::Nil)?;
+            todo!()
+            // self.stack.push(Value::Nil)?;
         }
 
         let frame = Frame {
@@ -92,7 +96,7 @@ impl Vm<'_> {
         };
 
         self.call_stack.stack.push_within_capacity(frame)
-            .map_err(|_| Exception::CallStackOverflow)?;
+            .map_err(|_| self.exception(Exception::CallStackOverflow))?;
         
         self.ip = address;
 
@@ -100,15 +104,15 @@ impl Vm<'_> {
     }
 
     /// Calls a native function.
-    fn call_native(&mut self, id: FuncId, arg_count: u32) -> Result<(), Exception> {
+    fn call_native(&mut self, id: FuncId, arg_count: u32) -> Result<()> {
         let native_index = id.decode();
         let _function = self.consts.native_functions.get(native_index as usize)
-            .ok_or_else(|| Exception::InvalidNativeFunction(native_index))?;
+            .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(native_index)))?;
 
         let stack_start = self.stack.head() - arg_count as usize;
 
         let _args = self.stack.slice_from_end(arg_count as usize)
-            .ok_or(Exception::StackUnderflow)?;
+            .ok_or(self.exception(Exception::StackUnderflow))?;
 
         let ret = self.get_return_address();
 
@@ -120,7 +124,7 @@ impl Vm<'_> {
         };
 
         self.call_stack.stack.push_within_capacity(frame)
-            .map_err(|_| Exception::CallStackOverflow)?;
+            .map_err(|_| self.exception(Exception::CallStackOverflow))?;
 
         todo!()
     }
@@ -137,12 +141,12 @@ impl Vm<'_> {
     }
 
     /// Returns from the current user function and returns the current top-most value on the stack.
-    fn ret_user(&mut self) -> Result<Value, Exception> {
+    fn ret_user(&mut self) -> Result<Value> {
         todo!()
     }
 
     /// Runs the interpreter until the call stack runs out, or an exception occurs.
-    fn _run(&mut self) -> Result<(), Exception> {
+    fn _run(&mut self) -> Result<()> {
         while !self.call_stack.stack.is_empty() {
             let ctrl_flw = self.interpret_instruction()?;
 
@@ -152,8 +156,9 @@ impl Vm<'_> {
                     self.call(closure, arg_count)?;
                 },
                 InterpretControlFlow::Return => {
-                    let ret = self.ret_user()?;
-                    self.stack.push(ret)?;
+                    let _ret = self.ret_user()?;
+                    todo!()
+                    // self.stack.push(ret)?;
                 },
             }
         }
@@ -162,7 +167,7 @@ impl Vm<'_> {
     }
 
     /// Runs the interpreter until the current function returns, or an exception occurs.
-    fn run_function(&mut self) -> Result<Value, Exception> {
+    fn run_function(&mut self) -> Result<Value> {
         while !self.call_stack.stack.is_empty() {
             let ctrl_flw = self.interpret_instruction()?;
 
@@ -179,14 +184,14 @@ impl Vm<'_> {
         }
 
         // If we got here then the call stack somehow ran out without the function returning.
-        Err(Exception::NoReturn)
+        Err(self.exception(Exception::NoReturn))
     }
 
     /// Interprets the current instruction pointed to by `ip`.
     /// Returns the new value the instruction pointer should progress to.
-    fn interpret_instruction(&mut self) -> Result<InterpretControlFlow, Exception> {
+    fn interpret_instruction(&mut self) -> Result<InterpretControlFlow> {
         let opcode = self.consts.code.get(self.ip)
-            .ok_or(Exception::Overrun)?;
+            .ok_or(self.exception(Exception::Overrun))?;
 
         match *opcode {
             opcode::NO_OP => {},
@@ -241,9 +246,9 @@ impl Vm<'_> {
 
             opcode::GREATER_THAN => todo!(),
 
-            opcode::BOUNDARY => return Err(Exception::Overrun),
+            opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
 
-            _ => return Err(Exception::UnknownOpcode(*opcode))
+            _ => return Err(self.exception(Exception::UnknownOpcode(*opcode)))
         }
         
         Ok(InterpretControlFlow::Continue)
