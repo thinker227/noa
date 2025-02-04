@@ -39,6 +39,6 @@ pub struct FormattedException {
 
 /// A frame in a stack trace.
 pub struct TraceFrame {
-    pub function: FuncId,
+    pub function: String,
     pub address: Option<usize>,
 }
