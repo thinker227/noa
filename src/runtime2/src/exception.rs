@@ -29,6 +29,12 @@ pub enum Exception {
 
     #[error("function exhausted the call stack without returning")]
     NoReturn,
+
+    #[error("tried to reference an out-of-bounds heap address")]
+    OutOfBoundsHeapAddress,
+
+    #[error("tried to reference a heap address which memory has been freed")]
+    FreedHeapAddress,
 }
 
 /// An [`Exception`] formatted with a stack trace.

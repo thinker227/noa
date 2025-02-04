@@ -5,7 +5,7 @@ use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::native::NativeFunction;
 use crate::value::Value;
-use crate::heap::Heap;
+use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
 mod interpret;
@@ -87,6 +87,18 @@ impl<'a> Vm<'a> {
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
         }
+    }
+
+    /// Gets a value at a specified address on the heap.
+    fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
+        self.heap.get(address)
+            .map_err(|e| {
+                let ex = match e {
+                    HeapGetError::OutOfBounds => Exception::OutOfBoundsHeapAddress,
+                    HeapGetError::SlotFreed => Exception::FreedHeapAddress,
+                };
+                self.exception(ex)
+            })
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].
