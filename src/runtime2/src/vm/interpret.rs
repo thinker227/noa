@@ -19,9 +19,9 @@ impl Vm<'_> {
     /// Calls a closure with specified arguments, runs until it returns, then returns the return value of the closure.
     pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value> {
         // Push arguments onto the stack.
-        for _value in args {
-            todo!()
-            // self.stack.push(*value)?;
+        for value in args {
+            self.stack.push(*value)
+                .map_err(|e| self.exception(e))?;
         }
 
         self.call(function.into(), args.len() as u32)?;
@@ -61,16 +61,16 @@ impl Vm<'_> {
         // Get rid of any additional arguments outside of what the function expects.
         if arg_count > arity {
             for _ in arity..arg_count {
-                todo!()
-                // self.stack.pop()?;
+                self.stack.pop()
+                    .map_err(|e| self.exception(e))?;
             }
         }
 
         // Fill out the stack with missing arguments if there are not enough.
         if arg_count < arity {
             for _ in arg_count..arity {
-                todo!()
-                // self.stack.push(Value::Nil)?;
+                self.stack.push(Value::Nil)
+                    .map_err(|e| self.exception(e))?;
             }
         }
 
@@ -84,8 +84,8 @@ impl Vm<'_> {
         // Push values onto the stack as placeholders for the function's locals.
         // These will later be overridden once the locals are assigned.
         for _ in 0..locals_count {
-            todo!()
-            // self.stack.push(Value::Nil)?;
+            self.stack.push(Value::Nil)
+                .map_err(|e| self.exception(e))?;
         }
 
         let frame = Frame {
@@ -160,9 +160,9 @@ impl Vm<'_> {
                     self.call(closure, arg_count)?;
                 },
                 InterpretControlFlow::Return => {
-                    let _ret = self.ret_user()?;
-                    todo!()
-                    // self.stack.push(ret)?;
+                    let ret = self.ret_user()?;
+                    self.stack.push(ret)
+                        .map_err(|e| self.exception(e))?;
                 },
             }
         }
