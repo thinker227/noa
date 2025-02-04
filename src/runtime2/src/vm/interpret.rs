@@ -49,10 +49,12 @@ impl Vm<'_> {
             todo!("figure out how to support captured variables")
         }
 
+        // Get the function from the decoded function ID.
         let user_index = closure.function.decode();
         let function = self.consts.functions.get(user_index as usize)
             .ok_or_else(|| self.exception(Exception::InvalidUserFunction(user_index)))?;
 
+        // Set up properties for the call and stack frame.
         let arity = function.arity;
         let locals_count = function.locals_count;
         let address = function.address as usize;
@@ -105,14 +107,18 @@ impl Vm<'_> {
 
     /// Calls a native function.
     fn call_native(&mut self, id: FuncId, arg_count: u32) -> Result<()> {
+        // Get the function from the decoded function ID.
+        // Function pointers implement `Copy`, so retrieving the function pointer here
+        // doesn't actually require an immutable borrow, which is incredibly nice.
         let native_index = id.decode();
-        let _function = self.consts.native_functions.get(native_index as usize)
+        let function = *self.consts.native_functions.get(native_index as usize)
             .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(native_index)))?;
 
         let stack_start = self.stack.head() - arg_count as usize;
 
-        let _args = self.stack.slice_from_end(arg_count as usize)
-            .ok_or(self.exception(Exception::StackUnderflow))?;
+        let args = self.stack.slice_from_end(arg_count as usize)
+            .ok_or(self.exception(Exception::StackUnderflow))?
+            .to_vec();
 
         let ret = self.get_return_address();
 
@@ -123,10 +129,32 @@ impl Vm<'_> {
             kind: FrameKind::NativeFunction,
         };
 
-        self.call_stack.stack.push_within_capacity(frame)
-            .map_err(|_| self.exception(Exception::CallStackOverflow))?;
+        // Block to keep track of the 'scope' for the frame.
+        let ret = {
+            self.call_stack.stack.push_within_capacity(frame)
+                .map_err(|_| self.exception(Exception::CallStackOverflow))?;
 
-        todo!()
+            // Actually call the function.
+            // The function might call `call_run` and enter recursion within the vm,
+            // which is why we need an exclusive reference to the vm.
+            let ret = function(self, args)
+                .map_err(|e| self.exception(e))?;
+
+            self.call_stack.stack.pop();
+
+            ret
+        };
+
+        // If nothing has gone wrong then this shouldn't even be needed
+        // since native functions shouldn't be able to push stuff onto the stack by themselves,
+        // but doing this just in case.
+        self.stack.shrink(stack_start);
+
+        // Finally, push the return value onto the stack.
+        self.stack.push(ret)
+            .map_err(|e| self.exception(e))?;
+
+        Ok(())
     }
 
     /// Gets the return address for a function invocation during the current state of the vm.
