@@ -36,6 +36,17 @@ export function getLogLevel(): string {
 }
 
 /**
+ * Updates the runtime executable path configuration interactively.
+ * @returns The new value of the runtime executable, or undefined if canceled.
+ */
+export async function updateRuntimePathInteractively(): Promise<string | undefined> {
+    return await updateInteractively(
+        "runtimeExecutable",
+        "Enter the path to the Noa runtime executable"
+    );
+}
+
+/**
  * Interactively updates a configuration section.
  * @param section The the config section to update.
  * @param title The title input box.
