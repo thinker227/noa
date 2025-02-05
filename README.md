@@ -48,7 +48,7 @@ After everything has been installed, you can invoke the Noa CLI using the `noa` 
 To compile and install the VSCode extension from source, you need [Node.js](https://nodejs.org) and [vsce](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#vsce). Also make sure you have `code` available from the command line.
 
 1. `cd` into `src/vscode-extension` and run `npm install` followed by `npm run compile`.
-2. Run `vsce package --skip-license`..
+2. Run `vsce package --skip-license`.
 3. Run `code --install-extension <path>`, replacing `<path>` with the file path to the `.vsix` file which `vsce` generated.
 
 </details>
@@ -121,17 +121,4 @@ let counter = createCounter();
 print(counter()); // 1
 print(counter()); // 2
 print(counter()); // 3
-```
-
-### Dreamlands
-
-```js
-// Import module
-import "module.noa" (foo, bar, baz);
-
-// Export stuff
-export (val, hello);
-
-let val = 69;
-let hello = () => print("Hello!!!");
 ```
