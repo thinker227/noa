@@ -15,6 +15,13 @@ export function getCliCommand(): string {
 }
 
 /**
+ * Gets the runtime executable path used by the extension.
+ */
+export function getRuntimePath(): string | undefined {
+    return getConfig().get("runtimeExecutable");
+}
+
+/**
  * Gets the logging path used by the language server.
  */
 export function getServerLogPath(): string | undefined {
