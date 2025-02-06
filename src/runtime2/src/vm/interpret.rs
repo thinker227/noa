@@ -117,7 +117,7 @@ impl Vm<'_> {
         let stack_start = self.stack.head() - arg_count as usize;
 
         let args = self.stack.slice_from_end(arg_count as usize)
-            .ok_or(self.exception(Exception::StackUnderflow))?
+            .ok_or_else(|| self.exception(Exception::StackUnderflow))?
             .to_vec();
 
         let ret = self.get_return_address();
@@ -275,7 +275,7 @@ impl Vm<'_> {
     /// Returns the new value the instruction pointer should progress to.
     fn interpret_instruction(&mut self) -> Result<InterpretControlFlow> {
         let opcode = self.consts.code.get(self.ip)
-            .ok_or(self.exception(Exception::Overrun))?;
+            .ok_or_else(|| self.exception(Exception::Overrun))?;
 
         match *opcode {
             opcode::NO_OP => {},
