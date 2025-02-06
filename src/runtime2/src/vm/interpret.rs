@@ -271,6 +271,88 @@ impl Vm<'_> {
         Err(self.exception(Exception::NoReturn))
     }
 
+    /// Reads a [`u8`] and progresses the instruction pointer by 1.
+    fn read_u8(&mut self) -> Result<u8> {
+        let byte = self.consts.code.get(self.ip)
+            .ok_or_else(|| self.exception(Exception::Overrun))?;
+
+        self.ip += 1;
+
+        Ok(*byte)
+    }
+
+    /// Reads a [`u32`] and progresses the instruction pointer by 4.
+    fn read_u32(&mut self) -> Result<u32> {
+        let bytes: [u8; 4] = self.consts.code.get(self.ip..(self.ip + 4))
+            .ok_or_else(|| self.exception(Exception::Overrun))?
+            .try_into()
+            .unwrap(); // safe because if `get` returns `Some`,
+                       // the slice will always be 4 elements long
+        
+        self.ip += 4;
+        
+        let val = u32::from_be_bytes(bytes);
+        Ok(val)
+    }
+
+    /// Pops a value off the stack.
+    fn pop(&mut self) -> Result<Value> {
+        self.stack.pop()
+            .map_err(|_| self.exception(Exception::StackUnderflow))
+    }
+
+    /// Pops a value off the stack and performs a coercion on it into a specified type.
+    fn pop_val_as<T>(
+        &mut self,
+        coerce: impl FnOnce(&Self, Value) -> Result<T>
+    ) -> Result<T> {
+        let val = self.stack.pop()
+            .map_err(|_| self.exception(Exception::StackUnderflow))?;
+
+        coerce(self, val)
+    }
+
+    /// Pushes a value onto the stack.
+    fn push(&mut self, val: Value) -> Result<()> {
+        self.stack.push(val)
+            .map_err(|_| self.exception(Exception::StackOverflow))
+    }
+
+    /// Pushes a value off the stack, performs a coercion on it into a specified type,
+    /// performs a unary operation on it, then turns it back into a value
+    /// and pushes it back onto the stack.
+    fn unary_op<T, U: Into<Value>>(
+        &mut self,
+        coerce: impl FnOnce(&Self, Value) -> Result<T>,
+        op: impl FnOnce(T) -> U
+    ) -> Result<()> {
+        let x = self.pop_val_as(coerce)?;
+
+        let val = op(x);
+
+        self.push(val.into())?;
+
+        Ok(())
+    }
+
+    /// Pushes two values off the stack, performs coercions on both values into a specified type,
+    /// performs a binary operation on them, then turns the result back into a value
+    /// and pushes it back onto the stack.
+    fn binary_op<T, U: Into<Value>>(
+        &mut self,
+        coerce: impl Fn(&Self, Value) -> Result<T>,
+        op: impl FnOnce(T, T) -> U
+    ) -> Result<()> {
+        let a = self.pop_val_as(&coerce)?;
+        let b = self.pop_val_as(&coerce)?;
+
+        let val = op(a, b);
+
+        self.push(val.into())?;
+
+        Ok(())
+    }
+
     /// Interprets the current instruction pointed to by `ip`.
     /// Returns the new value the instruction pointer should progress to.
     fn interpret_instruction(&mut self) -> Result<InterpretControlFlow> {
@@ -280,55 +362,166 @@ impl Vm<'_> {
         match *opcode {
             opcode::NO_OP => {},
 
-            opcode::JUMP => todo!(),
+            opcode::JUMP => {
+                let address = self.read_u32()? as usize;
+                self.ip = address;
+            },
 
-            opcode::JUMP_IF => todo!(),
+            opcode::JUMP_IF => {
+                let address = self.read_u32()? as usize;
 
-            opcode::CALL => todo!(),
+                let val = self.pop_val_as(Self::coerce_to_bool)?;
 
-            opcode::RET => todo!(),
+                if val {
+                    self.ip = address;
+                }
+            },
+
+            opcode::CALL => {
+                let arg_count = self.read_u32()?;
+
+                // When calling a function from a user function, the stack will approximately look like this:
+                // 
+                // [ ..., <closure>, arg1, arg2, arg3, ... ]
+                //                                      ^
+                //                              current stack head
+                //
+                // The index on the stack where the closure to call is located at will therefore be
+                // the current stack head - the amount of arguments - 1.
+
+                let function_stack_index = self.stack.head() - arg_count as usize - 1;
+
+                let val = self.stack.get(function_stack_index)
+                    .ok_or_else(|| self.exception(Exception::StackUnderflow))?;
+                let closure = self.coerce_to_function(*val)?;
+
+                return Ok(InterpretControlFlow::Call { closure, arg_count });
+            },
+
+            opcode::RET => {
+                return Ok(InterpretControlFlow::Return);
+            },
 
             opcode::ENTER_TEMP_FRAME => todo!(),
 
             opcode::EXIT_TEMP_FRAME => todo!(),
 
-            opcode::PUSH_INT => todo!(),
+            opcode::PUSH_INT => {
+                let val = self.read_u32()?;
 
-            opcode::PUSH_BOOL => todo!(),
+                self.push(Value::Number(val as f64))?;
+            },
 
-            opcode::PUSH_FUNC => todo!(),
+            opcode::PUSH_BOOL => {
+                let val = self.read_u8()?;
 
-            opcode::PUSH_NIL => todo!(),
+                let bool = val != 0;
 
-            opcode::POP => todo!(),
+                self.push(Value::Bool(bool))?;
+            },
 
-            opcode::DUP => todo!(),
+            opcode::PUSH_FUNC => {
+                let val = self.read_u32()?;
 
-            opcode::SWAP => todo!(),
+                let closure = Closure {
+                    function: FuncId(val),
+                    captures: None
+                };
+
+                self.push(Value::Function(closure))?;
+            },
+
+            opcode::PUSH_NIL => {
+                self.push(Value::Nil)?;
+            },
+
+            opcode::POP => {
+                self.pop()?;
+            },
+
+            opcode::DUP => {
+                let val = self.pop()?;
+
+                self.push(val)?;
+                self.push(val)?;
+            },
+
+            opcode::SWAP => {
+                let a = self.pop()?;
+                let b = self.pop()?;
+
+                self.push(a)?;
+                self.push(b)?;
+            },
 
             opcode::STORE_VAR => todo!(),
 
             opcode::LOAD_VAR => todo!(),
 
-            opcode::ADD => todo!(),
+            opcode::ADD => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| a + b
+                )?;
+            },
 
-            opcode::SUB => todo!(),
+            opcode::SUB => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| a - b
+                )?;
+            },
 
-            opcode::MULT => todo!(),
+            opcode::MULT => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| a * b
+                )?;
+            },
 
-            opcode::DIV => todo!(),
+            opcode::DIV => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| b / a
+                )?;
+            },
 
             opcode::EQUAL => todo!(),
 
-            opcode::LESS_THAN => todo!(),
+            opcode::LESS_THAN => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| b < a
+                )?;
+            },
 
-            opcode::NOT => todo!(),
+            opcode::NOT => {
+                self.unary_op(
+                    Self::coerce_to_bool,
+                    |x| !x
+                )?;
+            },
 
-            opcode::AND => todo!(),
+            opcode::AND => {
+                self.binary_op(
+                    Self::coerce_to_bool,
+                    |a, b| a && b
+                )?;
+            },
 
-            opcode::OR => todo!(),
+            opcode::OR => {
+                self.binary_op(
+                    Self::coerce_to_bool,
+                    |a, b| a || b
+                )?;
+            },
 
-            opcode::GREATER_THAN => todo!(),
+            opcode::GREATER_THAN => {
+                self.binary_op(
+                    Self::coerce_to_number,
+                    |a, b| b > a
+                )?;
+            },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
 
