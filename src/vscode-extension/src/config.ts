@@ -93,11 +93,6 @@ export async function updateInteractively(
             label: "Workspace",
             description: "Set the configuration in the workspace",
             target: ConfigurationTarget.Workspace
-        },
-        {
-            label: "Workspace folder",
-            description: "Set the configuration in the workspace folder",
-            target: ConfigurationTarget.WorkspaceFolder
         }
     ], {
         title: "Where should the configuration be set?",
