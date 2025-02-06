@@ -9,7 +9,7 @@ use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
 mod interpret;
-mod values;
+mod value_ops;
 mod stack;
 
 type Result<T> = std::result::Result<T, FormattedException>;
