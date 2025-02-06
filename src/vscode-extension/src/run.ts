@@ -41,7 +41,7 @@ async function userUpdateRuntimePath(): Promise<string | undefined> {
 
     let configured = await updateRuntimePathInteractively();
 
-    if (configured === undefined) {
+    if (!configured) {
         await showError();
         return undefined;
     }
@@ -87,8 +87,12 @@ export async function runDocument(document: TextDocument): Promise<boolean> {
     } else {
         runtimePath = getRuntimePath();
 
-        if (runtimePath === undefined) {
+        if (!runtimePath) {
             runtimePath = await userUpdateRuntimePath();
+
+            if (!runtimePath) {
+                return false;
+            }
         }
     }
 
