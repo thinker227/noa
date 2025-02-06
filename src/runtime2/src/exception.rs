@@ -38,12 +38,14 @@ pub enum Exception {
 }
 
 /// An [`Exception`] formatted with a stack trace.
+#[derive(Debug)]
 pub struct FormattedException {
     pub exception: Exception,
     pub stack_trace: Vec<TraceFrame>,
 }
 
 /// A frame in a stack trace.
+#[derive(Debug)]
 pub struct TraceFrame {
     pub function: String,
     pub address: Option<usize>,
