@@ -14,6 +14,7 @@ pub struct Frame {
 }
 
 /// The kind of a stack frame.
+#[derive(Debug, Clone, Copy)]
 pub enum FrameKind {
     /// The frame is for a call to a user function.
     UserFunction,

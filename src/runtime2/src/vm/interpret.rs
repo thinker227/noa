@@ -1,3 +1,5 @@
+use std::assert_matches::assert_matches;
+
 use crate::ark::FuncId;
 use crate::exception::Exception;
 use crate::opcode;
@@ -229,6 +231,50 @@ impl Vm<'_> {
         }
     }
 
+    /// Enters a temporary stack frame.
+    fn enter_temp_frame(&mut self) -> Result<()> {
+        let current_frame = self.call_stack.stack.last()
+            .expect("call stack should not be empty while entering temporary stack frame");
+
+        let current_frame_index = match &current_frame.kind {
+            FrameKind::UserFunction => self.call_stack.stack.len() - 1,
+            FrameKind::NativeFunction => panic!("top-most frame of call stack cannot be a native function frame while enter a temporary stack frame"),
+            FrameKind::Temp { parent_function_index } => *parent_function_index,
+        };
+
+        let stack_start = self.stack.head();
+
+        let frame = Frame {
+            stack_start,
+            kind: FrameKind::Temp { parent_function_index: current_frame_index },
+            .. *current_frame
+        };
+
+        self.call_stack.stack.push_within_capacity(frame)
+            .map_err(|_| self.exception(Exception::CallStackOverflow))?;
+
+        Ok(())
+    }
+
+    /// Exits a temporary stack frame.
+    fn exit_temp_frame(&mut self) -> Result<()> {
+        let current_frame = self.call_stack.stack.pop()
+            .expect("call stack should not be empty while exiting temporary stack frame");
+
+        assert_matches!(
+            current_frame.kind,
+            FrameKind::Temp { .. },
+            "top-most stack frame while exiting a temporary stack frame should be a temporary stack frame"
+        );
+
+        self.stack.shrink(current_frame.stack_start);
+
+        self.ip = current_frame.ret
+            .expect("instruction pointer of temporary stack frame should not be `None`");
+
+        Ok(())
+    }
+
     /// Runs the interpreter until the call stack runs out, or an exception occurs.
     fn _run(&mut self) -> Result<()> {
         while !self.call_stack.stack.is_empty() {
@@ -402,9 +448,13 @@ impl Vm<'_> {
                 return Ok(InterpretControlFlow::Return);
             },
 
-            opcode::ENTER_TEMP_FRAME => todo!(),
+            opcode::ENTER_TEMP_FRAME => {
+                self.enter_temp_frame()?;
+            },
 
-            opcode::EXIT_TEMP_FRAME => todo!(),
+            opcode::EXIT_TEMP_FRAME => {
+                self.exit_temp_frame()?;
+            },
 
             opcode::PUSH_INT => {
                 let val = self.read_u32()?;
