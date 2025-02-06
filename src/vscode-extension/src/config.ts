@@ -42,7 +42,23 @@ export function getLogLevel(): string {
 export async function updateRuntimePathInteractively(): Promise<string | undefined> {
     return await updateInteractively(
         "runtimeExecutable",
-        "Enter the path to the Noa runtime executable"
+        "Select Noa runtime executable",
+        "Select",
+        async (title, prompt) => {
+            let res = await window.showOpenDialog({
+                title,
+                openLabel: prompt,
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false
+            });
+
+            if (!res) {
+                return undefined;
+            }
+
+            return res[0].fsPath;
+        }
     );
 }
 
@@ -56,12 +72,12 @@ export async function updateRuntimePathInteractively(): Promise<string | undefin
 export async function updateInteractively(
     section: string,
     title?: string,
-    prompt?: string
+    prompt?: string,
+    inputFunc?: (title?: string, prompt?: string) => Thenable<string | undefined>
 ): Promise<string | undefined> {
-    let value = await window.showInputBox({
-        title,
-        prompt
-    });
+    inputFunc ??= async (title, prompt) => await window.showInputBox({ title, prompt });
+
+    let value = await inputFunc(title, prompt);
 
     if (!value) {
         return undefined;
