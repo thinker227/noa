@@ -1,4 +1,8 @@
-use crate::{exception::{Exception, FormattedException}, heap::HeapValue, value::{Type, Value}};
+use std::collections::HashMap;
+
+use crate::value::{Closure, Type, Value};
+use crate::heap::{HeapAddress, HeapValue};
+use crate::exception::{Exception, FormattedException};
 
 use super::{Vm, Result};
 
@@ -20,51 +24,75 @@ impl Vm<'_> {
         }
     }
 
+    /// Tries to coerce a value into a number.
+    pub fn coerce_to_number(&self, val: Value) -> Result<f64> {
+        match val {
+            Value::Number(x) => Ok(x),
+            Value::Bool(x) => Ok(if x { 1. } else { 0. }),
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                HeapValue::List(_) => todo!("not specified yet"),
+                HeapValue::Object(_) => todo!("not specified yet"),
+                _ => Err(self.coercion_error(val, Type::Number)),
+            },
+            Value::Nil => Ok(0.),
+            _ => Err(self.coercion_error(val, Type::Number)),
+        }
+    }
+
+    /// Tries to coerce a value into a boolean.
+    pub fn coerce_to_bool(&self, val: Value) -> Result<bool> {
+        match val {
+            Value::Number(_) => Ok(true),
+            Value::Bool(x) => Ok(x),
+            Value::Function(_) => Ok(true),
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                HeapValue::String(_) => Ok(true),
+                HeapValue::List(_) => todo!("not specified yet"),
+                HeapValue::Object(_) => todo!("not specified yet"),
+            },
+            Value::Nil => Ok(false),
+        }
+    }
+
+    /// Tries to coerce a value into a closure.
+    pub fn coerce_to_function(&self, val: Value) -> Result<Closure> {
+        match val {
+            Value::Function(x) => Ok(x),
+            _ => Err(self.coercion_error(val, Type::Function)),
+        }
+    }
+
+    /// Tries to coerce a value into a string.
+    pub fn coerce_to_string(&self, val: Value) -> Result<(&String, HeapAddress)> {
+        match val {
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                HeapValue::String(x) => Ok((x, heap_address)),
+                HeapValue::List(_) => todo!("not yet specified"),
+                HeapValue::Object(_) => todo!("not yet specified"),
+            },
+            _ => Err(self.coercion_error(val, Type::String)),
+        }
+    }
+
+    /// Tries to coerce a value into a list.
+    pub fn coerce_to_list(&self, _: Value) -> Result<(&Vec<Value>, HeapAddress)> {
+        todo!("not specified yet")
+    }
+
+    /// Tries to coerce a value into an object.
+    pub fn coerce_to_object(&self, _: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
+        todo!("not specified yet")
+    }
+
     /// Coerces a value into another type according to value coercion rules.
     pub fn coerce(&self, val: Value, ty: Type) -> Result<Value> {
-        let error = || self.coercion_error(val, ty);
-
-        match (val, ty) {
-            (Value::Number(x), Type::Number) => Ok(x.into()),
-            (Value::Number(_), Type::Bool)        => Ok(true.into()),
-            (Value::Number(_), Type::List)        => todo!("not specified yet"),
-            (Value::Number(_), _)                 => Err(error()),
-
-            (Value::Bool(x), Type::Number) => Ok(if x { 1.0.into() } else { 0.0.into() }),
-            (Value::Bool(x), Type::Bool)   => Ok(x.into()),
-            (Value::Bool(_), Type::List)         => todo!("not specified yet"),
-            (Value::Bool(_), _)                  => Err(error()),
-
-            (Value::Function(x), Type::Function) => Ok(x.into()),
-            (Value::Function(_), Type::List)              => todo!("not specified yet"),
-            (Value::Function(_), _)                       => Err(error()),
-
-            (Value::Object(heap_address), ty) => match (self.get_heap_value(heap_address)?, ty) {
-                (HeapValue::String(_), Type::Bool)   => Ok(true.into()),
-                (HeapValue::String(_), Type::String) => Ok(heap_address.into()),
-                (HeapValue::String(_), Type::List)   => todo!("not specified yet"),
-                (HeapValue::String(_), _)            => Err(error()),
-
-                (HeapValue::List(_), Type::Number)   => todo!("not specified yet"),
-                (HeapValue::List(_), Type::Bool)     => todo!("not specified yet"),
-                (HeapValue::List(_), Type::Function) => todo!("not specified yet"),
-                (HeapValue::List(_), Type::String)   => todo!("not specified yet"),
-                (HeapValue::List(_), Type::List)     => todo!("not specified yet"),
-                (HeapValue::List(_), _)              => todo!("not specified yet"),
-
-                (HeapValue::Object(_), Type::Number)   => todo!("not specified yet"),
-                (HeapValue::Object(_), Type::Bool)     => todo!("not specified yet"),
-                (HeapValue::Object(_), Type::Function) => todo!("not specified yet"),
-                (HeapValue::Object(_), Type::String)   => todo!("not specified yet"),
-                (HeapValue::Object(_), Type::List)     => todo!("not specified yet"),
-                (HeapValue::Object(_), _)              => todo!("not specified yet"),
-            },
-
-            (Value::Nil, Type::Number) => Ok(0.0.into()),
-            (Value::Nil, Type::Bool)   => Ok(false.into()),
-            (Value::Nil, Type::String) => todo!("not specified yet"),
-            (Value::Nil, Type::List)   => todo!("not specified yet"),
-            (Value::Nil, _)            => Err(error()),
+        match ty {
+            Type::Number   => self.coerce_to_number(val)  .map(|x| x.into()),
+            Type::Bool     => self.coerce_to_bool(val)    .map(|x| x.into()),
+            Type::Function => self.coerce_to_function(val).map(|x| x.into()),
+            Type::String   => self.coerce_to_string(val)  .map(|(_, adr)| adr.into()),
+            Type::List     => self.coerce_to_list(val)    .map(|(_, adr)| adr.into()),
+            Type::Nil      => Err(self.coercion_error(val, Type::Nil)),
         }
     }
 
