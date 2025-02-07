@@ -1,3 +1,154 @@
+//! # The VM interpreter
+//! 
+//! The Noa virtual machine is a bytecode interpreter.
+//! During normal execution of a user function, the vm will sequentially read bytes
+//! from the code section of the Ark file and interpret each byte as an instruction
+//! (and potentially read an additional set of bytes as instruction operands).
+//! Executing an instruction will usually have some effect on the stack, the instruction pointer,
+//! or control flow, causing the vm to potentially enter and execute a new function.
+//! 
+//! The principal method used to interact with the interpreter is [`Vm::call_run`]
+//! which calls a [`Closure`] with some specified arguments and immediately begins executing the interpreter.
+//! It acts as a higher-level wrapper around [`Vm::call`] which is the core function used to handle calling functions,
+//! which itself delegates to two other functions, [`Vm::call_user`] and [`Vm::call_native`]
+//! depending on whether the provided function is a user or native function.
+//! 
+//! ## The execution root
+//! 
+//! When calling a function from outside the context of the vm (e.g. from main.rs),
+//! the context is called the "execution root". This isn't as much a stack frame as it is
+//! a way to refer to the call stack being empty, which is only the case when a function is called like this.
+//! Returning from a user function called from the execution root acts much like returning back into
+//! a native function, since that is essentially what it does.
+//! 
+//! ## Calling user functions
+//! 
+//! A user function is a function defined as a sequence of bytecode instructions.
+//! It is the main kind of function the interpreter executes, and is what most of it is dedicated to.
+//! 
+//! When [`Vm::call_user`] is called, the vm will begin setting itself up for executing the provided closure.
+//! This involves pushing the closure captures object onto the stack, preparing the stack with placeholder values
+//! for the locals of the function, setting the instruction pointer, and pushing a new stack frame onto the call stack.
+//! 
+//! Unless there's a bug in the vm, the stack will roughly look like this when calling [`Vm::call_user`]:
+//! 
+//! ```
+//! [ ..., closure, arg1, arg2, arg3 ]
+//! ```
+//! 
+//! The closure will be the first thing pushed onto the stack, followed by the arguments in sequential order.
+//! 
+//! Within the metadata of a function, the *arity* of the function is specified,
+//! i.e. how many arguments the function expects,
+//! and the vm needs to respect this in order to not put the stack in an bad state.
+//! The way this is done is by pushing [`Value::Nil`] onto the stack until there are enough arguments,
+//! or popping values until there are enough.
+//! 
+//! After the stack has been set up, the vm calculates the stack start index of the function,
+//! which is the index within the stack which represents the start of function's own little slice of the stack
+//! where its arguments, captures object, and locals will live.
+//! 
+//! After calling [`Vm::call_user`], the stack will look roughly like this:
+//! 
+//! ```
+//! [ ..., closure, arg1, arg2, arg3, captures, local1, local2, local3 ]
+//! //             ^
+//! //     stack start index
+//! ```
+//! 
+//! Note that the closure is still on the stack right before the stack start index.
+//! 
+//! After this, the vm will construct a new stack frame for the user function,
+//! which contains the function's ID, the aforementioned stack start index,
+//! the address to which the vm should return to after the user function is done executing,
+//! and the [`FrameKind`] of the stack frame (which is always [`FrameKind::UserFunction`]),
+//! and push it onto the call stack.
+//! 
+//! Once everything is set up, the [`Vm::ip`] will be set to the function's specified start address,
+//! and the [`Vm::call_user`] is finished.
+//! 
+//! ## Returning from user functions
+//! 
+//! Returning from a user function is done from bytecode by interpreting the [`opcode::RET`] instruction.
+//! This will return from [`Vm::interpret_instruction`] with [`InterpretControlFlow::Return`] and in turn
+//! call [`Vm::ret_user`].
+//! 
+//! [`Vm::ret_user`] in many ways mirrors [`Vm::call_user`] in that it essentially does the reverse of everything
+//! [`Vm::call_user`] set up. [`Vm::ret_user`] begins by popping a value off of the stack to use as the return
+//! value of the user function. It then pops the current stack frame off of the call stack,
+//! ensuring that it is a user function frame, and retrieving the stack backtrack index from the stack frame.
+//! This is done through a neat little hack which relies on the layout of the stack when returning from a user function:
+//! 
+//! ```
+//! // When the function was called from a user function:
+//! [ ..., closure, arg1, arg2, arg3, captures, local1, local2, local3, ... ]
+//! //             ^
+//! //     stack start index
+//! 
+//! // When the function was called from a native function or the execution root:
+//! [ ..., arg1, arg2, arg3, captures, local1, local2, local3, ... ]
+//! //    ^
+//! // stack start index
+//! ```
+//! 
+//! We want to get rid of everything on the stack related to the user function, including the closure itself.
+//! However, there will only be a closure on the stack if the function was itself called from a user function.
+//! The logic here is therefore that the index on the stack to backtrack to when returning is the
+//! index before ths stack start index *if called from a user function*, otherwise it is just the stack start index.
+//! 
+//! After the stack has been reset, the [`Vm::ip`] is set to the [`Frame::ret`] of the previous stack frame,
+//! if it's not [`None`]. In the case that it is [`None`], the function must've been called from the
+//! execution root or a native function, so there's no need to set the instruction pointer to anything.
+//! 
+//! ## Calling native functions
+//! 
+//! Calling native function is in many ways similar to calling a user function, but different in some crucial ways
+//! due to having to call into native code. Native functions naturally do not execute any bytecode,
+//! instead they have to interrupt normal execution of bytecode and instead execute a native Rust function.
+//! 
+//! A problem, however, arises when considering that native functions may want to call back into user code,
+//! because this requires pausing execution of the native function and returning into user code.
+//! I initially experimented with representing native functions as state machines to allow simply pausing
+//! them, but it turned out to be way too complex. Instead, native functions calling user code is implemented
+//! using simple recursion. A native function can call [`Vm::call_run`] and provide its own closure and arguments,
+//! which will execute whatever function was specified by interpreting bytecode.
+//! 
+//! [`Vm::call_native`] is fundamentally different from [`Vm::call_user`] in that [`Vm::call_native`] will return
+//! the return value of its called function, while [`Vm::call_user`] returns by pushing a value onto the stack.
+//! [`Vm::call_native`] will also push a stack frame onto the call stack only for the duration of the execution
+//! of the native function and immediately pop it afterwards. It also doesn't account for any superfluous arguments
+//! to the function since native function may be variadic,
+//! instead passing a vector of the raw arguments to the native function.
+//! 
+//! ## Temporary stack frames
+//! 
+//! Temporary stack frames ([`FrameKind::Temp`]) exist as a consequence of Noa being expression-oriented
+//! (and the compiler not being very smart lol). The compiler cannot know how big the stack will be
+//! when breaking or continuing from a loop, since the `break` or `continue` statement might
+//! be inside some other expression like `1 + break`. In this example, `1` will be on the stack when breaking,
+//! essentially being garbage data. To remedy this, when entering a loop, the [`opcode::ENTER_TEMP_FRAME`]
+//! opcode will be emitted, which signifies to push a temporary stack frame onto the call stack,
+//! and when exiting a loop, the [`opcode::EXIT_TEMP_FRAME`] opcode is emitted which does the reverse.
+//! Despite being called the "*call* stack", temporary frames don't really represent a "call" to anything,
+//! instead just being a marker on the call stack. For this reason, several places in the interpreter
+//! have to account for the current stack frame possibly being a temporary frame.
+//! 
+//! Entering a temporary stack frame isn't particularly complex, however.
+//! Really all that is done is looking up the current *user function* frame to retrieve its index on the call stack,
+//! constructing an almost identical copy of that frame though with a different stack start index and kind,
+//! and pushing that onto the stack,.
+//! 
+//! Exiting a temporary stack frame isn't particularly complex either.
+//! It just pops the current frame, ensures that it is a temporary frame, and resets the stack back to the frame's
+//! stack start index. Note that it *does not* set the instruction pointer, because exiting a temporary stack frame
+//! has nothing to do with returning from a function, since they are primarily used for `break`/`continue` within loops.
+//! 
+//! ## Boundaries
+//! 
+//! On a small note, [`opcode::BOUNDARY`] exists to catch any missing return statements.
+//! [`opcode::BOUNDARY`] is emitted after every function, and its only purpose is to cause an exception
+//! if the vm tries to execute it.
+
 use std::assert_matches::assert_matches;
 
 use crate::ark::FuncId;
@@ -193,7 +344,7 @@ impl Vm<'_> {
 
         // When calling a function from a user function, the stack will approximately look like this:
         // 
-        // [ ..., <closure>, arg1, arg2, arg3, ... ]
+        // [ ..., closure, arg1, arg2, arg3, ... ]
         //                   ^
         //       this is the current frame's
         //       (the one we just popped's)
@@ -460,7 +611,7 @@ impl Vm<'_> {
 
                 // When calling a function from a user function, the stack will approximately look like this:
                 // 
-                // [ ..., <closure>, arg1, arg2, arg3, ... ]
+                // [ ..., closure, arg1, arg2, arg3, ... ]
                 //                                      ^
                 //                              current stack head
                 //
