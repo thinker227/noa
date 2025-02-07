@@ -278,6 +278,35 @@ impl Vm<'_> {
         Ok(())
     }
 
+    fn get_variable_stack_index(&self, variable_index: usize) -> usize {
+        let frame = self.get_top_non_temp_frame()
+            .expect("top-most stack frame should not be empty when reading a variable");
+
+        frame.stack_start + variable_index
+    }
+
+    fn read_variable(&self, variable_index: usize) -> Result<Value> {
+        let stack_index = self.get_variable_stack_index(variable_index);
+
+        let val = self.stack.get(stack_index)
+            .ok_or_else(|| self.exception(Exception::InvalidVariable(variable_index)))?;
+
+        Ok(*val)
+    }
+
+    fn write_variable(&mut self, variable_index: usize, value: Value) -> Result<()> {
+        let stack_index = self.get_variable_stack_index(variable_index);
+
+        let stack_value = match self.stack.get_mut(stack_index) {
+            Some(x) => x,
+            None => return Err(self.exception(Exception::InvalidVariable(stack_index))),
+        };
+
+        *stack_value = value;
+
+        Ok(())
+    }
+
     /// Runs the interpreter until the call stack runs out, or an exception occurs.
     fn _run(&mut self) -> Result<()> {
         while !self.call_stack.stack.is_empty() {
@@ -507,9 +536,21 @@ impl Vm<'_> {
                 self.push(b)?;
             },
 
-            opcode::STORE_VAR => todo!(),
+            opcode::STORE_VAR => {
+                let var_index = self.read_u32()?;
 
-            opcode::LOAD_VAR => todo!(),
+                let value = self.pop()?;
+
+                self.write_variable(var_index as usize, value)?;
+            },
+
+            opcode::LOAD_VAR => {
+                let var_index = self.read_u32()?;
+
+                let value = self.read_variable(var_index as usize)?;
+
+                self.push(value)?;
+            },
 
             opcode::ADD => {
                 self.binary_op(

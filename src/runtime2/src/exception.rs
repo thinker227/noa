@@ -35,6 +35,9 @@ pub enum Exception {
 
     #[error("cannot coerce {0} to into {1}")]
     CoercionError(String, String),
+
+    #[error("invalid variable `{0}`")]
+    InvalidVariable(usize),
 }
 
 /// An [`Exception`] formatted with a stack trace.
