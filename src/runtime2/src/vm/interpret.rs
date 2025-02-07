@@ -269,9 +269,6 @@ impl Vm<'_> {
 
         self.stack.shrink(current_frame.stack_start);
 
-        self.ip = current_frame.ret
-            .expect("instruction pointer of temporary stack frame should not be `None`");
-
         Ok(())
     }
 
