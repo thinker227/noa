@@ -183,6 +183,12 @@ impl Vm<'_> {
         let frame = self.call_stack.stack.pop()
             .expect("call stack cannot be empty when returning from a user function");
 
+        assert_matches!(
+            frame.kind,
+            FrameKind::UserFunction | FrameKind::Temp { .. },
+            "top-most stack frame has to be a user function user temporary frame when returning from a user function"
+        );
+
         let stack_start = frame.stack_start;
 
         // When calling a function from a user function, the stack will approximately look like this:
