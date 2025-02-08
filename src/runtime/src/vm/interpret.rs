@@ -662,6 +662,10 @@ impl Vm {
                 self.push(Value::Nil)?;
             },
 
+            opcode::PUSH_STRING => {
+                todo!()
+            },
+
             opcode::POP => {
                 self.pop()?;
             },

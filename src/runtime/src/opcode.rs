@@ -9,6 +9,7 @@ pub const PUSH_INT: u8 = 0x14;
 pub const PUSH_BOOL: u8 = 0x15;
 pub const PUSH_FUNC: u8 = 0x16;
 pub const PUSH_NIL: u8 = 0x17;
+pub const PUSH_STRING: u8 = 0x18;
 pub const POP: u8 = 0x32;
 pub const DUP: u8 = 0x33;
 pub const SWAP: u8 = 0x34;
