@@ -16,9 +16,13 @@ type Result<T> = std::result::Result<T, FormattedException>;
 
 /// Constants for a single execution of the virtual machine.
 struct VmConsts {
+    /// User functions.
     pub functions: Vec<Function>,
+    /// Native functions.
     pub native_functions: Vec<NativeFunction>,
+    /// Constant strings.
     pub strings: Vec<String>,
+    /// Bytecode instructions.
     pub code: Vec<u8>,
 }
 
@@ -29,10 +33,18 @@ struct CallStack {
 
 /// The runtime virtual machine.
 pub struct Vm<'a> {
+    /// Immutable 'constants' for the vm execution.
     consts: VmConsts,
+    /// The vm's stack memory.
+    /// Home of all function arguments, local variables, and temporaries.
     stack: Stack,
+    /// The vm's heap where all non-stack memory is allocated.
     heap: Heap,
+    /// The vm's call stack.
+    /// Responsible for keeping track of what function is currently being executed.
     call_stack: &'a mut CallStack,
+    /// The instruction pointer. Points to a specific byte in [`VmConsts::code`]
+    /// which is the *next* bytecode instruction to be executed.
     ip: usize,
 }
 
