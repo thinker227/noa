@@ -66,6 +66,13 @@ internal sealed partial class Lexer
                 continue;
             }
 
+            // Strings
+            if (TryString() is { IsEmpty: false } str)
+            {
+                ConstructToken(TokenKind.String, str.Length);
+                continue;
+            }
+
             // Unknown
             var unexpectedSpan = TextSpan.FromLength(position, 1);
             var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedSpan);
@@ -153,6 +160,36 @@ internal sealed partial class Lexer
         {
             if (!SyntaxFacts.IsDigit(Rest[i])) break;
         }
+
+        return Rest[..i];
+    }
+
+    private ReadOnlySpan<char> TryString()
+    {
+        if (Get(1) is not "\"") return ReadOnlySpan<char>.Empty;
+
+        var i = 1;
+        for (; i < Rest.Length; i++)
+        {
+            var current = Rest[i];
+
+            // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
+            // Include the final character in the returned text.
+            if (current is '"') return Rest[..(i + 1)];
+
+            // Encountered an unterminated string, either because of a newline or end of input.
+            if (current is '\n' || i == Rest.Length - 1) break;
+
+            // Skip escape sequences.
+            // An escape sequence here is considered a \ followed by any character except a newline.
+            if (Rest[1..] is ['\\', not '\n', ..]) i++;
+        }
+
+        // If we got here then the string is unterminated.
+        // Report a diagnostic at the very end of the string.
+        var span = TextSpan.FromLength(position + i, 1);
+        var location = new Location(source.Name, span);
+        diagnostics.Add(ParseDiagnostics.UnterminatedString.Format(location));
 
         return Rest[..i];
     }
