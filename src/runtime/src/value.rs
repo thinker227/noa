@@ -31,6 +31,14 @@ impl From<FuncId> for Closure {
     }
 }
 
+/// The 'location' of a string within the vm.
+pub enum StringLocation {
+    /// An interned string with an index pointing into the string section.
+    Interned(usize),
+    /// A string allocated on the heap with an address on the heap.
+    Allocated(HeapAddress),
+}
+
 /// A runtime value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Value {
@@ -38,6 +46,8 @@ pub enum Value {
     Number(f64),
     /// A boolean.
     Bool(bool),
+    /// A reference to a string in the string section.
+    InternedString(usize),
     /// A function.
     Function(Closure),
     /// A heap-allocated object.
@@ -55,6 +65,15 @@ impl From<f64> for Value {
 impl From<bool> for Value {
     fn from(value: bool) -> Self {
         Self::Bool(value)
+    }
+}
+
+impl From<StringLocation> for Value {
+    fn from(value: StringLocation) -> Self {
+        match value {
+            StringLocation::Interned(index) => Self::InternedString(index),
+            StringLocation::Allocated(heap_address) => Self::Object(heap_address),
+        }
     }
 }
 
