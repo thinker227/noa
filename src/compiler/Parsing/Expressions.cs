@@ -250,6 +250,20 @@ internal sealed partial class Parser
                 };
             }
         
+        case TokenKind.String:
+            {
+                var str = Advance();
+
+                var text = ParseStringText(str);
+
+                return new StringExpression()
+                {
+                    Ast = Ast,
+                    Span = str.Span,
+                    Value = text
+                };
+            }
+        
         default:
             return new ErrorExpression()
             {
