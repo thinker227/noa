@@ -46,6 +46,11 @@ pub struct Vm<'a> {
     /// The instruction pointer. Points to a specific byte in [`VmConsts::code`]
     /// which is the *next* bytecode instruction to be executed.
     ip: usize,
+    /// The instruction pointer used as reference when constructing a stack trace.
+    /// This is not the same as [`Self::ip`] since this will always point at the
+    /// bytecode instruction which is *currently* being executed, to provide
+    /// better traces.
+    trace_ip: usize,
 }
 
 /// Creates a new [`Vm`] and passes it to a closure
@@ -99,6 +104,7 @@ impl<'a> Vm<'a> {
             call_stack,
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
+            trace_ip: 0
         }
     }
 
@@ -134,7 +140,7 @@ impl<'a> Vm<'a> {
 
         if let Some(first) = frames.next() {
             let mut address = match first.kind {
-                FrameKind::UserFunction => Some(self.ip),
+                FrameKind::UserFunction => Some(self.trace_ip),
                 FrameKind::NativeFunction => None,
                 FrameKind::Temp { .. } => unreachable!()
             };

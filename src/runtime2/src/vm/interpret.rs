@@ -461,6 +461,8 @@ impl Vm<'_> {
     /// Runs the interpreter until the current function returns, or an exception occurs.
     fn run_function(&mut self) -> Result<Value> {
         while !self.call_stack.stack.is_empty() {
+            self.trace_ip = self.ip;
+
             let ctrl_flw = self.interpret_instruction()?;
 
             match ctrl_flw {
@@ -566,6 +568,8 @@ impl Vm<'_> {
     fn interpret_instruction(&mut self) -> Result<InterpretControlFlow> {
         let opcode = self.consts.code.get(self.ip)
             .ok_or_else(|| self.exception(Exception::Overrun))?;
+
+        self.ip += 1;
 
         match *opcode {
             opcode::NO_OP => {},
