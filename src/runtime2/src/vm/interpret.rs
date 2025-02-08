@@ -458,27 +458,6 @@ impl Vm<'_> {
         Ok(())
     }
 
-    /// Runs the interpreter until the call stack runs out, or an exception occurs.
-    fn _run(&mut self) -> Result<()> {
-        while !self.call_stack.stack.is_empty() {
-            let ctrl_flw = self.interpret_instruction()?;
-
-            match ctrl_flw {
-                InterpretControlFlow::Continue => {},
-                InterpretControlFlow::Call { closure, arg_count } => {
-                    self.call(closure, arg_count)?;
-                },
-                InterpretControlFlow::Return => {
-                    let ret = self.ret_user()?;
-                    self.stack.push(ret)
-                        .map_err(|e| self.exception(e))?;
-                },
-            }
-        }
-
-        Ok(())
-    }
-
     /// Runs the interpreter until the current function returns, or an exception occurs.
     fn run_function(&mut self) -> Result<Value> {
         while !self.call_stack.stack.is_empty() {
