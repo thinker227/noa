@@ -168,7 +168,7 @@ enum InterpretControlFlow {
     Return,
 }
 
-impl Vm<'_> {
+impl Vm {
     /// Calls a closure with specified arguments, runs until it returns, then returns the return value of the closure.
     pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value> {
         // Push arguments onto the stack.
@@ -250,7 +250,7 @@ impl Vm<'_> {
             kind: FrameKind::UserFunction,
         };
 
-        self.call_stack.stack.push_within_capacity(frame)
+        self.call_stack.push_within_capacity(frame)
             .map_err(|_| self.exception(Exception::CallStackOverflow))?;
         
         self.ip = address;
@@ -284,7 +284,7 @@ impl Vm<'_> {
 
         // Block to keep track of the 'scope' for the frame.
         let ret = {
-            self.call_stack.stack.push_within_capacity(frame)
+            self.call_stack.push_within_capacity(frame)
                 .map_err(|_| self.exception(Exception::CallStackOverflow))?;
 
             // Actually call the function.
@@ -293,7 +293,7 @@ impl Vm<'_> {
             let ret = function(self, args)
                 .map_err(|e| self.exception(e))?;
 
-            self.call_stack.stack.pop();
+            self.call_stack.pop();
 
             ret
         };
@@ -316,7 +316,7 @@ impl Vm<'_> {
         // if the current stack frame is a user function frame or a temporary frame.
         // For native functions, having a specific return address wouldn't make a lot of sense.
         // For the case that the call stack is empty, the caller must be the execution root.
-        match self.call_stack.stack.last() {
+        match self.call_stack.last() {
             Some(frame) => match frame.kind {
                 FrameKind::UserFunction | FrameKind::Temp { .. } => Some(self.ip),
                 FrameKind::NativeFunction => None,
@@ -331,7 +331,7 @@ impl Vm<'_> {
         let ret = self.stack.pop()
             .map_err(|e| self.exception(e))?;
 
-        let frame = self.call_stack.stack.pop()
+        let frame = self.call_stack.pop()
             .expect("call stack cannot be empty when returning from a user function");
 
         assert_matches!(
@@ -378,9 +378,9 @@ impl Vm<'_> {
 
     /// Gets the top-most stack frame off of the call stack which is not a temporary frame.
     fn get_top_non_temp_frame(&self) -> Option<&Frame> {
-        match self.call_stack.stack.last() {
+        match self.call_stack.last() {
             Some(Frame { kind: FrameKind::Temp { parent_function_index }, .. }) => Some(
-                self.call_stack.stack.get(*parent_function_index)
+                self.call_stack.get(*parent_function_index)
                     .expect("parent function index of temporary stack frame should point to a valid stack frame")
             ),
             Some(frame) => Some(frame),
@@ -390,11 +390,11 @@ impl Vm<'_> {
 
     /// Enters a temporary stack frame.
     fn enter_temp_frame(&mut self) -> Result<()> {
-        let current_frame = self.call_stack.stack.last()
+        let current_frame = self.call_stack.last()
             .expect("call stack should not be empty while entering temporary stack frame");
 
         let current_frame_index = match &current_frame.kind {
-            FrameKind::UserFunction => self.call_stack.stack.len() - 1,
+            FrameKind::UserFunction => self.call_stack.len() - 1,
             FrameKind::NativeFunction => panic!("top-most frame of call stack cannot be a native function frame while enter a temporary stack frame"),
             FrameKind::Temp { parent_function_index } => *parent_function_index,
         };
@@ -407,7 +407,7 @@ impl Vm<'_> {
             .. *current_frame
         };
 
-        self.call_stack.stack.push_within_capacity(frame)
+        self.call_stack.push_within_capacity(frame)
             .map_err(|_| self.exception(Exception::CallStackOverflow))?;
 
         Ok(())
@@ -415,7 +415,7 @@ impl Vm<'_> {
 
     /// Exits a temporary stack frame.
     fn exit_temp_frame(&mut self) -> Result<()> {
-        let current_frame = self.call_stack.stack.pop()
+        let current_frame = self.call_stack.pop()
             .expect("call stack should not be empty while exiting temporary stack frame");
 
         assert_matches!(
@@ -463,7 +463,7 @@ impl Vm<'_> {
         // This feels like such a hack lol
         let mut depth: u32 = 0;
 
-        while !self.call_stack.stack.is_empty() {
+        while !self.call_stack.is_empty() {
             self.trace_ip = self.ip;
 
             let ctrl_flw = self.interpret_instruction()?;

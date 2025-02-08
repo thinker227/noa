@@ -26,13 +26,8 @@ struct VmConsts {
     pub code: Vec<u8>,
 }
 
-/// The vm's call stack.
-struct CallStack {
-    pub stack: Vec<Frame>,
-}
-
 /// The runtime virtual machine.
-pub struct Vm<'a> {
+pub struct Vm {
     /// Immutable 'constants' for the vm execution.
     consts: VmConsts,
     /// The vm's stack memory.
@@ -42,7 +37,7 @@ pub struct Vm<'a> {
     heap: Heap,
     /// The vm's call stack.
     /// Responsible for keeping track of what function is currently being executed.
-    call_stack: &'a mut CallStack,
+    call_stack: Vec<Frame>,
     /// The instruction pointer. Points to a specific byte in [`VmConsts::code`]
     /// which is the *next* bytecode instruction to be executed.
     ip: usize,
@@ -64,16 +59,12 @@ pub fn execute(
     heap_size: usize,
     mut run: impl FnMut(&mut Vm) -> Result<Value>
 ) -> Result<Value> {
-    let mut call_stack = CallStack {
-        stack: Vec::with_capacity(call_stack_size)
-    };
-
     let mut vm = Vm::new(
         functions,
         strings,
         code,
         stack_size,
-        &mut call_stack,
+        call_stack_size,
         heap_size
     );
 
@@ -82,14 +73,14 @@ pub fn execute(
     res
 }
 
-impl<'a> Vm<'a> {
+impl Vm {
     /// Creates a new [`Vm`].
     fn new(
         functions: Vec<Function>,
         strings: Vec<String>,
         code: Vec<u8>,
         stack_size: usize,
-        call_stack: &'a mut CallStack,
+        call_stack_size: usize,
         heap_size: usize
     ) -> Self {
         Self {
@@ -101,7 +92,7 @@ impl<'a> Vm<'a> {
             },
             stack: Stack::new(stack_size),
             heap: Heap::new(heap_size),
-            call_stack,
+            call_stack: Vec::with_capacity(call_stack_size),
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
             trace_ip: 0
@@ -134,7 +125,7 @@ impl<'a> Vm<'a> {
     fn construct_stack_trace(&self) -> Vec<TraceFrame> {
         let mut stack_trace = Vec::new();
 
-        let mut frames = self.call_stack.stack.iter()
+        let mut frames = self.call_stack.iter()
             .rev()
             .filter(|frame| !matches!(frame.kind, FrameKind::Temp { .. }));
 

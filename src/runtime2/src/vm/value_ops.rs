@@ -6,7 +6,7 @@ use crate::exception::{Exception, FormattedException};
 
 use super::{Vm, Result};
 
-impl Vm<'_> {
+impl Vm {
     /// Gets the type of a value.
     /// 
     /// Might return an exception in case the value is an object which points to invalid heap memory.
