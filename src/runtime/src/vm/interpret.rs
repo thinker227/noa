@@ -663,7 +663,9 @@ impl Vm {
             },
 
             opcode::PUSH_STRING => {
-                todo!()
+                let index = self.read_u32()? as usize;
+                
+                self.push(Value::InternedString(index))?;
             },
 
             opcode::POP => {
