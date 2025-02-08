@@ -4,7 +4,6 @@ use stack::Stack;
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::native::NativeFunction;
-use crate::value::Value;
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
