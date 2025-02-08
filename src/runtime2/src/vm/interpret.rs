@@ -460,6 +460,9 @@ impl Vm<'_> {
 
     /// Runs the interpreter until the current function returns, or an exception occurs.
     fn run_function(&mut self) -> Result<Value> {
+        // This feels like such a hack lol
+        let mut depth: u32 = 0;
+
         while !self.call_stack.stack.is_empty() {
             self.trace_ip = self.ip;
 
@@ -469,10 +472,18 @@ impl Vm<'_> {
                 InterpretControlFlow::Continue => {},
                 InterpretControlFlow::Call { closure, arg_count } => {
                     self.call(closure, arg_count)?;
+
+                    depth += 1;
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
-                    return Ok(ret);
+                    
+                    if depth <= 0 {
+                        return Ok(ret);
+                    } else {
+                        depth -= 1;
+                        self.push(ret)?;
+                    }
                 },
             }
         }
