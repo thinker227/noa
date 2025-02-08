@@ -606,8 +606,8 @@ impl Vm<'_> {
                 // When calling a function from a user function, the stack will approximately look like this:
                 // 
                 // [ ..., closure, arg1, arg2, arg3, ... ]
-                //                                      ^
-                //                              current stack head
+                //                                  ^
+                //                          current stack head
                 //
                 // The index on the stack where the closure to call is located at will therefore be
                 // the current stack head - the amount of arguments - 1.
