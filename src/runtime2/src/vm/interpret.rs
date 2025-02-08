@@ -170,14 +170,14 @@ enum InterpretControlFlow {
 
 impl Vm {
     /// Calls a closure with specified arguments, runs until it returns, then returns the return value of the closure.
-    pub fn call_run(&mut self, function: FuncId, args: &[Value]) -> Result<Value> {
+    pub fn call_run(&mut self, closure: Closure, args: &[Value]) -> Result<Value> {
         // Push arguments onto the stack.
         for value in args {
             self.stack.push(*value)
                 .map_err(|e| self.exception(e))?;
         }
 
-        self.call(function.into(), args.len() as u32)?;
+        self.call(closure, args.len() as u32)?;
         let res = self.run_function()?;
 
         Ok(res)

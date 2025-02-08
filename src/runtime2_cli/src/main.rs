@@ -7,10 +7,8 @@ use exit::{Exit, IntoExit};
 use binrw::BinRead;
 use clap::Parser;
 
-use noa_runtime::exception::FormattedException;
-use noa_runtime::value::Value;
-use noa_runtime::vm::{self, Vm};
-use noa_runtime::ark::{Ark, CodeSection, FunctionSection, StringSection};
+use noa_runtime::vm::Vm;
+use noa_runtime::ark::{Ark, CodeSection, FunctionSection, Header, StringSection};
 
 mod args;
 mod exit;
@@ -25,6 +23,10 @@ fn main() -> Exit<()> {
     };
 
     let Ark {
+        header: Header {
+            main,
+            ..
+        },
         function_section: FunctionSection {
             functions,
             ..
@@ -40,19 +42,41 @@ fn main() -> Exit<()> {
         ..
     } = ark;
 
-    let res = vm::execute(
+    let mut vm = Vm::new(
         functions,
         strings,
         code,
         100_000,
         10_000,
-        100_000,
-        run
+        100_000
     );
 
-    Exit::ok()
-}
+    let result = vm.call_run(main.into(), &[]);
 
-fn run(vm: &mut Vm) -> Result<Value, FormattedException> {
-    todo!()
+    match result {
+        Ok(ret) => {
+            if args.print_return_value {
+                // todo: print user-readable value
+                println!("{:#?}", ret);
+            }
+        },
+        Err(ex) => {
+            println!("An exception occurred:");
+            println!();
+            println!("  {}", ex.exception);
+            println!();
+
+            for frame in ex.stack_trace {
+                if let Some(address) = frame.address {
+                    println!("    in {} at 0x{:X}", frame.function, address);
+                } else {
+                    println!("    in {}", frame.function);
+                }
+            }
+
+            println!();
+        },
+    }
+
+    Exit::ok()
 }

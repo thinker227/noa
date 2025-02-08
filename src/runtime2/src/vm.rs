@@ -48,34 +48,9 @@ pub struct Vm {
     trace_ip: usize,
 }
 
-/// Creates a new [`Vm`] and passes it to a closure
-/// which should appropriately call into the vm to begin execution.
-pub fn execute(
-    functions: Vec<Function>,
-    strings: Vec<String>,
-    code: Vec<u8>,
-    stack_size: usize,
-    call_stack_size: usize,
-    heap_size: usize,
-    mut run: impl FnMut(&mut Vm) -> Result<Value>
-) -> Result<Value> {
-    let mut vm = Vm::new(
-        functions,
-        strings,
-        code,
-        stack_size,
-        call_stack_size,
-        heap_size
-    );
-
-    let res = run(&mut vm);
-
-    res
-}
-
 impl Vm {
     /// Creates a new [`Vm`].
-    fn new(
+    pub fn new(
         functions: Vec<Function>,
         strings: Vec<String>,
         code: Vec<u8>,
