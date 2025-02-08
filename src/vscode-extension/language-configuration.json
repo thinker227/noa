@@ -3,8 +3,8 @@
         "lineComment": "//"
     },
     "brackets": [["{", "}"], ["(", ")"]],
-    "autoClosingPairs": [["{", "}"], ["(", ")"]],
-    "surroundingPairs": [["{", "}"], ["(", ")"]],
+    "autoClosingPairs": [["{", "}"], ["(", ")"], ["\"", "\""]],
+    "surroundingPairs": [["{", "}"], ["(", ")"], ["\"", "\""]],
     "folding": {
         "markers": {
             "start": "^.*{\\s*$",
