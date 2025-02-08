@@ -696,7 +696,7 @@ impl Vm<'_> {
             opcode::SUB => {
                 self.binary_op(
                     Self::coerce_to_number,
-                    |a, b| a - b
+                    |a, b| b - a
                 )?;
             },
 
