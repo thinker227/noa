@@ -154,4 +154,46 @@ public sealed class Ast
         // this should ensure any remaining bytes are cleared away.
         stream.SetLength(stream.Position);
     }
+
+    /// <summary>
+    /// Gets the symbols accessible at a specified postition within the AST.
+    /// </summary>
+    /// <param name="position">The position to look up the symbols accessible at.</param>
+    public IEnumerable<ISymbol> GetAccessibleSymbolsAt(int position)
+    {
+        // Start by just looking up the node at the position.
+        var nodeAtPos = Root.FindNodeAt(position);
+
+        // If we couldn't find a node at the position,
+        // it must be either before or after the entire span of the root.
+        if (nodeAtPos is null)
+        {
+            // Before the root?
+            if (position < Root.Span.Start)
+            {
+                // Find the first child of the root.
+                // If there is no child, look up symbols at the end of the root
+                // (which there won't be any declared at, but there might be global symbols).
+                // Otherwise, look up symbols at the child.
+                var firstInRoot = Root.Children.FirstOrDefault();
+                if (firstInRoot is null) Root.DeclaredScope.Value.AccessibleAt(null);
+                return Root.DeclaredScope.Value.AccessibleAt(firstInRoot);
+            }
+            // After the root. Look up symbols at the very end of it.
+            else return Root.DeclaredScope.Value.AccessibleAt(null);
+        }
+
+        // If the node is not a block, we don't have to do any kind of safety lookups
+        // to ensure we're looking up stuff at the correct node.
+        // We can just return the symbols accessible at the node.
+        if (nodeAtPos is not BlockExpression block)
+            return nodeAtPos.Scope.Value.AccessibleAt(nodeAtPos);
+        
+        // The node at the position is a block, probably in the middle of whitespace inside the block.
+        // We iterate through its children to find the first one which span begins after the position
+        // and look up the symbols there. If there is no node after the position,
+        // we'll look up the symbols at the very end of the block.
+        var lookupNode = block.Children.FirstOrDefault(child => child.Span.Start > position);
+        return block.DeclaredScope.Value.AccessibleAt(lookupNode);
+    }
 }

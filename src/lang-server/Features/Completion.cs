@@ -1,6 +1,5 @@
 using Draco.Lsp.Model;
 using Draco.Lsp.Server.Language;
-using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
 
 namespace Noa.LangServer;
@@ -17,38 +16,25 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
             param.Position.Line,
             param.Position.Character);
         
-        // Todo:
-        // In certain situations, the node here will be (for instance) the surrounding block
-        // and the completions will therefore be incomplete.
         var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
-        var node = document.Ast.Root.FindNodeAt(position);
 
-        IEnumerable<CompletionItem> symbolCompletions;
-        if (node is null)
-        {
-            logger.Warning("Node at cursor position is null, " +
-                           "cannot access current scope so can't get full completion list");
-            symbolCompletions = [];
-        }
-        else
-        {
-            symbolCompletions = node.Scope.Value.AccessibleAt(node)
-                .Select(x =>
+        var accessibleSymbols = document.Ast.GetAccessibleSymbolsAt(position);
+        var symbolCompletions = accessibleSymbols
+            .Select(x =>
+            {
+                var item = new CompletionItem()
                 {
-                    var item = new CompletionItem()
-                    {
-                        Label = x.Name,
-                        SortText = $"0{x.Name}",
-                        Kind = GetCompletionKind(x)
-                    };
-                    
-                    var markup = GetMarkupForSymbol(x);
-                    if (markup is not null) item.Documentation = new(markup);
+                    Label = x.Name,
+                    SortText = $"0{x.Name}",
+                    Kind = GetCompletionKind(x)
+                };
+                
+                var markup = GetMarkupForSymbol(x);
+                if (markup is not null) item.Documentation = new(markup);
 
-                    return item;
-                });
-        }
+                return item;
+            });
 
         // Todo: suggest keywords based on context
         var keywords = new[]
