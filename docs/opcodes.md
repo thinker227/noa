@@ -14,9 +14,9 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
-| 0x1 | `Jump <address>` | Jumps to `address` within the current function. | |
-| 0x2 | `JumpIf <address>` | Pops the topmost value from the stack and jumps to `address` if the value is `true`. | Pops 1 value. |
-| 0x3 | `Call <arg count>` | Begins by looking up the element at `arg count` from the top of the stack and coerces it into a function. The remaining `arg count` elements on the top of the stack are used as arguments, and the function is called. After the function has returned, the arguments as well as the function are popped off the stack. | Cumulative: pops `arg count + 1` values. |
+| 0x1 | `Jump <address: u32>` | Jumps to `address` within the current function. | |
+| 0x2 | `JumpIf <address: u32>` | Pops the topmost value from the stack and jumps to `address` if the value is `true`. | Pops 1 value. |
+| 0x3 | `Call <arg count: u32>` | Begins by looking up the element at `arg count` from the top of the stack and coerces it into a function. The remaining `arg count` elements on the top of the stack are used as arguments, and the function is called. After the function has returned, the arguments as well as the function are popped off the stack. | Cumulative: pops `arg count + 1` values. |
 | 0x4 | `Ret` | Pops the topmost value from the stack, returns from the current function, then pushes the value onto the stack. | Pops 1 value. |
 | 0x5 | `EnterTempFrame` | Enters a new temporary stack frame. | |
 | 0x6 | `ExitTempFrame` | Exits the current temporary stack frame. Throws a runtime exception if the current stack frame is not a temporary stack frame. | |
@@ -25,9 +25,9 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
-| 0x14 | `PushInt <int32>` | Pushes the 32-bit signed integer `int32` onto the stack. | Pushes 1 value. |
-| 0x15 | `PushBool <bool>` | Pushes the boolean `bool` onto the stack. | Pushes 1 value. |
-| 0x16 | `PushFunc <func id>` | Pushes the function with the ID `func id` onto the stack. | Pushes 1 value. |
+| 0x14 | `PushInt <val: i32>` | Pushes the 32-bit signed integer `val` onto the stack. | Pushes 1 value. |
+| 0x15 | `PushBool <val: bool>` | Pushes the boolean `val` onto the stack. | Pushes 1 value. |
+| 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
 
 ## Miscellaneous stack operations (0x32-0x45)
@@ -42,8 +42,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
-| 0x46 | `StoreVar <var index>` | Pops the topmost value from the stack and stores it into a local variable with the index `var index`. | Pops 1 value. |
-| 0x47 | `LoadVar <var index>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. | Pushes 1 value. |
+| 0x46 | `StoreVar <var index: u32>` | Pops the topmost value from the stack and stores it into a local variable with the index `var index`. | Pops 1 value. |
+| 0x47 | `LoadVar <var index: u32>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. | Pushes 1 value. |
 
 ## Value operations (0x64-0xEF)
 

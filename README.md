@@ -30,8 +30,8 @@ To compile and install Noa from source, you need the [.NET 9 SDK and runtime](ht
 1. Clone the repo using `git clone https://github.com/thinker227/noa.git`.
 2. `cd` into the root of the project (the folder which contains this readme file).
 3. Run the `update-tool.sh` script (or the commands therein, they're all just .NET commands) which will compile and install the complier as a .NET tool. Worry not, you can easily uninstall it using `dotnet tool uninstall noa --global`.
-4. `cd` into `src/runtime` and run `cargo build -r` which will compile the runtime.
-5. Locate the produced executable (which should be in `target/release` named `noa_runtime` or `noa_runtime.exe` on Windows).
+4. Run `cargo build -r` which will compile the runtime.
+5. Locate the produced executable (which should be in `target/release` named `noa_runtime_cli` or `noa_runtime_cli.exe` on Windows).
 6. Create an environment variable named `NOA_RUNTIME` containing the file path to the runtime executable. Alternatively you can specify the `--runtime <path>` command-line option when running `noa run` to manually specify the path to the runtime executable, however it's much simpler to use an environment variable.
 7. You'll usually have to restart your terminal and/or pc for the environment variable and .NET tool to be available.
 

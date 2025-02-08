@@ -1,106 +1,46 @@
-use crate::runtime::value::{FromValue, Value};
-use crate::runtime::exception::{CodeException, ExceptionData, VMException};
-use crate::vm::gc::Trace;
+use crate::value::Value;
+use crate::exception::Exception;
 
-#[derive(Debug)]
+/// Wrapper around a vector representing a stack of values.
+#[derive(Debug, Clone)]
 pub struct Stack {
-    stack: Vec<Value>
+    stack: Vec<Value>,
 }
 
 impl Stack {
-    pub fn new(stack_size: usize) -> Self {
+    pub fn new(size: usize) -> Self {
         Self {
-            stack: Vec::with_capacity(stack_size)
+            stack: Vec::with_capacity(size)
         }
     }
 
-    /// Returns the current head position on the stack from the bottom of the stack.
-    pub fn head_position(&self) -> usize {
+    pub fn head(&self) -> usize {
         self.stack.len()
     }
 
-    /// Clears the stack to contain only the amount of elements specified.
-    pub fn clear_to(&mut self, to: usize) {
-        self.stack.truncate(to);
+    pub fn get(&self, at: usize) -> Option<&Value> {
+        self.stack.get(at)
     }
 
-    /// Pushes a value onto the stack.
-    pub fn push(&mut self, value: Value) -> Result<(), ExceptionData> {
-        if self.stack.len() >= self.stack.capacity() {
-            return Err(ExceptionData::VM(VMException::StackOverflow));
-        }
-
-        self.stack.push(value);
-
-        Ok(())
-    }
-
-    /// Pops a value from the stack and returns it.
-    pub fn pop(&mut self) -> Result<Value, ExceptionData> {
-        self.stack.pop()
-            .ok_or(ExceptionData::VM(VMException::StackUnderflow))
-    }
-
-    /// Pops a value from the stack as a specified type.
-    pub fn pop_as<T: FromValue>(&mut self) -> Result<T, ExceptionData> {
-        T::from_value(self.pop()?)
-            .map_err(|e| ExceptionData::Code(CodeException::CoercionError(e)))
-    }
-
-    /// Gets a value at a specified position in the stack.
-    pub fn get_at(&self, at: usize) -> Option<Value> {
-        self.stack.get(at).copied()
-    }
-
-    /// Gets a value as a mutable reference at a specified position in the stack.
-    pub fn get_at_mut(&mut self, at: usize) -> Option<&mut Value> {
+    pub fn get_mut(&mut self, at: usize) -> Option<&mut Value> {
         self.stack.get_mut(at)
     }
 
-    /// Pops a value from the stack,
-    /// performs a unary operation on it,
-    /// and pushes the result back onto the stack.
-    pub fn unary_op<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T) -> U) -> Result<(), ExceptionData> {
-        let operand = self.pop_as()?;
-        let result = op(operand);
-
-        self.push(result.to_value())?;
-
-        Ok(())
+    pub fn slice_from_end(&self, size: usize) -> Option<&[Value]> {
+        self.stack.get((self.head() - size)..)
     }
 
-    /// Pops two values from the stack,
-    /// performs a binary operation on them,
-    /// and pushes the result back onto the stack.
-    pub fn binary_op<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T, T) -> U) -> Result<(), ExceptionData> {
-        let b = self.pop_as()?;
-        let a = self.pop_as()?;
-        let x = op(a, b);
-
-        self.push(x.to_value())?;
-
-        Ok(())
+    pub fn push(&mut self, value: Value) -> Result<(), Exception> {
+        self.stack.push_within_capacity(value)
+            .map_err(|_| Exception::StackOverflow)
     }
 
-    /// Pops two values from the stack,
-    /// performs a binary operation on them with overflow checking,
-    /// and pushes the result back onto the stack.
-    pub fn binary_op_checked<T: FromValue, U: FromValue>(&mut self, op: impl FnOnce(T, T) -> Option<U>) -> Result<(), ExceptionData> {
-        let b = self.pop_as()?;
-        let a = self.pop_as()?;
-        let x = op(a, b)
-            .ok_or(ExceptionData::Code(CodeException::IntegerOverflow))?;
-
-        self.push(x.to_value())?;
-
-        Ok(())
+    pub fn pop(&mut self) -> Result<Value, Exception> {
+        self.stack.pop()
+            .ok_or(Exception::StackUnderflow)
     }
-}
 
-impl Trace for Stack {
-    fn trace(&mut self, spy: &super::gc::Spy) {
-        for x in &mut self.stack {
-            x.trace(spy);
-        }
+    pub fn shrink(&mut self, new_size: usize) {
+        self.stack.truncate(new_size);
     }
 }
