@@ -14,6 +14,8 @@ internal sealed partial class Parser
 
         while (!AtEnd && Current.Kind is not TokenKind.EndString)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             switch (Expect(SyntaxFacts.CanOccurWithinString)?.Kind)
             {
             case TokenKind.StringText:
@@ -68,6 +70,8 @@ internal sealed partial class Parser
 
         for (var i = 0; i < raw.Length; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var current = raw[i];
 
             if (current is not '\\')

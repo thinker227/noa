@@ -198,6 +198,8 @@ internal sealed partial class Lexer
         var i = 0;
         for (; i < Rest.Length; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var current = Rest[i];
 
             // Begin interpolation.
