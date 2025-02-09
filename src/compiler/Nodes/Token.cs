@@ -51,6 +51,10 @@ public enum TokenKind
     EqualsGreaterThan,
     EqualsEquals,
     BangEquals,
+    PlusEquals,
+    DashEquals,
+    StarEquals,
+    SlashEquals,
     
     // Keywords
     Func,
@@ -108,6 +112,10 @@ internal static class TokenKindExtensions
         TokenKind.EqualsGreaterThan => "=>",
         TokenKind.EqualsEquals => "==",
         TokenKind.BangEquals => "!=",
+        TokenKind.PlusEquals => "+=",
+        TokenKind.DashEquals => "-=",
+        TokenKind.StarEquals => "*=",
+        TokenKind.SlashEquals => "/=",
         
         TokenKind.Func => "func",
         TokenKind.Let => "let",
@@ -144,6 +152,16 @@ internal static class TokenKindExtensions
         TokenKind.Number => "number",
         
         _ => kind.ConstantString() ?? throw new UnreachableException()
+    };
+
+    public static AssignmentKind? ToAssignmentKind(this TokenKind kind) => kind switch
+    {
+        TokenKind.Equals => AssignmentKind.Assign,
+        TokenKind.PlusEquals => AssignmentKind.Plus,
+        TokenKind.DashEquals => AssignmentKind.Minus,
+        TokenKind.StarEquals => AssignmentKind.Mult,
+        TokenKind.SlashEquals => AssignmentKind.Div,
+        _ => null
     };
     
     /// <summary>
