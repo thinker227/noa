@@ -3,25 +3,35 @@
     "name": "noa",
     "patterns": [
         {
-            "include": "#comments"
-        },
-        {
-            "include": "#strings"
-        },
-        {
-            "include": "#keywords"
-        },
-        {
-            "include": "#calls"
-        },
-        {
-            "include": "#numbers"
-        },
-        {
-            "include": "#names"
+            "include": "#all"
         }
     ],
     "repository": {
+        "all": {
+            "patterns": [
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#interpolated-strings"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "include": "#keywords"
+                },
+                {
+                    "include": "#calls"
+                },
+                {
+                    "include": "#numbers"
+                },
+                {
+                    "include": "#names"
+                }
+            ]
+        },
         "keywords": {
             "patterns": [
                 {
@@ -80,13 +90,73 @@
             "end": "\"|$",
             "patterns": [
                 {
+                    "begin": "\\\\{",
+                    "end": "}",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "endCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
                     "include": "#escape-sequence"
+                }
+            ]
+        },
+        "interpolated-strings": {
+            "name": "string.quoted.double.noa",
+            "begin": "(\\\\)\"",
+            "end": "\"|$",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.other.noa"
+                }
+            },
+            "patterns": [
+                {
+                    "begin": "{",
+                    "end": "}",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "endCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
+                    "include": "#escape-sequence"
+                },
+                {
+                    "include": "#interpolation-escape"
                 }
             ]
         },
         "escape-sequence": {
             "name": "constant.character.escape.noa",
             "match": "\\\\[\\\\0nrt\"]"
+        },
+        "interpolation-escape": {
+            "name": "constant.character.escape.noa",
+            "match": "\\\\{"
         }
     },
     "scopeName": "source.noa"
