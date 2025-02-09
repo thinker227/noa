@@ -147,7 +147,11 @@ internal class BlockEmitter(
         Code.PushString(index);
     }
 
-    protected override void VisitInterpolationStringPart(InterpolationStringPart node) => Visit(node.Expression);
+    protected override void VisitInterpolationStringPart(InterpolationStringPart node)
+    {
+        Visit(node.Expression);
+        Code.ToString(); // This is not built-in `ToString` which returns a string.
+    }
 
     protected override void VisitNilExpression(NilExpression node) => Code.PushNil();
 
