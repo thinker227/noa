@@ -121,7 +121,7 @@
   </Node>
 
   <Node Name="NumberExpression" Parent="Expression">
-    <Value Name="Value" Type="int" Primitive="true"/>
+    <Value Name="Value" Type="double" Primitive="true"/>
   </Node>
   
   <Node Name="NilExpression" Parent="Expression"/>

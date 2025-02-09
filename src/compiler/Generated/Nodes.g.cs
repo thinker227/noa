@@ -213,7 +213,7 @@ public sealed partial class BoolExpression : Expression
 
 public sealed partial class NumberExpression : Expression
 {
-    public required int Value { get; init; }
+    public required double Value { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
