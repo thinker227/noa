@@ -7,8 +7,10 @@ use exit::{Exit, IntoExit};
 use binrw::BinRead;
 use clap::Parser;
 
+use noa_runtime::exception::FormattedException;
+use noa_runtime::value::Value;
 use noa_runtime::vm::Vm;
-use noa_runtime::ark::{Ark, CodeSection, FunctionSection, Header, StringSection};
+use noa_runtime::ark::{Ark, CodeSection, FuncId, FunctionSection, Header, StringSection};
 
 mod args;
 mod exit;
@@ -51,32 +53,40 @@ fn main() -> Exit<()> {
         100_000
     );
 
-    let result = vm.call_run(main.into(), &[]);
+    let result = run(&mut vm, main, args.print_return_value);
 
     match result {
-        Ok(ret) => {
-            if args.print_return_value {
-                // todo: print user-readable value
-                println!("{:#?}", ret);
-            }
-        },
-        Err(ex) => {
-            println!("An exception occurred:");
-            println!();
-            println!("  {}", ex.exception);
-            println!();
-
-            for frame in ex.stack_trace {
-                if let Some(address) = frame.address {
-                    println!("    in {} at 0x{:X}", frame.function, address);
-                } else {
-                    println!("    in {}", frame.function);
-                }
-            }
-
-            println!();
-        },
+        Ok(_) => {},
+        Err(ex) => print_exception(ex),
     }
 
     Exit::ok()
+}
+
+fn run(vm: &mut Vm, main: FuncId, print_ret: bool) -> Result<(), FormattedException> {
+    let result = vm.call_run(main.into(), &[])?;
+
+    if print_ret {
+        let str = vm.to_string(result)?;
+        println!("{str}");
+    }
+
+    Ok(())
+}
+
+fn print_exception(ex: FormattedException) {
+    println!("An exception occurred:");
+    println!();
+    println!("  {}", ex.exception);
+    println!();
+
+    for frame in ex.stack_trace {
+        if let Some(address) = frame.address {
+            println!("    in {} at 0x{:X}", frame.function, address);
+        } else {
+            println!("    in {}", frame.function);
+        }
+    }
+
+    println!();
 }
