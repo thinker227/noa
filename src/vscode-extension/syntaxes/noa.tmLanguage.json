@@ -55,6 +55,10 @@
                     "match": "\\b(true|false)\\b"
                 },
                 {
+                    "name": "meta.punctuation.noa",
+                    "match": "\\+=|-=|\\*=|/="
+                },
+                {
                     "name": "keyword.operator.noa",
                     "match": "\\+|-|\\*|\\/|!|<|>|<=|>=|==|!="
                 },
