@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::value::{Closure, StringLocation, Type, Value};
+use crate::value::{Closure, Type, Value};
 use crate::heap::{HeapAddress, HeapValue};
 use crate::exception::{Exception, FormattedException};
 
@@ -22,6 +22,47 @@ impl Vm {
                 HeapValue::Object(_) => todo!(),
             },
             Value::Nil => Ok(Type::Nil),
+        }
+    }
+
+    /// Turns a value into a string representation.
+    pub fn to_string(&self, val: Value) -> Result<String> {
+        match val {
+            Value::Number(x) => Ok(x.to_string()),
+
+            Value::Bool(x) => if x {
+                Ok("true".to_string())
+            } else {
+                Ok("false".to_string())
+            },
+
+            Value::InternedString(index) => self.consts.strings.get(index)
+                .cloned()
+                .ok_or_else(|| self.exception(Exception::InvalidString(index))),
+            
+            Value::Function(closure) => {
+                let id = closure.function.decode();
+                let name = if closure.function.is_native() {
+                    todo!("name of native functions")
+                } else {
+                    let name_index = self.consts.functions.get(id as usize)
+                        .ok_or_else(|| self.exception(Exception::InvalidUserFunction(id)))?
+                        .name_index as usize;
+
+                    self.consts.strings.get(name_index)
+                        .cloned()
+                        .ok_or_else(|| self.exception(Exception::InvalidString(name_index)))?
+                };
+                Ok(name)
+            },
+
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                HeapValue::String(str) => Ok(str.clone()),
+                HeapValue::List(_) => todo!("not yet specified"),
+                HeapValue::Object(_) => todo!("not yet specified"),
+            },
+
+            Value::Nil => Ok("()".to_string()),
         }
     }
 
@@ -64,22 +105,6 @@ impl Vm {
         }
     }
 
-    /// Tries to coerce a value into a string.
-    pub fn coerce_to_string(&self, val: Value) -> Result<(&String, StringLocation)> {
-        match val {
-            Value::InternedString(index) => match self.consts.strings.get(index) {
-                Some(x) => Ok((x, StringLocation::Interned(index))),
-                None => Err(self.exception(Exception::InvalidString(index))),
-            },
-            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
-                HeapValue::String(x) => Ok((x, StringLocation::Allocated(heap_address))),
-                HeapValue::List(_) => todo!("not yet specified"),
-                HeapValue::Object(_) => todo!("not yet specified"),
-            },
-            _ => Err(self.coercion_error(val, Type::String)),
-        }
-    }
-
     /// Tries to coerce a value into a list.
     pub fn coerce_to_list(&self, _: Value) -> Result<(&Vec<Value>, HeapAddress)> {
         todo!("not specified yet")
@@ -88,18 +113,6 @@ impl Vm {
     /// Tries to coerce a value into an object.
     pub fn coerce_to_object(&self, _: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
         todo!("not specified yet")
-    }
-
-    /// Coerces a value into another type according to value coercion rules.
-    pub fn coerce(&self, val: Value, ty: Type) -> Result<Value> {
-        match ty {
-            Type::Number   => self.coerce_to_number(val)  .map(|x| x.into()),
-            Type::Bool     => self.coerce_to_bool(val)    .map(|x| x.into()),
-            Type::Function => self.coerce_to_function(val).map(|x| x.into()),
-            Type::String   => self.coerce_to_string(val)  .map(|(_, location)| location.into()),
-            Type::List     => self.coerce_to_list(val)    .map(|(_, adr)| adr.into()),
-            Type::Nil      => Err(self.coercion_error(val, Type::Nil)),
-        }
     }
 
     // Constructs a formatted coercion error exception.
