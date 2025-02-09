@@ -86,15 +86,18 @@ internal sealed partial class Parser
             
             // The expression is an expression statement.
 
-            if (!expression.IsExpressionStatement())
+            if (!expression.IsExpressionStatement() && expression is not ErrorExpression)
             {
                 ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression.Span);
             }
             
             // If the expression is a control flow expression statement then we don't expect a semicolon.
-            var semicolon = expression.IsControlFlowExpressionStatement()
+            var semicolon = expression.IsControlFlowExpressionStatement() && expression is not ErrorExpression
                 ? null as Token?
                 : Expect(TokenKind.Semicolon);
+
+            // If the expression is an error then we have to consume the current token to avoid choking on it.
+            if (expression is ErrorExpression) Advance();
 
             statements.Add(new ExpressionStatement()
             {
