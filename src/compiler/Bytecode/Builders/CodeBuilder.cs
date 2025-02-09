@@ -101,7 +101,7 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
 
     public void PushFloat(double value)
     {
-        var bytes = new byte[4];
+        var bytes = new byte[8];
         BinaryPrimitives.WriteDoubleBigEndian(bytes, value);
         Add(Opcode.PushFloat, bytes);
     }
