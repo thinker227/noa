@@ -516,6 +516,20 @@ impl Vm {
         Ok(val)
     }
 
+    /// Reads a [`f64`] and progresses the instruction pointer by 8.
+    fn read_f64(&mut self) -> Result<f64> {
+        let bytes: [u8; 8] = self.consts.code.get(self.ip..(self.ip + 8))
+            .ok_or_else(|| self.exception(Exception::Overrun))?
+            .try_into()
+            .unwrap(); // safe because if `get` returns `Some`,
+                       // the slice will always be 8 elements long
+        
+        self.ip += 8;
+        
+        let val = f64::from_be_bytes(bytes);
+        Ok(val)
+    }
+
     /// Pops a value off the stack.
     fn pop(&mut self) -> Result<Value> {
         self.stack.pop()
@@ -634,7 +648,9 @@ impl Vm {
             },
 
             opcode::PUSH_FLOAT => {
-                todo!()
+                let val = self.read_f64()?;
+
+                self.push(Value::Number(val))?;
             },
 
             opcode::PUSH_BOOL => {
