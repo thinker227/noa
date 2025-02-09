@@ -153,6 +153,7 @@ use std::assert_matches::assert_matches;
 
 use crate::ark::FuncId;
 use crate::exception::Exception;
+use crate::heap::HeapValue;
 use crate::opcode;
 use crate::value::{Closure, Value};
 use crate::vm::frame::{Frame, FrameKind};
@@ -769,11 +770,28 @@ impl Vm {
             },
 
             opcode::CONCAT => {
-                todo!()
+                let other = self.pop_val_as(Self::to_string)?;
+                let mut str = self.pop_val_as(Self::to_string)?;
+
+                str.push_str(other.as_str());
+
+                // Todo: garbage collection is never actually run, so this leaks memory currently.
+                let adr = self.heap.alloc(HeapValue::String(str))
+                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::TO_STRING => {
-                todo!()
+                let val = self.pop()?;
+
+                let str = self.to_string(val)?;
+
+                // Todo: garbage collection is never actually run, so this leaks memory currently.
+                let adr = self.heap.alloc(HeapValue::String(str))
+                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
