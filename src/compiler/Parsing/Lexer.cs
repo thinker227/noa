@@ -48,6 +48,21 @@ internal sealed partial class Lexer
             // Symbol clusters
             if (TrySymbol() is var (kind, tokenLength))
             {
+                int depth;
+
+                // Count curly depths if inside interpolation.
+
+                if (kind is TokenKind.OpenBrace && interpolationCurlyDepths.TryPop(out depth))
+                    interpolationCurlyDepths.Push(depth + 1);
+                
+                if (kind is TokenKind.CloseBrace && interpolationCurlyDepths.TryPop(out depth))
+                {
+                    interpolationCurlyDepths.Push(depth - 1);
+                    
+                    // Return from lexing the current string interpolation.
+                    if (depth == 0) return;
+                }
+
                 ConstructToken(kind, tokenLength);
                 continue;
             }
@@ -67,11 +82,7 @@ internal sealed partial class Lexer
             }
 
             // Strings
-            if (TryString() is { IsEmpty: false } str)
-            {
-                ConstructToken(TokenKind.String, str.Length);
-                continue;
-            }
+            if (TryString()) continue;
 
             // Unknown
             var unexpectedSpan = TextSpan.FromLength(position, 1);
@@ -164,25 +175,75 @@ internal sealed partial class Lexer
         return Rest[..i];
     }
 
-    private ReadOnlySpan<char> TryString()
+    private bool TryString()
     {
-        if (Get(1) is not "\"") return ReadOnlySpan<char>.Empty;
+        bool isOptOut;
+        switch (Rest)
+        {
+        case ['\\', '"', ..]:
+            isOptOut = true;
+            break;
+        case ['"', ..]:
+            isOptOut = false;
+            break;
+        default:
+            return false;
+        }
 
-        var i = 1;
+        var startQuoteLength = isOptOut ? 2 : 1;
+        var interpolationStartLength = isOptOut ? 1 : 2;
+
+        ConstructToken(TokenKind.BeginString, startQuoteLength);
+
+        var i = 0;
         for (; i < Rest.Length; i++)
         {
             var current = Rest[i];
 
+            // Begin interpolation.
+            if (!isOptOut && Rest[i..] is ['\\', '{', ..] ||
+                 isOptOut && Rest[i..] is ['{', ..])
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+
+                ConstructToken(TokenKind.BeginInterpolation, interpolationStartLength);
+
+                // Push an interpolation curly depth of 0 to keep track of how deep within curly pairs the lexer is
+                // and when to break out of the interpolation.
+                interpolationCurlyDepths.Push(0);
+
+                // Recursively invoke the lexer to lex the tokens within the interpolation.
+                Lex();
+
+                interpolationCurlyDepths.Pop();
+
+                // Once the lexer has lexed the tokens within the interpolation and returned here,
+                // it might be the case that the string was unterminated and that there is not closing }.
+                if (!AtEnd) ConstructToken(TokenKind.EndInterpolation, 1);
+
+                // Reset i to -1 so that the next iteration will start back at index 0 of the new rest.
+                i = -1;
+                continue;
+            }
+
             // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
-            // Include the final character in the returned text.
-            if (current is '"') return Rest[..(i + 1)];
+            if (current is '"')
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+                
+                ConstructToken(TokenKind.EndString, 1);
+
+                return true;
+            }
 
             // Encountered an unterminated string, either because of a newline or end of input.
             if (current is '\n' || i == Rest.Length - 1) break;
 
             // Skip escape sequences.
             // An escape sequence here is considered a \ followed by any character except a newline.
-            if (Rest[1..] is ['\\', not '\n', ..]) i++;
+            if (Rest[i..] is ['\\', not '\n', ..]) i++;
         }
 
         // If we got here then the string is unterminated.
@@ -191,6 +252,6 @@ internal sealed partial class Lexer
         var location = new Location(source.Name, span);
         diagnostics.Add(ParseDiagnostics.UnterminatedString.Format(location));
 
-        return Rest[..i];
+        return true;
     }
 }

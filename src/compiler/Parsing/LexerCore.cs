@@ -8,6 +8,7 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
 {
     private readonly ImmutableArray<Token>.Builder tokens = ImmutableArray.CreateBuilder<Token>();
     private readonly List<IDiagnostic> diagnostics = [];
+    private readonly Stack<int> interpolationCurlyDepths = [];
     private readonly string text = source.Text;
     private int position = 0;
 

@@ -64,10 +64,16 @@ public enum TokenKind
     Continue,
     True,
     False,
+
+    // Strings
+    BeginString,
+    EndString,
+    BeginInterpolation,
+    EndInterpolation,
+    StringText,
     
     // Special
     Name,
-    String,
     Number,
 }
 
@@ -114,6 +120,11 @@ internal static class TokenKindExtensions
         TokenKind.Continue => "continue",
         TokenKind.True => "true",
         TokenKind.False => "false",
+
+        TokenKind.BeginString => "\"",
+        TokenKind.EndString => "\"",
+        TokenKind.BeginInterpolation => "{",
+        TokenKind.EndInterpolation => "}",
         
         _ => null
     };
@@ -126,9 +137,10 @@ internal static class TokenKindExtensions
     {
         TokenKind.EndOfFile => "<end of file>",
         TokenKind.Error => "<error>",
+
+        TokenKind.StringText => "string text",
         
         TokenKind.Name => "name",
-        TokenKind.String => "string",
         TokenKind.Number => "number",
         
         _ => kind.ConstantString() ?? throw new UnreachableException()
