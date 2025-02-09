@@ -250,28 +250,8 @@ internal sealed partial class Parser
                 };
             }
         
-        case TokenKind.String:
-            {
-                // Todo: interpolation
-
-                var str = Advance();
-
-                var text = ParseStringText(str);
-
-                return new StringExpression()
-                {
-                    Ast = Ast,
-                    Span = str.Span,
-                    Parts = [
-                        new TextStringPart()
-                        {
-                            Ast = Ast,
-                            Span = str.Span,
-                            Text = text
-                        }
-                    ]
-                };
-            }
+        case TokenKind.BeginString:
+            return ParseString();
         
         default:
             return new ErrorExpression()

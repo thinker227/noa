@@ -6,14 +6,64 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
+    private StringExpression ParseString()
+    {
+        var beginToken = Expect(TokenKind.BeginString);
+
+        var parts = ImmutableArray.CreateBuilder<StringPart>();
+
+        while (!AtEnd && Current.Kind is not TokenKind.EndString)
+        {
+            switch (Expect(SyntaxFacts.CanOccurWithinString)?.Kind)
+            {
+            case TokenKind.StringText:
+                {
+                    var textToken = Advance();
+                    var text = ParseStringText(textToken);
+
+                    parts.Add(new TextStringPart()
+                    {
+                        Ast = Ast,
+                        Span = textToken.Span,
+                        Text = text
+                    });
+
+                    break;
+                }
+            
+            case TokenKind.BeginInterpolation:
+                {
+                    var beginInterpolationToken = Advance();
+
+                    var expression = ParseExpressionOrError();
+
+                    var endInterpolationToken = Expect(TokenKind.EndInterpolation);
+
+                    parts.Add(new InterpolationStringPart()
+                    {
+                        Ast = Ast,
+                        Span = TextSpan.Between(beginInterpolationToken.Span, endInterpolationToken.Span),
+                        Expression = expression
+                    });
+
+                    break;
+                }
+            }
+        }
+
+        var endToken = Expect(TokenKind.EndString);
+
+        return new()
+        {
+            Ast = Ast,
+            Span = TextSpan.Between(beginToken.Span, endToken.Span),
+            Parts = parts.ToImmutable()
+        };
+    }
+
     private string ParseStringText(Token token)
     {
-        // A string literal might be unterminated, but we should still parse it properly,
-        // so we need to account for the text possibly not ending with a closing quote.
-        var endOffset = token.Text.EndsWith('"') ? -1 : 0;
-        var end = token.Text.Length + endOffset;
-        var raw = token.Text.AsSpan(1..end);
-
+        var raw = token.Text;
         var text = new StringBuilder();
 
         for (var i = 0; i < raw.Length; i++)
