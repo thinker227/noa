@@ -157,13 +157,8 @@ internal sealed partial class Lexer
             // and haven't already lexed a decimal point.
             if (i >= 1 && !afterDecimalPoint && Rest[i] is '.')
             {
-                // Report an error if there's no digit after the decimal point.
-                if (Rest[(i + 1)..] is not [var next, ..] || !SyntaxFacts.IsDigit(next))
-                {
-                    var span = TextSpan.FromLength(position + i, 1);
-                    var location = new Location(source.Name, span);
-                    diagnostics.Add(ParseDiagnostics.MissingFraction.Format(location));
-                }
+                // Exit if there's no digit after the decimal point.
+                if (Rest[(i + 1)..] is not [var next, ..] || !SyntaxFacts.IsDigit(next)) break;
 
                 afterDecimalPoint = true;
                 continue;
