@@ -41,6 +41,7 @@ internal enum Opcode : byte
     Or = 0x6C,
     GreaterThan = 0x6D,
     Concat = 0x6E,
+    ToString = 0x6F,
     
     // Operations instructions
     Boundary = 0xFF,

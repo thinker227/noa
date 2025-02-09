@@ -61,6 +61,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x6C | `Or` | Pops the two topmost values from the stack, performs a logical or on them, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x6D | `GreaterThan` | Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
 | 0x6E | `Concat` |  Pops the two topmost values on from the stack, concatenates them as strings, and pushes the result onto the stack. | Cumulative: pops 1 value. |
+| 0x6F | `ToString` | Pops the topmost value from the stack, coerces it into a string, then pushes the result onto the stack. | Cumulative: none. |
 
 ## Operational instructions (0xF0-0xFF)
 

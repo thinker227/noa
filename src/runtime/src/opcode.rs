@@ -26,4 +26,5 @@ pub const AND: u8 = 0x6B;
 pub const OR: u8 = 0x6C;
 pub const GREATER_THAN: u8 = 0x6D;
 pub const CONCAT: u8 = 0x6E;
+pub const TO_STRING: u8 = 0x6F;
 pub const BOUNDARY: u8 = 0xFF;

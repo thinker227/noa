@@ -169,6 +169,8 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void GreaterThan() => Add(Opcode.GreaterThan);
 
     public void Concat() => Add(Opcode.Concat);
+
+    public new void ToString() => Add(Opcode.ToString);
 }
 
 /// <summary>
