@@ -129,8 +129,8 @@ internal sealed partial class Parser
         
         var expression = ParseExpressionOrError();
 
-        // Parse an assignment statement if we find an equals token.
-        if (Current.Kind is TokenKind.Equals)
+        // Parse an assignment statement if we find a token which is a valid assignment operator.
+        if (SyntaxFacts.AssignmentOperator.Contains(Current.Kind))
         {
             return (ContinueParsingAssignmentStatement(expression), null);
         }
@@ -142,7 +142,10 @@ internal sealed partial class Parser
 
     private AssignmentStatement ContinueParsingAssignmentStatement(Expression target)
     {
-        Expect(TokenKind.Equals);
+        var operatorToken = Advance();
+
+        var kind = operatorToken.Kind.ToAssignmentKind()
+            ?? throw new InvalidOperationException($"{operatorToken.Kind} cannot be converted into an assignment kind");
 
         var value = ParseExpressionOrError();
 
@@ -158,6 +161,7 @@ internal sealed partial class Parser
             Ast = Ast,
             Span = TextSpan.Between(target.Span, value.Span),
             Target = target,
+            Kind = kind,
             Value = value,
         };
     }

@@ -35,12 +35,40 @@ internal class BlockEmitter(
 
     protected override void VisitAssignmentStatement(AssignmentStatement node)
     {
-        Visit(node.Value);
-        
         // TODO: refactor this to allow targets other than identifiers
         var target = (IdentifierExpression)node.Target;
 
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
+
+        if (node.Kind is not AssignmentKind.Assign)
+        {
+            Code.LoadVar(varIndex);
+
+            Visit(node.Value);
+
+            switch (node.Kind)
+            {
+            case AssignmentKind.Plus:
+                Code.Add();
+                break;
+            
+            case AssignmentKind.Minus:
+                Code.Sub();
+                break;
+            
+            case AssignmentKind.Mult:
+                Code.Mult();
+                break;
+            
+            case AssignmentKind.Div:
+                Code.Div();
+                break;
+            }
+        }
+        else
+        {
+            Visit(node.Value);
+        }
         
         Code.StoreVar(varIndex);
     }

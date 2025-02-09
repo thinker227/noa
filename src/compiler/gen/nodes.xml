@@ -37,6 +37,7 @@
 
   <Node Name="AssignmentStatement" Parent="Statement">
     <Value Name="Target" Type="Expression"/>
+    <Value Name="Kind" Type="AssignmentKind" Primitive="true"/>
     <Value Name="Value" Type="Expression"/>
   </Node>
 
