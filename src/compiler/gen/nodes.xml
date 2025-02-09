@@ -113,7 +113,17 @@
   </Node>
 
   <Node Name="StringExpression" Parent="Expression">
-    <Value Name="Value" Type="string" Primitive="true"/>
+    <List Name="Parts" Type="StringPart"/>
+  </Node>
+
+  <Variant Name="StringPart"/>
+
+  <Node Name="TextStringPart" Parent="StringPart">
+    <Value Name="Text" Type="string" Primitive="true"/>
+  </Node>
+
+  <Node Name="InterpolationStringPart" Parent="StringPart">
+    <Value Name="Expression" Type="Expression"/>
   </Node>
 
   <Node Name="BoolExpression" Parent="Expression">

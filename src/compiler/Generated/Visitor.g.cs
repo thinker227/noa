@@ -25,6 +25,9 @@ public abstract partial class Visitor
         case ElseClause x:
             VisitElseClause(x);
             break;
+        case StringPart x:
+            VisitStringPart(x);
+            break;
         default:
             throw new UnreachableException();
         }
@@ -231,7 +234,32 @@ public abstract partial class Visitor
 
     protected virtual void VisitIdentifierExpression(IdentifierExpression node) {}
 
-    protected virtual void VisitStringExpression(StringExpression node) {}
+    protected virtual void VisitStringExpression(StringExpression node)
+    {
+        Visit(node.Parts);
+    }
+
+    protected virtual void VisitStringPart(StringPart node)
+    {
+        switch (node)
+        {
+        case TextStringPart x:
+            VisitTextStringPart(x);
+            break;
+        case InterpolationStringPart x:
+            VisitInterpolationStringPart(x);
+            break;
+        default:
+            throw new UnreachableException();
+        }
+    }
+
+    protected virtual void VisitTextStringPart(TextStringPart node) {}
+
+    protected virtual void VisitInterpolationStringPart(InterpolationStringPart node)
+    {
+        Visit(node.Expression);
+    }
 
     protected virtual void VisitBoolExpression(BoolExpression node) {}
 

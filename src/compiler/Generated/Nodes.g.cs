@@ -199,9 +199,25 @@ public sealed partial class IdentifierExpression : Expression
 
 public sealed partial class StringExpression : Expression
 {
-    public required string Value { get; init; }
+    public required ImmutableArray<StringPart> Parts { get; init; }
+
+    public override IEnumerable<Node> Children => [..Parts];
+}
+
+public abstract partial class StringPart : Node;
+
+public sealed partial class TextStringPart : StringPart
+{
+    public required string Text { get; init; }
 
     public override IEnumerable<Node> Children => [];
+}
+
+public sealed partial class InterpolationStringPart : StringPart
+{
+    public required Expression Expression { get; init; }
+
+    public override IEnumerable<Node> Children => [Expression];
 }
 
 public sealed partial class BoolExpression : Expression

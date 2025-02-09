@@ -252,6 +252,8 @@ internal sealed partial class Parser
         
         case TokenKind.String:
             {
+                // Todo: interpolation
+
                 var str = Advance();
 
                 var text = ParseStringText(str);
@@ -260,7 +262,14 @@ internal sealed partial class Parser
                 {
                     Ast = Ast,
                     Span = str.Span,
-                    Value = text
+                    Parts = [
+                        new TextStringPart()
+                        {
+                            Ast = Ast,
+                            Span = str.Span,
+                            Text = text
+                        }
+                    ]
                 };
             }
         
