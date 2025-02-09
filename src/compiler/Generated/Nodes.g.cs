@@ -61,6 +61,8 @@ public sealed partial class AssignmentStatement : Statement
 {
     public required Expression Target { get; init; }
 
+    public required AssignmentKind Kind { get; init; }
+
     public required Expression Value { get; init; }
 
     public override IEnumerable<Node> Children => [Target, Value];

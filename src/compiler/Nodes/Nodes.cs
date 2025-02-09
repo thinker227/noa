@@ -119,6 +119,16 @@ public sealed partial class IdentifierExpression
 {
     public Semantic<ISymbol> ReferencedSymbol { get; internal set; }
 }
+
+public enum AssignmentKind
+{
+    Assign,
+    Plus,
+    Minus,
+    Mult,
+    Div,
+}
+
 public enum UnaryKind
 {
     Identity,
