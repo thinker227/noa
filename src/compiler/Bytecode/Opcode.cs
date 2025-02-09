@@ -16,7 +16,7 @@ internal enum Opcode : byte
     ExitTempFrame = 0x6,
 
     // Stack operations
-    PushInt = 0x14,
+    PushFloat = 0x14,
     PushBool = 0x15,
     PushFunc = 0x16,
     PushNil = 0x17,

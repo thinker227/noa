@@ -25,7 +25,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
-| 0x14 | `PushInt <val: i32>` | Pushes the 32-bit signed integer `val` onto the stack. | Pushes 1 value. |
+| 0x14 | `PushFloat <val: f64>` | Pushes the 64-bit float `val` onto the stack. | Pushes 1 value. |
 | 0x15 | `PushBool <val: bool>` | Pushes the boolean `val` onto the stack. | Pushes 1 value. |
 | 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |

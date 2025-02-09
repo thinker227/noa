@@ -633,10 +633,8 @@ impl Vm {
                 self.exit_temp_frame()?;
             },
 
-            opcode::PUSH_INT => {
-                let val = self.read_u32()?;
-
-                self.push(Value::Number(val as f64))?;
+            opcode::PUSH_FLOAT => {
+                todo!()
             },
 
             opcode::PUSH_BOOL => {
