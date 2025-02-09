@@ -50,8 +50,15 @@ internal sealed partial class Parser
 
                     break;
                 }
+
+            default:
+                // If no token matched, then we've encountered an error.
+                // However, the lexer should've already reported this, so we don't need to do anything here.
+                // Yes I'm using goto here, but it's a valid use-case.
+                goto end;
             }
         }
+        end:
 
         var endToken = Expect(TokenKind.EndString);
 
