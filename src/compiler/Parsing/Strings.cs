@@ -85,6 +85,7 @@ internal sealed partial class Parser
             {
                 '\\' => '\\',
                 '"' => '"',
+                '{' => '{',
                 'n' => '\n',
                 'r' => '\r',
                 't' => '\t',
