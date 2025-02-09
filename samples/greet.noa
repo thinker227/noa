@@ -1,0 +1,5 @@
+func greet(name) {
+    "Hello, \{name}!"
+}
+
+greet("Noa")

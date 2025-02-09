@@ -20,6 +20,7 @@ internal enum Opcode : byte
     PushBool = 0x15,
     PushFunc = 0x16,
     PushNil = 0x17,
+    PushString = 0x18,
     Pop = 0x32,
     Dup = 0x33,
     Swap = 0x34,
@@ -39,6 +40,8 @@ internal enum Opcode : byte
     And = 0x6B,
     Or = 0x6C,
     GreaterThan = 0x6D,
+    Concat = 0x6E,
+    ToString = 0x6F,
     
     // Operations instructions
     Boundary = 0xFF,

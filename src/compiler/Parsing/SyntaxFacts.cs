@@ -53,7 +53,17 @@ internal static class SyntaxFacts
         TokenKind.Name,
         TokenKind.True,
         TokenKind.False,
-        TokenKind.Number
+        TokenKind.Number,
+        TokenKind.BeginString
+    }.ToFrozenSet();
+
+    /// <summary>
+    /// The set of tokens which can occur within a string expression.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanOccurWithinString { get; } = new[]
+    {
+        TokenKind.StringText,
+        TokenKind.BeginInterpolation
     }.ToFrozenSet();
 
     /// <summary>

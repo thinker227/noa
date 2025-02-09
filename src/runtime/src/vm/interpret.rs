@@ -153,6 +153,7 @@ use std::assert_matches::assert_matches;
 
 use crate::ark::FuncId;
 use crate::exception::Exception;
+use crate::heap::HeapValue;
 use crate::opcode;
 use crate::value::{Closure, Value};
 use crate::vm::frame::{Frame, FrameKind};
@@ -537,9 +538,9 @@ impl Vm {
     }
 
     /// Pops a value off the stack and performs a coercion on it into a specified type.
-    fn pop_val_as<T>(
-        &mut self,
-        coerce: impl FnOnce(&Self, Value) -> Result<T>
+    fn pop_val_as<'a, T>(
+        &'a mut self,
+        coerce: impl FnOnce(&'a Self, Value) -> Result<T>
     ) -> Result<T> {
         let val = self.stack.pop()
             .map_err(|_| self.exception(Exception::StackUnderflow))?;
@@ -676,6 +677,12 @@ impl Vm {
                 self.push(Value::Nil)?;
             },
 
+            opcode::PUSH_STRING => {
+                let index = self.read_u32()? as usize;
+                
+                self.push(Value::InternedString(index))?;
+            },
+
             opcode::POP => {
                 self.pop()?;
             },
@@ -774,6 +781,31 @@ impl Vm {
                     Self::coerce_to_number,
                     |a, b| b > a
                 )?;
+            },
+
+            opcode::CONCAT => {
+                let other = self.pop_val_as(Self::to_string)?;
+                let mut str = self.pop_val_as(Self::to_string)?;
+
+                str.push_str(other.as_str());
+
+                // Todo: garbage collection is never actually run, so this leaks memory currently.
+                let adr = self.heap.alloc(HeapValue::String(str))
+                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+
+                self.push(Value::Object(adr))?;
+            },
+
+            opcode::TO_STRING => {
+                let val = self.pop()?;
+
+                let str = self.to_string(val)?;
+
+                // Todo: garbage collection is never actually run, so this leaks memory currently.
+                let adr = self.heap.alloc(HeapValue::String(str))
+                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),

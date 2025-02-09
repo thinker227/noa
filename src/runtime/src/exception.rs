@@ -38,6 +38,12 @@ pub enum Exception {
 
     #[error("invalid variable `{0}`")]
     InvalidVariable(usize),
+
+    #[error("invalid string `{0}`")]
+    InvalidString(usize),
+
+    #[error("out of memory")]
+    OutOfMemory,
 }
 
 /// An [`Exception`] formatted with a stack trace.

@@ -15,6 +15,7 @@ public abstract partial class Visitor<T>
         Parameter x => VisitParameter(x),
         Expression x => VisitExpression(x),
         ElseClause x => VisitElseClause(x),
+        StringPart x => VisitStringPart(x),
         _ => throw new UnreachableException()
     };
 
@@ -195,7 +196,28 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitIdentifierExpression(IdentifierExpression node) => GetDefault(node);
 
-    protected virtual T VisitStringExpression(StringExpression node) => GetDefault(node);
+    protected virtual T VisitStringExpression(StringExpression node)
+    {
+        Visit(node.Parts);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitStringPart(StringPart node) => node switch
+    {
+        TextStringPart x => VisitTextStringPart(x),
+        InterpolationStringPart x => VisitInterpolationStringPart(x),
+        _ => throw new UnreachableException()
+    };
+
+    protected virtual T VisitTextStringPart(TextStringPart node) => GetDefault(node);
+
+    protected virtual T VisitInterpolationStringPart(InterpolationStringPart node)
+    {
+        Visit(node.Expression);
+
+        return GetDefault(node);
+    }
 
     protected virtual T VisitBoolExpression(BoolExpression node) => GetDefault(node);
 

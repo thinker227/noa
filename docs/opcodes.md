@@ -29,6 +29,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x15 | `PushBool <val: bool>` | Pushes the boolean `val` onto the stack. | Pushes 1 value. |
 | 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
+| 0x18 | `PushString <string index: u32>` | Pushes the string with the string index `string index` onto the stack. | Pushes 1 value. |
 
 ## Miscellaneous stack operations (0x32-0x45)
 
@@ -59,6 +60,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x6B | `And` | Pops the two topmost values from the stack, performs a logical and on them, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x6C | `Or` | Pops the two topmost values from the stack, performs a logical or on them, then pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x6D | `GreaterThan` | Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
+| 0x6E | `Concat` |  Pops the two topmost values on from the stack, concatenates them as strings, and pushes the result onto the stack. | Cumulative: pops 1 value. |
+| 0x6F | `ToString` | Pops the topmost value from the stack, coerces it into a string, then pushes the result onto the stack. | Cumulative: none. |
 
 ## Operational instructions (0xF0-0xFF)
 

@@ -85,13 +85,19 @@ binaryExpression = expression binaryOperator expression ;
 
 identifierExpression = NAME ;
 
-stringExpression = STRING_LITERAL ;
+stringExpression = normalString | interpolatedString ;
 
 boolExpression = 'true' | 'false' ;
 
 numberExpression = NUMBER_LITERAL ;
 
 nilExpression = '(' ')' ;
+
+
+
+normalString = '"' (STRING_TEXT | '\{' expression '}')* '"' ;
+
+interpolatedString = '\"' (STRING_TEXT | '{' expression '}')* '"' ;
 
 
 

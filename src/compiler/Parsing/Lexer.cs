@@ -48,6 +48,21 @@ internal sealed partial class Lexer
             // Symbol clusters
             if (TrySymbol() is var (kind, tokenLength))
             {
+                int depth;
+
+                // Count curly depths if inside interpolation.
+
+                if (kind is TokenKind.OpenBrace && interpolationCurlyDepths.TryPop(out depth))
+                    interpolationCurlyDepths.Push(depth + 1);
+                
+                if (kind is TokenKind.CloseBrace && interpolationCurlyDepths.TryPop(out depth))
+                {
+                    interpolationCurlyDepths.Push(depth - 1);
+                    
+                    // Return from lexing the current string interpolation.
+                    if (depth == 0) return;
+                }
+
                 ConstructToken(kind, tokenLength);
                 continue;
             }
@@ -65,6 +80,9 @@ internal sealed partial class Lexer
                 ConstructToken(TokenKind.Number, number.Length);
                 continue;
             }
+
+            // Strings
+            if (TryString()) continue;
 
             // Unknown
             var unexpectedSpan = TextSpan.FromLength(position, 1);
@@ -168,5 +186,87 @@ internal sealed partial class Lexer
         }
 
         return Rest[..i];
+    }
+
+    private bool TryString()
+    {
+        bool isOptOut;
+        switch (Rest)
+        {
+        case ['\\', '"', ..]:
+            isOptOut = true;
+            break;
+        case ['"', ..]:
+            isOptOut = false;
+            break;
+        default:
+            return false;
+        }
+
+        var startQuoteLength = isOptOut ? 2 : 1;
+        var interpolationStartLength = isOptOut ? 1 : 2;
+
+        ConstructToken(TokenKind.BeginString, startQuoteLength);
+
+        var i = 0;
+        for (; i < Rest.Length; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var current = Rest[i];
+
+            // Begin interpolation.
+            if (!isOptOut && Rest[i..] is ['\\', '{', ..] ||
+                 isOptOut && Rest[i..] is ['{', ..])
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+
+                ConstructToken(TokenKind.BeginInterpolation, interpolationStartLength);
+
+                // Push an interpolation curly depth of 0 to keep track of how deep within curly pairs the lexer is
+                // and when to break out of the interpolation.
+                interpolationCurlyDepths.Push(0);
+
+                // Recursively invoke the lexer to lex the tokens within the interpolation.
+                Lex();
+
+                interpolationCurlyDepths.Pop();
+
+                // Once the lexer has lexed the tokens within the interpolation and returned here,
+                // it might be the case that the string was unterminated and that there is not closing }.
+                if (!AtEnd) ConstructToken(TokenKind.EndInterpolation, 1);
+
+                // Reset i to -1 so that the next iteration will start back at index 0 of the new rest.
+                i = -1;
+                continue;
+            }
+
+            // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
+            if (current is '"')
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+                
+                ConstructToken(TokenKind.EndString, 1);
+
+                return true;
+            }
+
+            // Encountered an unterminated string, either because of a newline or end of input.
+            if (current is '\n' || i == Rest.Length - 1) break;
+
+            // Skip escape sequences.
+            // An escape sequence here is considered a \ followed by any character except a newline.
+            if (Rest[i..] is ['\\', not '\n', ..]) i++;
+        }
+
+        // If we got here then the string is unterminated.
+        // Report a diagnostic at the very end of the string.
+        var span = TextSpan.FromLength(position + i, 1);
+        var location = new Location(source.Name, span);
+        diagnostics.Add(ParseDiagnostics.UnterminatedString.Format(location));
+
+        return true;
     }
 }

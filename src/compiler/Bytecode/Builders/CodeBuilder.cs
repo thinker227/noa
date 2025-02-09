@@ -120,6 +120,13 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     }
 
     public void PushNil() => Add(Opcode.PushNil);
+
+    public void PushString(StringIndex index)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, index.Index);
+        Add(Opcode.PushString, bytes);
+    }
     
     public void Pop() => Add(Opcode.Pop);
 
@@ -160,6 +167,10 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Or() => Add(Opcode.Or);
 
     public void GreaterThan() => Add(Opcode.GreaterThan);
+
+    public void Concat() => Add(Opcode.Concat);
+
+    public new void ToString() => Add(Opcode.ToString);
 }
 
 /// <summary>

@@ -244,6 +244,9 @@ internal sealed partial class Parser
                 };
             }
         
+        case TokenKind.BeginString:
+            return ParseString();
+        
         default:
             return new ErrorExpression()
             {

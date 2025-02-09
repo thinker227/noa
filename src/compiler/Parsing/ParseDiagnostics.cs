@@ -94,4 +94,22 @@ internal static class ParseDiagnostics
                 .Keyword("if expression")
                 .Raw(" can only be omitted when the expression is used as a statement."),
             Severity.Error);
+    
+    public static DiagnosticTemplate UnterminatedString { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-008",
+            page => page
+                .Raw("Unterminated ")
+                .Keyword("string literal")
+                .Raw("."),
+            Severity.Error);
+    
+    public static DiagnosticTemplate<string> UnknownEscapeSequence { get; } =
+        DiagnosticTemplate.Create<string>(
+            "NOA-SYN-009",
+            (seq, page) => page
+                .Raw("Unknown escape sequence ")
+                .Source(seq)
+                .Raw("."),
+            Severity.Error);
 }
