@@ -768,6 +768,10 @@ impl Vm {
                 )?;
             },
 
+            opcode::CONCAT => {
+                todo!()
+            },
+
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
 
             _ => return Err(self.exception(Exception::UnknownOpcode(*opcode)))
