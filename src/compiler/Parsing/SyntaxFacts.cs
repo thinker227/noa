@@ -78,6 +78,18 @@ internal static class SyntaxFacts
     }.ToFrozenSet();
 
     /// <summary>
+    /// The set of tokens which can be used as an assignment operator.
+    /// </summary>
+    public static FrozenSet<TokenKind> AssignmentOperator { get; } = new[]
+    {
+        TokenKind.Equals,
+        TokenKind.PlusEquals,
+        TokenKind.DashEquals,
+        TokenKind.StarEquals,
+        TokenKind.SlashEquals
+    }.ToFrozenSet();
+
+    /// <summary>
     /// The set of tokens which are binary expression operators.
     /// </summary>
     public static FrozenSet<TokenKind> BinaryExpressionOperator { get; } = new[]
