@@ -523,9 +523,9 @@ impl Vm {
     }
 
     /// Pops a value off the stack and performs a coercion on it into a specified type.
-    fn pop_val_as<T>(
-        &mut self,
-        coerce: impl FnOnce(&Self, Value) -> Result<T>
+    fn pop_val_as<'a, T>(
+        &'a mut self,
+        coerce: impl FnOnce(&'a Self, Value) -> Result<T>
     ) -> Result<T> {
         let val = self.stack.pop()
             .map_err(|_| self.exception(Exception::StackUnderflow))?;
