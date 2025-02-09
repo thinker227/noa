@@ -56,7 +56,7 @@ internal class BlockEmitter(
             break;
 
         case UnaryKind.Negate:
-            Code.PushInt(0);
+            Code.PushFloat(0);
             Code.Swap();
             Code.Sub();
             break;
@@ -124,7 +124,7 @@ internal class BlockEmitter(
         }
     }
 
-    protected override void VisitNumberExpression(NumberExpression node) => Code.PushInt(node.Value);
+    protected override void VisitNumberExpression(NumberExpression node) => Code.PushFloat(node.Value);
 
     protected override void VisitBoolExpression(BoolExpression node) => Code.PushBool(node.Value);
 

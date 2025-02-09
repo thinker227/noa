@@ -99,11 +99,11 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
 
     public void ExitTempFrame() => Add(Opcode.ExitTempFrame);
 
-    public void PushInt(int value)
+    public void PushFloat(double value)
     {
-        var bytes = new byte[4];
-        BinaryPrimitives.WriteInt32BigEndian(bytes, value);
-        Add(Opcode.PushInt, bytes);
+        var bytes = new byte[8];
+        BinaryPrimitives.WriteDoubleBigEndian(bytes, value);
+        Add(Opcode.PushFloat, bytes);
     }
 
     public void PushBool(bool value)

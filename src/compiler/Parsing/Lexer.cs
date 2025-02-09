@@ -166,9 +166,22 @@ internal sealed partial class Lexer
     {
         if (Rest.IsEmpty) return ReadOnlySpan<char>.Empty;
 
+        var afterDecimalPoint = false;
+
         var i = 0;
         for (; i < Rest.Length; i++)
         {
+            // Only try to lex a decimal point if we've lexed at least one digit
+            // and haven't already lexed a decimal point.
+            if (i >= 1 && !afterDecimalPoint && Rest[i] is '.')
+            {
+                // Exit if there's no digit after the decimal point.
+                if (Rest[(i + 1)..] is not [var next, ..] || !SyntaxFacts.IsDigit(next)) break;
+
+                afterDecimalPoint = true;
+                continue;
+            }
+
             if (!SyntaxFacts.IsDigit(Rest[i])) break;
         }
 

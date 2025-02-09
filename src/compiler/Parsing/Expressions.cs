@@ -231,22 +231,16 @@ internal sealed partial class Parser
             {
                 var number = Advance();
 
-                if (int.TryParse(number.Text, NumberStyles.None, CultureInfo.InvariantCulture, out var value))
-                {
-                    return new NumberExpression()
-                    {
-                        Ast = Ast,
-                        Span = number.Span,
-                        Value = value
-                    };
-                }
+                var value = double.Parse(
+                    number.Text,
+                    NumberStyles.AllowDecimalPoint,
+                    CultureInfo.InvariantCulture);
 
-                ReportDiagnostic(ParseDiagnostics.LiteralTooLarge, number.Text, number.Span);
-                    
-                return new ErrorExpression()
+                return new NumberExpression()
                 {
                     Ast = Ast,
-                    Span = number.Span
+                    Span = number.Span,
+                    Value = value
                 };
             }
         
