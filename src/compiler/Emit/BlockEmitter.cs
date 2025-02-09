@@ -130,9 +130,24 @@ internal class BlockEmitter(
 
     protected override void VisitStringExpression(StringExpression node)
     {
-        var index = strings.GetOrAdd(node.Value);
+        var first = true;
+
+        foreach (var part in node.Parts)
+        {
+            Visit(part);
+            
+            if (!first) Code.Concat();
+            first = false;
+        }
+    }
+
+    protected override void VisitTextStringPart(TextStringPart node)
+    {
+        var index = strings.GetOrAdd(node.Text);
         Code.PushString(index);
     }
+
+    protected override void VisitInterpolationStringPart(InterpolationStringPart node) => Visit(node.Expression);
 
     protected override void VisitNilExpression(NilExpression node) => Code.PushNil();
 
