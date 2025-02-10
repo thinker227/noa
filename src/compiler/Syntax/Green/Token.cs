@@ -10,5 +10,7 @@ internal readonly record struct Token(TokenKind Kind, string? Text, int Width)
 
     public int GetWidth() => Width;
 
+    public Syntax.Token ToRed(int position, Syntax.SyntaxNode parent) => new(position, parent, this);
+
     public override string ToString() => Text;
 }
