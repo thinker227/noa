@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace Noa.CodeGen;
+namespace Noa.CodeGen.Ast;
 
 [XmlRoot("Root")]
 public sealed class RootDto
