@@ -60,7 +60,7 @@ public record Member
         return ListKind switch
         {
             ListKind.None => $"{type} {Name}",
-            ListKind.Normal => $"ImmutableArray<{type}> {Name}",
+            ListKind.Simple => $"ImmutableArray<{type}> {Name}",
             ListKind.Separated => $"SeparatedSyntaxList<{type}> {Name}",
             _ => throw new UnreachableException()
         };
@@ -70,7 +70,7 @@ public record Member
 public enum ListKind
 {
     None,
-    Normal,
+    Simple,
     Separated,
 }
 
@@ -117,7 +117,7 @@ public static class DtoExtensions
                     IsPrimitive = memberDto is TokenDto,
                     ListKind = memberDto switch
                     {
-                        ListDto => ListKind.Normal,
+                        ListDto => ListKind.Simple,
                         SeparatedListDto => ListKind.Separated,
                         _ => ListKind.None
                     }
