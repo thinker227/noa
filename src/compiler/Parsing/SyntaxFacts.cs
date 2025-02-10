@@ -74,7 +74,7 @@ internal static class SyntaxFacts
     {
         TokenKind.Plus,
         TokenKind.Dash,
-        TokenKind.Bang
+        TokenKind.Not
     }.ToFrozenSet();
 
     /// <summary>
@@ -103,7 +103,9 @@ internal static class SyntaxFacts
         TokenKind.LessThan,
         TokenKind.GreaterThan,
         TokenKind.LessThanEquals,
-        TokenKind.GreaterThanEquals
+        TokenKind.GreaterThanEquals,
+        TokenKind.And,
+        TokenKind.Or
     }.ToFrozenSet();
 
     /// <summary>
