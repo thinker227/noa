@@ -26,12 +26,20 @@ app.Run((
     if (!outputFolder.Exists) outputFolder.Create();
 
     var astToModel = Noa.CodeGen.Ast.DtoExtensions.ToModel;
-
     Render(
         new(Path.Combine(inputFolder.FullName, "ast")),
         new(Path.Combine(outputFolder.FullName, "Ast")),
         "ast.xml",
         astToModel);
+
+    console.WriteLine();
+    
+    var syntaxToModel = Noa.CodeGen.Syntax.DtoExtensions.ToModel;
+    Render(
+        new(Path.Combine(inputFolder.FullName, "syntax")),
+        new(Path.Combine(outputFolder.FullName, "Syntax")),
+        "syntax.xml",
+        syntaxToModel);
 
     return 0;
 });
