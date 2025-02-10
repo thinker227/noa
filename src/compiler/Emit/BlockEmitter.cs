@@ -147,6 +147,12 @@ internal class BlockEmitter(
             Code.LessThan();
             Code.Not();
             break;
+
+        case BinaryKind.And:
+            throw new NotImplementedException();
+        
+        case BinaryKind.Or:
+            throw new NotImplementedException();
         
         default: throw new UnreachableException();
         }
