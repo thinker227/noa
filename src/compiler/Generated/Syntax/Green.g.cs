@@ -11,7 +11,7 @@ internal sealed partial class RootSyntax : SyntaxNode
 
     public required ExpressionSyntax TrailingExpression { get; init; }
 
-    public override int Width() => Statements.Width() + TrailingExpression.Width();
+    public override int GetWidth() => Statements.GetWidth() + TrailingExpression.GetWidth();
 }
 
 internal abstract partial class StatementSyntax : SyntaxNode;
@@ -28,7 +28,7 @@ internal sealed partial class FunctionDeclarationSyntax : DeclarationSyntax
 
     public required FunctionBodySyntax Body { get; init; }
 
-    public override int Width() => Func.Width() + Name.Width() + Parameters.Width() + Body.Width();
+    public override int GetWidth() => Func.GetWidth() + Name.GetWidth() + Parameters.GetWidth() + Body.GetWidth();
 }
 
 internal sealed partial class ParameterListSyntax : SyntaxNode
@@ -39,7 +39,7 @@ internal sealed partial class ParameterListSyntax : SyntaxNode
 
     public required Token CloseParen { get; init; }
 
-    public override int Width() => OpenParen.Width() + Parameters.Width() + CloseParen.Width();
+    public override int GetWidth() => OpenParen.GetWidth() + Parameters.GetWidth() + CloseParen.GetWidth();
 }
 
 internal sealed partial class ParameterSyntax : SyntaxNode
@@ -48,7 +48,7 @@ internal sealed partial class ParameterSyntax : SyntaxNode
 
     public required Token Name { get; init; }
 
-    public override int Width() => Mut?.Width() ?? 0 + Name.Width();
+    public override int GetWidth() => Mut?.GetWidth() ?? 0 + Name.GetWidth();
 }
 
 internal abstract partial class FunctionBodySyntax : SyntaxNode;
@@ -57,7 +57,7 @@ internal sealed partial class BlockBodySyntax : FunctionBodySyntax
 {
     public required BlockExpressionSyntax Block { get; init; }
 
-    public override int Width() => Block.Width();
+    public override int GetWidth() => Block.GetWidth();
 }
 
 internal sealed partial class ExpressionBodySyntax : FunctionBodySyntax
@@ -68,7 +68,7 @@ internal sealed partial class ExpressionBodySyntax : FunctionBodySyntax
 
     public required Token Semicolon { get; init; }
 
-    public override int Width() => Arrow.Width() + Expression.Width() + Semicolon.Width();
+    public override int GetWidth() => Arrow.GetWidth() + Expression.GetWidth() + Semicolon.GetWidth();
 }
 
 internal sealed partial class LetDeclarationSyntax : SyntaxNode
@@ -85,7 +85,7 @@ internal sealed partial class LetDeclarationSyntax : SyntaxNode
 
     public required Token Semicolon { get; init; }
 
-    public override int Width() => Let.Width() + Mut?.Width() ?? 0 + Name.Width() + Equals.Width() + Value.Width() + Semicolon.Width();
+    public override int GetWidth() => Let.GetWidth() + Mut?.GetWidth() ?? 0 + Name.GetWidth() + Equals.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
 }
 
 internal sealed partial class AssignmentStatementSyntax : StatementSyntax
@@ -98,14 +98,14 @@ internal sealed partial class AssignmentStatementSyntax : StatementSyntax
 
     public required Token Semicolon { get; init; }
 
-    public override int Width() => Identifier.Width() + Operator.Width() + Value.Width() + Semicolon.Width();
+    public override int GetWidth() => Identifier.GetWidth() + Operator.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
 }
 
 internal sealed partial class FlowControlStatement : SyntaxNode
 {
     public required ExpressionSyntax Expression { get; init; }
 
-    public override int Width() => Expression.Width();
+    public override int GetWidth() => Expression.GetWidth();
 }
 
 internal sealed partial class ExpressionStatementSyntax : StatementSyntax
@@ -114,7 +114,7 @@ internal sealed partial class ExpressionStatementSyntax : StatementSyntax
 
     public required Token Semicolon { get; init; }
 
-    public override int Width() => Expression.Width() + Semicolon.Width();
+    public override int GetWidth() => Expression.GetWidth() + Semicolon.GetWidth();
 }
 
 internal abstract partial class ExpressionSyntax : SyntaxNode;
@@ -129,7 +129,7 @@ internal sealed partial class BlockExpressionSyntax : ExpressionSyntax
 
     public required Token CloseBrace { get; init; }
 
-    public override int Width() => OpenBrace.Width() + Statements.Width() + TrailingExpression.Width() + CloseBrace.Width();
+    public override int GetWidth() => OpenBrace.GetWidth() + Statements.GetWidth() + TrailingExpression.GetWidth() + CloseBrace.GetWidth();
 }
 
 internal sealed partial class CallExpressionSyntax : ExpressionSyntax
@@ -142,7 +142,7 @@ internal sealed partial class CallExpressionSyntax : ExpressionSyntax
 
     public required Token CloseParen { get; init; }
 
-    public override int Width() => Target.Width() + OpenParen.Width() + Arguments.Width() + CloseParen.Width();
+    public override int GetWidth() => Target.GetWidth() + OpenParen.GetWidth() + Arguments.GetWidth() + CloseParen.GetWidth();
 }
 
 internal sealed partial class LambdaExpressionSyntax : ExpressionSyntax
@@ -153,7 +153,7 @@ internal sealed partial class LambdaExpressionSyntax : ExpressionSyntax
 
     public required ExpressionSyntax Expression { get; init; }
 
-    public override int Width() => Parameters.Width() + Arrow.Width() + Expression.Width();
+    public override int GetWidth() => Parameters.GetWidth() + Arrow.GetWidth() + Expression.GetWidth();
 }
 
 internal sealed partial class TupleExpressionSyntax : ExpressionSyntax
@@ -164,14 +164,14 @@ internal sealed partial class TupleExpressionSyntax : ExpressionSyntax
 
     public required Token CloseParen { get; init; }
 
-    public override int Width() => OpenParen.Width() + Expressions.Width() + CloseParen.Width();
+    public override int GetWidth() => OpenParen.GetWidth() + Expressions.GetWidth() + CloseParen.GetWidth();
 }
 
 internal sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     public required ExpressionSyntax Expression { get; init; }
 
-    public override int Width() => Expression.Width();
+    public override int GetWidth() => Expression.GetWidth();
 }
 
 internal sealed partial class IfExpressionSyntax : ExpressionSyntax
@@ -188,7 +188,7 @@ internal sealed partial class IfExpressionSyntax : ExpressionSyntax
 
     public required ElseClauseSyntax Else { get; init; }
 
-    public override int Width() => If.Width() + OpenParen.Width() + Condition.Width() + CloseParen.Width() + Body.Width() + Else.Width();
+    public override int GetWidth() => If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else.GetWidth();
 }
 
 internal sealed partial class ElseClauseSyntax : SyntaxNode
@@ -197,7 +197,7 @@ internal sealed partial class ElseClauseSyntax : SyntaxNode
 
     public required BlockExpressionSyntax Body { get; init; }
 
-    public override int Width() => Else.Width() + Body.Width();
+    public override int GetWidth() => Else.GetWidth() + Body.GetWidth();
 }
 
 internal sealed partial class LoopExpression : ExpressionSyntax
@@ -206,7 +206,7 @@ internal sealed partial class LoopExpression : ExpressionSyntax
 
     public required BlockExpressionSyntax Body { get; init; }
 
-    public override int Width() => Loop.Width() + Body.Width();
+    public override int GetWidth() => Loop.GetWidth() + Body.GetWidth();
 }
 
 internal sealed partial class ReturnExpressionSyntax : ExpressionSyntax
@@ -215,7 +215,7 @@ internal sealed partial class ReturnExpressionSyntax : ExpressionSyntax
 
     public required ExpressionSyntax? Value { get; init; }
 
-    public override int Width() => Return.Width() + Value?.Width() ?? 0;
+    public override int GetWidth() => Return.GetWidth() + Value?.GetWidth() ?? 0;
 }
 
 internal sealed partial class BreakExpressionSyntax : ExpressionSyntax
@@ -224,14 +224,14 @@ internal sealed partial class BreakExpressionSyntax : ExpressionSyntax
 
     public required ExpressionSyntax? Value { get; init; }
 
-    public override int Width() => Break.Width() + Value?.Width() ?? 0;
+    public override int GetWidth() => Break.GetWidth() + Value?.GetWidth() ?? 0;
 }
 
 internal sealed partial class ContinueExpressionSyntax : ExpressionSyntax
 {
     public required Token Continue { get; init; }
 
-    public override int Width() => Continue.Width();
+    public override int GetWidth() => Continue.GetWidth();
 }
 
 internal sealed partial class UnaryExpressionSyntax : ExpressionSyntax
@@ -240,7 +240,7 @@ internal sealed partial class UnaryExpressionSyntax : ExpressionSyntax
 
     public required ExpressionSyntax Operand { get; init; }
 
-    public override int Width() => Operator.Width() + Operand.Width();
+    public override int GetWidth() => Operator.GetWidth() + Operand.GetWidth();
 }
 
 internal sealed partial class BinaryExpressionSyntax : ExpressionSyntax
@@ -251,14 +251,14 @@ internal sealed partial class BinaryExpressionSyntax : ExpressionSyntax
 
     public required ExpressionSyntax Right { get; init; }
 
-    public override int Width() => Left.Width() + Operator.Width() + Right.Width();
+    public override int GetWidth() => Left.GetWidth() + Operator.GetWidth() + Right.GetWidth();
 }
 
 internal sealed partial class IdentifierExpressionSyntax : ExpressionSyntax
 {
     public required Token Identifier { get; init; }
 
-    public override int Width() => Identifier.Width();
+    public override int GetWidth() => Identifier.GetWidth();
 }
 
 internal sealed partial class StringExpressionSyntax : ExpressionSyntax
@@ -269,7 +269,7 @@ internal sealed partial class StringExpressionSyntax : ExpressionSyntax
 
     public required Token CloseQuote { get; init; }
 
-    public override int Width() => OpenQuote.Width() + Parts.Width() + CloseQuote.Width();
+    public override int GetWidth() => OpenQuote.GetWidth() + Parts.GetWidth() + CloseQuote.GetWidth();
 }
 
 internal abstract partial class StringPart : SyntaxNode;
@@ -278,7 +278,7 @@ internal sealed partial class TextStringPart : StringPart
 {
     public required Token Text { get; init; }
 
-    public override int Width() => Text.Width();
+    public override int GetWidth() => Text.GetWidth();
 }
 
 internal sealed partial class InterpolationStringPart : StringPart
@@ -289,21 +289,21 @@ internal sealed partial class InterpolationStringPart : StringPart
 
     public required Token CloseDelimiter { get; init; }
 
-    public override int Width() => OpenDelimiter.Width() + Expression.Width() + CloseDelimiter.Width();
+    public override int GetWidth() => OpenDelimiter.GetWidth() + Expression.GetWidth() + CloseDelimiter.GetWidth();
 }
 
 internal sealed partial class BoolExpressionSyntax : ExpressionSyntax
 {
     public required Token Value { get; init; }
 
-    public override int Width() => Value.Width();
+    public override int GetWidth() => Value.GetWidth();
 }
 
 internal sealed partial class NumberExpressionSyntax : ExpressionSyntax
 {
     public required Token Value { get; init; }
 
-    public override int Width() => Value.Width();
+    public override int GetWidth() => Value.GetWidth();
 }
 
 internal sealed partial class NilExpressionSyntax : ExpressionSyntax
@@ -312,5 +312,5 @@ internal sealed partial class NilExpressionSyntax : ExpressionSyntax
 
     public required Token CloseParen { get; init; }
 
-    public override int Width() => OpenParen.Width() + CloseParen.Width();
+    public override int GetWidth() => OpenParen.GetWidth() + CloseParen.GetWidth();
 }

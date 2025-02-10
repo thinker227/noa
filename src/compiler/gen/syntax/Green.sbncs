@@ -16,7 +16,7 @@ internal {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}
     {{~ end ~}}
     {{~ end ~}}
 
-    public override int Width() => {{ for member in node.members }}{{ if !member.is_optional }}{{ member.name }}.Width(){{ else }}{{ member.name }}?.Width() ?? 0{{ end }}{{ if !for.last }} + {{ end }}{{ end }};
+    public override int GetWidth() => {{ for member in node.members }}{{ if !member.is_optional }}{{ member.name }}.GetWidth(){{ else }}{{ member.name }}?.GetWidth() ?? 0{{ end }}{{ if !for.last }} + {{ end }}{{ end }};
 }
 {{~ end ~}}
 {{~ if !for.last ~}}

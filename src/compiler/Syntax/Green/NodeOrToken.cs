@@ -29,6 +29,10 @@ internal readonly struct NodeOrToken<TNode> where TNode : SyntaxNode
         this.token = token;
     }
 
+    public int GetWidth() => IsNode
+        ? Node.GetWidth()
+        : Token.GetWidth();
+
     public static implicit operator NodeOrToken<TNode>(TNode node) => new(node);
 
     public static implicit operator NodeOrToken<TNode>(Token token) => new(token);

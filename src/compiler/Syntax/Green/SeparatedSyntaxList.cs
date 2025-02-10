@@ -19,8 +19,8 @@ internal sealed class SeparatedSyntaxList<TNode> : IEnumerable<NodeOrToken<TNode
         Tokens = tokens;
     }
 
-    public int Width() =>
-        Nodes.Sum(x => x.Width()) + Tokens.Sum(x => x.Width());
+    public int GetWidth() =>
+        Nodes.Sum(x => x.GetWidth()) + Tokens.Sum(x => x.GetWidth());
 
     public IEnumerator<NodeOrToken<TNode>> GetEnumerator()
     {
