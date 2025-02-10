@@ -1,24 +1,15 @@
 using Noa.Compiler.Nodes;
-using TextMappingUtils;
 
 namespace Noa.Compiler.Syntax;
 
-public readonly struct Token
+public sealed class Token : SyntaxNode
 {
-    private readonly Green.Token green;
+    internal Green.Token Green => (Green.Token)green;
 
-    public SyntaxNode Parent { get; }
-
-    public TokenKind Kind => green.Kind;
+    public TokenKind Kind => Green.Kind;
     
-    public string Text => green.Text;
+    public string Text => Green.Text;
 
-    public TextSpan Span { get; }
-
-    internal Token(int position, SyntaxNode parent, Green.Token green)
-    {
-        this.green = green;
-        Parent = parent;
-        Span = TextSpan.FromLength(position, green.Width);
-    }
+    internal Token(Green.Token green, int position, SyntaxNode parent)
+        : base(green, position, parent) {}
 }
