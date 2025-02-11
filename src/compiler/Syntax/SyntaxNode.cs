@@ -9,9 +9,6 @@ namespace Noa.Compiler.Syntax;
 public abstract class SyntaxNode
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    internal readonly int position;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private TextSpan? span = null;
 
     /// <summary>
@@ -25,18 +22,24 @@ public abstract class SyntaxNode
     public SyntaxNode Parent { get; }
 
     /// <summary>
+    /// The full position of the node in the tree.
+    /// If the node has leading trivia, this is at the start of that trivia.
+    /// </summary>
+    public int FullPosition { get; }
+
+    /// <summary>
     /// The span of the syntax node in the corresponding source text.
     /// </summary>
-    public TextSpan Span => span ??= TextSpan.FromLength(position, Green.GetWidth());
+    public TextSpan Span => span ??= TextSpan.FromLength(FullPosition, Green.GetWidth());
 
     /// <summary>
     /// The nodes which are direct children of the node.
     /// </summary>
     public abstract IEnumerable<SyntaxNode> Children { get; }
 
-    internal SyntaxNode(int position, SyntaxNode parent)
+    internal SyntaxNode(int fullPosition, SyntaxNode parent)
     {
-        this.position = position;
+        FullPosition = fullPosition;
         Parent = parent;
     }
 }

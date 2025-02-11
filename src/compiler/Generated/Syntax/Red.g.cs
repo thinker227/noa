@@ -14,13 +14,13 @@ public sealed class RootSyntax : SyntaxNode
 
     internal override Green.SyntaxNode Green => green;
 
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position, this);
+    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(FullPosition, this);
     
-    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + green.Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(FullPosition + green.Statements.GetWidth(), this);
     
-    public Token EndOfFile => (Token)green.EndOfFile.ToRed(position + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
+    public Token EndOfFile => (Token)green.EndOfFile.ToRed(FullPosition + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
     
-    internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal RootSyntax(Green.RootSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -37,12 +37,12 @@ public sealed class RootSyntax : SyntaxNode
 
 public abstract class StatementSyntax : SyntaxNode
 {
-    internal StatementSyntax(int position, SyntaxNode parent) : base(position, parent) {}
+    internal StatementSyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
 }
 
 public abstract class DeclarationSyntax : StatementSyntax
 {
-    internal DeclarationSyntax(int position, SyntaxNode parent) : base(position, parent) {}
+    internal DeclarationSyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
 }
 
 public sealed class FunctionDeclarationSyntax : DeclarationSyntax
@@ -52,15 +52,15 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Func => (Token)green.Func.ToRed(position, this);
+    public Token Func => (Token)green.Func.ToRed(FullPosition, this);
     
-    public Token Name => (Token)green.Name.ToRed(position + green.Func.GetWidth(), this);
+    public Token Name => (Token)green.Name.ToRed(FullPosition + green.Func.GetWidth(), this);
     
-    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position + green.Func.GetWidth() + green.Name.GetWidth(), this);
+    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(FullPosition + green.Func.GetWidth() + green.Name.GetWidth(), this);
     
-    public FunctionBodySyntax Body => (FunctionBodySyntax)green.Body.ToRed(position + green.Func.GetWidth() + green.Name.GetWidth() + green.Parameters.GetWidth(), this);
+    public FunctionBodySyntax Body => (FunctionBodySyntax)green.Body.ToRed(FullPosition + green.Func.GetWidth() + green.Name.GetWidth() + green.Parameters.GetWidth(), this);
     
-    internal FunctionDeclarationSyntax(Green.FunctionDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal FunctionDeclarationSyntax(Green.FunctionDeclarationSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -83,13 +83,13 @@ public sealed class ParameterListSyntax : SyntaxNode
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(FullPosition, this);
     
-    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)green.Parameters.ToRed(position + green.OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)green.Parameters.ToRed(FullPosition + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth() + green.Parameters.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(FullPosition + green.OpenParen.GetWidth() + green.Parameters.GetWidth(), this);
     
-    internal ParameterListSyntax(Green.ParameterListSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ParameterListSyntax(Green.ParameterListSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -111,11 +111,11 @@ public sealed class ParameterSyntax : SyntaxNode
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token? Mut => (Token?)green.Mut?.ToRed(position, this);
+    public Token? Mut => (Token?)green.Mut?.ToRed(FullPosition, this);
     
-    public Token Name => (Token)green.Name.ToRed(position + (green.Mut?.GetWidth() ?? 0), this);
+    public Token Name => (Token)green.Name.ToRed(FullPosition + (green.Mut?.GetWidth() ?? 0), this);
     
-    internal ParameterSyntax(Green.ParameterSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ParameterSyntax(Green.ParameterSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -131,7 +131,7 @@ public sealed class ParameterSyntax : SyntaxNode
 
 public abstract class FunctionBodySyntax : SyntaxNode
 {
-    internal FunctionBodySyntax(int position, SyntaxNode parent) : base(position, parent) {}
+    internal FunctionBodySyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
 }
 
 public sealed class BlockBodySyntax : FunctionBodySyntax
@@ -141,9 +141,9 @@ public sealed class BlockBodySyntax : FunctionBodySyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public BlockExpressionSyntax Block => (BlockExpressionSyntax)green.Block.ToRed(position, this);
+    public BlockExpressionSyntax Block => (BlockExpressionSyntax)green.Block.ToRed(FullPosition, this);
     
-    internal BlockBodySyntax(Green.BlockBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal BlockBodySyntax(Green.BlockBodySyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -163,13 +163,13 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Arrow => (Token)green.Arrow.ToRed(position, this);
+    public Token Arrow => (Token)green.Arrow.ToRed(FullPosition, this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.Arrow.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition + green.Arrow.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Arrow.GetWidth() + green.Expression.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Arrow.GetWidth() + green.Expression.GetWidth(), this);
     
-    internal ExpressionBodySyntax(Green.ExpressionBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ExpressionBodySyntax(Green.ExpressionBodySyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -191,19 +191,19 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Let => (Token)green.Let.ToRed(position, this);
+    public Token Let => (Token)green.Let.ToRed(FullPosition, this);
     
-    public Token? Mut => (Token?)green.Mut?.ToRed(position + green.Let.GetWidth(), this);
+    public Token? Mut => (Token?)green.Mut?.ToRed(FullPosition + green.Let.GetWidth(), this);
     
-    public Token Name => (Token)green.Name.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0), this);
+    public Token Name => (Token)green.Name.ToRed(FullPosition + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0), this);
     
-    public Token Equals => (Token)green.Equals.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth(), this);
+    public Token Equals => (Token)green.Equals.ToRed(FullPosition + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(FullPosition + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth() + green.Value.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth() + green.Value.GetWidth(), this);
     
-    internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -228,15 +228,15 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
+    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(FullPosition, this);
     
-    public Token Operator => (Token)green.Operator.ToRed(position + green.Target.GetWidth(), this);
+    public Token Operator => (Token)green.Operator.ToRed(FullPosition + green.Target.GetWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + green.Target.GetWidth() + green.Operator.GetWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(FullPosition + green.Target.GetWidth() + green.Operator.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Target.GetWidth() + green.Operator.GetWidth() + green.Value.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Target.GetWidth() + green.Operator.GetWidth() + green.Value.GetWidth(), this);
     
-    internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -259,9 +259,9 @@ public sealed class FlowControlStatementSyntax : StatementSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition, this);
     
-    internal FlowControlStatementSyntax(Green.FlowControlStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal FlowControlStatementSyntax(Green.FlowControlStatementSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -281,11 +281,11 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition, this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Expression.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Expression.GetWidth(), this);
     
-    internal ExpressionStatementSyntax(Green.ExpressionStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ExpressionStatementSyntax(Green.ExpressionStatementSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -301,7 +301,7 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
 
 public abstract class ExpressionSyntax : SyntaxNode
 {
-    internal ExpressionSyntax(int position, SyntaxNode parent) : base(position, parent) {}
+    internal ExpressionSyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
 }
 
 public sealed class ErrorExpressionSyntax : ExpressionSyntax
@@ -311,7 +311,7 @@ public sealed class ErrorExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    internal ErrorExpressionSyntax(Green.ErrorExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ErrorExpressionSyntax(Green.ErrorExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -330,15 +330,15 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenBrace => (Token)green.OpenBrace.ToRed(position, this);
+    public Token OpenBrace => (Token)green.OpenBrace.ToRed(FullPosition, this);
     
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position + green.OpenBrace.GetWidth(), this);
+    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(FullPosition + green.OpenBrace.GetWidth(), this);
     
-    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + green.OpenBrace.GetWidth() + green.Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(FullPosition + green.OpenBrace.GetWidth() + green.Statements.GetWidth(), this);
     
-    public Token CloseBrace => (Token)green.CloseBrace.ToRed(position + green.OpenBrace.GetWidth() + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
+    public Token CloseBrace => (Token)green.CloseBrace.ToRed(FullPosition + green.OpenBrace.GetWidth() + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
     
-    internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -361,15 +361,15 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
+    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(FullPosition, this);
     
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position + green.Target.GetWidth(), this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(FullPosition + green.Target.GetWidth(), this);
     
-    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)green.Arguments.ToRed(position + green.Target.GetWidth() + green.OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)green.Arguments.ToRed(FullPosition + green.Target.GetWidth() + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.Target.GetWidth() + green.OpenParen.GetWidth() + green.Arguments.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(FullPosition + green.Target.GetWidth() + green.OpenParen.GetWidth() + green.Arguments.GetWidth(), this);
     
-    internal CallExpressionSyntax(Green.CallExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal CallExpressionSyntax(Green.CallExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -392,13 +392,13 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position, this);
+    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(FullPosition, this);
     
-    public Token Arrow => (Token)green.Arrow.ToRed(position + green.Parameters.GetWidth(), this);
+    public Token Arrow => (Token)green.Arrow.ToRed(FullPosition + green.Parameters.GetWidth(), this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.Parameters.GetWidth() + green.Arrow.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition + green.Parameters.GetWidth() + green.Arrow.GetWidth(), this);
     
-    internal LambdaExpressionSyntax(Green.LambdaExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal LambdaExpressionSyntax(Green.LambdaExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -420,13 +420,13 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(FullPosition, this);
     
-    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)green.Expressions.ToRed(position + green.OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)green.Expressions.ToRed(FullPosition + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth() + green.Expressions.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(FullPosition + green.OpenParen.GetWidth() + green.Expressions.GetWidth(), this);
     
-    internal TupleExpressionSyntax(Green.TupleExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal TupleExpressionSyntax(Green.TupleExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -448,9 +448,9 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition, this);
     
-    internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -470,15 +470,15 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token If => (Token)green.If.ToRed(position, this);
+    public Token If => (Token)green.If.ToRed(FullPosition, this);
     
-    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(position + green.If.GetWidth(), this);
+    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(FullPosition + green.If.GetWidth(), this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.If.GetWidth() + green.Condition.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(FullPosition + green.If.GetWidth() + green.Condition.GetWidth(), this);
     
-    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(position + green.If.GetWidth() + green.Condition.GetWidth() + green.Body.GetWidth(), this);
+    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(FullPosition + green.If.GetWidth() + green.Condition.GetWidth() + green.Body.GetWidth(), this);
     
-    internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal IfExpressionSyntax(Green.IfExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -501,11 +501,11 @@ public sealed class ElseClauseSyntax : SyntaxNode
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Else => (Token)green.Else.ToRed(position, this);
+    public Token Else => (Token)green.Else.ToRed(FullPosition, this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.Else.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(FullPosition + green.Else.GetWidth(), this);
     
-    internal ElseClauseSyntax(Green.ElseClauseSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ElseClauseSyntax(Green.ElseClauseSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -526,11 +526,11 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Loop => (Token)green.Loop.ToRed(position, this);
+    public Token Loop => (Token)green.Loop.ToRed(FullPosition, this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.Loop.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(FullPosition + green.Loop.GetWidth(), this);
     
-    internal LoopExpressionSyntax(Green.LoopExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal LoopExpressionSyntax(Green.LoopExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -551,11 +551,11 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Return => (Token)green.Return.ToRed(position, this);
+    public Token Return => (Token)green.Return.ToRed(FullPosition, this);
     
-    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + green.Return.GetWidth(), this);
+    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(FullPosition + green.Return.GetWidth(), this);
     
-    internal ReturnExpressionSyntax(Green.ReturnExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ReturnExpressionSyntax(Green.ReturnExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -576,11 +576,11 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Break => (Token)green.Break.ToRed(position, this);
+    public Token Break => (Token)green.Break.ToRed(FullPosition, this);
     
-    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + green.Break.GetWidth(), this);
+    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(FullPosition + green.Break.GetWidth(), this);
     
-    internal BreakExpressionSyntax(Green.BreakExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal BreakExpressionSyntax(Green.BreakExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -601,9 +601,9 @@ public sealed class ContinueExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Continue => (Token)green.Continue.ToRed(position, this);
+    public Token Continue => (Token)green.Continue.ToRed(FullPosition, this);
     
-    internal ContinueExpressionSyntax(Green.ContinueExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal ContinueExpressionSyntax(Green.ContinueExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -623,11 +623,11 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Operator => (Token)green.Operator.ToRed(position, this);
+    public Token Operator => (Token)green.Operator.ToRed(FullPosition, this);
     
-    public ExpressionSyntax Operand => (ExpressionSyntax)green.Operand.ToRed(position + green.Operator.GetWidth(), this);
+    public ExpressionSyntax Operand => (ExpressionSyntax)green.Operand.ToRed(FullPosition + green.Operator.GetWidth(), this);
     
-    internal UnaryExpressionSyntax(Green.UnaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal UnaryExpressionSyntax(Green.UnaryExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -648,13 +648,13 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Left => (ExpressionSyntax)green.Left.ToRed(position, this);
+    public ExpressionSyntax Left => (ExpressionSyntax)green.Left.ToRed(FullPosition, this);
     
-    public Token Operator => (Token)green.Operator.ToRed(position + green.Left.GetWidth(), this);
+    public Token Operator => (Token)green.Operator.ToRed(FullPosition + green.Left.GetWidth(), this);
     
-    public ExpressionSyntax Right => (ExpressionSyntax)green.Right.ToRed(position + green.Left.GetWidth() + green.Operator.GetWidth(), this);
+    public ExpressionSyntax Right => (ExpressionSyntax)green.Right.ToRed(FullPosition + green.Left.GetWidth() + green.Operator.GetWidth(), this);
     
-    internal BinaryExpressionSyntax(Green.BinaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal BinaryExpressionSyntax(Green.BinaryExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -676,9 +676,9 @@ public sealed class IdentifierExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Identifier => (Token)green.Identifier.ToRed(position, this);
+    public Token Identifier => (Token)green.Identifier.ToRed(FullPosition, this);
     
-    internal IdentifierExpressionSyntax(Green.IdentifierExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal IdentifierExpressionSyntax(Green.IdentifierExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -698,13 +698,13 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenQuote => (Token)green.OpenQuote.ToRed(position, this);
+    public Token OpenQuote => (Token)green.OpenQuote.ToRed(FullPosition, this);
     
-    public SyntaxList<StringPartSyntax> Parts => (SyntaxList<StringPartSyntax>)green.Parts.ToRed(position + green.OpenQuote.GetWidth(), this);
+    public SyntaxList<StringPartSyntax> Parts => (SyntaxList<StringPartSyntax>)green.Parts.ToRed(FullPosition + green.OpenQuote.GetWidth(), this);
     
-    public Token CloseQuote => (Token)green.CloseQuote.ToRed(position + green.OpenQuote.GetWidth() + green.Parts.GetWidth(), this);
+    public Token CloseQuote => (Token)green.CloseQuote.ToRed(FullPosition + green.OpenQuote.GetWidth() + green.Parts.GetWidth(), this);
     
-    internal StringExpressionSyntax(Green.StringExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal StringExpressionSyntax(Green.StringExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -721,7 +721,7 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
 
 public abstract class StringPartSyntax : SyntaxNode
 {
-    internal StringPartSyntax(int position, SyntaxNode parent) : base(position, parent) {}
+    internal StringPartSyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
 }
 
 public sealed class TextStringPartSyntax : StringPartSyntax
@@ -731,9 +731,9 @@ public sealed class TextStringPartSyntax : StringPartSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Text => (Token)green.Text.ToRed(position, this);
+    public Token Text => (Token)green.Text.ToRed(FullPosition, this);
     
-    internal TextStringPartSyntax(Green.TextStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal TextStringPartSyntax(Green.TextStringPartSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -753,13 +753,13 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenDelimiter => (Token)green.OpenDelimiter.ToRed(position, this);
+    public Token OpenDelimiter => (Token)green.OpenDelimiter.ToRed(FullPosition, this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.OpenDelimiter.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition + green.OpenDelimiter.GetWidth(), this);
     
-    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(position + green.OpenDelimiter.GetWidth() + green.Expression.GetWidth(), this);
+    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(FullPosition + green.OpenDelimiter.GetWidth() + green.Expression.GetWidth(), this);
     
-    internal InterpolationStringPartSyntax(Green.InterpolationStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal InterpolationStringPartSyntax(Green.InterpolationStringPartSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -781,9 +781,9 @@ public sealed class BoolExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Value => (Token)green.Value.ToRed(position, this);
+    public Token Value => (Token)green.Value.ToRed(FullPosition, this);
     
-    internal BoolExpressionSyntax(Green.BoolExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal BoolExpressionSyntax(Green.BoolExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -803,9 +803,9 @@ public sealed class NumberExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token Value => (Token)green.Value.ToRed(position, this);
+    public Token Value => (Token)green.Value.ToRed(FullPosition, this);
     
-    internal NumberExpressionSyntax(Green.NumberExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal NumberExpressionSyntax(Green.NumberExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -825,11 +825,11 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(FullPosition, this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(FullPosition + green.OpenParen.GetWidth(), this);
     
-    internal NilExpressionSyntax(Green.NilExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal NilExpressionSyntax(Green.NilExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
