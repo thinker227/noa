@@ -13,6 +13,11 @@ public abstract class SyntaxNode
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private TextSpan? span = null;
+
+    /// <summary>
+    /// The corresponding node in the green tree.
+    /// </summary>
+    internal abstract Green.SyntaxNode Green { get; }
     
     /// <summary>
     /// The parent syntax node.

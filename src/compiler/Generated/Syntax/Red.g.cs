@@ -12,6 +12,8 @@ public sealed class RootSyntax : SyntaxNode
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.RootSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position, this);
     
     public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + green.Statements.GetWidth(), this);
@@ -50,6 +52,8 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.FunctionDeclarationSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Func => (Token)green.Func.ToRed(position, this);
     
     public Token Name => (Token)green.Name.ToRed(position + green.Func.GetWidth(), this);
@@ -81,6 +85,8 @@ public sealed class ParameterListSyntax : SyntaxNode
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ParameterListSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     
     public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)green.Parameters.ToRed(position + green.OpenParen.GetWidth(), this);
@@ -108,6 +114,8 @@ public sealed class ParameterSyntax : SyntaxNode
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ParameterSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token? Mut => (Token?)green.Mut?.ToRed(position, this);
     
@@ -139,6 +147,8 @@ public sealed class BlockBodySyntax : FunctionBodySyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.BlockBodySyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public BlockExpressionSyntax Block => (BlockExpressionSyntax)green.Block.ToRed(position, this);
     
     internal BlockBodySyntax(Green.BlockBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -160,6 +170,8 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ExpressionBodySyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token Arrow => (Token)green.Arrow.ToRed(position, this);
     
@@ -188,6 +200,8 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.LetDeclarationSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token Let => (Token)green.Let.ToRed(position, this);
     
@@ -226,6 +240,8 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.AssignmentStatementSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
     
     public Token Operator => (Token)green.Operator.ToRed(position + green.Target.GetWidth(), this);
@@ -257,6 +273,8 @@ public sealed class FlowControlStatementSyntax : StatementSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.FlowControlStatementSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
     
     internal FlowControlStatementSyntax(Green.FlowControlStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -278,6 +296,8 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ExpressionStatementSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
     
@@ -309,6 +329,8 @@ public sealed class ErrorExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ErrorExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     internal ErrorExpressionSyntax(Green.ErrorExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
@@ -327,6 +349,8 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.BlockExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token OpenBrace => (Token)green.OpenBrace.ToRed(position, this);
     
@@ -359,6 +383,8 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.CallExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
     
     public Token OpenParen => (Token)green.OpenParen.ToRed(position + green.Target.GetWidth(), this);
@@ -390,6 +416,8 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.LambdaExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position, this);
     
     public Token Arrow => (Token)green.Arrow.ToRed(position + green.Parameters.GetWidth(), this);
@@ -417,6 +445,8 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.TupleExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     
@@ -446,6 +476,8 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ParenthesizedExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
     
     internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -467,6 +499,8 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.IfExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token If => (Token)green.If.ToRed(position, this);
     
@@ -499,6 +533,8 @@ public sealed class ElseClauseSyntax : SyntaxNode
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ElseClauseSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Else => (Token)green.Else.ToRed(position, this);
     
     public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.Else.GetWidth(), this);
@@ -523,6 +559,8 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.LoopExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token Loop => (Token)green.Loop.ToRed(position, this);
     
@@ -549,6 +587,8 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ReturnExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Return => (Token)green.Return.ToRed(position, this);
     
     public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + green.Return.GetWidth(), this);
@@ -573,6 +613,8 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.BreakExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token Break => (Token)green.Break.ToRed(position, this);
     
@@ -599,6 +641,8 @@ public sealed class ContinueExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.ContinueExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Continue => (Token)green.Continue.ToRed(position, this);
     
     internal ContinueExpressionSyntax(Green.ContinueExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -620,6 +664,8 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.UnaryExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token Operator => (Token)green.Operator.ToRed(position, this);
     
@@ -645,6 +691,8 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.BinaryExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public ExpressionSyntax Left => (ExpressionSyntax)green.Left.ToRed(position, this);
     
@@ -674,6 +722,8 @@ public sealed class IdentifierExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.IdentifierExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Identifier => (Token)green.Identifier.ToRed(position, this);
     
     internal IdentifierExpressionSyntax(Green.IdentifierExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -695,6 +745,8 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.StringExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token OpenQuote => (Token)green.OpenQuote.ToRed(position, this);
     
@@ -729,6 +781,8 @@ public sealed class TextStringPartSyntax : StringPartSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.TextStringPartSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Text => (Token)green.Text.ToRed(position, this);
     
     internal TextStringPartSyntax(Green.TextStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -750,6 +804,8 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.InterpolationStringPartSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token OpenDelimiter => (Token)green.OpenDelimiter.ToRed(position, this);
     
@@ -779,6 +835,8 @@ public sealed class BoolExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.BoolExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Value => (Token)green.Value.ToRed(position, this);
     
     internal BoolExpressionSyntax(Green.BoolExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -801,6 +859,8 @@ public sealed class NumberExpressionSyntax : ExpressionSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.NumberExpressionSyntax green;
 
+    internal override Green.SyntaxNode Green => green;
+
     public Token Value => (Token)green.Value.ToRed(position, this);
     
     internal NumberExpressionSyntax(Green.NumberExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
@@ -822,6 +882,8 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.NilExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
 
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     

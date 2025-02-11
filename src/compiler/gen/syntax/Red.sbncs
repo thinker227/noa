@@ -29,6 +29,8 @@ public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}se
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.{{ node.name }} green;
 
+    internal override Green.SyntaxNode Green => green;
+
     {{~ for member in node.non_inherited_members ~}}
     public {{ type member }} {{ member.name }} => ({{ type member }})green.{{ member.name }}{{ if member.is_optional }}?{{ end }}.ToRed({{ pos node for.index }}, this);
     
