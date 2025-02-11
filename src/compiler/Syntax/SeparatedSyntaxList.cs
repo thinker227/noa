@@ -6,7 +6,8 @@ namespace Noa.Compiler.Syntax;
 /// A list which holds syntax nodes separated by tokens.
 /// </summary>
 /// <typeparam name="TNode">The type of the nodes in the list.</typeparam>
-public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<SyntaxNode>
+public sealed class SeparatedSyntaxList<TNode>
+    : SyntaxNode, ISeparatedSyntaxList<SyntaxNode, TNode, Token>
     where TNode : SyntaxNode
 {
     private readonly SyntaxNode?[] constructed;
@@ -25,15 +26,11 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
 
     public int Count => elements.Count;
 
-    /// <summary>
-    /// The amount of nodes in the list.
-    /// </summary>
     public int NodesCount => (Count + 1) / 2;
 
-    /// <summary>
-    /// The amount of tokens in the list.
-    /// </summary>
     public int TokensCount => Count / 2;
+
+    public bool HasTrailingSeparator => Count % 2 == 0;
 
     internal SeparatedSyntaxList(
         int position,
@@ -47,22 +44,12 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
 
     protected override int GetWidth() => elements.Sum(x => x.GetWidth());
 
-    /// <summary>
-    /// Enumerates the nodes in the list.
-    /// </summary>
     public IEnumerable<TNode> Nodes() =>
         this.OfType<TNode>();
     
-    /// <summary>
-    /// Enumerates the tokens in the list.
-    /// </summary>
     public IEnumerable<Token> Tokens() =>
         this.OfType<Token>();
 
-    /// <summary>
-    /// Gets the node at the specified index.
-    /// </summary>
-    /// <param name="index">The index to get the node at.</param>
     public TNode GetNodeAt(int index)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
@@ -70,10 +57,6 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
         return (TNode)GetElemAt(index * 2);
     }
 
-    /// <summary>
-    /// Gets the token at the specified index.
-    /// </summary>
-    /// <param name="index">The index to get the token at.</param>
     public Token GetTokenAt(int index)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);

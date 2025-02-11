@@ -2,12 +2,19 @@ using System.Collections;
 
 namespace Noa.Compiler.Syntax.Green;
 
-internal sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<SyntaxNode>
+internal sealed class SeparatedSyntaxList<TNode>
+    : SyntaxNode, ISeparatedSyntaxList<SyntaxNode, TNode, Token>
     where TNode : SyntaxNode
 {    
     private readonly ImmutableArray<SyntaxNode> elements;
 
     public int Count => elements.Length;
+
+    public int NodesCount => (Count + 1) / 2;
+
+    public int TokensCount => Count / 2;
+
+    public bool HasTrailingSeparator => Count % 2 == 0;
 
     public SyntaxNode this[int index] => elements[index];
 
@@ -48,6 +55,25 @@ internal sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Syn
         }
 
         return new(elements.ToImmutable());
+    }
+
+
+    public IEnumerable<TNode> Nodes() => this.OfType<TNode>();
+    
+    public IEnumerable<Token> Tokens() => this.OfType<Token>();
+
+    public TNode GetNodeAt(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, NodesCount);
+        return (TNode)elements[index];
+    }
+
+    public Token GetTokenAt(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, TokensCount);
+        return (Token)elements[index];
     }
 
     public override int GetWidth() =>
