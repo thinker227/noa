@@ -14,6 +14,9 @@ internal interface ISeparatedSyntaxList<T, TNode, TToken> : IReadOnlyList<T>
     /// </summary>
     int TokensCount { get; }
 
+    /// <summary>
+    /// Whether the list has a trailing separator.
+    /// </summary>
     bool HasTrailingSeparator { get; }
 
     /// <summary>
