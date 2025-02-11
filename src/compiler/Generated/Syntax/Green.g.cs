@@ -5,7 +5,7 @@
 
 namespace Noa.Compiler.Syntax.Green;
 
-internal sealed partial class RootSyntax : SyntaxNode
+internal sealed class RootSyntax : SyntaxNode
 {
     private int? width;
 
@@ -23,15 +23,15 @@ internal sealed partial class RootSyntax : SyntaxNode
         new Syntax.RootSyntax(this, position, parent);
 }
 
-internal abstract partial class StatementSyntax : SyntaxNode
+internal abstract class StatementSyntax : SyntaxNode
 {
 }
 
-internal abstract partial class DeclarationSyntax : StatementSyntax
+internal abstract class DeclarationSyntax : StatementSyntax
 {
 }
 
-internal sealed partial class FunctionDeclarationSyntax : DeclarationSyntax
+internal sealed class FunctionDeclarationSyntax : DeclarationSyntax
 {
     private int? width;
 
@@ -51,7 +51,7 @@ internal sealed partial class FunctionDeclarationSyntax : DeclarationSyntax
         new Syntax.FunctionDeclarationSyntax(this, position, parent);
 }
 
-internal sealed partial class ParameterListSyntax : SyntaxNode
+internal sealed class ParameterListSyntax : SyntaxNode
 {
     private int? width;
 
@@ -69,7 +69,7 @@ internal sealed partial class ParameterListSyntax : SyntaxNode
         new Syntax.ParameterListSyntax(this, position, parent);
 }
 
-internal sealed partial class ParameterSyntax : SyntaxNode
+internal sealed class ParameterSyntax : SyntaxNode
 {
     private int? width;
 
@@ -85,11 +85,11 @@ internal sealed partial class ParameterSyntax : SyntaxNode
         new Syntax.ParameterSyntax(this, position, parent);
 }
 
-internal abstract partial class FunctionBodySyntax : SyntaxNode
+internal abstract class FunctionBodySyntax : SyntaxNode
 {
 }
 
-internal sealed partial class BlockBodySyntax : FunctionBodySyntax
+internal sealed class BlockBodySyntax : FunctionBodySyntax
 {
     private int? width;
 
@@ -103,7 +103,7 @@ internal sealed partial class BlockBodySyntax : FunctionBodySyntax
         new Syntax.BlockBodySyntax(this, position, parent);
 }
 
-internal sealed partial class ExpressionBodySyntax : FunctionBodySyntax
+internal sealed class ExpressionBodySyntax : FunctionBodySyntax
 {
     private int? width;
 
@@ -121,7 +121,7 @@ internal sealed partial class ExpressionBodySyntax : FunctionBodySyntax
         new Syntax.ExpressionBodySyntax(this, position, parent);
 }
 
-internal sealed partial class LetDeclarationSyntax : SyntaxNode
+internal sealed class LetDeclarationSyntax : SyntaxNode
 {
     private int? width;
 
@@ -145,7 +145,7 @@ internal sealed partial class LetDeclarationSyntax : SyntaxNode
         new Syntax.LetDeclarationSyntax(this, position, parent);
 }
 
-internal sealed partial class AssignmentStatementSyntax : StatementSyntax
+internal sealed class AssignmentStatementSyntax : StatementSyntax
 {
     private int? width;
 
@@ -165,7 +165,7 @@ internal sealed partial class AssignmentStatementSyntax : StatementSyntax
         new Syntax.AssignmentStatementSyntax(this, position, parent);
 }
 
-internal sealed partial class FlowControlStatement : SyntaxNode
+internal sealed class FlowControlStatement : SyntaxNode
 {
     private int? width;
 
@@ -179,7 +179,7 @@ internal sealed partial class FlowControlStatement : SyntaxNode
         new Syntax.FlowControlStatement(this, position, parent);
 }
 
-internal sealed partial class ExpressionStatementSyntax : StatementSyntax
+internal sealed class ExpressionStatementSyntax : StatementSyntax
 {
     private int? width;
 
@@ -195,11 +195,11 @@ internal sealed partial class ExpressionStatementSyntax : StatementSyntax
         new Syntax.ExpressionStatementSyntax(this, position, parent);
 }
 
-internal abstract partial class ExpressionSyntax : SyntaxNode
+internal abstract class ExpressionSyntax : SyntaxNode
 {
 }
 
-internal sealed partial class BlockExpressionSyntax : ExpressionSyntax
+internal sealed class BlockExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -219,7 +219,7 @@ internal sealed partial class BlockExpressionSyntax : ExpressionSyntax
         new Syntax.BlockExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class CallExpressionSyntax : ExpressionSyntax
+internal sealed class CallExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -239,7 +239,7 @@ internal sealed partial class CallExpressionSyntax : ExpressionSyntax
         new Syntax.CallExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class LambdaExpressionSyntax : ExpressionSyntax
+internal sealed class LambdaExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -257,7 +257,7 @@ internal sealed partial class LambdaExpressionSyntax : ExpressionSyntax
         new Syntax.LambdaExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class TupleExpressionSyntax : ExpressionSyntax
+internal sealed class TupleExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -275,7 +275,7 @@ internal sealed partial class TupleExpressionSyntax : ExpressionSyntax
         new Syntax.TupleExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
+internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -289,7 +289,7 @@ internal sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
         new Syntax.ParenthesizedExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class IfExpressionSyntax : ExpressionSyntax
+internal sealed class IfExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -313,7 +313,7 @@ internal sealed partial class IfExpressionSyntax : ExpressionSyntax
         new Syntax.IfExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class ElseClauseSyntax : SyntaxNode
+internal sealed class ElseClauseSyntax : SyntaxNode
 {
     private int? width;
 
@@ -329,7 +329,7 @@ internal sealed partial class ElseClauseSyntax : SyntaxNode
         new Syntax.ElseClauseSyntax(this, position, parent);
 }
 
-internal sealed partial class LoopExpression : ExpressionSyntax
+internal sealed class LoopExpression : ExpressionSyntax
 {
     private int? width;
 
@@ -345,7 +345,7 @@ internal sealed partial class LoopExpression : ExpressionSyntax
         new Syntax.LoopExpression(this, position, parent);
 }
 
-internal sealed partial class ReturnExpressionSyntax : ExpressionSyntax
+internal sealed class ReturnExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -361,7 +361,7 @@ internal sealed partial class ReturnExpressionSyntax : ExpressionSyntax
         new Syntax.ReturnExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class BreakExpressionSyntax : ExpressionSyntax
+internal sealed class BreakExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -377,7 +377,7 @@ internal sealed partial class BreakExpressionSyntax : ExpressionSyntax
         new Syntax.BreakExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class ContinueExpressionSyntax : ExpressionSyntax
+internal sealed class ContinueExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -391,7 +391,7 @@ internal sealed partial class ContinueExpressionSyntax : ExpressionSyntax
         new Syntax.ContinueExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class UnaryExpressionSyntax : ExpressionSyntax
+internal sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -407,7 +407,7 @@ internal sealed partial class UnaryExpressionSyntax : ExpressionSyntax
         new Syntax.UnaryExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class BinaryExpressionSyntax : ExpressionSyntax
+internal sealed class BinaryExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -425,7 +425,7 @@ internal sealed partial class BinaryExpressionSyntax : ExpressionSyntax
         new Syntax.BinaryExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class IdentifierExpressionSyntax : ExpressionSyntax
+internal sealed class IdentifierExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -439,7 +439,7 @@ internal sealed partial class IdentifierExpressionSyntax : ExpressionSyntax
         new Syntax.IdentifierExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class StringExpressionSyntax : ExpressionSyntax
+internal sealed class StringExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -457,11 +457,11 @@ internal sealed partial class StringExpressionSyntax : ExpressionSyntax
         new Syntax.StringExpressionSyntax(this, position, parent);
 }
 
-internal abstract partial class StringPart : SyntaxNode
+internal abstract class StringPart : SyntaxNode
 {
 }
 
-internal sealed partial class TextStringPart : StringPart
+internal sealed class TextStringPart : StringPart
 {
     private int? width;
 
@@ -475,7 +475,7 @@ internal sealed partial class TextStringPart : StringPart
         new Syntax.TextStringPart(this, position, parent);
 }
 
-internal sealed partial class InterpolationStringPart : StringPart
+internal sealed class InterpolationStringPart : StringPart
 {
     private int? width;
 
@@ -493,7 +493,7 @@ internal sealed partial class InterpolationStringPart : StringPart
         new Syntax.InterpolationStringPart(this, position, parent);
 }
 
-internal sealed partial class BoolExpressionSyntax : ExpressionSyntax
+internal sealed class BoolExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -507,7 +507,7 @@ internal sealed partial class BoolExpressionSyntax : ExpressionSyntax
         new Syntax.BoolExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class NumberExpressionSyntax : ExpressionSyntax
+internal sealed class NumberExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -521,7 +521,7 @@ internal sealed partial class NumberExpressionSyntax : ExpressionSyntax
         new Syntax.NumberExpressionSyntax(this, position, parent);
 }
 
-internal sealed partial class NilExpressionSyntax : ExpressionSyntax
+internal sealed class NilExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 

@@ -5,7 +5,7 @@
 
 namespace Noa.Compiler.Syntax;
 
-public sealed partial class RootSyntax : SyntaxNode
+public sealed class RootSyntax : SyntaxNode
 {
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.RootSyntax)green).Statements.ToRed(position, this);
 
@@ -16,17 +16,17 @@ public sealed partial class RootSyntax : SyntaxNode
     internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public abstract partial class StatementSyntax : SyntaxNode
+public abstract class StatementSyntax : SyntaxNode
 {
     internal StatementSyntax(Green.StatementSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public abstract partial class DeclarationSyntax : StatementSyntax
+public abstract class DeclarationSyntax : StatementSyntax
 {
     internal DeclarationSyntax(Green.DeclarationSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class FunctionDeclarationSyntax : DeclarationSyntax
+public sealed class FunctionDeclarationSyntax : DeclarationSyntax
 {
     public Token Func => (Token)((Green.FunctionDeclarationSyntax)green).Func.ToRed(position, this);
 
@@ -39,7 +39,7 @@ public sealed partial class FunctionDeclarationSyntax : DeclarationSyntax
     internal FunctionDeclarationSyntax(Green.FunctionDeclarationSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ParameterListSyntax : SyntaxNode
+public sealed class ParameterListSyntax : SyntaxNode
 {
     public Token OpenParen => (Token)((Green.ParameterListSyntax)green).OpenParen.ToRed(position, this);
 
@@ -50,7 +50,7 @@ public sealed partial class ParameterListSyntax : SyntaxNode
     internal ParameterListSyntax(Green.ParameterListSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ParameterSyntax : SyntaxNode
+public sealed class ParameterSyntax : SyntaxNode
 {
     public Token? Mut => (Token?)((Green.ParameterSyntax)green).Mut?.ToRed(position, this);
 
@@ -59,19 +59,19 @@ public sealed partial class ParameterSyntax : SyntaxNode
     internal ParameterSyntax(Green.ParameterSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public abstract partial class FunctionBodySyntax : SyntaxNode
+public abstract class FunctionBodySyntax : SyntaxNode
 {
     internal FunctionBodySyntax(Green.FunctionBodySyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class BlockBodySyntax : FunctionBodySyntax
+public sealed class BlockBodySyntax : FunctionBodySyntax
 {
     public BlockExpressionSyntax Block => (BlockExpressionSyntax)((Green.BlockBodySyntax)green).Block.ToRed(position, this);
     
     internal BlockBodySyntax(Green.BlockBodySyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ExpressionBodySyntax : FunctionBodySyntax
+public sealed class ExpressionBodySyntax : FunctionBodySyntax
 {
     public Token Arrow => (Token)((Green.ExpressionBodySyntax)green).Arrow.ToRed(position, this);
 
@@ -82,7 +82,7 @@ public sealed partial class ExpressionBodySyntax : FunctionBodySyntax
     internal ExpressionBodySyntax(Green.ExpressionBodySyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class LetDeclarationSyntax : SyntaxNode
+public sealed class LetDeclarationSyntax : SyntaxNode
 {
     public Token Let => (Token)((Green.LetDeclarationSyntax)green).Let.ToRed(position, this);
 
@@ -99,7 +99,7 @@ public sealed partial class LetDeclarationSyntax : SyntaxNode
     internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class AssignmentStatementSyntax : StatementSyntax
+public sealed class AssignmentStatementSyntax : StatementSyntax
 {
     public Token Identifier => (Token)((Green.AssignmentStatementSyntax)green).Identifier.ToRed(position, this);
 
@@ -112,14 +112,14 @@ public sealed partial class AssignmentStatementSyntax : StatementSyntax
     internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class FlowControlStatement : SyntaxNode
+public sealed class FlowControlStatement : SyntaxNode
 {
     public ExpressionSyntax Expression => (ExpressionSyntax)((Green.FlowControlStatement)green).Expression.ToRed(position, this);
     
     internal FlowControlStatement(Green.FlowControlStatement green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ExpressionStatementSyntax : StatementSyntax
+public sealed class ExpressionStatementSyntax : StatementSyntax
 {
     public ExpressionSyntax Expression => (ExpressionSyntax)((Green.ExpressionStatementSyntax)green).Expression.ToRed(position, this);
 
@@ -128,12 +128,12 @@ public sealed partial class ExpressionStatementSyntax : StatementSyntax
     internal ExpressionStatementSyntax(Green.ExpressionStatementSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public abstract partial class ExpressionSyntax : SyntaxNode
+public abstract class ExpressionSyntax : SyntaxNode
 {
     internal ExpressionSyntax(Green.ExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class BlockExpressionSyntax : ExpressionSyntax
+public sealed class BlockExpressionSyntax : ExpressionSyntax
 {
     public Token OpenBrace => (Token)((Green.BlockExpressionSyntax)green).OpenBrace.ToRed(position, this);
 
@@ -146,7 +146,7 @@ public sealed partial class BlockExpressionSyntax : ExpressionSyntax
     internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class CallExpressionSyntax : ExpressionSyntax
+public sealed class CallExpressionSyntax : ExpressionSyntax
 {
     public ExpressionSyntax Target => (ExpressionSyntax)((Green.CallExpressionSyntax)green).Target.ToRed(position, this);
 
@@ -159,7 +159,7 @@ public sealed partial class CallExpressionSyntax : ExpressionSyntax
     internal CallExpressionSyntax(Green.CallExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class LambdaExpressionSyntax : ExpressionSyntax
+public sealed class LambdaExpressionSyntax : ExpressionSyntax
 {
     public ParameterListSyntax Parameters => (ParameterListSyntax)((Green.LambdaExpressionSyntax)green).Parameters.ToRed(position, this);
 
@@ -170,7 +170,7 @@ public sealed partial class LambdaExpressionSyntax : ExpressionSyntax
     internal LambdaExpressionSyntax(Green.LambdaExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class TupleExpressionSyntax : ExpressionSyntax
+public sealed class TupleExpressionSyntax : ExpressionSyntax
 {
     public Token OpenParen => (Token)((Green.TupleExpressionSyntax)green).OpenParen.ToRed(position, this);
 
@@ -181,14 +181,14 @@ public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     internal TupleExpressionSyntax(Green.TupleExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
+public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     public ExpressionSyntax Expression => (ExpressionSyntax)((Green.ParenthesizedExpressionSyntax)green).Expression.ToRed(position, this);
     
     internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class IfExpressionSyntax : ExpressionSyntax
+public sealed class IfExpressionSyntax : ExpressionSyntax
 {
     public Token If => (Token)((Green.IfExpressionSyntax)green).If.ToRed(position, this);
 
@@ -205,7 +205,7 @@ public sealed partial class IfExpressionSyntax : ExpressionSyntax
     internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ElseClauseSyntax : SyntaxNode
+public sealed class ElseClauseSyntax : SyntaxNode
 {
     public Token Else => (Token)((Green.ElseClauseSyntax)green).Else.ToRed(position, this);
 
@@ -214,7 +214,7 @@ public sealed partial class ElseClauseSyntax : SyntaxNode
     internal ElseClauseSyntax(Green.ElseClauseSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class LoopExpression : ExpressionSyntax
+public sealed class LoopExpression : ExpressionSyntax
 {
     public Token Loop => (Token)((Green.LoopExpression)green).Loop.ToRed(position, this);
 
@@ -223,7 +223,7 @@ public sealed partial class LoopExpression : ExpressionSyntax
     internal LoopExpression(Green.LoopExpression green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ReturnExpressionSyntax : ExpressionSyntax
+public sealed class ReturnExpressionSyntax : ExpressionSyntax
 {
     public Token Return => (Token)((Green.ReturnExpressionSyntax)green).Return.ToRed(position, this);
 
@@ -232,7 +232,7 @@ public sealed partial class ReturnExpressionSyntax : ExpressionSyntax
     internal ReturnExpressionSyntax(Green.ReturnExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class BreakExpressionSyntax : ExpressionSyntax
+public sealed class BreakExpressionSyntax : ExpressionSyntax
 {
     public Token Break => (Token)((Green.BreakExpressionSyntax)green).Break.ToRed(position, this);
 
@@ -241,14 +241,14 @@ public sealed partial class BreakExpressionSyntax : ExpressionSyntax
     internal BreakExpressionSyntax(Green.BreakExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class ContinueExpressionSyntax : ExpressionSyntax
+public sealed class ContinueExpressionSyntax : ExpressionSyntax
 {
     public Token Continue => (Token)((Green.ContinueExpressionSyntax)green).Continue.ToRed(position, this);
     
     internal ContinueExpressionSyntax(Green.ContinueExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class UnaryExpressionSyntax : ExpressionSyntax
+public sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
     public Token Operator => (Token)((Green.UnaryExpressionSyntax)green).Operator.ToRed(position, this);
 
@@ -257,7 +257,7 @@ public sealed partial class UnaryExpressionSyntax : ExpressionSyntax
     internal UnaryExpressionSyntax(Green.UnaryExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
+public sealed class BinaryExpressionSyntax : ExpressionSyntax
 {
     public ExpressionSyntax Left => (ExpressionSyntax)((Green.BinaryExpressionSyntax)green).Left.ToRed(position, this);
 
@@ -268,14 +268,14 @@ public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
     internal BinaryExpressionSyntax(Green.BinaryExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class IdentifierExpressionSyntax : ExpressionSyntax
+public sealed class IdentifierExpressionSyntax : ExpressionSyntax
 {
     public Token Identifier => (Token)((Green.IdentifierExpressionSyntax)green).Identifier.ToRed(position, this);
     
     internal IdentifierExpressionSyntax(Green.IdentifierExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class StringExpressionSyntax : ExpressionSyntax
+public sealed class StringExpressionSyntax : ExpressionSyntax
 {
     public Token OpenQuote => (Token)((Green.StringExpressionSyntax)green).OpenQuote.ToRed(position, this);
 
@@ -286,19 +286,19 @@ public sealed partial class StringExpressionSyntax : ExpressionSyntax
     internal StringExpressionSyntax(Green.StringExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public abstract partial class StringPart : SyntaxNode
+public abstract class StringPart : SyntaxNode
 {
     internal StringPart(Green.StringPart green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class TextStringPart : StringPart
+public sealed class TextStringPart : StringPart
 {
     public Token Text => (Token)((Green.TextStringPart)green).Text.ToRed(position, this);
     
     internal TextStringPart(Green.TextStringPart green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class InterpolationStringPart : StringPart
+public sealed class InterpolationStringPart : StringPart
 {
     public Token OpenDelimiter => (Token)((Green.InterpolationStringPart)green).OpenDelimiter.ToRed(position, this);
 
@@ -309,21 +309,21 @@ public sealed partial class InterpolationStringPart : StringPart
     internal InterpolationStringPart(Green.InterpolationStringPart green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class BoolExpressionSyntax : ExpressionSyntax
+public sealed class BoolExpressionSyntax : ExpressionSyntax
 {
     public Token Value => (Token)((Green.BoolExpressionSyntax)green).Value.ToRed(position, this);
     
     internal BoolExpressionSyntax(Green.BoolExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class NumberExpressionSyntax : ExpressionSyntax
+public sealed class NumberExpressionSyntax : ExpressionSyntax
 {
     public Token Value => (Token)((Green.NumberExpressionSyntax)green).Value.ToRed(position, this);
     
     internal NumberExpressionSyntax(Green.NumberExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
 
-public sealed partial class NilExpressionSyntax : ExpressionSyntax
+public sealed class NilExpressionSyntax : ExpressionSyntax
 {
     public Token OpenParen => (Token)((Green.NilExpressionSyntax)green).OpenParen.ToRed(position, this);
 
