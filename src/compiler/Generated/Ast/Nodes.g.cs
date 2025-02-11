@@ -45,8 +45,6 @@ public sealed partial class FunctionDeclaration(Syntax.SyntaxNode syntax) : Decl
 {
     public new Syntax.FunctionDeclarationSyntax Syntax { get; } = (Syntax.FunctionDeclarationSyntax)syntax;
 
-    public required Token FuncKeyword { get; init; }
-
     public required Identifier Identifier { get; init; }
 
     public required ImmutableArray<Parameter> Parameters { get; init; }
@@ -61,8 +59,6 @@ public sealed partial class FunctionDeclaration(Syntax.SyntaxNode syntax) : Decl
 public sealed partial class LetDeclaration(Syntax.SyntaxNode syntax) : Declaration(syntax)
 {
     public new Syntax.LetDeclarationSyntax Syntax { get; } = (Syntax.LetDeclarationSyntax)syntax;
-
-    public required Token LetKeyword { get; init; }
 
     public required bool IsMutable { get; init; }
 
@@ -135,8 +131,6 @@ public sealed partial class LambdaExpression(Syntax.SyntaxNode syntax) : Express
 
     public required ImmutableArray<Parameter> Parameters { get; init; }
 
-    public required Token ArrowToken { get; init; }
-
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
@@ -155,8 +149,6 @@ public sealed partial class IfExpression(Syntax.SyntaxNode syntax) : Expression(
 {
     public new Syntax.IfExpressionSyntax Syntax { get; } = (Syntax.IfExpressionSyntax)syntax;
 
-    public required Token IfKeyword { get; init; }
-
     public required Expression Condition { get; init; }
 
     public required BlockExpression IfTrue { get; init; }
@@ -170,8 +162,6 @@ public sealed partial class ElseClause(Syntax.SyntaxNode syntax) : Node(syntax)
 {
     public new Syntax.ElseClauseSyntax Syntax { get; } = (Syntax.ElseClauseSyntax)syntax;
 
-    public required Token ElseKeyword { get; init; }
-
     public required BlockExpression IfFalse { get; init; }
 
     public override IEnumerable<Node> Children => [IfFalse];
@@ -180,8 +170,6 @@ public sealed partial class ElseClause(Syntax.SyntaxNode syntax) : Node(syntax)
 public sealed partial class LoopExpression(Syntax.SyntaxNode syntax) : Expression(syntax)
 {
     public new Syntax.LoopExpressionSyntax Syntax { get; } = (Syntax.LoopExpressionSyntax)syntax;
-
-    public required Token LoopKeyword { get; init; }
 
     public required BlockExpression Block { get; init; }
 
@@ -192,8 +180,6 @@ public sealed partial class ReturnExpression(Syntax.SyntaxNode syntax) : Express
 {
     public new Syntax.ReturnExpressionSyntax Syntax { get; } = (Syntax.ReturnExpressionSyntax)syntax;
 
-    public required Token ReturnKeyword { get; init; }
-
     public required Expression? Expression { get; init; }
 
     public override IEnumerable<Node> Children => [..EmptyIfNull(Expression)];
@@ -202,8 +188,6 @@ public sealed partial class ReturnExpression(Syntax.SyntaxNode syntax) : Express
 public sealed partial class BreakExpression(Syntax.SyntaxNode syntax) : Expression(syntax)
 {
     public new Syntax.BreakExpressionSyntax Syntax { get; } = (Syntax.BreakExpressionSyntax)syntax;
-
-    public required Token BreakKeyword { get; init; }
 
     public required Expression? Expression { get; init; }
 
