@@ -30,19 +30,19 @@ internal sealed partial class Parser
         node.AddDiagnostic(new PartialDiagnostic(
             MakeDiagnostic: template.Format,
             Offset: offset,
-            Width: node.GetWidth()));
+            Width: node.GetFullWidth()));
 
     private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token, int offset = 0) =>
         token.AddDiagnostic(new PartialDiagnostic(
             MakeDiagnostic: loc => template.Format(token, loc),
             Offset: offset,
-            Width: token.Width));
+            Width: token.FullWidth));
 
     private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, SyntaxNode node, int offset = 0) =>
         node.AddDiagnostic(new PartialDiagnostic(
             MakeDiagnostic: loc => template.Format(arg, loc),
             Offset: offset,
-            Width: node.GetWidth()));
+            Width: node.GetFullWidth()));
     
     private Token Advance() => state.Advance();
 

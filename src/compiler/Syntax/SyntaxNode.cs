@@ -46,7 +46,7 @@ public abstract class SyntaxNode
     /// <summary>
     /// The span of the syntax node in the corresponding source text.
     /// </summary>
-    public TextSpan Span => span ??= TextSpan.FromLength(Position, Green.GetWidth());
+    public TextSpan Span => span ??= TextSpan.FromLength(Position, Green.GetFullWidth());
 
     /// <summary>
     /// The nodes which are direct children of the node.

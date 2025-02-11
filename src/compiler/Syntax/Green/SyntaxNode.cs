@@ -80,8 +80,7 @@ internal abstract class SyntaxNode
     /// <summary>
     /// Gets the width of the node, including trivia.
     /// </summary>
-    /// <returns></returns>
-    public abstract int GetWidth();
+    public abstract int GetFullWidth();
 
     /// <summary>
     /// Creates a red node from this green node.

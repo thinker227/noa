@@ -78,8 +78,8 @@ internal sealed class SeparatedSyntaxList<TNode>
         return (Token)elements[index];
     }
 
-    public override int GetWidth() =>
-        elements.Sum(x => x.GetWidth());
+    public override int GetFullWidth() =>
+        elements.Sum(x => x.GetFullWidth());
 
     public IEnumerator<SyntaxNode> GetEnumerator() => elements.AsEnumerable().GetEnumerator();
 

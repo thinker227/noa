@@ -8,7 +8,7 @@ internal sealed class Token(TokenKind kind, string? text, string leadingTrivia, 
 
     public TokenKind Kind { get; } = kind;
 
-    public int Width { get; } = width;
+    public int FullWidth { get; } = width + leadingTrivia.Length;
 
     public string Text { get; } = text ?? kind.ConstantString() ?? throw new InvalidOperationException(
         $"Cannot create a token with kind '{kind}' without explicitly " +
@@ -16,7 +16,7 @@ internal sealed class Token(TokenKind kind, string? text, string leadingTrivia, 
     
     public string LeadingTrivia { get; } = leadingTrivia;
 
-    public override int GetWidth() => Width;
+    public override int GetFullWidth() => FullWidth;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) => new Syntax.Token(this, position, parent);
 
