@@ -14,6 +14,17 @@ internal sealed class RootSyntax : SyntaxNode
     public required ExpressionSyntax? TrailingExpression { get; init; }
 
     public required Token EndOfFile { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Statements;
+            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return EndOfFile;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -42,6 +53,18 @@ internal sealed class FunctionDeclarationSyntax : DeclarationSyntax
     public required ParameterListSyntax Parameters { get; init; }
 
     public required FunctionBodySyntax Body { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Func;
+            yield return Name;
+            yield return Parameters;
+            yield return Body;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -60,6 +83,17 @@ internal sealed class ParameterListSyntax : SyntaxNode
     public required SeparatedSyntaxList<ParameterSyntax> Parameters { get; init; }
 
     public required Token CloseParen { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return Parameters;
+            yield return CloseParen;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -76,6 +110,16 @@ internal sealed class ParameterSyntax : SyntaxNode
     public required Token? Mut { get; init; }
 
     public required Token Name { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (Mut is not null) yield return Mut;
+            yield return Name;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -94,6 +138,15 @@ internal sealed class BlockBodySyntax : FunctionBodySyntax
     private int? width;
 
     public required BlockExpressionSyntax Block { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Block;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -112,6 +165,17 @@ internal sealed class ExpressionBodySyntax : FunctionBodySyntax
     public required ExpressionSyntax Expression { get; init; }
 
     public required Token Semicolon { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Arrow;
+            yield return Expression;
+            yield return Semicolon;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -136,6 +200,20 @@ internal sealed class LetDeclarationSyntax : DeclarationSyntax
     public required ExpressionSyntax Value { get; init; }
 
     public required Token Semicolon { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Let;
+            if (Mut is not null) yield return Mut;
+            yield return Name;
+            yield return Equals;
+            yield return Value;
+            yield return Semicolon;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -156,6 +234,18 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
     public required ExpressionSyntax Value { get; init; }
 
     public required Token Semicolon { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return Operator;
+            yield return Value;
+            yield return Semicolon;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -170,6 +260,15 @@ internal sealed class FlowControlStatementSyntax : StatementSyntax
     private int? width;
 
     public required ExpressionSyntax Expression { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -186,6 +285,16 @@ internal sealed class ExpressionStatementSyntax : StatementSyntax
     public required ExpressionSyntax Expression { get; init; }
 
     public required Token Semicolon { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield return Semicolon;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -203,6 +312,14 @@ internal sealed class ErrorExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -223,6 +340,18 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
     public required ExpressionSyntax? TrailingExpression { get; init; }
 
     public required Token CloseBrace { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenBrace;
+            yield return Statements;
+            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return CloseBrace;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -243,6 +372,18 @@ internal sealed class CallExpressionSyntax : ExpressionSyntax
     public required SeparatedSyntaxList<ExpressionSyntax> Arguments { get; init; }
 
     public required Token CloseParen { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return OpenParen;
+            yield return Arguments;
+            yield return CloseParen;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -261,6 +402,17 @@ internal sealed class LambdaExpressionSyntax : ExpressionSyntax
     public required Token Arrow { get; init; }
 
     public required ExpressionSyntax Expression { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Parameters;
+            yield return Arrow;
+            yield return Expression;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -279,6 +431,17 @@ internal sealed class TupleExpressionSyntax : ExpressionSyntax
     public required SeparatedSyntaxList<ExpressionSyntax> Expressions { get; init; }
 
     public required Token CloseParen { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return Expressions;
+            yield return CloseParen;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -293,6 +456,15 @@ internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
     private int? width;
 
     public required ExpressionSyntax Expression { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -313,6 +485,18 @@ internal sealed class IfExpressionSyntax : ExpressionSyntax
     public required BlockExpressionSyntax Body { get; init; }
 
     public required ElseClauseSyntax? Else { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return If;
+            yield return Condition;
+            yield return Body;
+            if (Else is not null) yield return Else;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -329,6 +513,16 @@ internal sealed class ElseClauseSyntax : SyntaxNode
     public required Token Else { get; init; }
 
     public required BlockExpressionSyntax Body { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Else;
+            yield return Body;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -345,6 +539,16 @@ internal sealed class LoopExpressionSyntax : ExpressionSyntax
     public required Token Loop { get; init; }
 
     public required BlockExpressionSyntax Body { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Loop;
+            yield return Body;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -361,6 +565,16 @@ internal sealed class ReturnExpressionSyntax : ExpressionSyntax
     public required Token Return { get; init; }
 
     public required ExpressionSyntax? Value { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Return;
+            if (Value is not null) yield return Value;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -377,6 +591,16 @@ internal sealed class BreakExpressionSyntax : ExpressionSyntax
     public required Token Break { get; init; }
 
     public required ExpressionSyntax? Value { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Break;
+            if (Value is not null) yield return Value;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -391,6 +615,15 @@ internal sealed class ContinueExpressionSyntax : ExpressionSyntax
     private int? width;
 
     public required Token Continue { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Continue;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -407,6 +640,16 @@ internal sealed class UnaryExpressionSyntax : ExpressionSyntax
     public required Token Operator { get; init; }
 
     public required ExpressionSyntax Operand { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Operator;
+            yield return Operand;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -425,6 +668,17 @@ internal sealed class BinaryExpressionSyntax : ExpressionSyntax
     public required Token Operator { get; init; }
 
     public required ExpressionSyntax Right { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Left;
+            yield return Operator;
+            yield return Right;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -439,6 +693,15 @@ internal sealed class IdentifierExpressionSyntax : ExpressionSyntax
     private int? width;
 
     public required Token Identifier { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Identifier;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -457,6 +720,17 @@ internal sealed class StringExpressionSyntax : ExpressionSyntax
     public required SyntaxList<StringPartSyntax> Parts { get; init; }
 
     public required Token CloseQuote { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenQuote;
+            yield return Parts;
+            yield return CloseQuote;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -475,6 +749,15 @@ internal sealed class TextStringPartSyntax : StringPartSyntax
     private int? width;
 
     public required Token Text { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Text;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -493,6 +776,17 @@ internal sealed class InterpolationStringPartSyntax : StringPartSyntax
     public required ExpressionSyntax Expression { get; init; }
 
     public required Token CloseDelimiter { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenDelimiter;
+            yield return Expression;
+            yield return CloseDelimiter;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -507,6 +801,15 @@ internal sealed class BoolExpressionSyntax : ExpressionSyntax
     private int? width;
 
     public required Token Value { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Value;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -521,6 +824,15 @@ internal sealed class NumberExpressionSyntax : ExpressionSyntax
     private int? width;
 
     public required Token Value { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Value;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
@@ -537,6 +849,16 @@ internal sealed class NilExpressionSyntax : ExpressionSyntax
     public required Token OpenParen { get; init; }
 
     public required Token CloseParen { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return CloseParen;
+            yield break;
+        }
+    }
 
     public override int GetWidth() => width ??= ComputeWidth();
 

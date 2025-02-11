@@ -14,6 +14,11 @@ internal abstract class SyntaxNode
     private static readonly ConditionalWeakTable<SyntaxNode, List<PartialDiagnostic>> diagnostics = [];
 
     /// <summary>
+    /// The nodes which are direct children of the node.
+    /// </summary>
+    public abstract IEnumerable<SyntaxNode> Children { get; }
+
+    /// <summary>
     /// The diagnostics for the node.
     /// </summary>
     public IReadOnlyCollection<PartialDiagnostic> Diagnostics =>
