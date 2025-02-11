@@ -9,8 +9,6 @@ internal sealed partial class Parser
 {
     private ParseState state;
     private readonly CancellationToken cancellationToken;
-
-    internal IReadOnlyCollection<IDiagnostic> Diagnostics => state.Diagnostics;
     
     private Ast Ast => state.Ast;
 
@@ -28,11 +26,23 @@ internal sealed partial class Parser
         this.cancellationToken = cancellationToken;
     }
 
-    private void ReportDiagnostic(DiagnosticTemplate template, SyntaxNode node) =>
-        throw new NotImplementedException();
+    private void ReportDiagnostic(DiagnosticTemplate template, SyntaxNode node, int offset = 0) =>
+        node.AddDiagnostic(new PartialDiagnostic(
+            MakeDiagnostic: template.Format,
+            Offset: offset,
+            Width: node.GetWidth()));
 
-    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, SyntaxNode node) =>
-        throw new NotImplementedException();
+    private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token, int offset = 0) =>
+        token.AddDiagnostic(new PartialDiagnostic(
+            MakeDiagnostic: loc => template.Format(token, loc),
+            Offset: offset,
+            Width: token.Width));
+
+    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, SyntaxNode node, int offset = 0) =>
+        node.AddDiagnostic(new PartialDiagnostic(
+            MakeDiagnostic: loc => template.Format(arg, loc),
+            Offset: offset,
+            Width: node.GetWidth()));
     
     private Token Advance() => state.Advance();
 
@@ -40,23 +50,18 @@ internal sealed partial class Parser
     {
         if (Current.Kind == kind) return Advance();
 
-        throw new NotImplementedException();
-
-        // ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current.Span);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current);
         
-        // var span = TextSpan.FromLength(Current.Span.Start, 0);
-        // return new(TokenKind.Error, "", span);
+        return new(TokenKind.Error, "", "", 0);
     }
 
     private Token? Expect(IReadOnlySet<TokenKind> kinds)
     {
         if (kinds.Contains(Current.Kind)) return Current;
 
-        throw new NotImplementedException();
-
-        // ReportDiagnostic(ParseDiagnostics.ExpectedKinds, kinds, Current.Span);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, kinds, Current);
         
-        // return null;
+        return null;
     }
 
     /// <summary>
@@ -105,10 +110,9 @@ internal sealed partial class Parser
             // Check whether the parser parsed anything at all to prevent it from getting stuck.
             if (Current == previousToken)
             {
-                throw new NotImplementedException();
-                // ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
 
-                // Advance();
+                Advance();
             }
             else nodes.Add(node);
 

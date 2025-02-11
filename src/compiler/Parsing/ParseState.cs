@@ -26,22 +26,15 @@ internal sealed class ParseState
     /// The current token.
     /// </summary>
     public Token Current => tokens[position];
-    
-    /// <summary>
-    /// The diagnostics produced so far by the parser.
-    /// </summary>
-    public List<IDiagnostic> Diagnostics { get; }
 
     private ParseState(
         Source source,
         Ast ast,
         ImmutableArray<Token> tokens,
-        int position,
-        IEnumerable<IDiagnostic> diagnostics)
+        int position)
     {
         Source = source;
         Ast = ast;
-        Diagnostics = diagnostics.ToList();
         
         this.tokens = tokens;
         this.position = position;
@@ -57,7 +50,6 @@ internal sealed class ParseState
     {
         Source = source;
         Ast = ast;
-        Diagnostics = [];
         
         this.tokens = tokens;
         position = 0;
@@ -85,6 +77,5 @@ internal sealed class ParseState
         Source,
         Ast,
         tokens,
-        position,
-        Diagnostics);
+        position);
 }

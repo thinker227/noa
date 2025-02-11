@@ -62,17 +62,16 @@ internal sealed partial class Parser
             if (Current.Kind is not TokenKind.Name)
             {
                 // An unexpected token was encountered.
-                throw new NotImplementedException();
-                // ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
             
-                // // Try synchronize with the next parameter.
-                // Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
+                // Try synchronize with the next parameter.
+                Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
 
-                // if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
-                // {
-                //     // We've synchronized with the end of the parameter list.
-                //     break;
-                // }
+                if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
+                {
+                    // We've synchronized with the end of the parameter list.
+                    break;
+                }
             }
             
             var identifier = Expect(TokenKind.Name);
@@ -144,9 +143,8 @@ internal sealed partial class Parser
         };
         
         // Todo: this should probably be moved to a standalone analyzer since it doesn't really belong in the parser.
-        throw new NotImplementedException();
-        // ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported);
+        ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported, tuple);
 
-        // return tuple;
+        return tuple;
     }
 }

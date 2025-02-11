@@ -16,18 +16,17 @@ internal sealed partial class Parser
     /// <param name="source">The source file to parse.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
     /// <param name="cancellationToken">The cancellation token used to signal the parser to cancel.</param>
-    public static (RootSyntax, IReadOnlyCollection<IDiagnostic>) Parse(
+    public static RootSyntax Parse(
         Source source,
         Ast ast,
         CancellationToken cancellationToken)
     {
-        var (tokens, lexDiagnostics) = Lexer.Lex(source, cancellationToken);
+        var tokens = Lexer.Lex(source, cancellationToken);
         var parser = new Parser(source, ast, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
-        var diagnostics = parser.Diagnostics;
         
-        return (root, lexDiagnostics.Concat(diagnostics).ToList());
+        return root;
     }
 
     internal RootSyntax ParseRoot()
