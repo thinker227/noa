@@ -165,7 +165,7 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
         new Syntax.AssignmentStatementSyntax(this, position, parent);
 }
 
-internal sealed class FlowControlStatement : StatementSyntax
+internal sealed class FlowControlStatementSyntax : StatementSyntax
 {
     private int? width;
 
@@ -176,7 +176,7 @@ internal sealed class FlowControlStatement : StatementSyntax
     private int ComputeWidth() => 0 + Expression.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        new Syntax.FlowControlStatement(this, position, parent);
+        new Syntax.FlowControlStatementSyntax(this, position, parent);
 }
 
 internal sealed class ExpressionStatementSyntax : StatementSyntax

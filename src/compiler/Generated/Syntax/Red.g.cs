@@ -162,14 +162,14 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
     protected override int GetWidth() => green.GetWidth();
 }
 
-public sealed class FlowControlStatement : StatementSyntax
+public sealed class FlowControlStatementSyntax : StatementSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Green.FlowControlStatement green;
+    private readonly Green.FlowControlStatementSyntax green;
 
     public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
     
-    internal FlowControlStatement(Green.FlowControlStatement green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal FlowControlStatementSyntax(Green.FlowControlStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
     protected override int GetWidth() => green.GetWidth();
