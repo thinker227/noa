@@ -14,9 +14,9 @@ public sealed class RootSyntax : SyntaxNode
 
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position, this);
     
-    public ExpressionSyntax TrailingExpression => (ExpressionSyntax)green.TrailingExpression.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth(), this);
     
-    public Token EndOfFile => (Token)green.EndOfFile.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth() + ((Green.RootSyntax)green).TrailingExpression.GetWidth(), this);
+    public Token EndOfFile => (Token)green.EndOfFile.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth() + ((Green.RootSyntax)green).TrailingExpression?.GetWidth() ?? 0, this);
     
     internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -148,13 +148,13 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.AssignmentStatementSyntax green;
 
-    public Token Identifier => (Token)green.Identifier.ToRed(position, this);
+    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
     
-    public Token Operator => (Token)green.Operator.ToRed(position + ((Green.AssignmentStatementSyntax)green).Identifier.GetWidth(), this);
+    public Token Operator => (Token)green.Operator.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + ((Green.AssignmentStatementSyntax)green).Identifier.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.AssignmentStatementSyntax)green).Identifier.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth() + ((Green.AssignmentStatementSyntax)green).Value.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth() + ((Green.AssignmentStatementSyntax)green).Value.GetWidth(), this);
     
     internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -215,9 +215,9 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
     
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth(), this);
     
-    public ExpressionSyntax TrailingExpression => (ExpressionSyntax)green.TrailingExpression.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth(), this);
     
-    public Token CloseBrace => (Token)green.CloseBrace.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth() + ((Green.BlockExpressionSyntax)green).TrailingExpression.GetWidth(), this);
+    public Token CloseBrace => (Token)green.CloseBrace.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth() + ((Green.BlockExpressionSyntax)green).TrailingExpression?.GetWidth() ?? 0, this);
     
     internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;

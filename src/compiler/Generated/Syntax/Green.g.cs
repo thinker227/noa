@@ -11,13 +11,13 @@ internal sealed class RootSyntax : SyntaxNode
 
     public required SyntaxList<StatementSyntax> Statements { get; init; }
 
-    public required ExpressionSyntax TrailingExpression { get; init; }
+    public required ExpressionSyntax? TrailingExpression { get; init; }
 
     public required Token EndOfFile { get; init; }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + Statements.GetWidth() + TrailingExpression.GetWidth() + EndOfFile.GetWidth();
+    private int ComputeWidth() => 0 + Statements.GetWidth() + TrailingExpression?.GetWidth() ?? 0 + EndOfFile.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.RootSyntax(this, position, parent);
@@ -149,7 +149,7 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
 {
     private int? width;
 
-    public required Token Identifier { get; init; }
+    public required ExpressionSyntax Target { get; init; }
 
     public required Token Operator { get; init; }
 
@@ -159,7 +159,7 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + Identifier.GetWidth() + Operator.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
+    private int ComputeWidth() => 0 + Target.GetWidth() + Operator.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.AssignmentStatementSyntax(this, position, parent);
@@ -220,13 +220,13 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public required SyntaxList<StatementSyntax> Statements { get; init; }
 
-    public required ExpressionSyntax TrailingExpression { get; init; }
+    public required ExpressionSyntax? TrailingExpression { get; init; }
 
     public required Token CloseBrace { get; init; }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + OpenBrace.GetWidth() + Statements.GetWidth() + TrailingExpression.GetWidth() + CloseBrace.GetWidth();
+    private int ComputeWidth() => 0 + OpenBrace.GetWidth() + Statements.GetWidth() + TrailingExpression?.GetWidth() ?? 0 + CloseBrace.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BlockExpressionSyntax(this, position, parent);

@@ -4,7 +4,7 @@
 
   <Node Name="RootSyntax">
     <List Name="Statements" Type="StatementSyntax"/>
-    <Value Name="TrailingExpression" Type="ExpressionSyntax"/>
+    <Value Name="TrailingExpression" Type="ExpressionSyntax" Optional="true"/>
     <Token Name="EndOfFile"/>
   </Node>
 
@@ -52,7 +52,7 @@
   </Node>
 
   <Node Name="AssignmentStatementSyntax" Parent="StatementSyntax">
-    <Token Name="Identifier"/>
+    <Value Name="Target" Type="ExpressionSyntax"/>
     <Token Name="Operator"/>
     <Value Name="Value" Type="ExpressionSyntax"/>
     <Token Name="Semicolon"/>
@@ -74,7 +74,7 @@
   <Node Name="BlockExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="OpenBrace"/>
     <List Name="Statements" Type="StatementSyntax"/>
-    <Value Name="TrailingExpression" Type="ExpressionSyntax"/>
+    <Value Name="TrailingExpression" Type="ExpressionSyntax" Optional="true"/>
     <Token Name="CloseBrace"/>
   </Node>
 
