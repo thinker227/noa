@@ -93,18 +93,26 @@ internal sealed partial class Parser
             }
             
             // If the expression is a control flow expression statement then we don't expect a semicolon.
-            var semicolon = expression.IsControlFlowExpressionStatement() && expression is not ErrorExpressionSyntax
-                ? null
-                : Expect(TokenKind.Semicolon);
-
-            // If the expression is an error then we have to consume the current token to avoid choking on it.
-            if (expression is ErrorExpressionSyntax) Advance();
-
-            statements.Add(new ExpressionStatementSyntax()
+            if (expression.IsControlFlowExpressionStatement() && expression is not ErrorExpressionSyntax)
             {
-                Expression = expression,
-                Semicolon = semicolon
-            });
+                statements.Add(new FlowControlStatementSyntax()
+                {
+                    Expression = expression
+                });
+            }
+            else
+            {
+                var semicolon = Expect(TokenKind.Semicolon);
+
+                // If the expression is an error then we have to consume the current token to avoid choking on it.
+                if (expression is ErrorExpressionSyntax) Advance();
+
+                statements.Add(new ExpressionStatementSyntax()
+                {
+                    Expression = expression,
+                    Semicolon = semicolon
+                });
+            }
         }
 
         return (new(statements.ToImmutable()), trailingExpression);
