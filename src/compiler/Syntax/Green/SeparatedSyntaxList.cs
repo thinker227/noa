@@ -11,6 +11,8 @@ internal sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Syn
 
     public SyntaxNode this[int index] => elements[index];
 
+    public static SeparatedSyntaxList<TNode> Empty { get; } = new([]);
+
     private SeparatedSyntaxList(ImmutableArray<SyntaxNode> elements) =>
         this.elements = elements;
 
