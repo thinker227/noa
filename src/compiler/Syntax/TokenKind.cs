@@ -1,26 +1,4 @@
-using TextMappingUtils;
-
-namespace Noa.Compiler.Nodes;
-
-/// <summary>
-/// A syntax token, a single unit of syntax.
-/// </summary>
-/// <param name="Kind">The kind of the token.</param>
-/// <param name="Text">
-/// The text of the token.
-/// If not specified, <see cref="TokenKindExtensions.ConstantString"/> will be used,
-/// or an expect will be thrown if the kind does not have a constant string.
-/// </param>
-/// <param name="Span">The span of the token within its text.</param>
-public readonly record struct Token(TokenKind Kind, string? Text, TextSpan Span)
-{
-    public string Text { get; } =
-        Text ?? Kind.ConstantString() ?? throw new InvalidOperationException(
-            $"Cannot create a token with kind '{Kind}' without explicitly " +
-            $"specifying its text because the kind does not have a constant string");
-
-    public override string ToString() => $"{Kind} '{Text}' at {Span}";
-}
+namespace Noa.Compiler.Syntax;
 
 /// <summary>
 /// The kind of a syntax token.
