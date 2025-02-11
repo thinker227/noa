@@ -195,6 +195,17 @@ public abstract class ExpressionSyntax : SyntaxNode
     internal ExpressionSyntax(int position, SyntaxNode parent) : base(position, parent) {}
 }
 
+public sealed class ErrorExpressionSyntax : ExpressionSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.ErrorExpressionSyntax green;
+
+    internal ErrorExpressionSyntax(Green.ErrorExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
+        this.green = green;
+    
+    protected override int GetWidth() => green.GetWidth();
+}
+
 public sealed class BlockExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

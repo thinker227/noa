@@ -69,6 +69,8 @@
 
   <Variant Name="ExpressionSyntax"/>
 
+  <Node Name="ErrorExpressionSyntax" Parent="ExpressionSyntax"/>
+
   <Node Name="BlockExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="OpenBrace"/>
     <List Name="Statements" Type="StatementSyntax"/>

@@ -199,6 +199,19 @@ internal abstract class ExpressionSyntax : SyntaxNode
 {
 }
 
+internal sealed class ErrorExpressionSyntax : ExpressionSyntax
+{
+    private int? width;
+
+
+    public override int GetWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => ;
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.ErrorExpressionSyntax(this, position, parent);
+}
+
 internal sealed class BlockExpressionSyntax : ExpressionSyntax
 {
     private int? width;
