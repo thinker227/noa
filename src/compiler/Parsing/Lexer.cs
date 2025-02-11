@@ -90,6 +90,7 @@ internal sealed partial class Lexer
             ReportDiagnostic(loc =>
                 ParseDiagnostics.UnexpectedCharacter.Format(Rest[..1].ToString(), loc),
                 width: 1);
+            leadingTriviaLength += 1;
             
             Progress(1);
         }
