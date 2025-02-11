@@ -2,6 +2,10 @@ using System.Collections;
 
 namespace Noa.Compiler.Syntax;
 
+/// <summary>
+/// A list which holds syntax nodes.
+/// </summary>
+/// <typeparam name="TNode">The type of the nodes in the list.</typeparam>
 public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where TNode : SyntaxNode
 {
     private readonly TNode?[] constructed;
