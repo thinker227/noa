@@ -8,7 +8,8 @@ namespace Noa.Compiler.Nodes;
 /// <summary>
 /// An abstract syntax node.
 /// </summary>
-public abstract class Node
+/// <param name="syntax">The concrete syntax node the node corresponds to.</param>
+public abstract class Node(Syntax.SyntaxNode syntax)
 {
     /// <summary>
     /// The AST the node belongs to.
@@ -29,6 +30,11 @@ public abstract class Node
     /// The source location of the node.
     /// </summary>
     public Location Location => new(Ast.Source.Name, Span);
+
+    /// <summary>
+    /// The concrete syntax node the node corresponds to.
+    /// </summary>
+    public Syntax.SyntaxNode Syntax { get; } = syntax;
     
     /// <summary>
     /// The child nodes of the node.

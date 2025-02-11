@@ -31,6 +31,8 @@ public class NodeLike
 
 public sealed class Node : NodeLike
 {
+    public required string Concrete { get; init; }
+
     public NodeLike Parent { get; set; } = null!;
     
     public required bool IsAbstract { get; init; }
@@ -67,7 +69,12 @@ public static class DtoExtensions
         var nodes = rootDto.nodes
             .ToDictionary(
                 x => x.name,
-                x => (dto: x, node: new Node() { Name = x.name, IsAbstract = x is VariantDto }));
+                x => (dto: x, node: new Node()
+                    {
+                        Name = x.name,
+                        Concrete = x.concrete,
+                        IsAbstract = x is VariantDto
+                    }));
         
         foreach (var (nodeDto, node) in nodes.Values)
         {

@@ -20,6 +20,9 @@ public abstract class NodeBaseDto
 
     [XmlAttribute("Parent")]
     public string? parent;
+
+    [XmlAttribute("Concrete")]
+    public required string concrete;
 }
 
 public sealed class VariantDto : NodeBaseDto;
