@@ -4,12 +4,14 @@ namespace Noa.Compiler.Syntax;
 
 public sealed class Token : SyntaxNode
 {
-    internal Green.Token Green => (Green.Token)green;
+    private readonly Green.Token green;
 
-    public TokenKind Kind => Green.Kind;
+    public TokenKind Kind => green.Kind;
     
-    public string Text => Green.Text;
+    public string Text => green.Text;
 
-    internal Token(Green.Token green, int position, SyntaxNode parent)
-        : base(green, position, parent) {}
+    internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
+        this.green = green;
+
+    protected override int GetWidth() => green.Width;
 }

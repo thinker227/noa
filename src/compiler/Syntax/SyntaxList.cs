@@ -24,15 +24,16 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
     }
 
     internal SyntaxList(
-        Green.SyntaxNode green,
         int position,
         Syntax.SyntaxNode parent,
         IReadOnlyList<Green.SyntaxNode> elements)
-        : base(green, position, parent)
+        : base(position, parent)
     {
         constructed = new TNode[elements.Count];
         this.elements = elements;
     }
+
+    protected override int GetWidth() => elements.Sum(x => x.GetWidth());
 
     public IEnumerator<TNode> GetEnumerator()
     {

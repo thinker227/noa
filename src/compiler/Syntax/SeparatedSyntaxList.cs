@@ -26,15 +26,16 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
     public int TokensCount => Count / 2;
 
     internal SeparatedSyntaxList(
-        Green.SyntaxNode green,
         int position,
         Syntax.SyntaxNode parent,
         IReadOnlyList<Green.SyntaxNode> elements)
-        : base(green, position, parent)
+        : base(position, parent)
     {
         constructed = new SyntaxNode[elements.Count];
         this.elements = elements;
     }
+
+    protected override int GetWidth() => elements.Sum(x => x.GetWidth());
 
     public IEnumerable<TNode> Nodes() =>
         this.OfType<TNode>();

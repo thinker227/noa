@@ -6,9 +6,6 @@ namespace Noa.Compiler.Syntax;
 public abstract class SyntaxNode
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    internal readonly Green.SyntaxNode green;
-
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     internal readonly int position;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -16,12 +13,13 @@ public abstract class SyntaxNode
     
     public SyntaxNode Parent { get; }
 
-    public TextSpan Span => span ??= TextSpan.FromLength(position, green.GetWidth());
+    public TextSpan Span => span ??= TextSpan.FromLength(position, GetWidth());
 
-    internal SyntaxNode(Green.SyntaxNode green, int position, SyntaxNode parent)
+    internal SyntaxNode(int position, SyntaxNode parent)
     {
         this.position = position;
-        this.green = green;
         Parent = parent;
     }
+
+    protected abstract int GetWidth();
 }
