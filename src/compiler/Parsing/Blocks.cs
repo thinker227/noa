@@ -23,13 +23,12 @@ internal sealed partial class Parser
             if (statementOrExpression is not var (statement, expression))
             {
                 // An unexpected token was encountered.
-                throw new NotImplementedException();
-                // ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
                 
-                // // Try synchronize with the next statement or closing brace.
-                // Synchronize(synchronizationTokens);
+                // Try synchronize with the next statement or closing brace.
+                Synchronize(synchronizationTokens);
 
-                // continue;
+                continue;
             }
             
             if (statement is not null)
@@ -62,37 +61,35 @@ internal sealed partial class Parser
 
                 // If the current token is not a closing brace, then there's an unexpected token here.
 
-                throw new NotImplementedException();
-                // ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
 
-                // // Try synchronize with the next statement or closing brace.
-                // Synchronize(synchronizationTokens);
+                // Try synchronize with the next statement or closing brace.
+                Synchronize(synchronizationTokens);
 
-                // // If we find a closing token then the expression was a trailing expression and we're done.
-                // if (Current.Kind == endKind)
-                // {
-                //     trailingExpression = expression;
-                //     break;
-                // }
+                // If we find a closing token then the expression was a trailing expression and we're done.
+                if (Current.Kind == endKind)
+                {
+                    trailingExpression = expression;
+                    break;
+                }
 
-                // if (!SyntaxFacts.CanBeginStatement.Contains(Current.Kind))
-                // {
-                //     // If we stop on a token which isn't a closing brace and cannot start a statement,
-                //     // then the synchronization has reached the end of the input.
-                //     break;
-                // }
+                if (!SyntaxFacts.CanBeginStatement.Contains(Current.Kind))
+                {
+                    // If we stop on a token which isn't a closing brace and cannot start a statement,
+                    // then the synchronization has reached the end of the input.
+                    break;
+                }
                 
-                // // If we find a token which can begin another statement,
-                // // then the previous lack of a semicolon was probably a mistake.
-                // // Continue parsing statements.
+                // If we find a token which can begin another statement,
+                // then the previous lack of a semicolon was probably a mistake.
+                // Continue parsing statements.
             }
             
             // The expression is an expression statement.
 
             if (!expression.IsExpressionStatement() && expression is not ErrorExpressionSyntax)
             {
-                throw new NotImplementedException();
-                // ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression.Span);
+                ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression);
             }
             
             // If the expression is a control flow expression statement then we don't expect a semicolon.
@@ -153,8 +150,7 @@ internal sealed partial class Parser
 
         if (!target.IsValidLValue())
         {
-            throw new NotImplementedException();
-            // ReportDiagnostic(ParseDiagnostics.InvalidLValue, target.Span);
+            ReportDiagnostic(ParseDiagnostics.InvalidLValue, target);
         }
 
         return new AssignmentStatementSyntax()

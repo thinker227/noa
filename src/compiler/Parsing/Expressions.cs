@@ -267,8 +267,7 @@ internal sealed partial class Parser
                     // report an additional little informational error.
                     if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
                     {
-                        throw new NotImplementedException();
-                        // ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if.Span);
+                        ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if);
                     }
                     
                     var @else = Expect(TokenKind.Else);
