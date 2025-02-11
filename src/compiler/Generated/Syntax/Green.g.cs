@@ -121,7 +121,7 @@ internal sealed class ExpressionBodySyntax : FunctionBodySyntax
         new Syntax.ExpressionBodySyntax(this, position, parent);
 }
 
-internal sealed class LetDeclarationSyntax : SyntaxNode
+internal sealed class LetDeclarationSyntax : DeclarationSyntax
 {
     private int? width;
 
@@ -329,7 +329,7 @@ internal sealed class ElseClauseSyntax : SyntaxNode
         new Syntax.ElseClauseSyntax(this, position, parent);
 }
 
-internal sealed class LoopExpression : ExpressionSyntax
+internal sealed class LoopExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
@@ -342,7 +342,7 @@ internal sealed class LoopExpression : ExpressionSyntax
     private int ComputeWidth() => Loop.GetWidth() + Body.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        new Syntax.LoopExpression(this, position, parent);
+        new Syntax.LoopExpressionSyntax(this, position, parent);
 }
 
 internal sealed class ReturnExpressionSyntax : ExpressionSyntax
@@ -445,7 +445,7 @@ internal sealed class StringExpressionSyntax : ExpressionSyntax
 
     public required Token OpenQuote { get; init; }
 
-    public required SyntaxList<StringPart> Parts { get; init; }
+    public required SyntaxList<StringPartSyntax> Parts { get; init; }
 
     public required Token CloseQuote { get; init; }
 
@@ -457,11 +457,11 @@ internal sealed class StringExpressionSyntax : ExpressionSyntax
         new Syntax.StringExpressionSyntax(this, position, parent);
 }
 
-internal abstract class StringPart : SyntaxNode
+internal abstract class StringPartSyntax : SyntaxNode
 {
 }
 
-internal sealed class TextStringPart : StringPart
+internal sealed class TextStringPartSyntax : StringPartSyntax
 {
     private int? width;
 
@@ -472,10 +472,10 @@ internal sealed class TextStringPart : StringPart
     private int ComputeWidth() => Text.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        new Syntax.TextStringPart(this, position, parent);
+        new Syntax.TextStringPartSyntax(this, position, parent);
 }
 
-internal sealed class InterpolationStringPart : StringPart
+internal sealed class InterpolationStringPartSyntax : StringPartSyntax
 {
     private int? width;
 
@@ -490,7 +490,7 @@ internal sealed class InterpolationStringPart : StringPart
     private int ComputeWidth() => OpenDelimiter.GetWidth() + Expression.GetWidth() + CloseDelimiter.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        new Syntax.InterpolationStringPart(this, position, parent);
+        new Syntax.InterpolationStringPartSyntax(this, position, parent);
 }
 
 internal sealed class BoolExpressionSyntax : ExpressionSyntax

@@ -120,7 +120,7 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
     protected override int GetWidth() => green.GetWidth();
 }
 
-public sealed class LetDeclarationSyntax : SyntaxNode
+public sealed class LetDeclarationSyntax : DeclarationSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.LetDeclarationSyntax green;
@@ -318,16 +318,16 @@ public sealed class ElseClauseSyntax : SyntaxNode
     protected override int GetWidth() => green.GetWidth();
 }
 
-public sealed class LoopExpression : ExpressionSyntax
+public sealed class LoopExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Green.LoopExpression green;
+    private readonly Green.LoopExpressionSyntax green;
 
     public Token Loop => (Token)green.Loop.ToRed(position, this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.LoopExpression)green).Loop.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.LoopExpressionSyntax)green).Loop.GetWidth(), this);
     
-    internal LoopExpression(Green.LoopExpression green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal LoopExpressionSyntax(Green.LoopExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
     protected override int GetWidth() => green.GetWidth();
@@ -428,7 +428,7 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
 
     public Token OpenQuote => (Token)green.OpenQuote.ToRed(position, this);
     
-    public SyntaxList<StringPart> Parts => (SyntaxList<StringPart>)green.Parts.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth(), this);
+    public SyntaxList<StringPartSyntax> Parts => (SyntaxList<StringPartSyntax>)green.Parts.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth(), this);
     
     public Token CloseQuote => (Token)green.CloseQuote.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth() + ((Green.StringExpressionSyntax)green).Parts.GetWidth(), this);
     
@@ -438,36 +438,36 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
     protected override int GetWidth() => green.GetWidth();
 }
 
-public abstract class StringPart : SyntaxNode
+public abstract class StringPartSyntax : SyntaxNode
 {
-    internal StringPart(int position, SyntaxNode parent) : base(position, parent) {}
+    internal StringPartSyntax(int position, SyntaxNode parent) : base(position, parent) {}
 }
 
-public sealed class TextStringPart : StringPart
+public sealed class TextStringPartSyntax : StringPartSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Green.TextStringPart green;
+    private readonly Green.TextStringPartSyntax green;
 
     public Token Text => (Token)green.Text.ToRed(position, this);
     
-    internal TextStringPart(Green.TextStringPart green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal TextStringPartSyntax(Green.TextStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
     protected override int GetWidth() => green.GetWidth();
 }
 
-public sealed class InterpolationStringPart : StringPart
+public sealed class InterpolationStringPartSyntax : StringPartSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Green.InterpolationStringPart green;
+    private readonly Green.InterpolationStringPartSyntax green;
 
     public Token OpenDelimiter => (Token)green.OpenDelimiter.ToRed(position, this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + ((Green.InterpolationStringPart)green).OpenDelimiter.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + ((Green.InterpolationStringPartSyntax)green).OpenDelimiter.GetWidth(), this);
     
-    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(position + ((Green.InterpolationStringPart)green).OpenDelimiter.GetWidth() + ((Green.InterpolationStringPart)green).Expression.GetWidth(), this);
+    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(position + ((Green.InterpolationStringPartSyntax)green).OpenDelimiter.GetWidth() + ((Green.InterpolationStringPartSyntax)green).Expression.GetWidth(), this);
     
-    internal InterpolationStringPart(Green.InterpolationStringPart green, int position, SyntaxNode parent) : base(position, parent) =>
+    internal InterpolationStringPartSyntax(Green.InterpolationStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
     protected override int GetWidth() => green.GetWidth();

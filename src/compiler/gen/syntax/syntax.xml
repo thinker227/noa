@@ -42,7 +42,7 @@
     <Token Name="Semicolon"/>
   </Node>
 
-  <Node Name="LetDeclarationSyntax" Type="DeclarationSyntax">
+  <Node Name="LetDeclarationSyntax" Parent="DeclarationSyntax">
     <Token Name="Let"/>
     <Token Name="Mut" Optional="true"/>
     <Token Name="Name"/>
@@ -113,7 +113,7 @@
     <Value Name="Body" Type="BlockExpressionSyntax"/>
   </Node>
 
-  <Node Name="LoopExpression" Parent="ExpressionSyntax">
+  <Node Name="LoopExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="Loop"/>
     <Value Name="Body" Type="BlockExpressionSyntax"/>
   </Node>
@@ -149,17 +149,17 @@
 
   <Node Name="StringExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="OpenQuote"/>
-    <List Name="Parts" Type="StringPart"/>
+    <List Name="Parts" Type="StringPartSyntax"/>
     <Token Name="CloseQuote"/>
   </Node>
 
-  <Variant Name="StringPart"/>
+  <Variant Name="StringPartSyntax"/>
 
-  <Node Name="TextStringPart" Parent="StringPart">
+  <Node Name="TextStringPartSyntax" Parent="StringPartSyntax">
     <Token Name="Text"/>
   </Node>
 
-  <Node Name="InterpolationStringPart" Parent="StringPart">
+  <Node Name="InterpolationStringPartSyntax" Parent="StringPartSyntax">
     <Token Name="OpenDelimiter"/>
     <Value Name="Expression" Type="ExpressionSyntax"/>
     <Token Name="CloseDelimiter"/>
