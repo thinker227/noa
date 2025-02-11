@@ -7,13 +7,13 @@ namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer
 {
-    public static (ImmutableArray<Token>, IReadOnlyCollection<IDiagnostic>) Lex(
+    public static ImmutableArray<Token> Lex(
         Source source,
         CancellationToken cancellationToken)
     {
         var lexer = new Lexer(source, cancellationToken);
         lexer.Lex();
-        return (lexer.tokens.ToImmutable(), lexer.diagnostics);
+        return lexer.tokens.ToImmutable();
     }
 
     private void Lex()
@@ -25,6 +25,7 @@ internal sealed partial class Lexer
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                leadingTriviaLength += 1;
                 Progress(1);
             }
 
@@ -86,14 +87,14 @@ internal sealed partial class Lexer
             if (TryString()) continue;
 
             // Unknown
-            var unexpectedSpan = TextSpan.FromLength(position, 1);
-            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedSpan);
-            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, new(source.Name, unexpectedSpan)));
+            ReportDiagnostic(loc =>
+                ParseDiagnostics.UnexpectedCharacter.Format(Rest[..1].ToString(), loc),
+                width: 1);
+            
             Progress(1);
         }
         
-        var endSpan = TextSpan.FromLength(source.Text.Length, 0);
-        AddToken(new(TokenKind.EndOfFile, null, endSpan));
+        ConstructToken(TokenKind.EndOfFile, 0);
     }
 
     private (TokenKind, int)? TrySymbol()
@@ -268,9 +269,9 @@ internal sealed partial class Lexer
 
         // If we got here then the string is unterminated.
         // Report a diagnostic at the very end of the string.
-        var span = TextSpan.FromLength(position + i, 1);
-        var location = new Location(source.Name, span);
-        diagnostics.Add(ParseDiagnostics.UnterminatedString.Format(location));
+        ReportDiagnostic(
+            ParseDiagnostics.UnterminatedString.Format,
+            width: 1);
 
         return true;
     }
