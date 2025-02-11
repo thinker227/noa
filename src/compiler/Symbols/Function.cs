@@ -139,7 +139,7 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 
     Node IDeclared.Declaration => Declaration;
 
-    Location IDeclared.DefinitionLocation => Declaration.Location with { Span = Declaration.ArrowToken.Span };
+    Location IDeclared.DefinitionLocation => Declaration.Location with { Span = Declaration.Syntax.Arrow.Span };
 
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
 
