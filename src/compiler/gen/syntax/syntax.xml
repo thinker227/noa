@@ -58,7 +58,7 @@
     <Token Name="Semicolon"/>
   </Node>
 
-  <Node Name="FlowControlStatement">
+  <Node Name="FlowControlStatement" Parent="StatementSyntax">
     <Value Name="Expression" Type="ExpressionSyntax"/>
   </Node>
 

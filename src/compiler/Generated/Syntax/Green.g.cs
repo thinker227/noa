@@ -165,7 +165,7 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
         new Syntax.AssignmentStatementSyntax(this, position, parent);
 }
 
-internal sealed class FlowControlStatement : SyntaxNode
+internal sealed class FlowControlStatement : StatementSyntax
 {
     private int? width;
 

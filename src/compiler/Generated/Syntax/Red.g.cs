@@ -162,7 +162,7 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
     protected override int GetWidth() => green.GetWidth();
 }
 
-public sealed class FlowControlStatement : SyntaxNode
+public sealed class FlowControlStatement : StatementSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly Green.FlowControlStatement green;
