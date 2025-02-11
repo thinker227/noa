@@ -19,6 +19,42 @@ internal abstract class SyntaxNode
     public abstract IEnumerable<SyntaxNode> Children { get; }
 
     /// <summary>
+    /// The first token which is a descendant of this node,
+    /// or this node if it happens to be a token.
+    /// </summary>
+    public Token? FirstToken
+    {
+        get
+        {
+            var node = this;
+            while (true)
+            {
+                if (node is Token token) return token;
+                node = node.Children.FirstOrDefault();
+                if (node is null) return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The last token which is a descendant of this node,
+    /// or this node if it happens to be a token.
+    /// </summary>
+    public Token? LastToken
+    {
+        get
+        {
+            var node = this;
+            while (true)
+            {
+                if (node is Token token) return token;
+                node = node.Children.LastOrDefault();
+                if (node is null) return null;
+            }
+        }
+    }
+
+    /// <summary>
     /// The diagnostics for the node.
     /// </summary>
     public IReadOnlyCollection<PartialDiagnostic> Diagnostics =>

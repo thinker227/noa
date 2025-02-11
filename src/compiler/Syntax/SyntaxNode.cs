@@ -28,9 +28,24 @@ public abstract class SyntaxNode
     public int FullPosition { get; }
 
     /// <summary>
+    /// The position of the node in the tree.
+    /// This does <b>not</b> include leading trivia.
+    /// </summary>
+    public int Position
+    {
+        get
+        {
+            var position = FullPosition;
+            var leadingTrivia = Green.FirstToken?.LeadingTrivia;
+            if (leadingTrivia is not null) position += leadingTrivia.Length;
+            return position;
+        }
+    }
+
+    /// <summary>
     /// The span of the syntax node in the corresponding source text.
     /// </summary>
-    public TextSpan Span => span ??= TextSpan.FromLength(FullPosition, Green.GetWidth());
+    public TextSpan Span => span ??= TextSpan.FromLength(Position, Green.GetWidth());
 
     /// <summary>
     /// The nodes which are direct children of the node.
