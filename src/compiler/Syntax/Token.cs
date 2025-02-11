@@ -1,5 +1,3 @@
-using Noa.Compiler.Nodes;
-
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
@@ -18,6 +16,13 @@ public sealed class Token : SyntaxNode
     /// The text of the token.
     /// </summary>
     public string Text => green.Text;
+
+    /// <summary>
+    /// The leading trivia of the token.
+    /// Trivia counts as whitespace and any invalid characters encountered
+    /// between the previous and current token.
+    /// </summary>
+    public string LeadingTrivia => green.LeadingTrivia;
 
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
