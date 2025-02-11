@@ -28,7 +28,7 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
     /// <summary>
     /// The amount of nodes in the list.
     /// </summary>
-    public int NodesCount => Count / 2 + 1;
+    public int NodesCount => (Count + 1) / 2;
 
     /// <summary>
     /// The amount of tokens in the list.
@@ -74,11 +74,11 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
     /// Gets the token at the specified index.
     /// </summary>
     /// <param name="index">The index to get the token at.</param>
-    public TNode GetTokenAt(int index)
+    public Token GetTokenAt(int index)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, TokensCount);
-        return (TNode)GetElemAt(index * 2 + 1);
+        return (Token)GetElemAt(index * 2 + 1);
     }
 
     private SyntaxNode GetElemAt(int index) =>
