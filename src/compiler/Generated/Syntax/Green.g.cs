@@ -17,7 +17,7 @@ internal sealed class RootSyntax : SyntaxNode
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Statements.GetWidth() + TrailingExpression.GetWidth() + EndOfFile.GetWidth();
+    private int ComputeWidth() => 0 + Statements.GetWidth() + TrailingExpression.GetWidth() + EndOfFile.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.RootSyntax(this, position, parent);
@@ -45,7 +45,7 @@ internal sealed class FunctionDeclarationSyntax : DeclarationSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Func.GetWidth() + Name.GetWidth() + Parameters.GetWidth() + Body.GetWidth();
+    private int ComputeWidth() => 0 + Func.GetWidth() + Name.GetWidth() + Parameters.GetWidth() + Body.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.FunctionDeclarationSyntax(this, position, parent);
@@ -63,7 +63,7 @@ internal sealed class ParameterListSyntax : SyntaxNode
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenParen.GetWidth() + Parameters.GetWidth() + CloseParen.GetWidth();
+    private int ComputeWidth() => 0 + OpenParen.GetWidth() + Parameters.GetWidth() + CloseParen.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ParameterListSyntax(this, position, parent);
@@ -79,7 +79,7 @@ internal sealed class ParameterSyntax : SyntaxNode
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Mut?.GetWidth() ?? 0 + Name.GetWidth();
+    private int ComputeWidth() => 0 + Mut?.GetWidth() ?? 0 + Name.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ParameterSyntax(this, position, parent);
@@ -97,7 +97,7 @@ internal sealed class BlockBodySyntax : FunctionBodySyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Block.GetWidth();
+    private int ComputeWidth() => 0 + Block.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BlockBodySyntax(this, position, parent);
@@ -115,7 +115,7 @@ internal sealed class ExpressionBodySyntax : FunctionBodySyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Arrow.GetWidth() + Expression.GetWidth() + Semicolon.GetWidth();
+    private int ComputeWidth() => 0 + Arrow.GetWidth() + Expression.GetWidth() + Semicolon.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ExpressionBodySyntax(this, position, parent);
@@ -139,7 +139,7 @@ internal sealed class LetDeclarationSyntax : DeclarationSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Let.GetWidth() + Mut?.GetWidth() ?? 0 + Name.GetWidth() + Equals.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
+    private int ComputeWidth() => 0 + Let.GetWidth() + Mut?.GetWidth() ?? 0 + Name.GetWidth() + Equals.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.LetDeclarationSyntax(this, position, parent);
@@ -159,7 +159,7 @@ internal sealed class AssignmentStatementSyntax : StatementSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Identifier.GetWidth() + Operator.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
+    private int ComputeWidth() => 0 + Identifier.GetWidth() + Operator.GetWidth() + Value.GetWidth() + Semicolon.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.AssignmentStatementSyntax(this, position, parent);
@@ -173,7 +173,7 @@ internal sealed class FlowControlStatement : SyntaxNode
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Expression.GetWidth();
+    private int ComputeWidth() => 0 + Expression.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.FlowControlStatement(this, position, parent);
@@ -189,7 +189,7 @@ internal sealed class ExpressionStatementSyntax : StatementSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Expression.GetWidth() + Semicolon.GetWidth();
+    private int ComputeWidth() => 0 + Expression.GetWidth() + Semicolon.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ExpressionStatementSyntax(this, position, parent);
@@ -206,7 +206,7 @@ internal sealed class ErrorExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => ;
+    private int ComputeWidth() => 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ErrorExpressionSyntax(this, position, parent);
@@ -226,7 +226,7 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenBrace.GetWidth() + Statements.GetWidth() + TrailingExpression.GetWidth() + CloseBrace.GetWidth();
+    private int ComputeWidth() => 0 + OpenBrace.GetWidth() + Statements.GetWidth() + TrailingExpression.GetWidth() + CloseBrace.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BlockExpressionSyntax(this, position, parent);
@@ -246,7 +246,7 @@ internal sealed class CallExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Target.GetWidth() + OpenParen.GetWidth() + Arguments.GetWidth() + CloseParen.GetWidth();
+    private int ComputeWidth() => 0 + Target.GetWidth() + OpenParen.GetWidth() + Arguments.GetWidth() + CloseParen.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.CallExpressionSyntax(this, position, parent);
@@ -264,7 +264,7 @@ internal sealed class LambdaExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Parameters.GetWidth() + Arrow.GetWidth() + Expression.GetWidth();
+    private int ComputeWidth() => 0 + Parameters.GetWidth() + Arrow.GetWidth() + Expression.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.LambdaExpressionSyntax(this, position, parent);
@@ -282,7 +282,7 @@ internal sealed class TupleExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenParen.GetWidth() + Expressions.GetWidth() + CloseParen.GetWidth();
+    private int ComputeWidth() => 0 + OpenParen.GetWidth() + Expressions.GetWidth() + CloseParen.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.TupleExpressionSyntax(this, position, parent);
@@ -296,7 +296,7 @@ internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Expression.GetWidth();
+    private int ComputeWidth() => 0 + Expression.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ParenthesizedExpressionSyntax(this, position, parent);
@@ -320,7 +320,7 @@ internal sealed class IfExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else?.GetWidth() ?? 0;
+    private int ComputeWidth() => 0 + If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else?.GetWidth() ?? 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.IfExpressionSyntax(this, position, parent);
@@ -336,7 +336,7 @@ internal sealed class ElseClauseSyntax : SyntaxNode
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Else.GetWidth() + Body.GetWidth();
+    private int ComputeWidth() => 0 + Else.GetWidth() + Body.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ElseClauseSyntax(this, position, parent);
@@ -352,7 +352,7 @@ internal sealed class LoopExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Loop.GetWidth() + Body.GetWidth();
+    private int ComputeWidth() => 0 + Loop.GetWidth() + Body.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.LoopExpressionSyntax(this, position, parent);
@@ -368,7 +368,7 @@ internal sealed class ReturnExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Return.GetWidth() + Value?.GetWidth() ?? 0;
+    private int ComputeWidth() => 0 + Return.GetWidth() + Value?.GetWidth() ?? 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ReturnExpressionSyntax(this, position, parent);
@@ -384,7 +384,7 @@ internal sealed class BreakExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Break.GetWidth() + Value?.GetWidth() ?? 0;
+    private int ComputeWidth() => 0 + Break.GetWidth() + Value?.GetWidth() ?? 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BreakExpressionSyntax(this, position, parent);
@@ -398,7 +398,7 @@ internal sealed class ContinueExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Continue.GetWidth();
+    private int ComputeWidth() => 0 + Continue.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ContinueExpressionSyntax(this, position, parent);
@@ -414,7 +414,7 @@ internal sealed class UnaryExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Operator.GetWidth() + Operand.GetWidth();
+    private int ComputeWidth() => 0 + Operator.GetWidth() + Operand.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.UnaryExpressionSyntax(this, position, parent);
@@ -432,7 +432,7 @@ internal sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Left.GetWidth() + Operator.GetWidth() + Right.GetWidth();
+    private int ComputeWidth() => 0 + Left.GetWidth() + Operator.GetWidth() + Right.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BinaryExpressionSyntax(this, position, parent);
@@ -446,7 +446,7 @@ internal sealed class IdentifierExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Identifier.GetWidth();
+    private int ComputeWidth() => 0 + Identifier.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.IdentifierExpressionSyntax(this, position, parent);
@@ -464,7 +464,7 @@ internal sealed class StringExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenQuote.GetWidth() + Parts.GetWidth() + CloseQuote.GetWidth();
+    private int ComputeWidth() => 0 + OpenQuote.GetWidth() + Parts.GetWidth() + CloseQuote.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.StringExpressionSyntax(this, position, parent);
@@ -482,7 +482,7 @@ internal sealed class TextStringPartSyntax : StringPartSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Text.GetWidth();
+    private int ComputeWidth() => 0 + Text.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.TextStringPartSyntax(this, position, parent);
@@ -500,7 +500,7 @@ internal sealed class InterpolationStringPartSyntax : StringPartSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenDelimiter.GetWidth() + Expression.GetWidth() + CloseDelimiter.GetWidth();
+    private int ComputeWidth() => 0 + OpenDelimiter.GetWidth() + Expression.GetWidth() + CloseDelimiter.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.InterpolationStringPartSyntax(this, position, parent);
@@ -514,7 +514,7 @@ internal sealed class BoolExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Value.GetWidth();
+    private int ComputeWidth() => 0 + Value.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BoolExpressionSyntax(this, position, parent);
@@ -528,7 +528,7 @@ internal sealed class NumberExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Value.GetWidth();
+    private int ComputeWidth() => 0 + Value.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.NumberExpressionSyntax(this, position, parent);
@@ -544,7 +544,7 @@ internal sealed class NilExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => OpenParen.GetWidth() + CloseParen.GetWidth();
+    private int ComputeWidth() => 0 + OpenParen.GetWidth() + CloseParen.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.NilExpressionSyntax(this, position, parent);
