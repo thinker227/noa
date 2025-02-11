@@ -298,15 +298,11 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
 
     public Token If => (Token)green.If.ToRed(position, this);
     
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth(), this);
+    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth(), this);
     
-    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth(), this);
-    
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).CloseParen.GetWidth(), this);
-    
-    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).CloseParen.GetWidth() + ((Green.IfExpressionSyntax)green).Body.GetWidth(), this);
+    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).Body.GetWidth(), this);
     
     internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;

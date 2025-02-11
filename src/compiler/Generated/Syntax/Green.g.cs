@@ -308,11 +308,7 @@ internal sealed class IfExpressionSyntax : ExpressionSyntax
 
     public required Token If { get; init; }
 
-    public required Token OpenParen { get; init; }
-
     public required ExpressionSyntax Condition { get; init; }
-
-    public required Token CloseParen { get; init; }
 
     public required BlockExpressionSyntax Body { get; init; }
 
@@ -320,7 +316,7 @@ internal sealed class IfExpressionSyntax : ExpressionSyntax
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else?.GetWidth() ?? 0;
+    private int ComputeWidth() => 0 + If.GetWidth() + Condition.GetWidth() + Body.GetWidth() + Else?.GetWidth() ?? 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.IfExpressionSyntax(this, position, parent);
