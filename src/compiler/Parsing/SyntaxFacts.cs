@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -163,33 +164,33 @@ internal static class SyntaxFacts
     /// Returns whether an expression is an expression statement.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
-    public static bool IsExpressionStatement(this Expression expression) => expression
-        is CallExpression
-        or ReturnExpression
-        or BreakExpression
-        or ContinueExpression
+    public static bool IsExpressionStatement(this ExpressionSyntax expression) => expression
+        is CallExpressionSyntax
+        or ReturnExpressionSyntax
+        or BreakExpressionSyntax
+        or ContinueExpressionSyntax
         || expression.IsControlFlowExpressionStatement();
 
     /// <summary>
     /// Returns whether an expression is a control flow expression statement.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
-    public static bool IsControlFlowExpressionStatement(this Expression expression) => expression
-        is BlockExpression
-        or IfExpression
-        or LoopExpression;
+    public static bool IsControlFlowExpressionStatement(this ExpressionSyntax expression) => expression
+        is BlockExpressionSyntax
+        or IfExpressionSyntax
+        or LoopExpressionSyntax;
 
     /// <summary>
     /// Returns whether an expression is allowed as a trailing expression at the end of a block.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
-    public static bool IsAllowedAsTrailingExpression(this Expression expression) => expression
-        is not IfExpression { Else: null };
+    public static bool IsAllowedAsTrailingExpression(this ExpressionSyntax expression) => expression
+        is not IfExpressionSyntax { Else: null };
 
     /// <summary>
     /// Returns whether an expression is a valid l-value.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
-    public static bool IsValidLValue(this Expression expression) => expression
-        is IdentifierExpression;
+    public static bool IsValidLValue(this ExpressionSyntax expression) => expression
+        is IdentifierExpressionSyntax;
 }

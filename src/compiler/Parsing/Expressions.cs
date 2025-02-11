@@ -1,13 +1,12 @@
 using System.Collections.Frozen;
-using System.Globalization;
-using Noa.Compiler.Nodes;
-using TextMappingUtils;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    private delegate Expression ExpressionParser(Parser parser, int precedence);
+    private delegate ExpressionSyntax ExpressionParser(Parser parser, int precedence);
 
     /// <summary>
     /// Creates a unary prefix expression parser.
@@ -20,18 +19,14 @@ internal sealed partial class Parser
         {
             if (!kindsSet.Contains(parser.Current.Kind)) return parser.ParseExpressionOrError(precedence + 1);
 
-            var kindToken = parser.Advance();
-            var kind = kindToken.Kind.ToUnaryKind() 
-                    ?? throw new InvalidOperationException($"{kindToken.Kind} cannot be converted into a unary kind");
+            var operatorToken = parser.Advance();
         
             // Parse the same precedence to allow things like !!!x
             var operand = parser.ParseExpressionOrError(precedence);
 
-            return new UnaryExpression()
+            return new UnaryExpressionSyntax()
             {
-                Ast = parser.Ast,
-                Span = TextSpan.Between(kindToken.Span, operand.Span),
-                Kind = kind,
+                Operator = operatorToken,
                 Operand = operand
             };
         };
@@ -52,18 +47,14 @@ internal sealed partial class Parser
             {
                 parser.cancellationToken.ThrowIfCancellationRequested();
                 
-                var kindToken = parser.Advance();
-                var kind = kindToken.Kind.ToBinaryKind()
-                    ?? throw new InvalidOperationException($"{kindToken.Kind} cannot be converted into a binary kind");
+                var operatorToken = parser.Advance();
             
                 var right = parser.ParseExpressionOrError(precedence + 1);
 
-                result = new BinaryExpression()
+                result = new BinaryExpressionSyntax()
                 {
-                    Ast = parser.Ast,
-                    Span = TextSpan.Between(result.Span, right.Span),
                     Left = result,
-                    Kind = kind,
+                    Operator = operatorToken,
                     Right = right
                 };
             }
@@ -85,18 +76,14 @@ internal sealed partial class Parser
 
             if (!kindsSet.Contains(parser.Current.Kind)) return result;
             
-            var kindToken = parser.Advance();
-            var kind = kindToken.Kind.ToBinaryKind()
-                ?? throw new InvalidOperationException($"{kindToken.Kind} cannot be converted into a binary kind");
+            var operatorToken = parser.Advance();
 
             var right = parser.ParseExpressionOrError(precedence);
 
-            return new BinaryExpression()
+            return new BinaryExpressionSyntax()
             {
-                Ast = parser.Ast,
-                Span = TextSpan.Between(result.Span, right.Span),
                 Left = result,
-                Kind = kind,
+                Operator = operatorToken,
                 Right = right
             };
         };
@@ -124,13 +111,13 @@ internal sealed partial class Parser
         TokenKind.Plus,
         TokenKind.Dash);
 
-    internal Expression ParseCallExpression(int precedence)
+    internal ExpressionSyntax ParseCallExpression(int precedence)
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
         while (Current.Kind is TokenKind.OpenParen)
         {
-            Advance();
+            var openParen = Advance();
             
             var arguments = ParseSeparatedList(
                 TokenKind.Comma,
@@ -140,19 +127,19 @@ internal sealed partial class Parser
 
             var closeParen = Expect(TokenKind.CloseParen);
             
-            expression = new CallExpression()
+            expression = new CallExpressionSyntax()
             {
-                Ast = Ast,
-                Span = TextSpan.Between(expression.Span, closeParen.Span),
                 Target = expression,
-                Arguments = arguments
+                OpenParen = openParen,
+                Arguments = arguments,
+                CloseParen = closeParen
             };
         }
 
         return expression;
     }
 
-    internal Expression ParsePrimaryExpression()
+    internal ExpressionSyntax ParsePrimaryExpression()
     {
         if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Expression) is { } flowControlExpression)
             return flowControlExpression;
@@ -168,12 +155,10 @@ internal sealed partial class Parser
 
                 var expression = ParseExpressionOrNull();
 
-                return new ReturnExpression()
+                return new ReturnExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = TextSpan.Between(@return.Span, expression?.Span),
-                    ReturnKeyword = @return,
-                    Expression = expression
+                    Return = @return,
+                    Value = expression
                 };
             }
 
@@ -183,12 +168,10 @@ internal sealed partial class Parser
 
                 var expression = ParseExpressionOrNull();
 
-                return new BreakExpression()
+                return new BreakExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = TextSpan.Between(@break.Span, expression?.Span),
-                    BreakKeyword = @break,
-                    Expression = expression
+                    Break = @break,
+                    Value = expression
                 };
             }
 
@@ -196,10 +179,9 @@ internal sealed partial class Parser
             {
                 var @continue = Advance();
 
-                return new ContinueExpression()
+                return new ContinueExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = @continue.Span
+                    Continue = @continue
                 };
             }
 
@@ -207,11 +189,9 @@ internal sealed partial class Parser
             {
                 var identifier = Advance();
 
-                return new IdentifierExpression()
+                return new IdentifierExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = identifier.Span,
-                    Identifier = identifier.Text
+                    Identifier = identifier
                 };
             }
 
@@ -219,11 +199,9 @@ internal sealed partial class Parser
             {
                 var @bool = Advance();
 
-                return new BoolExpression()
+                return new BoolExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = @bool.Span,
-                    Value = @bool.Kind is TokenKind.True
+                    Value = @bool
                 };
             }
 
@@ -231,16 +209,9 @@ internal sealed partial class Parser
             {
                 var number = Advance();
 
-                var value = double.Parse(
-                    number.Text,
-                    NumberStyles.AllowDecimalPoint,
-                    CultureInfo.InvariantCulture);
-
-                return new NumberExpression()
+                return new NumberExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = number.Span,
-                    Value = value
+                    Value = number
                 };
             }
         
@@ -248,15 +219,11 @@ internal sealed partial class Parser
             return ParseString();
         
         default:
-            return new ErrorExpression()
-            {
-                Ast = Ast,
-                Span = TextSpan.FromLength(Current.Span.Start, 0)
-            };
+            return new ErrorExpressionSyntax();
         }
     }
     
-    internal BlockExpression ParseBlockExpression()
+    internal BlockExpressionSyntax ParseBlockExpression()
     {
         var openBrace = Expect(TokenKind.OpenBrace);
 
@@ -269,14 +236,14 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = Ast,
-            Span = TextSpan.Between(openBrace.Span, closeBrace.Span),
+            OpenBrace = openBrace,
             Statements = statements,
-            TrailingExpression = trailingExpression
+            TrailingExpression = trailingExpression,
+            CloseBrace = closeBrace
         };
     }
 
-    internal Expression? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
+    internal ExpressionSyntax? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
     {
         switch (Current.Kind)
         {
@@ -293,14 +260,15 @@ internal sealed partial class Parser
 
                 // Parse an else clause if the current token is an else keyword
                 // or the context is an expression, in which case the else clause is required.
-                var elseClause = null as ElseClause;
+                var elseClause = null as ElseClauseSyntax;
                 if (Current.Kind is TokenKind.Else || ctx is FlowControlExpressionContext.Expression)
                 {
                     // In case the else clause is omitted and the context is an expression,
                     // report an additional little informational error.
                     if (Current.Kind is not TokenKind.Else && ctx is FlowControlExpressionContext.Expression)
                     {
-                        ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if.Span);
+                        throw new NotImplementedException();
+                        // ReportDiagnostic(ParseDiagnostics.ElseOmitted, @if.Span);
                     }
                     
                     var @else = Expect(TokenKind.Else);
@@ -309,20 +277,16 @@ internal sealed partial class Parser
 
                     elseClause = new()
                     {
-                        Ast = Ast,
-                        Span = TextSpan.Between(@else.Span, ifFalse.Span),
-                        ElseKeyword = @else,
-                        IfFalse = ifFalse
+                        Else = @else,
+                        Body = ifFalse
                     };
                 }
 
-                return new IfExpression()
+                return new IfExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = @if.Span with { End = elseClause?.Span.End ?? ifTrue.Span.End },
-                    IfKeyword = @if,
+                    If = @if,
                     Condition = condition,
-                    IfTrue = ifTrue,
+                    Body = ifTrue,
                     Else = elseClause
                 };
             }
@@ -333,12 +297,10 @@ internal sealed partial class Parser
 
                 var block = ParseBlockExpression();
 
-                return new LoopExpression()
+                return new LoopExpressionSyntax()
                 {
-                    Ast = Ast,
-                    Span = TextSpan.Between(loop.Span, block.Span),
-                    LoopKeyword = loop,
-                    Block = block
+                    Loop = loop,
+                    Body = block
                 };
             }
         }
@@ -349,10 +311,10 @@ internal sealed partial class Parser
     /// <summary>
     /// Parses an expression or returns an error.
     /// </summary>
-    internal Expression ParseExpressionOrError() =>
+    internal ExpressionSyntax ParseExpressionOrError() =>
         ParseExpressionOrError(0);
     
-    internal Expression ParseExpressionOrError(int precedence) => precedence switch
+    internal ExpressionSyntax ParseExpressionOrError(int precedence) => precedence switch
     {
         0 => equalityExpressionParser(this, precedence),
         1 => relationalExpressionParser(this, precedence),
@@ -367,7 +329,7 @@ internal sealed partial class Parser
     /// <summary>
     /// Parses an expression or returns null if the current token cannot start an expression.
     /// </summary>
-    internal Expression? ParseExpressionOrNull() =>
+    internal ExpressionSyntax? ParseExpressionOrNull() =>
         SyntaxFacts.CanBeginExpression.Contains(Current.Kind)
             ? ParseExpressionOrError()
             : null;

@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 

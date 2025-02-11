@@ -1,5 +1,6 @@
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
 using TextMappingUtils;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -9,7 +10,7 @@ internal sealed partial class Parser
     // We solve this by first attempting to parse it as a lambda and backtracking to the start of the list
     // if we encounter something which looks more like an expression than a parameter.
     
-    internal Expression ParseParenthesizedOrLambdaExpression()
+    internal ExpressionSyntax ParseParenthesizedOrLambdaExpression()
     {
         var openParen = Expect(TokenKind.OpenParen);
 
@@ -26,10 +27,11 @@ internal sealed partial class Parser
         return ParseParenthesizedExpression(openParen);
     }
 
-    internal LambdaExpression? ParseLambdaExpressionOrNull(Token openParen)
+    internal LambdaExpressionSyntax? ParseLambdaExpressionOrNull(Token openParen)
     {
         var lockedIn = false;
-        var parameters = ImmutableArray.CreateBuilder<Parameter>();
+        var parameters = new List<ParameterSyntax>();
+        var separators = new List<Token>();
         
         while (!AtEnd)
         {
@@ -39,7 +41,7 @@ internal sealed partial class Parser
             // Checking this at the start of the loop also permits trailing commas.
             if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
             
-            var mutToken = null as Token?;
+            var mutToken = null as Token;
             if (Current.Kind is TokenKind.Mut)
             {
                 mutToken = Advance();
@@ -60,37 +62,35 @@ internal sealed partial class Parser
             if (Current.Kind is not TokenKind.Name)
             {
                 // An unexpected token was encountered.
-                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                throw new NotImplementedException();
+                // ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
             
-                // Try synchronize with the next parameter.
-                Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
+                // // Try synchronize with the next parameter.
+                // Synchronize(SyntaxFacts.LambdaParameterListSynchronize);
 
-                if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
-                {
-                    // We've synchronized with the end of the parameter list.
-                    break;
-                }
+                // if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan)
+                // {
+                //     // We've synchronized with the end of the parameter list.
+                //     break;
+                // }
             }
             
-            var identifier = ParseIdentifier();
-
-            var start = mutToken?.Span.Start ?? identifier.Span.Start;
+            var identifier = Expect(TokenKind.Name);
             
             parameters.Add(new()
             {
-                Ast = Ast,
-                Span = identifier.Span with { Start = start },
-                Identifier = identifier,
-                IsMutable = mutToken is not null
+                Name = identifier,
+                Mut = mutToken
             });
             
             // Check whether we've hit the end of the parameter list again before trying to find a comma.
             if (Current.Kind is TokenKind.CloseParen or TokenKind.EqualsGreaterThan) break;
 
-            Expect(TokenKind.Comma);
+            var separator = Expect(TokenKind.Comma);
+            separators.Add(separator);
         }
 
-        Expect(TokenKind.CloseParen);
+        var closeParen = Expect(TokenKind.CloseParen);
 
         if (!lockedIn && Current.Kind is not TokenKind.EqualsGreaterThan)
         {
@@ -104,15 +104,18 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = Ast,
-            Span = TextSpan.Between(openParen.Span, body.Span),
-            Parameters = parameters.ToImmutable(),
-            ArrowToken = arrow,
-            Body = body
+            Parameters = new()
+            {
+                OpenParen = openParen,
+                Parameters = SeparatedSyntaxList<ParameterSyntax>.Create(parameters, separators),
+                CloseParen = closeParen
+            },
+            Arrow = arrow,
+            Expression = body
         };
     }
 
-    internal Expression ParseParenthesizedExpression(Token openParen)
+    internal ExpressionSyntax ParseParenthesizedExpression(Token openParen)
     {
         var expressions = ParseSeparatedList(
             TokenKind.Comma,
@@ -122,29 +125,28 @@ internal sealed partial class Parser
 
         var closeParen = Expect(TokenKind.CloseParen);
 
-        var parensSpan = TextSpan.Between(openParen.Span, closeParen.Span);
-
-        if (expressions.Length == 0)
+        if (expressions.NodesCount == 0)
         {
-            return new NilExpression()
+            return new NilExpressionSyntax()
             {
-                Ast = Ast,
-                Span = parensSpan
+                OpenParen = openParen,
+                CloseParen = closeParen
             };
         }
 
-        if (expressions.Length == 1) return expressions[0];
+        if (expressions.NodesCount == 1) return expressions[0];
 
-        var tuple = new TupleExpression()
+        var tuple = new TupleExpressionSyntax()
         {
-            Ast = Ast,
-            Span = parensSpan,
-            Expressions = expressions
+            OpenParen = openParen,
+            Expressions = expressions,
+            CloseParen = closeParen
         };
         
         // Todo: this should probably be moved to a standalone analyzer since it doesn't really belong in the parser.
-        ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported, tuple.Span);
+        throw new NotImplementedException();
+        // ReportDiagnostic(MiscellaneousDiagnostics.TuplesUnsupported);
 
-        return tuple;
+        // return tuple;
     }
 }

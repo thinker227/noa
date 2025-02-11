@@ -1,16 +1,17 @@
 using System.Text;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
 using TextMappingUtils;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    private StringExpression ParseString()
+    private StringExpressionSyntax ParseString()
     {
         var beginToken = Expect(TokenKind.BeginString);
 
-        var parts = ImmutableArray.CreateBuilder<StringPart>();
+        var parts = ImmutableArray.CreateBuilder<StringPartSyntax>();
 
         while (!AtEnd && Current.Kind is not TokenKind.EndString)
         {
@@ -20,13 +21,10 @@ internal sealed partial class Parser
             {
             case TokenKind.StringText:
                 {
-                    var textToken = Advance();
-                    var text = ParseStringText(textToken);
+                    var text = Advance();
 
-                    parts.Add(new TextStringPart()
+                    parts.Add(new TextStringPartSyntax()
                     {
-                        Ast = Ast,
-                        Span = textToken.Span,
                         Text = text
                     });
 
@@ -41,11 +39,11 @@ internal sealed partial class Parser
 
                     var endInterpolationToken = Expect(TokenKind.EndInterpolation);
 
-                    parts.Add(new InterpolationStringPart()
+                    parts.Add(new InterpolationStringPartSyntax()
                     {
-                        Ast = Ast,
-                        Span = TextSpan.Between(beginInterpolationToken.Span, endInterpolationToken.Span),
-                        Expression = expression
+                        OpenDelimiter = beginInterpolationToken,
+                        Expression = expression,
+                        CloseDelimiter = endInterpolationToken
                     });
 
                     break;
@@ -64,9 +62,9 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = Ast,
-            Span = TextSpan.Between(beginToken.Span, endToken.Span),
-            Parts = parts.ToImmutable()
+            OpenQuote = beginToken,
+            Parts = parts.ToImmutable(),
+            CloseQuote = endToken
         };
     }
 
@@ -111,9 +109,10 @@ internal sealed partial class Parser
             }
 
             // Accounting for the opening quote in the span.
-            var position = token.Span.Start + 1 + i;
-            var span = TextSpan.FromLength(position, 2);
-            ReportDiagnostic(ParseDiagnostics.UnknownEscapeSequence, raw[i + 1].ToString(), span);
+            throw new NotImplementedException();
+            // var position = token.Span.Start + 1 + i;
+            // var span = TextSpan.FromLength(position, 2);
+            // ReportDiagnostic(ParseDiagnostics.UnknownEscapeSequence, raw[i + 1].ToString(), span);
         }
 
         return text.ToString();
