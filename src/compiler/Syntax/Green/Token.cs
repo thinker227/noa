@@ -4,6 +4,8 @@ namespace Noa.Compiler.Syntax.Green;
 
 internal sealed class Token(TokenKind kind, string? text, string leadingTrivia, int width) : SyntaxNode
 {
+    public override IEnumerable<SyntaxNode> Children => [];
+
     public TokenKind Kind { get; } = kind;
 
     public int Width { get; } = width;

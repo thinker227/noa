@@ -11,6 +11,10 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
     private readonly TNode?[] constructed;
     private readonly IReadOnlyList<Green.SyntaxNode> elements;
 
+    internal override Green.SyntaxNode Green { get; }
+
+    public override IEnumerable<SyntaxNode> Children => this;
+
     public int Count => elements.Count;
 
 
@@ -28,16 +32,16 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
     }
 
     internal SyntaxList(
+        Green.SyntaxNode green,
         int position,
         Syntax.SyntaxNode parent,
         IReadOnlyList<Green.SyntaxNode> elements)
         : base(position, parent)
     {
+        Green = green;
         constructed = new TNode[elements.Count];
         this.elements = elements;
     }
-
-    protected override int GetWidth() => elements.Sum(x => x.GetWidth());
 
     public IEnumerator<TNode> GetEnumerator()
     {
@@ -49,7 +53,7 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
             if (constructed[i] is { } x) node = x;
             else
             {
-                node = (TNode)elements[i].ToRed(position + offset, this);
+                node = (TNode)elements[i].ToRed(FullPosition + offset, this);
                 constructed[i] = node;
             }
 

@@ -13,6 +13,9 @@ public sealed class SeparatedSyntaxList<TNode>
     private readonly SyntaxNode?[] constructed;
     private readonly IReadOnlyList<Green.SyntaxNode> elements;
 
+    internal override Green.SyntaxNode Green { get; }
+
+    public override IEnumerable<SyntaxNode> Children => this;
 
     public SyntaxNode this[int index]
     {
@@ -33,16 +36,16 @@ public sealed class SeparatedSyntaxList<TNode>
     public bool HasTrailingSeparator => Count % 2 == 0;
 
     internal SeparatedSyntaxList(
+        Green.SyntaxNode green,
         int position,
         Syntax.SyntaxNode parent,
         IReadOnlyList<Green.SyntaxNode> elements)
         : base(position, parent)
     {
+        Green = green;
         constructed = new SyntaxNode[elements.Count];
         this.elements = elements;
     }
-
-    protected override int GetWidth() => elements.Sum(x => x.GetWidth());
 
     public IEnumerable<TNode> Nodes() =>
         this.OfType<TNode>();
@@ -79,7 +82,7 @@ public sealed class SeparatedSyntaxList<TNode>
             if (constructed[i] is { } x) elem = x;
             else
             {
-                elem = elements[i].ToRed(position + offset, this);
+                elem = elements[i].ToRed(FullPosition + offset, this);
                 constructed[i] = elem;
             }
 

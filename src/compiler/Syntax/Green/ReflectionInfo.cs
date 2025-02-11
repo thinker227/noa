@@ -18,6 +18,7 @@ internal static class ReflectionInfo<TNode> where TNode : SyntaxNode
     public static ConstructorInfo RedSeparatedSyntaxListConstructor { get; } = RedSeparatedSyntaxListType.GetConstructor(
         BindingFlags.NonPublic | BindingFlags.Instance,
         [
+            typeof(Green.SyntaxNode),
             typeof(int),
             typeof(Syntax.SyntaxNode),
             typeof(IReadOnlyList<Green.SyntaxNode>)
@@ -28,6 +29,7 @@ internal static class ReflectionInfo<TNode> where TNode : SyntaxNode
     public static ConstructorInfo RedSyntaxListConstructor { get; } = RedSyntaxListType.GetConstructor(
         BindingFlags.NonPublic | BindingFlags.Instance,
         [
+            typeof(Green.SyntaxNode),
             typeof(int),
             typeof(Syntax.SyntaxNode),
             typeof(IReadOnlyList<Green.SyntaxNode>)

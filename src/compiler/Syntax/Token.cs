@@ -1,3 +1,4 @@
+
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
@@ -6,6 +7,10 @@ namespace Noa.Compiler.Syntax;
 public sealed class Token : SyntaxNode
 {
     private readonly Green.Token green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public override IEnumerable<SyntaxNode> Children => [];
 
     /// <summary>
     /// The kind of the token.
@@ -26,6 +31,4 @@ public sealed class Token : SyntaxNode
 
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
-
-    protected override int GetWidth() => green.Width;
 }
