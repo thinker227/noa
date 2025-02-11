@@ -9,7 +9,15 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
     private readonly IReadOnlyList<Green.SyntaxNode> elements;
 
 
-    public SyntaxNode this[int index] => GetElemAt(index);
+    public SyntaxNode this[int index]
+    {
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
+            return GetElemAt(index);
+        }
+    }
 
     public int Count => elements.Count;
 
@@ -48,27 +56,10 @@ public sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Synta
         return (TNode)GetElemAt(index * 2 + 1);
     }
 
-    private SyntaxNode GetElemAt(int index)
-    {
-        if (constructed[index] is { } x) return x;
-
-        var offset = GetOffsetAt(index);
-
-        var elem = elements[index].ToRed(position + offset, this);
-        constructed[index] = elem;
-
-        return elem;
-    }
-
-    private int GetOffsetAt(int index)
-    {
-        var offset = 0;
-
-        for (var i = 0; i < index; i++)
-            offset += elements[i].GetWidth();
-
-        return offset;
-    }
+    private SyntaxNode GetElemAt(int index) =>
+        constructed[index] is { } x
+            ? x
+            : this.ElementAt(index);
 
     public IEnumerator<SyntaxNode> GetEnumerator()
     {

@@ -1,31 +1,10 @@
 using System.Collections;
-using System.Reflection;
 
 namespace Noa.Compiler.Syntax.Green;
 
 internal sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<SyntaxNode>
     where TNode : SyntaxNode
-{
-    // Hack because C# doesn't have associated types.
-    // Get a reference to the ConstructorInfo for the (Green.SyntaxNode, int, Syntax.SyntaxNode, IReadOnlyList<Green.SyntaxNode>)
-    // constructor of Syntax.SeparatedSyntaxList<TRed> so we can instantiate it without statically knowing
-    // the type of TRed.
-
-    private static Type RedElementType { get; } = Assembly
-        .GetExecutingAssembly()
-        .GetType($"Noa.Compiler.Syntax.{typeof(TNode).Name}")!;
-    
-    private static Type RedNodeType { get; } = typeof(Syntax.SeparatedSyntaxList<>).MakeGenericType(RedElementType);
-
-    private static ConstructorInfo RedNodeConstructor { get; } = RedNodeType.GetConstructor(
-        BindingFlags.NonPublic | BindingFlags.Instance,
-        [
-            typeof(Green.SyntaxNode),
-            typeof(int),
-            typeof(Syntax.SyntaxNode),
-            typeof(IReadOnlyList<Green.SyntaxNode>)
-        ])!;
-    
+{    
     private readonly ImmutableArray<SyntaxNode> elements;
 
     public int Count => elements.Length;
@@ -77,5 +56,5 @@ internal sealed class SeparatedSyntaxList<TNode> : SyntaxNode, IReadOnlyList<Syn
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        (Syntax.SyntaxNode)RedNodeConstructor.Invoke([this, position, parent, elements]);
+        (Syntax.SyntaxNode)ReflectionInfo<TNode>.RedSeparatedSyntaxListConstructor.Invoke([this, position, parent, elements]);
 }
