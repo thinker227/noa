@@ -200,7 +200,7 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
 
     public BlockExpressionSyntax Body => (BlockExpressionSyntax)((Green.IfExpressionSyntax)green).Body.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).CloseParen.GetWidth(), this);
 
-    public ElseClauseSyntax Else => (ElseClauseSyntax)((Green.IfExpressionSyntax)green).Else.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).CloseParen.GetWidth() + ((Green.IfExpressionSyntax)green).Body.GetWidth(), this);
+    public ElseClauseSyntax? Else => (ElseClauseSyntax?)((Green.IfExpressionSyntax)green).Else?.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).OpenParen.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).CloseParen.GetWidth() + ((Green.IfExpressionSyntax)green).Body.GetWidth(), this);
     
     internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }

@@ -105,7 +105,7 @@
     <Value Name="Condition" Type="ExpressionSyntax"/>
     <Token Name="CloseParen"/>
     <Value Name="Body" Type="BlockExpressionSyntax"/>
-    <Value Name="Else" Type="ElseClauseSyntax"/>
+    <Value Name="Else" Type="ElseClauseSyntax" Optional="true"/>
   </Node>
 
   <Node Name="ElseClauseSyntax">

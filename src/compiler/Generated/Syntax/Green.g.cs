@@ -303,11 +303,11 @@ internal sealed class IfExpressionSyntax : ExpressionSyntax
 
     public required BlockExpressionSyntax Body { get; init; }
 
-    public required ElseClauseSyntax Else { get; init; }
+    public required ElseClauseSyntax? Else { get; init; }
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else.GetWidth();
+    private int ComputeWidth() => If.GetWidth() + OpenParen.GetWidth() + Condition.GetWidth() + CloseParen.GetWidth() + Body.GetWidth() + Else?.GetWidth() ?? 0;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.IfExpressionSyntax(this, position, parent);
