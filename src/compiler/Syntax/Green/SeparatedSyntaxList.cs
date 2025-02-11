@@ -84,5 +84,5 @@ internal sealed class SeparatedSyntaxList<TNode>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
-        (Syntax.SyntaxNode)ReflectionInfo<TNode>.RedSeparatedSyntaxListConstructor.Invoke([this, position, parent, elements]);
+        (Syntax.SyntaxNode)ReflectionInfo<TNode>.RedSeparatedSyntaxListConstructor.Invoke([position, parent, elements]);
 }
