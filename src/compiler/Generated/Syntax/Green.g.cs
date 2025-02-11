@@ -13,9 +13,11 @@ internal sealed partial class RootSyntax : SyntaxNode
 
     public required ExpressionSyntax TrailingExpression { get; init; }
 
+    public required Token EndOfFile { get; init; }
+
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => Statements.GetWidth() + TrailingExpression.GetWidth();
+    private int ComputeWidth() => Statements.GetWidth() + TrailingExpression.GetWidth() + EndOfFile.GetWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.RootSyntax(this, position, parent);

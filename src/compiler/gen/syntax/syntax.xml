@@ -5,6 +5,7 @@
   <Node Name="RootSyntax">
     <List Name="Statements" Type="StatementSyntax"/>
     <Value Name="TrailingExpression" Type="ExpressionSyntax"/>
+    <Token Name="EndOfFile"/>
   </Node>
 
   <Variant Name="StatementSyntax"/>

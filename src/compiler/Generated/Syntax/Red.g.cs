@@ -10,6 +10,8 @@ public sealed partial class RootSyntax : SyntaxNode
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.RootSyntax)green).Statements.ToRed(position, this);
 
     public ExpressionSyntax TrailingExpression => (ExpressionSyntax)((Green.RootSyntax)green).TrailingExpression.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth(), this);
+
+    public Token EndOfFile => (Token)((Green.RootSyntax)green).EndOfFile.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth() + ((Green.RootSyntax)green).TrailingExpression.GetWidth(), this);
     
     internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(green, position, parent) {}
 }
