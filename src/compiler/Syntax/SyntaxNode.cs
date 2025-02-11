@@ -24,6 +24,11 @@ public abstract class SyntaxNode
     /// </summary>
     public TextSpan Span => span ??= TextSpan.FromLength(position, GetWidth());
 
+    /// <summary>
+    /// The nodes which are direct children of the node.
+    /// </summary>
+    public abstract IEnumerable<SyntaxNode> Children { get; }
+
     internal SyntaxNode(int position, SyntaxNode parent)
     {
         this.position = position;

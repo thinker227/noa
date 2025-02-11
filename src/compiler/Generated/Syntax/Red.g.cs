@@ -21,6 +21,17 @@ public sealed class RootSyntax : SyntaxNode
     internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Statements;
+            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return EndOfFile;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -50,6 +61,18 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
     internal FunctionDeclarationSyntax(Green.FunctionDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Func;
+            yield return Name;
+            yield return Parameters;
+            yield return Body;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -67,6 +90,17 @@ public sealed class ParameterListSyntax : SyntaxNode
     internal ParameterListSyntax(Green.ParameterListSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return Parameters;
+            yield return CloseParen;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -81,6 +115,16 @@ public sealed class ParameterSyntax : SyntaxNode
     
     internal ParameterSyntax(Green.ParameterSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (Mut is not null) yield return Mut;
+            yield return Name;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -100,6 +144,15 @@ public sealed class BlockBodySyntax : FunctionBodySyntax
     internal BlockBodySyntax(Green.BlockBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Block;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -116,6 +169,17 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
     
     internal ExpressionBodySyntax(Green.ExpressionBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Arrow;
+            yield return Expression;
+            yield return Semicolon;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -140,6 +204,20 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
     internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Let;
+            if (Mut is not null) yield return Mut;
+            yield return Name;
+            yield return Equals;
+            yield return Value;
+            yield return Semicolon;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -159,6 +237,18 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
     internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return Operator;
+            yield return Value;
+            yield return Semicolon;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -171,6 +261,15 @@ public sealed class FlowControlStatementSyntax : StatementSyntax
     
     internal FlowControlStatementSyntax(Green.FlowControlStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -187,6 +286,16 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
     internal ExpressionStatementSyntax(Green.ExpressionStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield return Semicolon;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -202,6 +311,14 @@ public sealed class ErrorExpressionSyntax : ExpressionSyntax
 
     internal ErrorExpressionSyntax(Green.ErrorExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -222,6 +339,18 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
     internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenBrace;
+            yield return Statements;
+            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return CloseBrace;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -241,6 +370,18 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     internal CallExpressionSyntax(Green.CallExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return OpenParen;
+            yield return Arguments;
+            yield return CloseParen;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -257,6 +398,17 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
     
     internal LambdaExpressionSyntax(Green.LambdaExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Parameters;
+            yield return Arrow;
+            yield return Expression;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -275,6 +427,17 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
     internal TupleExpressionSyntax(Green.TupleExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return Expressions;
+            yield return CloseParen;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -287,6 +450,15 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
     
     internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Expression;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -307,6 +479,18 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
     internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return If;
+            yield return Condition;
+            yield return Body;
+            if (Else is not null) yield return Else;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -321,6 +505,16 @@ public sealed class ElseClauseSyntax : SyntaxNode
     
     internal ElseClauseSyntax(Green.ElseClauseSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Else;
+            yield return Body;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -337,6 +531,16 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
     internal LoopExpressionSyntax(Green.LoopExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Loop;
+            yield return Body;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -351,6 +555,16 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
     
     internal ReturnExpressionSyntax(Green.ReturnExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Return;
+            if (Value is not null) yield return Value;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -367,6 +581,16 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
     internal BreakExpressionSyntax(Green.BreakExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Break;
+            if (Value is not null) yield return Value;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -379,6 +603,15 @@ public sealed class ContinueExpressionSyntax : ExpressionSyntax
     
     internal ContinueExpressionSyntax(Green.ContinueExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Continue;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -394,6 +627,16 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
     
     internal UnaryExpressionSyntax(Green.UnaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Operator;
+            yield return Operand;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -412,6 +655,17 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
     internal BinaryExpressionSyntax(Green.BinaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Left;
+            yield return Operator;
+            yield return Right;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -424,6 +678,15 @@ public sealed class IdentifierExpressionSyntax : ExpressionSyntax
     
     internal IdentifierExpressionSyntax(Green.IdentifierExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Identifier;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -441,6 +704,17 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
     
     internal StringExpressionSyntax(Green.StringExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenQuote;
+            yield return Parts;
+            yield return CloseQuote;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -460,6 +734,15 @@ public sealed class TextStringPartSyntax : StringPartSyntax
     internal TextStringPartSyntax(Green.TextStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Text;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -477,6 +760,17 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
     internal InterpolationStringPartSyntax(Green.InterpolationStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenDelimiter;
+            yield return Expression;
+            yield return CloseDelimiter;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -490,6 +784,15 @@ public sealed class BoolExpressionSyntax : ExpressionSyntax
     internal BoolExpressionSyntax(Green.BoolExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
     
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Value;
+            yield break;
+        }
+    }
+    
     protected override int GetWidth() => green.GetWidth();
 }
 
@@ -502,6 +805,15 @@ public sealed class NumberExpressionSyntax : ExpressionSyntax
     
     internal NumberExpressionSyntax(Green.NumberExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Value;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
@@ -517,6 +829,16 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
     
     internal NilExpressionSyntax(Green.NilExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParen;
+            yield return CloseParen;
+            yield break;
+        }
+    }
     
     protected override int GetWidth() => green.GetWidth();
 }
