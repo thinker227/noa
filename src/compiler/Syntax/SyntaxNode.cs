@@ -14,6 +14,7 @@ public abstract class SyntaxNode
     /// <summary>
     /// The corresponding node in the green tree.
     /// </summary>
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     internal abstract Green.SyntaxNode Green { get; }
     
     /// <summary>
