@@ -33,8 +33,6 @@ public sealed class RootSyntax : SyntaxNode
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public abstract class StatementSyntax : SyntaxNode
@@ -76,8 +74,6 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ParameterListSyntax : SyntaxNode
@@ -106,8 +102,6 @@ public sealed class ParameterListSyntax : SyntaxNode
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ParameterSyntax : SyntaxNode
@@ -133,8 +127,6 @@ public sealed class ParameterSyntax : SyntaxNode
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public abstract class FunctionBodySyntax : SyntaxNode
@@ -162,8 +154,6 @@ public sealed class BlockBodySyntax : FunctionBodySyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ExpressionBodySyntax : FunctionBodySyntax
@@ -192,8 +182,6 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class LetDeclarationSyntax : DeclarationSyntax
@@ -231,8 +219,6 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class AssignmentStatementSyntax : StatementSyntax
@@ -264,8 +250,6 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class FlowControlStatementSyntax : StatementSyntax
@@ -288,8 +272,6 @@ public sealed class FlowControlStatementSyntax : StatementSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ExpressionStatementSyntax : StatementSyntax
@@ -315,8 +297,6 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public abstract class ExpressionSyntax : SyntaxNode
@@ -341,8 +321,6 @@ public sealed class ErrorExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class BlockExpressionSyntax : ExpressionSyntax
@@ -374,8 +352,6 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class CallExpressionSyntax : ExpressionSyntax
@@ -407,8 +383,6 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class LambdaExpressionSyntax : ExpressionSyntax
@@ -437,8 +411,6 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class TupleExpressionSyntax : ExpressionSyntax
@@ -467,8 +439,6 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
@@ -491,8 +461,6 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class IfExpressionSyntax : ExpressionSyntax
@@ -524,8 +492,6 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ElseClauseSyntax : SyntaxNode
@@ -551,8 +517,6 @@ public sealed class ElseClauseSyntax : SyntaxNode
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class LoopExpressionSyntax : ExpressionSyntax
@@ -578,8 +542,6 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ReturnExpressionSyntax : ExpressionSyntax
@@ -605,8 +567,6 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class BreakExpressionSyntax : ExpressionSyntax
@@ -632,8 +592,6 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class ContinueExpressionSyntax : ExpressionSyntax
@@ -656,8 +614,6 @@ public sealed class ContinueExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class UnaryExpressionSyntax : ExpressionSyntax
@@ -683,8 +639,6 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class BinaryExpressionSyntax : ExpressionSyntax
@@ -713,8 +667,6 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class IdentifierExpressionSyntax : ExpressionSyntax
@@ -737,8 +689,6 @@ public sealed class IdentifierExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class StringExpressionSyntax : ExpressionSyntax
@@ -767,8 +717,6 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public abstract class StringPartSyntax : SyntaxNode
@@ -796,8 +744,6 @@ public sealed class TextStringPartSyntax : StringPartSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class InterpolationStringPartSyntax : StringPartSyntax
@@ -826,8 +772,6 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class BoolExpressionSyntax : ExpressionSyntax
@@ -850,8 +794,6 @@ public sealed class BoolExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class NumberExpressionSyntax : ExpressionSyntax
@@ -874,8 +816,6 @@ public sealed class NumberExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }
 
 public sealed class NilExpressionSyntax : ExpressionSyntax
@@ -901,6 +841,4 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
 }

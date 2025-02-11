@@ -48,8 +48,6 @@ public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}se
             yield break;
         }
     }
-    
-    protected override int GetWidth() => green.GetWidth();
     {{~ else ~}}
     internal {{ node.name }}(int position, SyntaxNode parent) : base(position, parent) {}
     {{~ end ~}}
