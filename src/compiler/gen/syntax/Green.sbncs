@@ -10,7 +10,7 @@ internal {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}
 {
     {{~ if !node.is_abstract ~}}
     {{~ for member in node.non_inherited_members ~}}
-    public required {{ if member.list_kind == "Simple" }}ImmutableArray<{{ member.type }}>{{ else if member.list_kind == "Separated" }}SeparatedSyntaxList<{{ member.type }}>{{ else }}{{ member.type }}{{ end }}{{ if member.is_optional }}?{{ end }} {{ member.name }} { get; init; }
+    public required {{ if member.list_kind == "Simple" }}SyntaxList<{{ member.type }}>{{ else if member.list_kind == "Separated" }}SeparatedSyntaxList<{{ member.type }}>{{ else }}{{ member.type }}{{ end }}{{ if member.is_optional }}?{{ end }} {{ member.name }} { get; init; }
     {{~ if !for.last ~}}
 
     {{~ end ~}}

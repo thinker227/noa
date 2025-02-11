@@ -25,7 +25,7 @@ public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}se
 {
     {{~ if !node.is_abstract ~}}
     {{~ for member in node.non_inherited_members ~}}
-    public {{ type member }} {{ member.name }} => ({{ type member }})((Green.{{ node.name }})green).{{ member.name }}{{ if member.is_optional }}?{{ end }}.ToRed{{ if member.is_list }}<Green.{{ member.type }}, {{ member.type }}>{{ end }}({{ pos node for.index }}, this);
+    public {{ type member }} {{ member.name }} => ({{ type member }})((Green.{{ node.name }})green).{{ member.name }}{{ if member.is_optional }}?{{ end }}.ToRed({{ pos node for.index }}, this);
     {{~ if !for.last ~}}
 
     {{~ end ~}}

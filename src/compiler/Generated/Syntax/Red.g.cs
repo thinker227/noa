@@ -7,7 +7,7 @@ namespace Noa.Compiler.Syntax;
 
 public sealed partial class RootSyntax : SyntaxNode
 {
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.RootSyntax)green).Statements.ToRed<Green.StatementSyntax, StatementSyntax>(position, this);
+    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.RootSyntax)green).Statements.ToRed(position, this);
 
     public ExpressionSyntax TrailingExpression => (ExpressionSyntax)((Green.RootSyntax)green).TrailingExpression.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth(), this);
     
@@ -41,7 +41,7 @@ public sealed partial class ParameterListSyntax : SyntaxNode
 {
     public Token OpenParen => (Token)((Green.ParameterListSyntax)green).OpenParen.ToRed(position, this);
 
-    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)((Green.ParameterListSyntax)green).Parameters.ToRed<Green.ParameterSyntax, ParameterSyntax>(position + ((Green.ParameterListSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)((Green.ParameterListSyntax)green).Parameters.ToRed(position + ((Green.ParameterListSyntax)green).OpenParen.GetWidth(), this);
 
     public Token CloseParen => (Token)((Green.ParameterListSyntax)green).CloseParen.ToRed(position + ((Green.ParameterListSyntax)green).OpenParen.GetWidth() + ((Green.ParameterListSyntax)green).Parameters.GetWidth(), this);
     
@@ -135,7 +135,7 @@ public sealed partial class BlockExpressionSyntax : ExpressionSyntax
 {
     public Token OpenBrace => (Token)((Green.BlockExpressionSyntax)green).OpenBrace.ToRed(position, this);
 
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.BlockExpressionSyntax)green).Statements.ToRed<Green.StatementSyntax, StatementSyntax>(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth(), this);
+    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)((Green.BlockExpressionSyntax)green).Statements.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth(), this);
 
     public ExpressionSyntax TrailingExpression => (ExpressionSyntax)((Green.BlockExpressionSyntax)green).TrailingExpression.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth(), this);
 
@@ -150,7 +150,7 @@ public sealed partial class CallExpressionSyntax : ExpressionSyntax
 
     public Token OpenParen => (Token)((Green.CallExpressionSyntax)green).OpenParen.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth(), this);
 
-    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)((Green.CallExpressionSyntax)green).Arguments.ToRed<Green.ExpressionSyntax, ExpressionSyntax>(position + ((Green.CallExpressionSyntax)green).Target.GetWidth() + ((Green.CallExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)((Green.CallExpressionSyntax)green).Arguments.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth() + ((Green.CallExpressionSyntax)green).OpenParen.GetWidth(), this);
 
     public Token CloseParen => (Token)((Green.CallExpressionSyntax)green).CloseParen.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth() + ((Green.CallExpressionSyntax)green).OpenParen.GetWidth() + ((Green.CallExpressionSyntax)green).Arguments.GetWidth(), this);
     
@@ -172,7 +172,7 @@ public sealed partial class TupleExpressionSyntax : ExpressionSyntax
 {
     public Token OpenParen => (Token)((Green.TupleExpressionSyntax)green).OpenParen.ToRed(position, this);
 
-    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)((Green.TupleExpressionSyntax)green).Expressions.ToRed<Green.ExpressionSyntax, ExpressionSyntax>(position + ((Green.TupleExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)((Green.TupleExpressionSyntax)green).Expressions.ToRed(position + ((Green.TupleExpressionSyntax)green).OpenParen.GetWidth(), this);
 
     public Token CloseParen => (Token)((Green.TupleExpressionSyntax)green).CloseParen.ToRed(position + ((Green.TupleExpressionSyntax)green).OpenParen.GetWidth() + ((Green.TupleExpressionSyntax)green).Expressions.GetWidth(), this);
     
@@ -277,7 +277,7 @@ public sealed partial class StringExpressionSyntax : ExpressionSyntax
 {
     public Token OpenQuote => (Token)((Green.StringExpressionSyntax)green).OpenQuote.ToRed(position, this);
 
-    public SyntaxList<StringPart> Parts => (SyntaxList<StringPart>)((Green.StringExpressionSyntax)green).Parts.ToRed<Green.StringPart, StringPart>(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth(), this);
+    public SyntaxList<StringPart> Parts => (SyntaxList<StringPart>)((Green.StringExpressionSyntax)green).Parts.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth(), this);
 
     public Token CloseQuote => (Token)((Green.StringExpressionSyntax)green).CloseQuote.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth() + ((Green.StringExpressionSyntax)green).Parts.GetWidth(), this);
     

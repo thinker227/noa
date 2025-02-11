@@ -7,7 +7,7 @@ namespace Noa.Compiler.Syntax.Green;
 
 internal sealed partial class RootSyntax : SyntaxNode
 {
-    public required ImmutableArray<StatementSyntax> Statements { get; init; }
+    public required SyntaxList<StatementSyntax> Statements { get; init; }
 
     public required ExpressionSyntax TrailingExpression { get; init; }
 
@@ -161,7 +161,7 @@ internal sealed partial class BlockExpressionSyntax : ExpressionSyntax
 {
     public required Token OpenBrace { get; init; }
 
-    public required ImmutableArray<StatementSyntax> Statements { get; init; }
+    public required SyntaxList<StatementSyntax> Statements { get; init; }
 
     public required ExpressionSyntax TrailingExpression { get; init; }
 
@@ -345,7 +345,7 @@ internal sealed partial class StringExpressionSyntax : ExpressionSyntax
 {
     public required Token OpenQuote { get; init; }
 
-    public required ImmutableArray<StringPart> Parts { get; init; }
+    public required SyntaxList<StringPart> Parts { get; init; }
 
     public required Token CloseQuote { get; init; }
 
