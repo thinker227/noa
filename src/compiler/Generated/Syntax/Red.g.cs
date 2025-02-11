@@ -14,9 +14,9 @@ public sealed class RootSyntax : SyntaxNode
 
     public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position, this);
     
-    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + green.Statements.GetWidth(), this);
     
-    public Token EndOfFile => (Token)green.EndOfFile.ToRed(position + ((Green.RootSyntax)green).Statements.GetWidth() + ((Green.RootSyntax)green).TrailingExpression?.GetWidth() ?? 0, this);
+    public Token EndOfFile => (Token)green.EndOfFile.ToRed(position + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
     
     internal RootSyntax(Green.RootSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -41,11 +41,11 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
 
     public Token Func => (Token)green.Func.ToRed(position, this);
     
-    public Token Name => (Token)green.Name.ToRed(position + ((Green.FunctionDeclarationSyntax)green).Func.GetWidth(), this);
+    public Token Name => (Token)green.Name.ToRed(position + green.Func.GetWidth(), this);
     
-    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position + ((Green.FunctionDeclarationSyntax)green).Func.GetWidth() + ((Green.FunctionDeclarationSyntax)green).Name.GetWidth(), this);
+    public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position + green.Func.GetWidth() + green.Name.GetWidth(), this);
     
-    public FunctionBodySyntax Body => (FunctionBodySyntax)green.Body.ToRed(position + ((Green.FunctionDeclarationSyntax)green).Func.GetWidth() + ((Green.FunctionDeclarationSyntax)green).Name.GetWidth() + ((Green.FunctionDeclarationSyntax)green).Parameters.GetWidth(), this);
+    public FunctionBodySyntax Body => (FunctionBodySyntax)green.Body.ToRed(position + green.Func.GetWidth() + green.Name.GetWidth() + green.Parameters.GetWidth(), this);
     
     internal FunctionDeclarationSyntax(Green.FunctionDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -60,9 +60,9 @@ public sealed class ParameterListSyntax : SyntaxNode
 
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     
-    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)green.Parameters.ToRed(position + ((Green.ParameterListSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ParameterSyntax> Parameters => (SeparatedSyntaxList<ParameterSyntax>)green.Parameters.ToRed(position + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + ((Green.ParameterListSyntax)green).OpenParen.GetWidth() + ((Green.ParameterListSyntax)green).Parameters.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth() + green.Parameters.GetWidth(), this);
     
     internal ParameterListSyntax(Green.ParameterListSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -77,7 +77,7 @@ public sealed class ParameterSyntax : SyntaxNode
 
     public Token? Mut => (Token?)green.Mut?.ToRed(position, this);
     
-    public Token Name => (Token)green.Name.ToRed(position + ((Green.ParameterSyntax)green).Mut?.GetWidth() ?? 0, this);
+    public Token Name => (Token)green.Name.ToRed(position + (green.Mut?.GetWidth() ?? 0), this);
     
     internal ParameterSyntax(Green.ParameterSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -110,9 +110,9 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
 
     public Token Arrow => (Token)green.Arrow.ToRed(position, this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + ((Green.ExpressionBodySyntax)green).Arrow.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.Arrow.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.ExpressionBodySyntax)green).Arrow.GetWidth() + ((Green.ExpressionBodySyntax)green).Expression.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Arrow.GetWidth() + green.Expression.GetWidth(), this);
     
     internal ExpressionBodySyntax(Green.ExpressionBodySyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -127,15 +127,15 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
 
     public Token Let => (Token)green.Let.ToRed(position, this);
     
-    public Token? Mut => (Token?)green.Mut?.ToRed(position + ((Green.LetDeclarationSyntax)green).Let.GetWidth(), this);
+    public Token? Mut => (Token?)green.Mut?.ToRed(position + green.Let.GetWidth(), this);
     
-    public Token Name => (Token)green.Name.ToRed(position + ((Green.LetDeclarationSyntax)green).Let.GetWidth() + ((Green.LetDeclarationSyntax)green).Mut?.GetWidth() ?? 0, this);
+    public Token Name => (Token)green.Name.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0), this);
     
-    public Token Equals => (Token)green.Equals.ToRed(position + ((Green.LetDeclarationSyntax)green).Let.GetWidth() + ((Green.LetDeclarationSyntax)green).Mut?.GetWidth() ?? 0 + ((Green.LetDeclarationSyntax)green).Name.GetWidth(), this);
+    public Token Equals => (Token)green.Equals.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + ((Green.LetDeclarationSyntax)green).Let.GetWidth() + ((Green.LetDeclarationSyntax)green).Mut?.GetWidth() ?? 0 + ((Green.LetDeclarationSyntax)green).Name.GetWidth() + ((Green.LetDeclarationSyntax)green).Equals.GetWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.LetDeclarationSyntax)green).Let.GetWidth() + ((Green.LetDeclarationSyntax)green).Mut?.GetWidth() ?? 0 + ((Green.LetDeclarationSyntax)green).Name.GetWidth() + ((Green.LetDeclarationSyntax)green).Equals.GetWidth() + ((Green.LetDeclarationSyntax)green).Value.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Let.GetWidth() + (green.Mut?.GetWidth() ?? 0) + green.Name.GetWidth() + green.Equals.GetWidth() + green.Value.GetWidth(), this);
     
     internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -150,11 +150,11 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
 
     public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
     
-    public Token Operator => (Token)green.Operator.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth(), this);
+    public Token Operator => (Token)green.Operator.ToRed(position + green.Target.GetWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(position + green.Target.GetWidth() + green.Operator.GetWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.AssignmentStatementSyntax)green).Target.GetWidth() + ((Green.AssignmentStatementSyntax)green).Operator.GetWidth() + ((Green.AssignmentStatementSyntax)green).Value.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Target.GetWidth() + green.Operator.GetWidth() + green.Value.GetWidth(), this);
     
     internal AssignmentStatementSyntax(Green.AssignmentStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -182,7 +182,7 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
 
     public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position, this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(position + ((Green.ExpressionStatementSyntax)green).Expression.GetWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(position + green.Expression.GetWidth(), this);
     
     internal ExpressionStatementSyntax(Green.ExpressionStatementSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -213,11 +213,11 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public Token OpenBrace => (Token)green.OpenBrace.ToRed(position, this);
     
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth(), this);
+    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(position + green.OpenBrace.GetWidth(), this);
     
-    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth(), this);
+    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(position + green.OpenBrace.GetWidth() + green.Statements.GetWidth(), this);
     
-    public Token CloseBrace => (Token)green.CloseBrace.ToRed(position + ((Green.BlockExpressionSyntax)green).OpenBrace.GetWidth() + ((Green.BlockExpressionSyntax)green).Statements.GetWidth() + ((Green.BlockExpressionSyntax)green).TrailingExpression?.GetWidth() ?? 0, this);
+    public Token CloseBrace => (Token)green.CloseBrace.ToRed(position + green.OpenBrace.GetWidth() + green.Statements.GetWidth() + (green.TrailingExpression?.GetWidth() ?? 0), this);
     
     internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -232,11 +232,11 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
 
     public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(position, this);
     
-    public Token OpenParen => (Token)green.OpenParen.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth(), this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(position + green.Target.GetWidth(), this);
     
-    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)green.Arguments.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth() + ((Green.CallExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Arguments => (SeparatedSyntaxList<ExpressionSyntax>)green.Arguments.ToRed(position + green.Target.GetWidth() + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + ((Green.CallExpressionSyntax)green).Target.GetWidth() + ((Green.CallExpressionSyntax)green).OpenParen.GetWidth() + ((Green.CallExpressionSyntax)green).Arguments.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.Target.GetWidth() + green.OpenParen.GetWidth() + green.Arguments.GetWidth(), this);
     
     internal CallExpressionSyntax(Green.CallExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -251,9 +251,9 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
 
     public ParameterListSyntax Parameters => (ParameterListSyntax)green.Parameters.ToRed(position, this);
     
-    public Token Arrow => (Token)green.Arrow.ToRed(position + ((Green.LambdaExpressionSyntax)green).Parameters.GetWidth(), this);
+    public Token Arrow => (Token)green.Arrow.ToRed(position + green.Parameters.GetWidth(), this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + ((Green.LambdaExpressionSyntax)green).Parameters.GetWidth() + ((Green.LambdaExpressionSyntax)green).Arrow.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.Parameters.GetWidth() + green.Arrow.GetWidth(), this);
     
     internal LambdaExpressionSyntax(Green.LambdaExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -268,9 +268,9 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
 
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     
-    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)green.Expressions.ToRed(position + ((Green.TupleExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public SeparatedSyntaxList<ExpressionSyntax> Expressions => (SeparatedSyntaxList<ExpressionSyntax>)green.Expressions.ToRed(position + green.OpenParen.GetWidth(), this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + ((Green.TupleExpressionSyntax)green).OpenParen.GetWidth() + ((Green.TupleExpressionSyntax)green).Expressions.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth() + green.Expressions.GetWidth(), this);
     
     internal TupleExpressionSyntax(Green.TupleExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -298,11 +298,11 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
 
     public Token If => (Token)green.If.ToRed(position, this);
     
-    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth(), this);
+    public ExpressionSyntax Condition => (ExpressionSyntax)green.Condition.ToRed(position + green.If.GetWidth(), this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.If.GetWidth() + green.Condition.GetWidth(), this);
     
-    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(position + ((Green.IfExpressionSyntax)green).If.GetWidth() + ((Green.IfExpressionSyntax)green).Condition.GetWidth() + ((Green.IfExpressionSyntax)green).Body.GetWidth(), this);
+    public ElseClauseSyntax? Else => (ElseClauseSyntax?)green.Else?.ToRed(position + green.If.GetWidth() + green.Condition.GetWidth() + green.Body.GetWidth(), this);
     
     internal IfExpressionSyntax(Green.IfExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -317,7 +317,7 @@ public sealed class ElseClauseSyntax : SyntaxNode
 
     public Token Else => (Token)green.Else.ToRed(position, this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.ElseClauseSyntax)green).Else.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.Else.GetWidth(), this);
     
     internal ElseClauseSyntax(Green.ElseClauseSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -332,7 +332,7 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
 
     public Token Loop => (Token)green.Loop.ToRed(position, this);
     
-    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + ((Green.LoopExpressionSyntax)green).Loop.GetWidth(), this);
+    public BlockExpressionSyntax Body => (BlockExpressionSyntax)green.Body.ToRed(position + green.Loop.GetWidth(), this);
     
     internal LoopExpressionSyntax(Green.LoopExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -347,7 +347,7 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
 
     public Token Return => (Token)green.Return.ToRed(position, this);
     
-    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + ((Green.ReturnExpressionSyntax)green).Return.GetWidth(), this);
+    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + green.Return.GetWidth(), this);
     
     internal ReturnExpressionSyntax(Green.ReturnExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -362,7 +362,7 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
 
     public Token Break => (Token)green.Break.ToRed(position, this);
     
-    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + ((Green.BreakExpressionSyntax)green).Break.GetWidth(), this);
+    public ExpressionSyntax? Value => (ExpressionSyntax?)green.Value?.ToRed(position + green.Break.GetWidth(), this);
     
     internal BreakExpressionSyntax(Green.BreakExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -390,7 +390,7 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
 
     public Token Operator => (Token)green.Operator.ToRed(position, this);
     
-    public ExpressionSyntax Operand => (ExpressionSyntax)green.Operand.ToRed(position + ((Green.UnaryExpressionSyntax)green).Operator.GetWidth(), this);
+    public ExpressionSyntax Operand => (ExpressionSyntax)green.Operand.ToRed(position + green.Operator.GetWidth(), this);
     
     internal UnaryExpressionSyntax(Green.UnaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -405,9 +405,9 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     public ExpressionSyntax Left => (ExpressionSyntax)green.Left.ToRed(position, this);
     
-    public Token Operator => (Token)green.Operator.ToRed(position + ((Green.BinaryExpressionSyntax)green).Left.GetWidth(), this);
+    public Token Operator => (Token)green.Operator.ToRed(position + green.Left.GetWidth(), this);
     
-    public ExpressionSyntax Right => (ExpressionSyntax)green.Right.ToRed(position + ((Green.BinaryExpressionSyntax)green).Left.GetWidth() + ((Green.BinaryExpressionSyntax)green).Operator.GetWidth(), this);
+    public ExpressionSyntax Right => (ExpressionSyntax)green.Right.ToRed(position + green.Left.GetWidth() + green.Operator.GetWidth(), this);
     
     internal BinaryExpressionSyntax(Green.BinaryExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -435,9 +435,9 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
 
     public Token OpenQuote => (Token)green.OpenQuote.ToRed(position, this);
     
-    public SyntaxList<StringPartSyntax> Parts => (SyntaxList<StringPartSyntax>)green.Parts.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth(), this);
+    public SyntaxList<StringPartSyntax> Parts => (SyntaxList<StringPartSyntax>)green.Parts.ToRed(position + green.OpenQuote.GetWidth(), this);
     
-    public Token CloseQuote => (Token)green.CloseQuote.ToRed(position + ((Green.StringExpressionSyntax)green).OpenQuote.GetWidth() + ((Green.StringExpressionSyntax)green).Parts.GetWidth(), this);
+    public Token CloseQuote => (Token)green.CloseQuote.ToRed(position + green.OpenQuote.GetWidth() + green.Parts.GetWidth(), this);
     
     internal StringExpressionSyntax(Green.StringExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -470,9 +470,9 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
 
     public Token OpenDelimiter => (Token)green.OpenDelimiter.ToRed(position, this);
     
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + ((Green.InterpolationStringPartSyntax)green).OpenDelimiter.GetWidth(), this);
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(position + green.OpenDelimiter.GetWidth(), this);
     
-    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(position + ((Green.InterpolationStringPartSyntax)green).OpenDelimiter.GetWidth() + ((Green.InterpolationStringPartSyntax)green).Expression.GetWidth(), this);
+    public Token CloseDelimiter => (Token)green.CloseDelimiter.ToRed(position + green.OpenDelimiter.GetWidth() + green.Expression.GetWidth(), this);
     
     internal InterpolationStringPartSyntax(Green.InterpolationStringPartSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
@@ -513,7 +513,7 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
 
     public Token OpenParen => (Token)green.OpenParen.ToRed(position, this);
     
-    public Token CloseParen => (Token)green.CloseParen.ToRed(position + ((Green.NilExpressionSyntax)green).OpenParen.GetWidth(), this);
+    public Token CloseParen => (Token)green.CloseParen.ToRed(position + green.OpenParen.GetWidth(), this);
     
     internal NilExpressionSyntax(Green.NilExpressionSyntax green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;

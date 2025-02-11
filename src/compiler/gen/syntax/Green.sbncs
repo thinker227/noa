@@ -20,7 +20,7 @@ internal {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}
 
     public override int GetWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0{{ for member in node.members }} + {{ if !member.is_optional }}{{ member.name }}.GetWidth(){{ else }}{{ member.name }}?.GetWidth() ?? 0{{ end }}{{ end }};
+    private int ComputeWidth() => 0{{ for member in node.members }} + {{ if !member.is_optional }}{{ member.name }}.GetWidth(){{ else }}({{ member.name }}?.GetWidth() ?? 0){{ end }}{{ end }};
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.{{ node.name }}(this, position, parent);
