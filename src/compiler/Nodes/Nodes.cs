@@ -24,7 +24,7 @@ public abstract class Node(Syntax.SyntaxNode syntax)
     /// <summary>
     /// The span of the node within the text.
     /// </summary>
-    public required TextSpan Span { get; init; }
+    public TextSpan Span => Syntax.Span;
 
     /// <summary>
     /// The source location of the node.
