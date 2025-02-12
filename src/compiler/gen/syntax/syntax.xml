@@ -98,7 +98,9 @@
   </Node>
 
   <Node Name="ParenthesizedExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenParen"/>
     <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="CloseParen"/>
   </Node>
 
   <Node Name="IfExpressionSyntax" Parent="ExpressionSyntax">

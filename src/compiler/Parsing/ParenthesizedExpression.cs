@@ -135,7 +135,14 @@ internal sealed partial class Parser
 
         // If the expression list has a trailing separator then it's most likely intended to be a tuple.
         if (expressions.NodesCount == 1 && !expressions.HasTrailingSeparator)
-            return expressions.GetNodeAt(0);
+        {
+            return new ParenthesizedExpressionSyntax()
+            {
+                OpenParen = openParen,
+                Expression = expressions.GetNodeAt(0),
+                CloseParen = closeParen
+            };
+        }
 
         var tuple = new TupleExpressionSyntax()
         {

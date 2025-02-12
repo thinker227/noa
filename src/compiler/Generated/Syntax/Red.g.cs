@@ -448,7 +448,11 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 
     internal override Green.SyntaxNode Green => green;
 
-    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition, this);
+    public Token OpenParen => (Token)green.OpenParen.ToRed(FullPosition, this);
+    
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition + green.OpenParen.GetFullWidth(), this);
+    
+    public Token CloseParen => (Token)green.CloseParen.ToRed(FullPosition + green.OpenParen.GetFullWidth() + green.Expression.GetFullWidth(), this);
     
     internal ParenthesizedExpressionSyntax(Green.ParenthesizedExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
@@ -457,7 +461,9 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
     {
         get
         {
+            yield return OpenParen;
             yield return Expression;
+            yield return CloseParen;
             yield break;
         }
     }

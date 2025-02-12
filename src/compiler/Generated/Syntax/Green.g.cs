@@ -455,20 +455,26 @@ internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     private int? width;
 
+    public required Token OpenParen { get; init; }
+
     public required ExpressionSyntax Expression { get; init; }
+
+    public required Token CloseParen { get; init; }
     
     public override IEnumerable<SyntaxNode> Children
     {
         get
         {
+            yield return OpenParen;
             yield return Expression;
+            yield return CloseParen;
             yield break;
         }
     }
 
     public override int GetFullWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + Expression.GetFullWidth();
+    private int ComputeWidth() => 0 + OpenParen.GetFullWidth() + Expression.GetFullWidth() + CloseParen.GetFullWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.ParenthesizedExpressionSyntax(this, position, parent);
