@@ -2,7 +2,7 @@
 
 #nullable enable
 
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Nodes;
 
