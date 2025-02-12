@@ -7,6 +7,7 @@ using Noa.Compiler.FlowAnalysis;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Parsing;
 using Noa.Compiler.Symbols;
+using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler;
 
@@ -15,7 +16,6 @@ namespace Noa.Compiler;
 /// </summary>
 public sealed class Ast
 {
-    private readonly Root? root;
     private readonly List<IDiagnostic> diagnostics;
     private IReadOnlyDictionary<Node, Node>? parents = null;
     
@@ -27,10 +27,7 @@ public sealed class Ast
     /// <summary>
     /// The root of the syntax tree.
     /// </summary>
-    // The root is exposed to the public API as non-nullable because it won't be
-    // null when control is returned to the caller, the field is only null
-    // within the constructor.
-    public Root Root => root!;
+    public Root Root { get; }
 
     /// <summary>
     /// The diagnostics in the AST.
@@ -52,33 +49,12 @@ public sealed class Ast
     /// </summary>
     public TopLevelFunction TopLevelFunction => Root.Function.Value;
 
-    private Ast(Source source, CancellationToken cancellationToken)
+    private Ast(Source source, RootSyntax root, CancellationToken cancellationToken)
     {
-        var (root, diagnostics) = Parser.Parse(source, this, cancellationToken);
-
-        this.root = root;
-        this.diagnostics = diagnostics.ToList();
-        Source = source;
-    }
-
-    /// <summary>
-    /// This constructor exists for tests only.
-    /// Otherwise <see cref="Ast(Source, CancellationToken)"/> should be used.
-    /// </summary>
-    internal Ast()
-    {
-        root = null;
         diagnostics = [];
-        Source = default;
+        Source = source;
+        Root = new IntoAst(this).FromRoot(root);
     }
-
-    /// <summary>
-    /// Creates a new AST by parsing a source.
-    /// </summary>
-    /// <param name="source">The source file to parse.</param>
-    /// <param name="cancellationToken">The cancellation token for the parser.</param>
-    internal static Ast Parse(Source source, CancellationToken cancellationToken = default) =>
-        new(source, cancellationToken);
 
     /// <summary>
     /// Creates a new AST from source.
@@ -87,7 +63,10 @@ public sealed class Ast
     /// <param name="cancellationToken">The cancellation token for the AST creation.</param>
     public static Ast Create(Source source, CancellationToken cancellationToken = default)
     {
-        var ast = Parse(source, cancellationToken);
+        var greenRoot = Parser.Parse(source, null!, cancellationToken);
+        var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
+
+        var ast = new Ast(source, redRoot, cancellationToken);
         
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -110,9 +89,9 @@ public sealed class Ast
     /// <param name="node">The node to get the parent of.</param>
     internal Semantic<Node?> GetParent(Node node)
     {
-        if (root is null) return new();
+        if (Root is null) return new();
 
-        parents ??= ComputeParents(root);
+        parents ??= ComputeParents(Root);
         return parents.GetValueOrDefault(node);
     }
 
