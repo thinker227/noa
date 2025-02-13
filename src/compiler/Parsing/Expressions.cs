@@ -267,12 +267,19 @@ internal sealed partial class Parser
         
         var closeBrace = Expect(TokenKind.CloseBrace);
 
+        var span = TextSpan.Between(openBrace.Span, closeBrace.Span);
+
         return new()
         {
             Ast = Ast,
-            Span = TextSpan.Between(openBrace.Span, closeBrace.Span),
-            Statements = statements,
-            TrailingExpression = trailingExpression
+            Span = span,
+            Block = new()
+            {
+                Ast = Ast,
+                Span = span,
+                Statements = statements,
+                TrailingExpression = trailingExpression
+            }
         };
     }
 

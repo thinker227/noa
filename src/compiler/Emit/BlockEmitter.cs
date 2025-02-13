@@ -22,9 +22,9 @@ internal class BlockEmitter(
 
     protected override void VisitBlockExpression(BlockExpression node)
     {
-        Visit(node.Statements);
+        Visit(node.Block.Statements);
 
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
         else
         {
             Code.PushNil();

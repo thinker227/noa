@@ -4,9 +4,18 @@
 
 namespace Noa.Compiler.Nodes;
 
+public sealed partial class Block : Node
+{
+    public required ImmutableArray<Statement> Statements { get; init; }
+
+    public required Expression? TrailingExpression { get; init; }
+
+    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+}
+
 public sealed partial class Root : Node
 {
-    public required BlockExpression Block { get; init; }
+    public required Block Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
 }
@@ -86,11 +95,9 @@ public sealed partial class ErrorExpression : Expression
 
 public sealed partial class BlockExpression : Expression
 {
-    public required ImmutableArray<Statement> Statements { get; init; }
+    public required Block Block { get; init; }
 
-    public required Expression? TrailingExpression { get; init; }
-
-    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+    public override IEnumerable<Node> Children => [Block];
 }
 
 public sealed partial class CallExpression : Expression

@@ -50,6 +50,20 @@ public abstract class Node
             : [];
 }
 
+public partial class Block
+{
+    /// <summary>
+    /// The scope <i>declared</i> by the scope,
+    /// different from the scope the block is <i>in</i>.
+    /// </summary>
+    public Semantic<IScope> DeclaredScope { get; internal set; }
+    
+    /// <summary>
+    /// The reachability of the very end of the block, past the last statement or the trailing expression.
+    /// </summary>
+    public Semantic<Reachability> TailReachability { get; internal set; }
+}
+
 public sealed partial class Root
 {
     public Semantic<TopLevelFunction> Function { get; internal set; }
@@ -79,20 +93,6 @@ public sealed partial class LetDeclaration
 public abstract partial class Expression
 {
     public Semantic<Reachability> Reachability { get; internal set; }
-}
-
-public partial class BlockExpression
-{
-    /// <summary>
-    /// The scope <i>declared</i> by the scope,
-    /// different from the scope the block is <i>in</i>.
-    /// </summary>
-    public Semantic<IScope> DeclaredScope { get; internal set; }
-    
-    /// <summary>
-    /// The reachability of the very end of the block, past the last statement or the trailing expression.
-    /// </summary>
-    public Semantic<Reachability> TailReachability { get; internal set; }
 }
 
 public sealed partial class LambdaExpression

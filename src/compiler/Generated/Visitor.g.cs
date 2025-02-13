@@ -10,6 +10,9 @@ public abstract partial class Visitor
     {
         switch (node)
         {
+        case Block x:
+            VisitBlock(x);
+            break;
         case Root x:
             VisitRoot(x);
             break;
@@ -34,6 +37,12 @@ public abstract partial class Visitor
         default:
             throw new UnreachableException();
         }
+    }
+
+    protected virtual void VisitBlock(Block node)
+    {
+        Visit(node.Statements);
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
     }
 
     protected virtual void VisitRoot(Root node)
@@ -170,8 +179,7 @@ public abstract partial class Visitor
 
     protected virtual void VisitBlockExpression(BlockExpression node)
     {
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        Visit(node.Block);
     }
 
     protected virtual void VisitCallExpression(CallExpression node)

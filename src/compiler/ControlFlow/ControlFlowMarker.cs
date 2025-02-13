@@ -65,9 +65,9 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
     protected override ControlFlowResult VisitBlockExpression(BlockExpression node)
     {
         var blockVisitor = CreateSubVisitor();
-        var statements = blockVisitor.Visit(node.Statements, true);
-        var trailingExpression = node.TrailingExpression is not null
-            ? blockVisitor.Visit(node.TrailingExpression)
+        var statements = blockVisitor.Visit(node.Block.Statements, true);
+        var trailingExpression = node.Block.TrailingExpression is not null
+            ? blockVisitor.Visit(node.Block.TrailingExpression)
             : null as ControlFlowResult?;
 
         var next = (statements, trailingExpression) switch
@@ -77,7 +77,7 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
             _ => current
         };
 
-        node.TailReachability = next;
+        node.Block.TailReachability = next;
 
         return new(current, next);
     }
