@@ -7,10 +7,10 @@ using System.Diagnostics;
 
 namespace Noa.Compiler.Syntax;
 
-public sealed class RootSyntax : SyntaxNode
+public sealed class BlockSyntax : SyntaxNode
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Green.RootSyntax green;
+    private readonly Green.BlockSyntax green;
 
     internal override Green.SyntaxNode Green => green;
 
@@ -18,9 +18,7 @@ public sealed class RootSyntax : SyntaxNode
     
     public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(FullPosition + green.Statements.GetFullWidth(), this);
     
-    public Token EndOfFile => (Token)green.EndOfFile.ToRed(FullPosition + green.Statements.GetFullWidth() + (green.TrailingExpression?.GetFullWidth() ?? 0), this);
-    
-    internal RootSyntax(Green.RootSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+    internal BlockSyntax(Green.BlockSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
     
     public override IEnumerable<SyntaxNode> Children
@@ -29,6 +27,30 @@ public sealed class RootSyntax : SyntaxNode
         {
             yield return Statements;
             if (TrailingExpression is not null) yield return TrailingExpression;
+            yield break;
+        }
+    }
+}
+
+public sealed class RootSyntax : SyntaxNode
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.RootSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public BlockSyntax Block => (BlockSyntax)green.Block.ToRed(FullPosition, this);
+    
+    public Token EndOfFile => (Token)green.EndOfFile.ToRed(FullPosition + green.Block.GetFullWidth(), this);
+    
+    internal RootSyntax(Green.RootSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Block;
             yield return EndOfFile;
             yield break;
         }
@@ -332,11 +354,9 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public Token OpenBrace => (Token)green.OpenBrace.ToRed(FullPosition, this);
     
-    public SyntaxList<StatementSyntax> Statements => (SyntaxList<StatementSyntax>)green.Statements.ToRed(FullPosition + green.OpenBrace.GetFullWidth(), this);
+    public BlockSyntax Block => (BlockSyntax)green.Block.ToRed(FullPosition + green.OpenBrace.GetFullWidth(), this);
     
-    public ExpressionSyntax? TrailingExpression => (ExpressionSyntax?)green.TrailingExpression?.ToRed(FullPosition + green.OpenBrace.GetFullWidth() + green.Statements.GetFullWidth(), this);
-    
-    public Token CloseBrace => (Token)green.CloseBrace.ToRed(FullPosition + green.OpenBrace.GetFullWidth() + green.Statements.GetFullWidth() + (green.TrailingExpression?.GetFullWidth() ?? 0), this);
+    public Token CloseBrace => (Token)green.CloseBrace.ToRed(FullPosition + green.OpenBrace.GetFullWidth() + green.Block.GetFullWidth(), this);
     
     internal BlockExpressionSyntax(Green.BlockExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
@@ -346,8 +366,7 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
         get
         {
             yield return OpenBrace;
-            yield return Statements;
-            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return Block;
             yield return CloseBrace;
             yield break;
         }

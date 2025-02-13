@@ -40,8 +40,11 @@ internal sealed partial class Parser
 
         return new()
         {
-            Statements = statements,
-            TrailingExpression = trailingExpression,
+            Block = new()
+            {
+                Statements = statements,
+                TrailingExpression = trailingExpression,
+            },
             EndOfFile = endOfFile
         };
     }

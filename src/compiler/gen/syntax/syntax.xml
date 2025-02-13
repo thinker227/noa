@@ -2,9 +2,13 @@
 
 <Root Name="SyntaxNode">
 
-  <Node Name="RootSyntax">
+  <Node Name="BlockSyntax">
     <List Name="Statements" Type="StatementSyntax"/>
     <Value Name="TrailingExpression" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+
+  <Node Name="RootSyntax">
+    <Value Name="Block" Type="BlockSyntax"/>
     <Token Name="EndOfFile"/>
   </Node>
 
@@ -73,8 +77,7 @@
 
   <Node Name="BlockExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="OpenBrace"/>
-    <List Name="Statements" Type="StatementSyntax"/>
-    <Value Name="TrailingExpression" Type="ExpressionSyntax" Optional="true"/>
+    <Value Name="Block" Type="BlockSyntax"/>
     <Token Name="CloseBrace"/>
   </Node>
 

@@ -5,13 +5,19 @@ namespace Noa.Compiler.Nodes;
 
 internal sealed class IntoAst(Ast ast) : IntoAstBase
 {
-    public override Root FromRoot(RootSyntax syntax) => new(syntax)
+    public override Block FromBlock(BlockSyntax syntax) => new(syntax)
     {
         Ast = ast,
         Statements = syntax.Statements.Select(FromStatement).ToImmutableArray(),
         TrailingExpression = syntax.TrailingExpression is not null
             ? FromExpression(syntax.TrailingExpression)
             : null
+    };
+
+    public override Root FromRoot(RootSyntax syntax) => new(syntax)
+    {
+        Ast = ast,
+        Block = FromBlock(syntax.Block)
     };
     
     public override Identifier FromIdentifier(Token syntax) => new(syntax)
@@ -71,10 +77,7 @@ internal sealed class IntoAst(Ast ast) : IntoAstBase
     public override BlockExpression FromBlockExpression(BlockExpressionSyntax syntax) => new(syntax)
     {
         Ast = ast,
-        Statements = syntax.Statements.Select(FromStatement).ToImmutableArray(),
-        TrailingExpression = syntax.TrailingExpression is not null
-            ? FromExpression(syntax.TrailingExpression)
-            : null
+        Block = FromBlock(syntax.Block)
     };
     
     public override CallExpression FromCallExpression(CallExpressionSyntax syntax) => new(syntax)

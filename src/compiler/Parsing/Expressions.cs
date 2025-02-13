@@ -237,8 +237,11 @@ internal sealed partial class Parser
         return new()
         {
             OpenBrace = openBrace,
-            Statements = statements,
-            TrailingExpression = trailingExpression,
+            Block = new()
+            {
+                Statements = statements,
+                TrailingExpression = trailingExpression,
+            },
             CloseBrace = closeBrace
         };
     }

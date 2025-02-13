@@ -5,15 +5,13 @@
 
 namespace Noa.Compiler.Syntax.Green;
 
-internal sealed class RootSyntax : SyntaxNode
+internal sealed class BlockSyntax : SyntaxNode
 {
     private int? width;
 
     public required SyntaxList<StatementSyntax> Statements { get; init; }
 
     public required ExpressionSyntax? TrailingExpression { get; init; }
-
-    public required Token EndOfFile { get; init; }
     
     public override IEnumerable<SyntaxNode> Children
     {
@@ -21,6 +19,31 @@ internal sealed class RootSyntax : SyntaxNode
         {
             yield return Statements;
             if (TrailingExpression is not null) yield return TrailingExpression;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + Statements.GetFullWidth() + (TrailingExpression?.GetFullWidth() ?? 0);
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.BlockSyntax(this, position, parent);
+}
+
+internal sealed class RootSyntax : SyntaxNode
+{
+    private int? width;
+
+    public required BlockSyntax Block { get; init; }
+
+    public required Token EndOfFile { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Block;
             yield return EndOfFile;
             yield break;
         }
@@ -28,7 +51,7 @@ internal sealed class RootSyntax : SyntaxNode
 
     public override int GetFullWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + Statements.GetFullWidth() + (TrailingExpression?.GetFullWidth() ?? 0) + EndOfFile.GetFullWidth();
+    private int ComputeWidth() => 0 + Block.GetFullWidth() + EndOfFile.GetFullWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.RootSyntax(this, position, parent);
@@ -335,9 +358,7 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public required Token OpenBrace { get; init; }
 
-    public required SyntaxList<StatementSyntax> Statements { get; init; }
-
-    public required ExpressionSyntax? TrailingExpression { get; init; }
+    public required BlockSyntax Block { get; init; }
 
     public required Token CloseBrace { get; init; }
     
@@ -346,8 +367,7 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
         get
         {
             yield return OpenBrace;
-            yield return Statements;
-            if (TrailingExpression is not null) yield return TrailingExpression;
+            yield return Block;
             yield return CloseBrace;
             yield break;
         }
@@ -355,7 +375,7 @@ internal sealed class BlockExpressionSyntax : ExpressionSyntax
 
     public override int GetFullWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + OpenBrace.GetFullWidth() + Statements.GetFullWidth() + (TrailingExpression?.GetFullWidth() ?? 0) + CloseBrace.GetFullWidth();
+    private int ComputeWidth() => 0 + OpenBrace.GetFullWidth() + Block.GetFullWidth() + CloseBrace.GetFullWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BlockExpressionSyntax(this, position, parent);
