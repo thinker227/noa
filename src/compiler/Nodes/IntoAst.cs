@@ -202,4 +202,12 @@ internal sealed class IntoAst(Ast ast) : IntoAstBase
     {
         Ast = ast
     };
+
+    // This is necessary because no AST node maps from ParenthesizedExpressionSyntax.
+    // Couldn't come up with any better way to do this, but it's only for a single kind of expression.
+    protected override Expression FromAdditionalExpression(ExpressionSyntax syntax) => syntax switch
+    {
+        ParenthesizedExpressionSyntax parenthesized => FromExpression(parenthesized.Expression),
+        _ => throw new UnreachableException()
+    };
 }

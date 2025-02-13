@@ -17,8 +17,11 @@ internal abstract class IntoAstBase
         DeclarationSyntax x => FromDeclaration(x),
         AssignmentStatementSyntax x => FromAssignmentStatement(x),
         ExpressionStatementSyntax x => FromExpressionStatement(x),
-        _ => throw new UnreachableException()
+        var x => FromAdditionalStatement(x)
     };
+
+    protected virtual Statement FromAdditionalStatement(StatementSyntax syntax) =>
+        throw new UnreachableException();
 
     public abstract Parameter FromParameter(ParameterSyntax syntax);
 
@@ -26,8 +29,11 @@ internal abstract class IntoAstBase
     {
         FunctionDeclarationSyntax x => FromFunctionDeclaration(x),
         LetDeclarationSyntax x => FromLetDeclaration(x),
-        _ => throw new UnreachableException()
+        var x => FromAdditionalDeclaration(x)
     };
+
+    protected virtual Declaration FromAdditionalDeclaration(DeclarationSyntax syntax) =>
+        throw new UnreachableException();
 
     public abstract FunctionDeclaration FromFunctionDeclaration(FunctionDeclarationSyntax syntax);
 
@@ -56,8 +62,11 @@ internal abstract class IntoAstBase
         BoolExpressionSyntax x => FromBoolExpression(x),
         NumberExpressionSyntax x => FromNumberExpression(x),
         NilExpressionSyntax x => FromNilExpression(x),
-        _ => throw new UnreachableException()
+        var x => FromAdditionalExpression(x)
     };
+
+    protected virtual Expression FromAdditionalExpression(ExpressionSyntax syntax) =>
+        throw new UnreachableException();
 
     public abstract ErrorExpression FromErrorExpression(ErrorExpressionSyntax syntax);
 
@@ -93,8 +102,11 @@ internal abstract class IntoAstBase
     {
         TextStringPartSyntax x => FromTextStringPart(x),
         InterpolationStringPartSyntax x => FromInterpolationStringPart(x),
-        _ => throw new UnreachableException()
+        var x => FromAdditionalStringPart(x)
     };
+
+    protected virtual StringPart FromAdditionalStringPart(StringPartSyntax syntax) =>
+        throw new UnreachableException();
 
     public abstract TextStringPart FromTextStringPart(TextStringPartSyntax syntax);
 

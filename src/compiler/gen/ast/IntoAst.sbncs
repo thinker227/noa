@@ -15,8 +15,11 @@ internal abstract class IntoAstBase
         {{~ for child in node.children ~}}
         {{ child.concrete }} x => From{{ child.name }}(x),
         {{~ end ~}}
-        _ => throw new UnreachableException()
+        var x => FromAdditional{{ node.name }}(x)
     };
+
+    protected virtual {{ node.name }} FromAdditional{{ node.name }}({{ node.concrete }} syntax) =>
+        throw new UnreachableException();
     {{~ else ~}}
     public abstract {{ node.name }} From{{ node.name }}({{ node.concrete }} syntax);
     {{~ end ~}}
