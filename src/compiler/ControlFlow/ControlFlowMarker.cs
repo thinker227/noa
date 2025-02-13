@@ -47,8 +47,6 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
     private ControlFlowVisitor CreateNewVisitor() =>
         new(Reachability.Reachable, cancellationToken);
 
-    protected override ControlFlowResult VisitRoot(Root node) => VisitBlockExpression(node);
-
     protected override ControlFlowResult VisitFunctionDeclaration(FunctionDeclaration node)
     {
         var bodyVisitor = CreateNewVisitor();

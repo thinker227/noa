@@ -20,8 +20,6 @@ internal class BlockEmitter(
         Code.Pop();
     }
 
-    protected override void VisitRoot(Root node) => VisitBlockExpression(node);
-
     protected override void VisitBlockExpression(BlockExpression node)
     {
         Visit(node.Statements);

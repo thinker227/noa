@@ -2,9 +2,8 @@
 
 <Root Name="Node">
 
-  <Node Name="Root" Parent="BlockExpression">
-    <Inherited Name="Statements"/>
-    <Inherited Name="TrailingExpression"/>
+  <Node Name="Root">
+    <Value Name="Block" Type="BlockExpression"/>
   </Node>
 
   <Node Name="Identifier">

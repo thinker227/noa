@@ -10,6 +10,7 @@ public abstract partial class Visitor<T>
 {
     private T CoreVisit(Node node) => node switch
     {
+        Root x => VisitRoot(x),
         Identifier x => VisitIdentifier(x),
         Statement x => VisitStatement(x),
         Parameter x => VisitParameter(x),
@@ -21,8 +22,7 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitRoot(Root node)
     {
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        Visit(node.Block);
 
         return GetDefault(node);
     }
@@ -86,7 +86,6 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitExpression(Expression node) => node switch
     {
-        Root x => VisitRoot(x),
         ErrorExpression x => VisitErrorExpression(x),
         BlockExpression x => VisitBlockExpression(x),
         CallExpression x => VisitCallExpression(x),
