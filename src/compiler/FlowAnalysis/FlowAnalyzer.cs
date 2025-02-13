@@ -38,8 +38,8 @@ file sealed class FlowVisitor(CancellationToken cancellationToken) : Visitor
     {
         functions.Push(node.Function.Value);
 
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        Visit(node.Block.Statements);
+        if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
         
         functions.Pop();
     }

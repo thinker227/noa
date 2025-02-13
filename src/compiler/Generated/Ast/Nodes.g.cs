@@ -4,11 +4,13 @@
 
 namespace Noa.Compiler.Nodes;
 
-public sealed partial class Root(Syntax.SyntaxNode syntax) : BlockExpression(syntax)
+public sealed partial class Root(Syntax.SyntaxNode syntax) : Node(syntax)
 {
     public new Syntax.RootSyntax Syntax { get; } = (Syntax.RootSyntax)syntax;
 
-    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+    public required BlockExpression Block { get; init; }
+
+    public override IEnumerable<Node> Children => [Block];
 }
 
 public sealed partial class Identifier(Syntax.SyntaxNode syntax) : Node(syntax)
@@ -103,7 +105,7 @@ public sealed partial class ErrorExpression(Syntax.SyntaxNode syntax) : Expressi
     public override IEnumerable<Node> Children => [];
 }
 
-public partial class BlockExpression(Syntax.SyntaxNode syntax) : Expression(syntax)
+public sealed partial class BlockExpression(Syntax.SyntaxNode syntax) : Expression(syntax)
 {
     public new Syntax.BlockExpressionSyntax Syntax { get; } = (Syntax.BlockExpressionSyntax)syntax;
 

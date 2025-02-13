@@ -211,13 +211,13 @@ public sealed class TopLevelFunction : IDeclaredFunction
 
     IReadOnlyList<ParameterSymbol> IDeclaredFunction.Parameters { get; } = [];
 
-    public IScope BodyScope => Declaration.DeclaredScope.Value;
+    public IScope BodyScope => Declaration.Block.DeclaredScope.Value;
 
     bool IDeclaredFunction.HasExpressionBody => false;
 
     Expression? IDeclaredFunction.ExpressionBody => null;
 
-    BlockExpression? IDeclaredFunction.BlockBody => Declaration;
+    BlockExpression? IDeclaredFunction.BlockBody => Declaration.Block;
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {

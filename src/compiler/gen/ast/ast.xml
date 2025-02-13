@@ -2,9 +2,8 @@
 
 <Root Name="Node">
 
-  <Node Name="Root" Parent="BlockExpression" Concrete="RootSyntax">
-    <Inherited Name="Statements"/>
-    <Inherited Name="TrailingExpression"/>
+  <Node Name="Root" Concrete="RootSyntax">
+    <Value Name="Block" Type="BlockExpression"/>
   </Node>
 
   <Node Name="Identifier" Concrete="Token">
