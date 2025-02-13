@@ -2,8 +2,13 @@
 
 <Root Name="Node">
 
+  <Node Name="Block" Concrete="BlockSyntax">
+    <List Name="Statements" Type="Statement"/>
+    <Value Name="TrailingExpression" Type="Expression" Optional="true"/>
+  </Node>
+
   <Node Name="Root" Concrete="RootSyntax">
-    <Value Name="Block" Type="BlockExpression"/>
+    <Value Name="Block" Type="Block"/>
   </Node>
 
   <Node Name="Identifier" Concrete="Token">
@@ -47,8 +52,7 @@
   <Node Name="ErrorExpression" Parent="Expression" Concrete="ErrorExpressionSyntax"/>
 
   <Node Name="BlockExpression" Parent="Expression" Concrete="BlockExpressionSyntax">
-    <List Name="Statements" Type="Statement"/>
-    <Value Name="TrailingExpression" Type="Expression" Optional="true"/>
+    <Value Name="Block" Type="Block"/>
   </Node>
 
   <Node Name="CallExpression" Parent="Expression" Concrete="CallExpressionSyntax">

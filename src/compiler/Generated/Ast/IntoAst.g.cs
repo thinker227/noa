@@ -8,6 +8,8 @@ namespace Noa.Compiler.Nodes;
 
 internal abstract class IntoAstBase
 {
+    public abstract Block FromBlock(BlockSyntax syntax);
+
     public abstract Root FromRoot(RootSyntax syntax);
 
     public abstract Identifier FromIdentifier(Token syntax);

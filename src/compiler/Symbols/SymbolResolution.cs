@@ -51,7 +51,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(BlockExpression block)
+    private IScope DeclareBlock(Block block)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
@@ -213,12 +213,12 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
 
     protected override void VisitBlockExpression(BlockExpression node)
     {
-        var blockScope = DeclareBlock(node);
-        node.DeclaredScope = new(blockScope);
+        var blockScope = DeclareBlock(node.Block);
+        node.Block.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
-            Visit(node.Statements);
-            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+            Visit(node.Block.Statements);
+            if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
         });
     }
 

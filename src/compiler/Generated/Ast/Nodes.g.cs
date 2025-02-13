@@ -4,11 +4,22 @@
 
 namespace Noa.Compiler.Nodes;
 
+public sealed partial class Block(Syntax.SyntaxNode syntax) : Node(syntax)
+{
+    public new Syntax.BlockSyntax Syntax { get; } = (Syntax.BlockSyntax)syntax;
+
+    public required ImmutableArray<Statement> Statements { get; init; }
+
+    public required Expression? TrailingExpression { get; init; }
+
+    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+}
+
 public sealed partial class Root(Syntax.SyntaxNode syntax) : Node(syntax)
 {
     public new Syntax.RootSyntax Syntax { get; } = (Syntax.RootSyntax)syntax;
 
-    public required BlockExpression Block { get; init; }
+    public required Block Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
 }
@@ -109,11 +120,9 @@ public sealed partial class BlockExpression(Syntax.SyntaxNode syntax) : Expressi
 {
     public new Syntax.BlockExpressionSyntax Syntax { get; } = (Syntax.BlockExpressionSyntax)syntax;
 
-    public required ImmutableArray<Statement> Statements { get; init; }
+    public required Block Block { get; init; }
 
-    public required Expression? TrailingExpression { get; init; }
-
-    public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
+    public override IEnumerable<Node> Children => [Block];
 }
 
 public sealed partial class CallExpression(Syntax.SyntaxNode syntax) : Expression(syntax)
