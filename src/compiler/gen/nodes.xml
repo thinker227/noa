@@ -2,8 +2,13 @@
 
 <Root Name="Node">
 
+  <Node Name="Block">
+    <List Name="Statements" Type="Statement"/>
+    <Value Name="TrailingExpression" Type="Expression" Optional="true"/>
+  </Node>
+
   <Node Name="Root">
-    <Value Name="Block" Type="BlockExpression"/>
+    <Value Name="Block" Type="Block"/>
   </Node>
 
   <Node Name="Identifier">
@@ -49,8 +54,7 @@
   <Node Name="ErrorExpression" Parent="Expression"/>
 
   <Node Name="BlockExpression" Parent="Expression">
-    <List Name="Statements" Type="Statement"/>
-    <Value Name="TrailingExpression" Type="Expression" Optional="true"/>
+    <Value Name="Block" Type="Block"/>
   </Node>
 
   <Node Name="CallExpression" Parent="Expression">

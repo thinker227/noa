@@ -17,7 +17,7 @@ namespace Noa.Compiler.Symbols;
 [DebuggerDisplay("{GetDebuggerDisplay()}")]
 internal sealed class BlockScope(
     IScope? parent,
-    BlockExpression block,
+    Block block,
     IReadOnlyDictionary<string, NomialFunction> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
     IReadOnlyDictionary<Node, int> timelineIndexMap)
