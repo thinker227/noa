@@ -144,7 +144,18 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         
         return new BlockScope(currentScope, block, functions, variableTimeline, timelineIndexMap);
     }
-    
+
+    protected override void VisitBlock(Block node)
+    {
+        var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
+        InScope(blockScope, () =>
+        {
+            Visit(node.Statements);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        });
+    }
+
     protected override void VisitRoot(Root node)
     {
         
@@ -158,13 +169,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node.Block);
-        node.Block.DeclaredScope = new(blockScope);
-        InScope(blockScope, () =>
-        {
-            Visit(node.Block.Statements);
-            if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
-        });
+        Visit(node.Block);
 
         functionStack.Pop();
     }
@@ -209,17 +214,6 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         });
 
         functionStack.Pop();
-    }
-
-    protected override void VisitBlockExpression(BlockExpression node)
-    {
-        var blockScope = DeclareBlock(node.Block);
-        node.Block.DeclaredScope = new(blockScope);
-        InScope(blockScope, () =>
-        {
-            Visit(node.Block.Statements);
-            if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
-        });
     }
 
     protected override void VisitLambdaExpression(LambdaExpression node)
