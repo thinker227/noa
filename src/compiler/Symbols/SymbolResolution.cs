@@ -158,12 +158,12 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node);
-        node.DeclaredScope = new(blockScope);
+        var blockScope = DeclareBlock(node.Block);
+        node.Block.DeclaredScope = new(blockScope);
         InScope(blockScope, () =>
         {
-            Visit(node.Statements);
-            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+            Visit(node.Block.Statements);
+            if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
         });
 
         functionStack.Pop();

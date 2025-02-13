@@ -10,6 +10,9 @@ public abstract partial class Visitor
     {
         switch (node)
         {
+        case Root x:
+            VisitRoot(x);
+            break;
         case Identifier x:
             VisitIdentifier(x);
             break;
@@ -35,8 +38,7 @@ public abstract partial class Visitor
 
     protected virtual void VisitRoot(Root node)
     {
-        Visit(node.Statements);
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        Visit(node.Block);
     }
 
     protected virtual void VisitIdentifier(Identifier node) {}
@@ -108,9 +110,6 @@ public abstract partial class Visitor
     {
         switch (node)
         {
-        case Root x:
-            VisitRoot(x);
-            break;
         case ErrorExpression x:
             VisitErrorExpression(x);
             break;

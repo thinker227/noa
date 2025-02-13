@@ -19,8 +19,8 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var x1Decl = (LetDeclaration)ast.Root.Statements[0];
-        var x2Decl = (LetDeclaration)ast.Root.Statements[1];
+        var x1Decl = (LetDeclaration)ast.Root.Block.Statements[0];
+        var x2Decl = (LetDeclaration)ast.Root.Block.Statements[1];
         
         var x1 = x1Decl.Symbol.Value;
         var x2 = x2Decl.Symbol.Value;
@@ -53,10 +53,10 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var x = ((LetDeclaration)ast.Root.Statements[0]).Symbol.Value;
-        var y = ((LetDeclaration)ast.Root.Statements[1]).Symbol.Value;
+        var x = ((LetDeclaration)ast.Root.Block.Statements[0]).Symbol.Value;
+        var y = ((LetDeclaration)ast.Root.Block.Statements[1]).Symbol.Value;
 
-        var scope = ast.Root.Statements[0].Scope.Value;
+        var scope = ast.Root.Block.Statements[0].Scope.Value;
 
         var xLookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
         xLookup.Symbol.ShouldBe(x);
@@ -181,7 +181,7 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var declaration = (LetDeclaration)ast.Root.Statements[0];
+        var declaration = (LetDeclaration)ast.Root.Block.Statements[0];
         var reference = (IdentifierExpression)ast.Root.FindNodeAt(35)!;
         
         reference.ReferencedSymbol.Value.ShouldBe(declaration.Symbol.Value);

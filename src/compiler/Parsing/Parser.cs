@@ -43,12 +43,19 @@ internal sealed partial class Parser
                     ?? trailingExpression?.Span.Start
                     ?? endOfFile.Span.Start;
 
+        var span = endOfFile.Span with { Start = start };
+
         return new()
         {
             Ast = Ast,
-            Span = endOfFile.Span with { Start = start },
-            Statements = statements,
-            TrailingExpression = trailingExpression
+            Span = span,
+            Block = new()
+            {
+                Ast = Ast,
+                Span = span,
+                Statements = statements,
+                TrailingExpression = trailingExpression
+            }
         };
     }
 
