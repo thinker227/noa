@@ -8,7 +8,6 @@ namespace Noa.Compiler.Nodes;
 public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}sealed {{ end }}partial class {{ node.name }}(Ast ast, Syntax.SyntaxNode syntax) : {{ node.parent.name }}(ast, syntax)
 {
     {{~ if !node.is_abstract ~}}
-
     {{~ for member in node.non_inherited_members ~}}
     public required {{ if member.is_list }}ImmutableArray<{{ member.type }}>{{ else }}{{ member.type }}{{ if member.is_optional }}?{{ end }}{{ end }} {{ member.name }} { get; init; }
     {{~ if !for.last ~}}
