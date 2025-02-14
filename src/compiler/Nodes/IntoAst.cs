@@ -3,214 +3,175 @@ using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Nodes;
 
-internal sealed class IntoAst(Ast ast) : IntoAstBase
+internal sealed class IntoAst(Ast ast)
 {
-    public override Block FromBlock(BlockSyntax syntax) => new(syntax)
+    public Block FromBlock(BlockSyntax syntax) => new(ast, syntax)
     {
-        Ast = ast,
         Statements = syntax.Statements.Select(FromStatement).ToImmutableArray(),
         TrailingExpression = syntax.TrailingExpression is not null
             ? FromExpression(syntax.TrailingExpression)
             : null
     };
 
-    public override Root FromRoot(RootSyntax syntax) => new(syntax)
+    public Root FromRoot(RootSyntax syntax) => new(ast, syntax)
     {
-        Ast = ast,
         Block = FromBlock(syntax.Block)
     };
     
-    public override Identifier FromIdentifier(Token syntax) => new(syntax)
+    public Identifier FromIdentifier(Token syntax) => new(ast, syntax)
     {
-        Ast = ast,
         Name = syntax.Text
     };
     
-    public override Parameter FromParameter(ParameterSyntax syntax) => new(syntax)
+    public Parameter FromParameter(ParameterSyntax syntax) => new(ast, syntax)
     {
-        Ast = ast,
         IsMutable = syntax.Mut is not null,
         Identifier = FromIdentifier(syntax.Name)
     };
-    
-    public override FunctionDeclaration FromFunctionDeclaration(FunctionDeclarationSyntax syntax) => new(syntax)
+
+    public Statement FromStatement(StatementSyntax syntax) => syntax switch
     {
-        Ast = ast,
-        Identifier = FromIdentifier(syntax.Name),
-        Parameters = syntax.Parameters.Parameters.Nodes().Select(FromParameter).ToImmutableArray(),
-        BlockBody = syntax.Body is BlockBodySyntax block
-            ? FromBlockExpression(block.Block)
-            : null,
-        ExpressionBody = syntax.Body is ExpressionBodySyntax expr
-            ? FromExpression(expr.Expression)
-            : null
+        DeclarationSyntax decl => FromDeclaration(decl),
+        AssignmentStatementSyntax assign => new AssignmentStatement(ast, syntax)
+        {
+            Target = FromExpression(assign.Target),
+            Kind = assign.Operator.Kind.ToAssignmentKind()
+                ?? throw new InvalidOperationException(),
+            Value = FromExpression(assign.Value)
+        },
+        FlowControlStatementSyntax flow => new ExpressionStatement(ast, syntax)
+        {
+            Expression = FromExpression(flow.Expression)
+        },
+        ExpressionStatementSyntax expr => new ExpressionStatement(ast, syntax)
+        {
+            Expression = FromExpression(expr.Expression)
+        },
+        _ => throw new UnreachableException()
+    };
+
+    public Declaration FromDeclaration(DeclarationSyntax syntax) => syntax switch
+    {
+        FunctionDeclarationSyntax function => new FunctionDeclaration(ast, syntax)
+        {
+            Identifier = FromIdentifier(function.Name),
+            Parameters = function.Parameters.Parameters.Nodes().Select(FromParameter).ToImmutableArray(),
+            BlockBody = function.Body is BlockBodySyntax block
+                ? FromBlockExpression(block.Block)
+                : null,
+            ExpressionBody = function.Body is ExpressionBodySyntax expr
+                ? FromExpression(expr.Expression)
+                : null
+        },
+        LetDeclarationSyntax let => new LetDeclaration(ast, syntax)
+        {
+            IsMutable = let.Mut is not null,
+            Identifier = FromIdentifier(let.Name),
+            Expression = FromExpression(let.Value)
+        },
+        _ => throw new UnreachableException()
     };
     
-    public override LetDeclaration FromLetDeclaration(LetDeclarationSyntax syntax) => new(syntax)
+    public Expression FromExpression(ExpressionSyntax syntax) => syntax switch
     {
-        Ast = ast,
-        IsMutable = syntax.Mut is not null,
-        Identifier = FromIdentifier(syntax.Name),
-        Expression = FromExpression(syntax.Value)
+        ErrorExpressionSyntax => new ErrorExpression(ast, syntax),
+        BlockExpressionSyntax block => FromBlockExpression(block),
+        CallExpressionSyntax call => new CallExpression(ast, syntax)
+        {
+            Target = FromExpression(call.Target),
+            Arguments = call.Arguments.Nodes().Select(FromExpression).ToImmutableArray()
+        },
+        LambdaExpressionSyntax lambda => new LambdaExpression(ast, syntax)
+        {
+            Parameters = lambda.Parameters.Parameters.Nodes().Select(FromParameter).ToImmutableArray(),
+            Body = FromExpression(lambda.Expression)
+        },
+        TupleExpressionSyntax tuple => new TupleExpression(ast, syntax)
+        {
+            Expressions = tuple.Expressions.Nodes().Select(FromExpression).ToImmutableArray()
+        },
+        ParenthesizedExpressionSyntax parens => FromExpression(parens.Expression),
+        IfExpressionSyntax @if => new IfExpression(ast, syntax)
+        {
+            Condition = FromExpression(@if.Condition),
+            IfTrue = FromBlockExpression(@if.Body),
+            Else = @if.Else is not null
+                ? new ElseClause(ast, @if.Else)
+                {
+                    IfFalse = FromBlockExpression(@if.Else.Body)
+                }
+                : null
+        },
+        LoopExpressionSyntax loop => new LoopExpression(ast, syntax)
+        {
+            Block = FromBlockExpression(loop.Body)
+        },
+        ReturnExpressionSyntax @return => new ReturnExpression(ast, syntax)
+        {
+            Expression = @return.Value is not null
+                ? FromExpression(@return.Value)
+                : null
+        },
+        BreakExpressionSyntax @break => new BreakExpression(ast, syntax)
+        {
+            Expression = @break.Value is not null
+                ? FromExpression(@break.Value)
+                : null
+        },
+        ContinueExpressionSyntax => new ContinueExpression(ast, syntax),
+        UnaryExpressionSyntax unary => new UnaryExpression(ast, syntax)
+        {
+            Kind = unary.Operator.Kind.ToUnaryKind()
+                ?? throw new InvalidOperationException(),
+            Operand = FromExpression(unary.Operand)
+        },
+        BinaryExpressionSyntax binary => new BinaryExpression(ast, syntax)
+        {
+            Left = FromExpression(binary.Left),
+            Kind = binary.Operator.Kind.ToBinaryKind()
+                ?? throw new InvalidOperationException(),
+            Right = FromExpression(binary.Right)
+        },
+        IdentifierExpressionSyntax identifier => new IdentifierExpression(ast, syntax)
+        {
+            Identifier = identifier.Identifier.Text
+        },
+        StringExpressionSyntax @string => new StringExpression(ast, syntax)
+        {
+            Parts = @string.Parts.Select(FromStringPart).ToImmutableArray()
+        },
+        BoolExpressionSyntax @bool => new BoolExpression(ast, syntax)
+        {
+            Value = @bool.Value.Kind switch
+            {
+                TokenKind.True => true,
+                TokenKind.False => false,
+                _ => throw new InvalidOperationException()
+            }
+        },
+        NumberExpressionSyntax number => new NumberExpression(ast, syntax)
+        {
+            Value = double.Parse(number.Value.Text)
+        },
+        NilExpressionSyntax => new NilExpression(ast, syntax),
+        _ => throw new UnreachableException()
     };
-    
-    public override AssignmentStatement FromAssignmentStatement(AssignmentStatementSyntax syntax) => new(syntax)
+
+    public BlockExpression FromBlockExpression(BlockExpressionSyntax syntax) => new BlockExpression(ast, syntax)
     {
-        Ast = ast,
-        Target = FromExpression(syntax.Target),
-        Kind = syntax.Operator.Kind.ToAssignmentKind()
-            ?? throw new InvalidOperationException(),
-        Value = FromExpression(syntax.Value)
-    };
-    
-    public override ExpressionStatement FromExpressionStatement(ExpressionStatementSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Expression = FromExpression(syntax.Expression)
-    };
-    
-    public override ErrorExpression FromErrorExpression(ErrorExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast
-    };
-    
-    public override BlockExpression FromBlockExpression(BlockExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
         Block = FromBlock(syntax.Block)
     };
     
-    public override CallExpression FromCallExpression(CallExpressionSyntax syntax) => new(syntax)
+    public StringPart FromStringPart(StringPartSyntax syntax) => syntax switch
     {
-        Ast = ast,
-        Target = FromExpression(syntax.Target),
-        Arguments = syntax.Arguments.Nodes().Select(FromExpression).ToImmutableArray()
-    };
-    
-    public override LambdaExpression FromLambdaExpression(LambdaExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Parameters = syntax.Parameters.Parameters.Nodes().Select(FromParameter).ToImmutableArray(),
-        Body = FromExpression(syntax.Expression)
-    };
-    
-    public override TupleExpression FromTupleExpression(TupleExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Expressions = syntax.Expressions.Nodes().Select(FromExpression).ToImmutableArray()
-    };
-    
-    public override IfExpression FromIfExpression(IfExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Condition = FromExpression(syntax.Condition),
-        IfTrue = FromBlockExpression(syntax.Body),
-        Else = syntax.Else is not null
-            ? FromElseClause(syntax.Else)
-            : null
-    };
-    
-    public override ElseClause FromElseClause(ElseClauseSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        IfFalse = FromBlockExpression(syntax.Body)
-    };
-    
-    public override LoopExpression FromLoopExpression(LoopExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Block = FromBlockExpression(syntax.Body)
-    };
-    
-    public override ReturnExpression FromReturnExpression(ReturnExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Expression = syntax.Value is not null
-            ? FromExpression(syntax.Value)
-            : null
-    };
-    
-    public override BreakExpression FromBreakExpression(BreakExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Expression = syntax.Value is not null
-            ? FromExpression(syntax.Value)
-            : null
-    };
-    
-    public override ContinueExpression FromContinueExpression(ContinueExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast
-    };
-    
-    public override UnaryExpression FromUnaryExpression(UnaryExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Kind = syntax.Operator.Kind.ToUnaryKind()
-            ?? throw new InvalidOperationException(),
-        Operand = FromExpression(syntax.Operand)
-    };
-    
-    public override BinaryExpression FromBinaryExpression(BinaryExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Left = FromExpression(syntax.Left),
-        Kind = syntax.Operator.Kind.ToBinaryKind()
-            ?? throw new InvalidOperationException(),
-        Right = FromExpression(syntax.Right)
-    };
-    
-    public override IdentifierExpression FromIdentifierExpression(IdentifierExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Identifier = syntax.Identifier.Text
-    };
-    
-    public override StringExpression FromStringExpression(StringExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Parts = syntax.Parts.Select(FromStringPart).ToImmutableArray()
-    };
-    
-    public override TextStringPart FromTextStringPart(TextStringPartSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Text = syntax.Text.Text
-    };
-    
-    public override InterpolationStringPart FromInterpolationStringPart(InterpolationStringPartSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Expression = FromExpression(syntax.Expression)
-    };
-    
-    public override BoolExpression FromBoolExpression(BoolExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Value = syntax.Value.Kind switch
+        TextStringPartSyntax text => new TextStringPart(ast, syntax)
         {
-            TokenKind.True => true,
-            TokenKind.False => false,
-            _ => throw new InvalidOperationException()
-        }
-    };
-    
-    public override NumberExpression FromNumberExpression(NumberExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast,
-        Value = double.Parse(syntax.Value.Text)
-    };
-    
-    public override NilExpression FromNilExpression(NilExpressionSyntax syntax) => new(syntax)
-    {
-        Ast = ast
-    };
-
-    // This is necessary because no AST node maps from ParenthesizedExpressionSyntax.
-    // Couldn't come up with any better way to do this, but it's only for a single kind of expression.
-    protected override Expression FromAdditionalExpression(ExpressionSyntax syntax) => syntax switch
-    {
-        ParenthesizedExpressionSyntax parenthesized => FromExpression(parenthesized.Expression),
+            Text = text.Text.Text
+        },
+        InterpolationStringPartSyntax interpolation => new InterpolationStringPart(ast, syntax)
+        {
+            Expression = FromExpression(interpolation.Expression)
+        },
         _ => throw new UnreachableException()
     };
 }

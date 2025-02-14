@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
 using Noa.Compiler.ControlFlow;
 using TextMappingUtils;
@@ -9,12 +8,12 @@ namespace Noa.Compiler.Nodes;
 /// An abstract syntax node.
 /// </summary>
 /// <param name="syntax">The concrete syntax node the node corresponds to.</param>
-public abstract class Node(Syntax.SyntaxNode syntax)
+public abstract class Node(Ast ast, Syntax.SyntaxNode syntax)
 {
     /// <summary>
     /// The AST the node belongs to.
     /// </summary>
-    public required Ast Ast { get; init; }
+    public Ast Ast { get; } = ast;
 
     /// <summary>
     /// The parent of the node, or null if the node is the root node.

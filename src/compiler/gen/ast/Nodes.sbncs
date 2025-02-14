@@ -5,9 +5,8 @@
 namespace Noa.Compiler.Nodes;
 
 {{~ for node in nodes ~}}
-public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}sealed {{ end }}partial class {{ node.name }}(Syntax.SyntaxNode syntax) : {{ node.parent.name }}(syntax)
+public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}sealed {{ end }}partial class {{ node.name }}(Ast ast, Syntax.SyntaxNode syntax) : {{ node.parent.name }}(ast, syntax)
 {
-    public new Syntax.{{ node.concrete }} Syntax { get; } = (Syntax.{{ node.concrete }})syntax;
     {{~ if !node.is_abstract ~}}
 
     {{~ for member in node.non_inherited_members ~}}
