@@ -3,6 +3,10 @@ using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Nodes;
 
+/// <summary>
+/// Translates red syntax nodes into AST nodes.
+/// </summary>
+/// <param name="ast">The AST for the nodes.</param>
 internal sealed class IntoAst(Ast ast)
 {
     public Block FromBlock(BlockSyntax syntax) => new(ast, syntax)
