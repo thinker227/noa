@@ -1,45 +1,40 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
 
 namespace Noa.Compiler.Parsing.Tests;
 
 internal sealed class ParseAssertion
 {
-    private readonly IEnumerator<Node> nodes;
+    private readonly IEnumerator<SyntaxNode> nodes;
 
     public Source Source { get; }
-    
-    public IReadOnlyCollection<IDiagnostic> Diagnostics { get; }
 
-    private ParseAssertion(IEnumerator<Node> nodes, Source source, IReadOnlyCollection<IDiagnostic> diagnostics)
+    private ParseAssertion(IEnumerator<SyntaxNode> nodes, Source source)
     {
         this.nodes = nodes;
         Source = source;
-        Diagnostics = diagnostics;
     }
 
-    public static ParseAssertion Create(string text, Func<Parser, Node> parse)
+    public static ParseAssertion Create(string text, Func<Parser, SyntaxNode> parse)
     {
         var source = new Source(text, "test-input");
-        var ast = new Ast();
-        var (tokens, lexDiagnostics) = Lexer.Lex(source, default);
+        var tokens = Lexer.Lex(source, default);
 
-        var parser = new Parser(source, ast, tokens, default);
+        var parser = new Parser(source, tokens, default);
 
         var root = parse(parser);
-        var diagnostics = lexDiagnostics.Concat(parser.Diagnostics).ToList();
 
         var nodes = EnumerateNodes(root);
 
-        return new(nodes.GetEnumerator(), source, diagnostics);
+        return new(nodes.GetEnumerator(), source);
     }
 
-    private static IEnumerable<Node> EnumerateNodes(Node root) =>
+    private static IEnumerable<SyntaxNode> EnumerateNodes(SyntaxNode root) =>
         root.Children
             .SelectMany(EnumerateNodes)
             .Prepend(root);
 
-    public T N<T>(Action<T>? assert = null) where T : Node
+    public T N<T>(Action<T>? assert = null) where T : SyntaxNode
     {
         nodes.MoveNext().ShouldBeTrue();
 
