@@ -44,9 +44,16 @@ public abstract class SyntaxNode
     }
 
     /// <summary>
-    /// The span of the syntax node in the corresponding source text.
+    /// The span of the syntax node in the corresponding source text,
+    /// <i>excluding</i> its leading trivia.
     /// </summary>
     public TextSpan Span => span ??= TextSpan.FromLength(Position, CalculateNonTriviaWidth());
+
+    /// <summary>
+    /// The full span of the syntax node in the corresponding source text,
+    /// <i>including</i> its leading trivia.
+    /// </summary>
+    public TextSpan FullSpan => TextSpan.FromLength(FullPosition, Green.GetFullWidth());
 
     private int CalculateNonTriviaWidth()
     {
