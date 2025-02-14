@@ -4,16 +4,12 @@ using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
+
 internal sealed partial class Lexer(Source source, CancellationToken cancellationToken)
 {
-    private readonly record struct LexerDiagnostic(
-        Func<Location, IDiagnostic> MakeDiagnostic,
-        int Position,
-        int Width);
-
     private readonly ImmutableArray<Token>.Builder tokens = ImmutableArray.CreateBuilder<Token>();
     private readonly Stack<int> interpolationCurlyDepths = [];
-    private readonly List<LexerDiagnostic> diagnosticsForNextToken = [];
+    private readonly List<ILexerDiagnostic> diagnosticsForNextToken = [];
     private readonly string text = source.Text;
     private int position = 0;
     private int leadingTriviaLength = 0;
@@ -39,8 +35,11 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
             ? Rest.Slice(from, length)
             : [];
     
-    private void ReportDiagnostic(Func<Location, IDiagnostic> makeDiagnostic, int width) =>
-        diagnosticsForNextToken.Add(new(makeDiagnostic, position, width));
+    private void ReportDiagnostic(DiagnosticTemplate template, int width) =>
+        diagnosticsForNextToken.Add(new LexerDiagnostic(template, position, width));
+    
+    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, int width) =>
+        diagnosticsForNextToken.Add(new LexerDiagnostic<T>(template, arg, position, width));
     
     private string ConsumeLeadingTrivia()
     {
@@ -62,12 +61,9 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
 
         if (diagnosticsForNextToken is not [])
         {
-            foreach (var (makeDiagnostic, diagPosition, width) in diagnosticsForNextToken)
+            foreach (var diagnostic in diagnosticsForNextToken)
             {                
-                token.AddDiagnostic(new PartialDiagnostic(
-                    makeDiagnostic,
-                    diagPosition - position,
-                    width));
+                token.AddDiagnostic(diagnostic.ToPartial(position));
             }
             
             diagnosticsForNextToken.Clear();

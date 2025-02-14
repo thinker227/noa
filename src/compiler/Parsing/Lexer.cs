@@ -87,8 +87,9 @@ internal sealed partial class Lexer
             if (TryString()) continue;
 
             // Unknown
-            ReportDiagnostic(loc =>
-                ParseDiagnostics.UnexpectedCharacter.Format(Rest[..1].ToString(), loc),
+            ReportDiagnostic(
+                ParseDiagnostics.UnexpectedCharacter,
+                Rest[..1].ToString(),
                 width: 1);
             leadingTriviaLength += 1;
             
@@ -271,7 +272,7 @@ internal sealed partial class Lexer
         // If we got here then the string is unterminated.
         // Report a diagnostic at the very end of the string.
         ReportDiagnostic(
-            ParseDiagnostics.UnterminatedString.Format,
+            ParseDiagnostics.UnterminatedString,
             width: 1);
 
         return true;
