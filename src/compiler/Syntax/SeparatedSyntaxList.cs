@@ -86,7 +86,7 @@ public sealed class SeparatedSyntaxList<TNode>
                 constructed[i] = elem;
             }
 
-            offset += elem.Span.Length;
+            offset += elem.FullSpan.Length;
 
             yield return elem;
         }

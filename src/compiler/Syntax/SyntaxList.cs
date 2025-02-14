@@ -57,7 +57,7 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
                 constructed[i] = node;
             }
 
-            offset += node.Span.Length;
+            offset += node.FullSpan.Length;
 
             yield return node;
         }
