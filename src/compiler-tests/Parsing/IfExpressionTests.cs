@@ -1,5 +1,4 @@
 using Noa.Compiler.Syntax.Green;
-using Noa.Compiler.Tests;
 using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
