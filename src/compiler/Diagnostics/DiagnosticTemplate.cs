@@ -1,6 +1,22 @@
 namespace Noa.Compiler.Diagnostics;
 
 /// <summary>
+/// A common interface for templates for diagnostics.
+/// </summary>
+public interface IDiagnosticTemplate
+{
+    /// <summary>
+    /// The ID of the diagnostic.
+    /// </summary>
+    DiagnosticId Id { get; }
+
+    /// <summary>
+    /// The severity of the diagnostic.
+    /// </summary>
+    Severity Severity { get; }
+}
+
+/// <summary>
 /// A simple template for a diagnostic.
 /// </summary>
 /// <param name="WriteMessage">
@@ -11,6 +27,7 @@ public sealed record DiagnosticTemplate(
     DiagnosticId Id,
     Action<IDiagnosticPage> WriteMessage,
     Severity Severity)
+    : IDiagnosticTemplate
 {
     /// <summary>
     /// Formats the template into a diagnostic.
@@ -71,6 +88,7 @@ public sealed record DiagnosticTemplate<TArg>(
     DiagnosticId Id,
     Action<TArg, IDiagnosticPage> WriteMessage,
     Severity Severity)
+    : IDiagnosticTemplate
 {
     /// <summary>
     /// Formats the template into a diagnostic.
