@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
 
@@ -33,6 +34,34 @@ internal sealed class ParseAssertion
         root.Children
             .SelectMany(EnumerateNodes)
             .Prepend(root);
+    
+    public Token E(Action<Token>? assert = null)
+    {
+        nodes.MoveNext().ShouldBeTrue();
+
+        var token = nodes.Current.ShouldBeOfType<Token>();
+        token.Kind.ShouldBe(TokenKind.Error);
+        assert?.Invoke(token);
+
+        return token;
+    }
+
+    public void D(params IEnumerable<DiagnosticId> ids)
+    {
+        var node = nodes.Current.ShouldNotBeNull();
+        node.Diagnostics.Select(x => x.Template.Id).ShouldBe(ids, ignoreOrder: true);
+    }
+    
+    public Token T(TokenKind kind, Action<Token>? assert = null)
+    {
+        nodes.MoveNext().ShouldBeTrue();
+
+        var token = nodes.Current.ShouldBeOfType<Token>();
+        token.Kind.ShouldBe(kind);
+        assert?.Invoke(token);
+
+        return token;
+    }
 
     public T N<T>(Action<T>? assert = null) where T : SyntaxNode
     {
