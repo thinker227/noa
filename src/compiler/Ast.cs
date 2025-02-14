@@ -63,7 +63,7 @@ public sealed class Ast
     /// <param name="cancellationToken">The cancellation token for the AST creation.</param>
     public static Ast Create(Source source, CancellationToken cancellationToken = default)
     {
-        var greenRoot = Parser.Parse(source, null!, cancellationToken);
+        var greenRoot = Parser.Parse(source, cancellationToken);
         var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
 
         var ast = new Ast(source, redRoot, cancellationToken);

@@ -9,8 +9,6 @@ internal sealed partial class Parser
 {
     private ParseState state;
     private readonly CancellationToken cancellationToken;
-    
-    private Ast Ast => state.Ast;
 
     private Token Current => state.Current;
 
@@ -18,11 +16,10 @@ internal sealed partial class Parser
 
     internal Parser(
         Source source,
-        Ast ast,
         ImmutableArray<Token> tokenSource,
         CancellationToken cancellationToken)
     {
-        state = new(source, ast, tokenSource);
+        state = new(source, tokenSource);
         this.cancellationToken = cancellationToken;
     }
 

@@ -18,11 +18,10 @@ internal sealed partial class Parser
     /// <param name="cancellationToken">The cancellation token used to signal the parser to cancel.</param>
     public static RootSyntax Parse(
         Source source,
-        Ast ast,
         CancellationToken cancellationToken)
     {
         var tokens = Lexer.Lex(source, cancellationToken);
-        var parser = new Parser(source, ast, tokens, cancellationToken);
+        var parser = new Parser(source, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
         
