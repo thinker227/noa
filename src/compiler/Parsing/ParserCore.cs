@@ -1,6 +1,5 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Syntax.Green;
-using TextMappingUtils;
 using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
@@ -25,19 +24,21 @@ internal sealed partial class Parser
 
     private void ReportDiagnostic(DiagnosticTemplate template, SyntaxNode node, int offset = 0) =>
         node.AddDiagnostic(new PartialDiagnostic(
-            MakeDiagnostic: template.Format,
+            template,
             Offset: offset,
             Width: node.GetFullWidth()));
 
     private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token, int offset = 0) =>
-        token.AddDiagnostic(new PartialDiagnostic(
-            MakeDiagnostic: loc => template.Format(token, loc),
+        token.AddDiagnostic(new PartialDiagnostic<Token>(
+            template,
+            token,
             Offset: offset,
             Width: token.FullWidth));
 
     private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, SyntaxNode node, int offset = 0) =>
-        node.AddDiagnostic(new PartialDiagnostic(
-            MakeDiagnostic: loc => template.Format(arg, loc),
+        node.AddDiagnostic(new PartialDiagnostic<T>(
+            template,
+            arg,
             Offset: offset,
             Width: node.GetFullWidth()));
     

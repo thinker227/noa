@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Noa.Compiler.Diagnostics;
 
 namespace Noa.Compiler.Syntax.Green;
 
@@ -11,7 +12,7 @@ namespace Noa.Compiler.Syntax.Green;
 /// </summary>
 internal abstract class SyntaxNode
 {
-    private static readonly ConditionalWeakTable<SyntaxNode, List<PartialDiagnostic>> diagnostics = [];
+    private static readonly ConditionalWeakTable<SyntaxNode, List<IPartialDiagnostic>> diagnostics = [];
 
     /// <summary>
     /// The nodes which are direct children of the node.
@@ -57,7 +58,7 @@ internal abstract class SyntaxNode
     /// <summary>
     /// The diagnostics for the node.
     /// </summary>
-    public IReadOnlyCollection<PartialDiagnostic> Diagnostics =>
+    public IReadOnlyCollection<IPartialDiagnostic> Diagnostics =>
         diagnostics.TryGetValue(this, out var ds)
             ? ds
             : [];
@@ -66,7 +67,7 @@ internal abstract class SyntaxNode
     /// Adds a diagnostic to the node.
     /// </summary>
     /// <param name="diagnostic">The partial diagnostic to add.</param>
-    public void AddDiagnostic(PartialDiagnostic diagnostic)
+    public void AddDiagnostic(IPartialDiagnostic diagnostic)
     {
         if (!diagnostics.TryGetValue(this, out var ds))
         {
