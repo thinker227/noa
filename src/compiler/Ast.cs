@@ -57,6 +57,18 @@ public sealed class Ast
     }
 
     /// <summary>
+    /// Creates a new AST from source without running any additional semantic passes after parsing.
+    /// </summary>
+    /// <param name="source">The source to create the AST from.</param>
+    internal static Ast Parse(Source source)
+    {
+        var greenRoot = Parser.Parse(source, default);
+        var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
+
+        return new Ast(source, redRoot, default);
+    }
+
+    /// <summary>
     /// Creates a new AST from source.
     /// </summary>
     /// <param name="source">The source to create the AST from.</param>
