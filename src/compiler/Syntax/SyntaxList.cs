@@ -64,4 +64,11 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public override bool Equals(object? obj) =>
+        obj is SyntaxList<TNode> other &&
+        other.Green == Green;
+
+    public override int GetHashCode() =>
+        Green.GetHashCode();
 }

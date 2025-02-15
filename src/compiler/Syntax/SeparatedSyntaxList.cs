@@ -93,4 +93,11 @@ public sealed class SeparatedSyntaxList<TNode>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public override bool Equals(object? obj) =>
+        obj is SeparatedSyntaxList<TNode> other &&
+        other.Green == Green;
+
+    public override int GetHashCode() =>
+        Green.GetHashCode();
 }

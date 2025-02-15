@@ -48,6 +48,13 @@ public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}se
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is {{ node.name }} other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
     {{~ else ~}}
     internal {{ node.name }}(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
     {{~ end ~}}

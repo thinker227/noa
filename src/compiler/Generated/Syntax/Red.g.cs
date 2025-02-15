@@ -30,6 +30,13 @@ public sealed class BlockSyntax : SyntaxNode
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BlockSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class RootSyntax : SyntaxNode
@@ -55,6 +62,13 @@ public sealed class RootSyntax : SyntaxNode
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is RootSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public abstract class StatementSyntax : SyntaxNode
@@ -96,6 +110,13 @@ public sealed class FunctionDeclarationSyntax : DeclarationSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is FunctionDeclarationSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ParameterListSyntax : SyntaxNode
@@ -124,6 +145,13 @@ public sealed class ParameterListSyntax : SyntaxNode
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ParameterListSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ParameterSyntax : SyntaxNode
@@ -149,6 +177,13 @@ public sealed class ParameterSyntax : SyntaxNode
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ParameterSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public abstract class FunctionBodySyntax : SyntaxNode
@@ -176,6 +211,13 @@ public sealed class BlockBodySyntax : FunctionBodySyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BlockBodySyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ExpressionBodySyntax : FunctionBodySyntax
@@ -204,6 +246,13 @@ public sealed class ExpressionBodySyntax : FunctionBodySyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ExpressionBodySyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class LetDeclarationSyntax : DeclarationSyntax
@@ -241,6 +290,13 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is LetDeclarationSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class AssignmentStatementSyntax : StatementSyntax
@@ -272,6 +328,13 @@ public sealed class AssignmentStatementSyntax : StatementSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is AssignmentStatementSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class FlowControlStatementSyntax : StatementSyntax
@@ -294,6 +357,13 @@ public sealed class FlowControlStatementSyntax : StatementSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is FlowControlStatementSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ExpressionStatementSyntax : StatementSyntax
@@ -319,6 +389,13 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ExpressionStatementSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public abstract class ExpressionSyntax : SyntaxNode
@@ -343,6 +420,13 @@ public sealed class ErrorExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ErrorExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class BlockExpressionSyntax : ExpressionSyntax
@@ -371,6 +455,13 @@ public sealed class BlockExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BlockExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class CallExpressionSyntax : ExpressionSyntax
@@ -402,6 +493,13 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is CallExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class LambdaExpressionSyntax : ExpressionSyntax
@@ -430,6 +528,13 @@ public sealed class LambdaExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is LambdaExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class TupleExpressionSyntax : ExpressionSyntax
@@ -458,6 +563,13 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is TupleExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
@@ -486,6 +598,13 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ParenthesizedExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class IfExpressionSyntax : ExpressionSyntax
@@ -517,6 +636,13 @@ public sealed class IfExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is IfExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ElseClauseSyntax : SyntaxNode
@@ -542,6 +668,13 @@ public sealed class ElseClauseSyntax : SyntaxNode
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ElseClauseSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class LoopExpressionSyntax : ExpressionSyntax
@@ -567,6 +700,13 @@ public sealed class LoopExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is LoopExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ReturnExpressionSyntax : ExpressionSyntax
@@ -592,6 +732,13 @@ public sealed class ReturnExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ReturnExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class BreakExpressionSyntax : ExpressionSyntax
@@ -617,6 +764,13 @@ public sealed class BreakExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BreakExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class ContinueExpressionSyntax : ExpressionSyntax
@@ -639,6 +793,13 @@ public sealed class ContinueExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is ContinueExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class UnaryExpressionSyntax : ExpressionSyntax
@@ -664,6 +825,13 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is UnaryExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class BinaryExpressionSyntax : ExpressionSyntax
@@ -692,6 +860,13 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BinaryExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class IdentifierExpressionSyntax : ExpressionSyntax
@@ -714,6 +889,13 @@ public sealed class IdentifierExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is IdentifierExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class StringExpressionSyntax : ExpressionSyntax
@@ -742,6 +924,13 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is StringExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public abstract class StringPartSyntax : SyntaxNode
@@ -769,6 +958,13 @@ public sealed class TextStringPartSyntax : StringPartSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is TextStringPartSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class InterpolationStringPartSyntax : StringPartSyntax
@@ -797,6 +993,13 @@ public sealed class InterpolationStringPartSyntax : StringPartSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is InterpolationStringPartSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class BoolExpressionSyntax : ExpressionSyntax
@@ -819,6 +1022,13 @@ public sealed class BoolExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is BoolExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class NumberExpressionSyntax : ExpressionSyntax
@@ -841,6 +1051,13 @@ public sealed class NumberExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is NumberExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
 
 public sealed class NilExpressionSyntax : ExpressionSyntax
@@ -866,4 +1083,11 @@ public sealed class NilExpressionSyntax : ExpressionSyntax
             yield break;
         }
     }
+
+    public override bool Equals(object? obj) =>
+        obj is NilExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }

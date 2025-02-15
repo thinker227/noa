@@ -31,4 +31,11 @@ public sealed class Token : SyntaxNode
 
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
+
+    public override bool Equals(object? obj) =>
+        obj is Token other &&
+        other.green == green;
+
+    public override int GetHashCode() =>
+        green.GetHashCode();
 }
