@@ -60,6 +60,30 @@ public static class SyntaxUtilities
         GetFirstToken(node, includeInvisible, n => n.Children.Reverse());
     
     /// <summary>
+    /// Gets the index of a node within its parent.
+    /// For instance, the <c>let</c> token of a <see cref="LetDeclarationSyntax"/>
+    /// will have index 0, the name index 1, <c>=</c> index 2, expression index 3, and <c>;</c> index 4.
+    /// </summary>
+    /// <param name="node">The node to get the index of.</param>
+    /// <exception cref="InvalidOperationException">
+    /// The node doesn't have a parent.
+    /// </exception>
+    public static int GetIndexInParent(this SyntaxNode node)
+    {
+        if (node.Parent is null) throw new InvalidOperationException(
+            "Cannot get index in parent of the root node.");
+        
+        var index = 0;
+        foreach (var sibling in node.Parent.Children)
+        {
+            if (sibling.Equals(node)) break;
+            index += 1;
+        }
+
+        return index;
+    }
+    
+    /// <summary>
     /// Enumerates the previous siblings of a node in reverse order.
     /// </summary>
     private static IEnumerable<SyntaxNode> IteratePreviousSiblings(SyntaxNode node)
