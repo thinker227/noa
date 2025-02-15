@@ -157,7 +157,7 @@ internal sealed partial class Parser
             Let = let,
             Mut = mut,
             Name = identifier,
-            Equals = equals,
+            EqualsToken = equals,
             Value = expression,
             Semicolon = semicolon
         };

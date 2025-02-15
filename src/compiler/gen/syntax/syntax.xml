@@ -50,7 +50,7 @@
     <Token Name="Let"/>
     <Token Name="Mut" Optional="true"/>
     <Token Name="Name"/>
-    <Token Name="Equals"/>
+    <Token Name="EqualsToken"/>
     <Value Name="Value" Type="ExpressionSyntax"/>
     <Token Name="Semicolon"/>
   </Node>

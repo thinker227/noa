@@ -219,11 +219,11 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
     
     public Token Name => (Token)green.Name.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0), this);
     
-    public Token Equals => (Token)green.Equals.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth(), this);
+    public Token EqualsToken => (Token)green.EqualsToken.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth(), this);
     
-    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth() + green.Equals.GetFullWidth(), this);
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth() + green.EqualsToken.GetFullWidth(), this);
     
-    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth() + green.Equals.GetFullWidth() + green.Value.GetFullWidth(), this);
+    public Token Semicolon => (Token)green.Semicolon.ToRed(FullPosition + green.Let.GetFullWidth() + (green.Mut?.GetFullWidth() ?? 0) + green.Name.GetFullWidth() + green.EqualsToken.GetFullWidth() + green.Value.GetFullWidth(), this);
     
     internal LetDeclarationSyntax(Green.LetDeclarationSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
         this.green = green;
@@ -235,7 +235,7 @@ public sealed class LetDeclarationSyntax : DeclarationSyntax
             yield return Let;
             if (Mut is not null) yield return Mut;
             yield return Name;
-            yield return Equals;
+            yield return EqualsToken;
             yield return Value;
             yield return Semicolon;
             yield break;

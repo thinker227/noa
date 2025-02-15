@@ -218,7 +218,7 @@ internal sealed class LetDeclarationSyntax : DeclarationSyntax
 
     public required Token Name { get; init; }
 
-    public required Token Equals { get; init; }
+    public required Token EqualsToken { get; init; }
 
     public required ExpressionSyntax Value { get; init; }
 
@@ -231,7 +231,7 @@ internal sealed class LetDeclarationSyntax : DeclarationSyntax
             yield return Let;
             if (Mut is not null) yield return Mut;
             yield return Name;
-            yield return Equals;
+            yield return EqualsToken;
             yield return Value;
             yield return Semicolon;
             yield break;
@@ -240,7 +240,7 @@ internal sealed class LetDeclarationSyntax : DeclarationSyntax
 
     public override int GetFullWidth() => width ??= ComputeWidth();
 
-    private int ComputeWidth() => 0 + Let.GetFullWidth() + (Mut?.GetFullWidth() ?? 0) + Name.GetFullWidth() + Equals.GetFullWidth() + Value.GetFullWidth() + Semicolon.GetFullWidth();
+    private int ComputeWidth() => 0 + Let.GetFullWidth() + (Mut?.GetFullWidth() ?? 0) + Name.GetFullWidth() + EqualsToken.GetFullWidth() + Value.GetFullWidth() + Semicolon.GetFullWidth();
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.LetDeclarationSyntax(this, position, parent);
