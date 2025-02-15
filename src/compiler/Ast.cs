@@ -25,9 +25,14 @@ public sealed class Ast
     public Source Source { get; }
 
     /// <summary>
-    /// The root of the syntax tree.
+    /// The root of the AST.
     /// </summary>
     public Root Root { get; }
+
+    /// <summary>
+    /// The root of the syntax tree.
+    /// </summary>
+    public RootSyntax SyntaxRoot => (RootSyntax)Root.Syntax;
 
     /// <summary>
     /// The diagnostics in the AST.

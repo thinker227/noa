@@ -7,6 +7,7 @@ namespace Noa.Compiler.Nodes;
 /// <summary>
 /// An abstract syntax node.
 /// </summary>
+/// <param name="ast">The AST the node belongs to.</param>
 /// <param name="syntax">The concrete syntax node the node corresponds to.</param>
 public abstract class Node(Ast ast, Syntax.SyntaxNode syntax)
 {
