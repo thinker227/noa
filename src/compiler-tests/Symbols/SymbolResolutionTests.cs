@@ -200,7 +200,7 @@ public class SymbolResolutionTests
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
         diagnostics.DiagnosticsShouldBe([
-            (SymbolDiagnostics.FunctionAlreadyDeclared.Id, new("test-input", 12, 23))
+            (SymbolDiagnostics.FunctionAlreadyDeclared.Id, new("test-input", 17, 18))
         ]);
     }
 
@@ -233,7 +233,7 @@ public class SymbolResolutionTests
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
         diagnostics.DiagnosticsShouldBe([
-            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 0, 10))
+            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 4, 5))
         ]);
     }
 

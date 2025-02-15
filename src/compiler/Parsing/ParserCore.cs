@@ -1,6 +1,6 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
-using TextMappingUtils;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -9,40 +9,38 @@ internal sealed partial class Parser
     private ParseState state;
     private readonly CancellationToken cancellationToken;
 
-    internal IReadOnlyCollection<IDiagnostic> Diagnostics => state.Diagnostics;
-    
-    private Ast Ast => state.Ast;
-
     private Token Current => state.Current;
 
     private bool AtEnd => Current.Kind is TokenKind.EndOfFile;
 
     internal Parser(
         Source source,
-        Ast ast,
         ImmutableArray<Token> tokenSource,
         CancellationToken cancellationToken)
     {
-        state = new(source, ast, tokenSource);
+        state = new(source, tokenSource);
         this.cancellationToken = cancellationToken;
     }
 
-    private void ReportDiagnostic(DiagnosticTemplate template, TextSpan span)
-    {
-        var location = new Location(state.Source.Name, span);
-        var diagnostic = template.Format(location);
-        state.Diagnostics.Add(diagnostic);
-    }
+    private void ReportDiagnostic(DiagnosticTemplate template, SyntaxNode node, int offset = 0) =>
+        node.AddDiagnostic(new PartialDiagnostic(
+            template,
+            Offset: offset,
+            Width: node.GetFullWidth()));
 
-    private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token) =>
-        ReportDiagnostic(template, token, token.Span);
+    private void ReportDiagnostic(DiagnosticTemplate<Token> template, Token token, int offset = 0) =>
+        token.AddDiagnostic(new PartialDiagnostic<Token>(
+            template,
+            token,
+            Offset: offset,
+            Width: token.FullWidth));
 
-    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, TextSpan span)
-    {
-        var location = new Location(state.Source.Name, span);
-        var diagnostic = template.Format(arg, location);
-        state.Diagnostics.Add(diagnostic);
-    }
+    private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, SyntaxNode node, int offset = 0) =>
+        node.AddDiagnostic(new PartialDiagnostic<T>(
+            template,
+            arg,
+            Offset: offset,
+            Width: node.GetFullWidth()));
     
     private Token Advance() => state.Advance();
 
@@ -50,17 +48,16 @@ internal sealed partial class Parser
     {
         if (Current.Kind == kind) return Advance();
 
-        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current.Span);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current);
         
-        var span = TextSpan.FromLength(Current.Span.Start, 0);
-        return new(TokenKind.Error, "", span);
+        return new(TokenKind.Error, "", "", 0);
     }
 
     private Token? Expect(IReadOnlySet<TokenKind> kinds)
     {
         if (kinds.Contains(Current.Kind)) return Current;
 
-        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, kinds, Current.Span);
+        ReportDiagnostic(ParseDiagnostics.ExpectedKinds, kinds, Current);
         
         return null;
     }
@@ -87,17 +84,18 @@ internal sealed partial class Parser
     /// <param name="parse">The function to parse a node.</param>
     /// <param name="stopKinds">The kinds at which to stop parsing the list.</param>
     /// <typeparam name="T">The type of the nodes to parse.</typeparam>
-    private ImmutableArray<T> ParseSeparatedList<T>(
+    private SeparatedSyntaxList<T> ParseSeparatedList<T>(
         TokenKind separatorKind,
         bool allowTrailingSeparator,
         Func<T> parse,
         params TokenKind[] stopKinds)
-        where T : Node
+        where T : SyntaxNode
     {
         var stopKindsSet = stopKinds.ToHashSet();
-        if (AtEnd || stopKindsSet.Contains(Current.Kind)) return [];
+        if (AtEnd || stopKindsSet.Contains(Current.Kind)) return SeparatedSyntaxList<T>.Empty;
 
-        var nodes = ImmutableArray.CreateBuilder<T>();
+        var nodes = new List<T>();
+        var separators = new List<Token>();
 
         while (!AtEnd)
         {
@@ -118,12 +116,13 @@ internal sealed partial class Parser
 
             if (Current.Kind != separatorKind && stopKindsSet.Contains(Current.Kind)) break;
 
-            Expect(separatorKind);
+            var separator = Expect(separatorKind);
+            separators.Add(separator);
 
             // If we allow a trailing separator then check the stopping condition again.
             if (allowTrailingSeparator && stopKindsSet.Contains(Current.Kind)) break;
         }
 
-        return nodes.ToImmutable();
+        return SeparatedSyntaxList<T>.Create(nodes, separators);
     }
 }

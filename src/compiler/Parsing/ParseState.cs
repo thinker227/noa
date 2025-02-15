@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -15,32 +16,18 @@ internal sealed class ParseState
     /// The source which is being parsed.
     /// </summary>
     public Source Source { get; }
-    
-    /// <summary>
-    /// The AST which parsed nodes belong to.
-    /// </summary>
-    public Ast Ast { get; }
 
     /// <summary>
     /// The current token.
     /// </summary>
     public Token Current => tokens[position];
-    
-    /// <summary>
-    /// The diagnostics produced so far by the parser.
-    /// </summary>
-    public List<IDiagnostic> Diagnostics { get; }
 
     private ParseState(
         Source source,
-        Ast ast,
         ImmutableArray<Token> tokens,
-        int position,
-        IEnumerable<IDiagnostic> diagnostics)
+        int position)
     {
         Source = source;
-        Ast = ast;
-        Diagnostics = diagnostics.ToList();
         
         this.tokens = tokens;
         this.position = position;
@@ -52,11 +39,9 @@ internal sealed class ParseState
     /// <param name="source">The source which is being parsed.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
     /// <param name="tokens">The tokens to parse.</param>
-    public ParseState(Source source, Ast ast, ImmutableArray<Token> tokens)
+    public ParseState(Source source, ImmutableArray<Token> tokens)
     {
         Source = source;
-        Ast = ast;
-        Diagnostics = [];
         
         this.tokens = tokens;
         position = 0;
@@ -82,8 +67,6 @@ internal sealed class ParseState
     /// </summary>
     public ParseState Branch() => new(
         Source,
-        Ast,
         tokens,
-        position,
-        Diagnostics);
+        position);
 }

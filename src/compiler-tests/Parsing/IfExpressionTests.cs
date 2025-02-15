@@ -1,5 +1,5 @@
-using Noa.Compiler.Nodes;
-using Noa.Compiler.Tests;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
 
@@ -11,20 +11,43 @@ public sealed class IfExpressionTests
         var p = ParseAssertion.Create(
             "if true {}",
             p => p.ParseExpressionOrError());
-        
-        p.Diagnostics.DiagnosticsShouldBe([
-            (ParseDiagnostics.ElseOmitted.Id, new Location("test-input", 0, 2))
-        ], ignoreAdditional: true);
 
-        p.N<IfExpression>();
+        p.N<IfExpressionSyntax>();
+        p.T(TokenKind.If);
+        p.D(ParseDiagnostics.ElseOmitted.Id);
         {
-            p.N<BoolExpression>();
-
-            p.N<BlockExpression>();
-
-            p.N<ElseClause>();
+            p.N<BoolExpressionSyntax>();
             {
-                p.N<BlockExpression>();
+                p.T(TokenKind.True);
+            }
+
+            p.N<BlockExpressionSyntax>();
+            {
+                p.T(TokenKind.OpenBrace);
+                
+                p.N<BlockSyntax>();
+                {
+                    p.N<SyntaxList<StatementSyntax>>();
+                }
+
+                p.T(TokenKind.CloseBrace);
+            }
+
+            p.N<ElseClauseSyntax>();
+            {
+                p.E(); // else
+                
+                p.N<BlockExpressionSyntax>();
+                {
+                    p.E(); // {
+
+                    p.N<BlockSyntax>();
+                    {
+                        p.N<SyntaxList<StatementSyntax>>();
+                    }
+
+                    p.E(); // }
+                }
             }
         }
 
@@ -38,15 +61,40 @@ public sealed class IfExpressionTests
             "if true {}",
             p => p.ParseRoot());
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<IfExpression>();
+            p.N<BlockSyntax>();
             {
-                p.N<BoolExpression>();
+                p.N<SyntaxList<StatementSyntax>>();
+                {
+                    p.N<FlowControlStatementSyntax>();
+                    {
+                        p.N<IfExpressionSyntax>();
+                        p.T(TokenKind.If);
+                        {
+                            p.N<BoolExpressionSyntax>();
+                            {
+                                p.T(TokenKind.True);
+                            }
 
-                p.N<BlockExpression>();
+                            p.N<BlockExpressionSyntax>();
+                            {
+                                p.T(TokenKind.OpenBrace);
+
+                                p.N<BlockSyntax>();
+                                {
+                                    p.N<SyntaxList<StatementSyntax>>();
+                                }
+
+                                p.T(TokenKind.CloseBrace);
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        p.T(TokenKind.EndOfFile);
 
         p.End();
     }
@@ -58,17 +106,44 @@ public sealed class IfExpressionTests
             "if true {} else {}",
             p => p.ParseExpressionOrError());
         
-        p.N<IfExpression>();
+        p.N<IfExpressionSyntax>();
+        p.T(TokenKind.If);
         {
-            p.N<BoolExpression>();
-
-            p.N<BlockExpression>();
-
-            p.N<ElseClause>();
+            p.N<BoolExpressionSyntax>();
             {
-                p.N<BlockExpression>();
+                p.T(TokenKind.True);
+            }
+
+            p.N<BlockExpressionSyntax>();
+            {
+                p.T(TokenKind.OpenBrace);
+
+                p.N<BlockSyntax>();
+                {
+                    p.N<SyntaxList<StatementSyntax>>();
+                }
+
+                p.T(TokenKind.CloseBrace);
+            }
+
+            p.N<ElseClauseSyntax>();
+            p.T(TokenKind.Else);
+            {
+                p.N<BlockExpressionSyntax>();
+                {
+                    p.T(TokenKind.OpenBrace);
+
+                    p.N<BlockSyntax>();
+                    {
+                        p.N<SyntaxList<StatementSyntax>>();
+                    }
+
+                    p.T(TokenKind.CloseBrace);
+                }
             }
         }
+
+        p.End();
     }
 
     [Fact]
@@ -78,17 +153,41 @@ public sealed class IfExpressionTests
             "if true {}",
             p => p.ParseRoot());
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<BlockSyntax>();
             {
-                p.N<IfExpression>();
+                p.N<SyntaxList<StatementSyntax>>();
                 {
-                    p.N<BoolExpression>();
+                    p.N<FlowControlStatementSyntax>();
+                    {
+                        p.N<IfExpressionSyntax>();
+                        p.T(TokenKind.If);
+                        {
+                            p.N<BoolExpressionSyntax>();
+                            {
+                                p.T(TokenKind.True);                            
+                            }
 
-                    p.N<BlockExpression>();
+                            p.N<BlockExpressionSyntax>();
+                            {
+                                p.T(TokenKind.OpenBrace);
+
+                                p.N<BlockSyntax>();
+                                {
+                                    p.N<SyntaxList<StatementSyntax>>();
+                                }
+
+                                p.T(TokenKind.CloseBrace);
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        p.T(TokenKind.EndOfFile);
+
+        p.End();
     }
 }

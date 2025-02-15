@@ -4,7 +4,7 @@
 
 namespace Noa.Compiler.Nodes;
 
-public sealed partial class Block : Node
+public sealed partial class Block(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
 {
     public required ImmutableArray<Statement> Statements { get; init; }
 
@@ -13,23 +13,25 @@ public sealed partial class Block : Node
     public override IEnumerable<Node> Children => [..Statements, ..EmptyIfNull(TrailingExpression)];
 }
 
-public sealed partial class Root : Node
+public sealed partial class Root(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
 {
     public required Block Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
 }
 
-public sealed partial class Identifier : Node
+public sealed partial class Identifier(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
 {
     public required string Name { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
 
-public abstract partial class Statement : Node;
+public abstract partial class Statement(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
+{
+}
 
-public sealed partial class Parameter : Node
+public sealed partial class Parameter(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
 {
     public required bool IsMutable { get; init; }
 
@@ -38,12 +40,12 @@ public sealed partial class Parameter : Node
     public override IEnumerable<Node> Children => [Identifier];
 }
 
-public abstract partial class Declaration : Statement;
-
-public sealed partial class FunctionDeclaration : Declaration
+public abstract partial class Declaration(Ast ast, Syntax.SyntaxNode syntax) : Statement(ast, syntax)
 {
-    public required Token FuncKeyword { get; init; }
+}
 
+public sealed partial class FunctionDeclaration(Ast ast, Syntax.SyntaxNode syntax) : Declaration(ast, syntax)
+{
     public required Identifier Identifier { get; init; }
 
     public required ImmutableArray<Parameter> Parameters { get; init; }
@@ -55,10 +57,8 @@ public sealed partial class FunctionDeclaration : Declaration
     public override IEnumerable<Node> Children => [Identifier, ..Parameters, ..EmptyIfNull(ExpressionBody), ..EmptyIfNull(BlockBody)];
 }
 
-public sealed partial class LetDeclaration : Declaration
+public sealed partial class LetDeclaration(Ast ast, Syntax.SyntaxNode syntax) : Declaration(ast, syntax)
 {
-    public required Token LetKeyword { get; init; }
-
     public required bool IsMutable { get; init; }
 
     public required Identifier Identifier { get; init; }
@@ -68,7 +68,7 @@ public sealed partial class LetDeclaration : Declaration
     public override IEnumerable<Node> Children => [Identifier, Expression];
 }
 
-public sealed partial class AssignmentStatement : Statement
+public sealed partial class AssignmentStatement(Ast ast, Syntax.SyntaxNode syntax) : Statement(ast, syntax)
 {
     public required Expression Target { get; init; }
 
@@ -79,28 +79,30 @@ public sealed partial class AssignmentStatement : Statement
     public override IEnumerable<Node> Children => [Target, Value];
 }
 
-public sealed partial class ExpressionStatement : Statement
+public sealed partial class ExpressionStatement(Ast ast, Syntax.SyntaxNode syntax) : Statement(ast, syntax)
 {
     public required Expression Expression { get; init; }
 
     public override IEnumerable<Node> Children => [Expression];
 }
 
-public abstract partial class Expression : Node;
+public abstract partial class Expression(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
+{
+}
 
-public sealed partial class ErrorExpression : Expression
+public sealed partial class ErrorExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class BlockExpression : Expression
+public sealed partial class BlockExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Block Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
 }
 
-public sealed partial class CallExpression : Expression
+public sealed partial class CallExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Expression Target { get; init; }
 
@@ -109,28 +111,24 @@ public sealed partial class CallExpression : Expression
     public override IEnumerable<Node> Children => [Target, ..Arguments];
 }
 
-public sealed partial class LambdaExpression : Expression
+public sealed partial class LambdaExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required ImmutableArray<Parameter> Parameters { get; init; }
-
-    public required Token ArrowToken { get; init; }
 
     public required Expression Body { get; init; }
 
     public override IEnumerable<Node> Children => [..Parameters, Body];
 }
 
-public sealed partial class TupleExpression : Expression
+public sealed partial class TupleExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required ImmutableArray<Expression> Expressions { get; init; }
 
     public override IEnumerable<Node> Children => [..Expressions];
 }
 
-public sealed partial class IfExpression : Expression
+public sealed partial class IfExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
-    public required Token IfKeyword { get; init; }
-
     public required Expression Condition { get; init; }
 
     public required BlockExpression IfTrue { get; init; }
@@ -140,48 +138,40 @@ public sealed partial class IfExpression : Expression
     public override IEnumerable<Node> Children => [Condition, IfTrue, ..EmptyIfNull(Else)];
 }
 
-public sealed partial class ElseClause : Node
+public sealed partial class ElseClause(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
 {
-    public required Token ElseKeyword { get; init; }
-
     public required BlockExpression IfFalse { get; init; }
 
     public override IEnumerable<Node> Children => [IfFalse];
 }
 
-public sealed partial class LoopExpression : Expression
+public sealed partial class LoopExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
-    public required Token LoopKeyword { get; init; }
-
     public required BlockExpression Block { get; init; }
 
     public override IEnumerable<Node> Children => [Block];
 }
 
-public sealed partial class ReturnExpression : Expression
+public sealed partial class ReturnExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
-    public required Token ReturnKeyword { get; init; }
-
     public required Expression? Expression { get; init; }
 
     public override IEnumerable<Node> Children => [..EmptyIfNull(Expression)];
 }
 
-public sealed partial class BreakExpression : Expression
+public sealed partial class BreakExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
-    public required Token BreakKeyword { get; init; }
-
     public required Expression? Expression { get; init; }
 
     public override IEnumerable<Node> Children => [..EmptyIfNull(Expression)];
 }
 
-public sealed partial class ContinueExpression : Expression
+public sealed partial class ContinueExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class UnaryExpression : Expression
+public sealed partial class UnaryExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required UnaryKind Kind { get; init; }
 
@@ -190,7 +180,7 @@ public sealed partial class UnaryExpression : Expression
     public override IEnumerable<Node> Children => [Operand];
 }
 
-public sealed partial class BinaryExpression : Expression
+public sealed partial class BinaryExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Expression Left { get; init; }
 
@@ -201,51 +191,53 @@ public sealed partial class BinaryExpression : Expression
     public override IEnumerable<Node> Children => [Left, Right];
 }
 
-public sealed partial class IdentifierExpression : Expression
+public sealed partial class IdentifierExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required string Identifier { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class StringExpression : Expression
+public sealed partial class StringExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required ImmutableArray<StringPart> Parts { get; init; }
 
     public override IEnumerable<Node> Children => [..Parts];
 }
 
-public abstract partial class StringPart : Node;
+public abstract partial class StringPart(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
+{
+}
 
-public sealed partial class TextStringPart : StringPart
+public sealed partial class TextStringPart(Ast ast, Syntax.SyntaxNode syntax) : StringPart(ast, syntax)
 {
     public required string Text { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class InterpolationStringPart : StringPart
+public sealed partial class InterpolationStringPart(Ast ast, Syntax.SyntaxNode syntax) : StringPart(ast, syntax)
 {
     public required Expression Expression { get; init; }
 
     public override IEnumerable<Node> Children => [Expression];
 }
 
-public sealed partial class BoolExpression : Expression
+public sealed partial class BoolExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required bool Value { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class NumberExpression : Expression
+public sealed partial class NumberExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required double Value { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }
 
-public sealed partial class NilExpression : Expression
+public sealed partial class NilExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public override IEnumerable<Node> Children => [];
 }

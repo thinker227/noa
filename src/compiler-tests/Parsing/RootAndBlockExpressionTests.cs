@@ -1,5 +1,7 @@
-using Noa.Compiler.Nodes;
+#if false
+using Noa.Compiler.Syntax.Green;
 using Noa.Compiler.Tests;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
 
@@ -14,29 +16,36 @@ public class RootAndBlockExpressionTests
         c()
         """, p => p.ParseRoot());
         
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
             
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+                    }
                 }
             }
             
-            p.N<CallExpression>();
+            p.N<CallExpressionSyntax>();
             {
-                p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("c"));
+                p.N<IdentifierExpressionSyntax>();
+                {
+                    p.T(TokenKind.Name, t => t.Text.ShouldBe("c"));
+                }
             }
         }
 
@@ -54,27 +63,34 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
         
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
             
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+                    }
                 }
             }
             
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+            }
         }
 
         p.End();
@@ -85,9 +101,7 @@ public class RootAndBlockExpressionTests
     {
         var p = ParseAssertion.Create("", p => p.ParseRoot());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-        
-        p.N<Root>();
+        p.N<RootSyntax>();
 
         p.End();
     }
@@ -97,9 +111,7 @@ public class RootAndBlockExpressionTests
     {
         var p = ParseAssertion.Create("{}", p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-        
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
 
         p.End();
     }
@@ -109,15 +121,16 @@ public class RootAndBlockExpressionTests
     {
         var p = ParseAssertion.Create("a();", p => p.ParseRoot());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-        
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
         }
@@ -134,15 +147,16 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-        
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
         }
@@ -159,11 +173,12 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-        
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+            }
         }
 
         p.End();
@@ -183,17 +198,23 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 14, 15))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
 
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+            }
         }
 
         p.End();
@@ -211,21 +232,27 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 4, 5))
         ]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
 
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+                    }
                 }
             }
         }
@@ -246,13 +273,16 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 5, 8))
         ]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
         }
@@ -274,9 +304,12 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.UnexpectedToken.Id, new("test-input", 12, 15))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+            }
         }
 
         p.End();
@@ -298,21 +331,27 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 15, 18))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
             
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+                    }
                 }
             }
         }
@@ -335,13 +374,16 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 15, 18))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
         }
@@ -363,21 +405,27 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 5, 8))
         ]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
             
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+                    }
                 }
             }
         }
@@ -398,13 +446,16 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 5, 8))
         ]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<CallExpression>();
+                p.N<CallExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+                    p.N<IdentifierExpressionSyntax>();
+                    {
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+                    }
                 }
             }
         }
@@ -421,13 +472,11 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<LoopExpression>();
+            p.N<LoopExpressionSyntax>();
             {
-                p.N<BlockExpression>();
+                p.N<BlockExpressionSyntax>();
             }
         }
 
@@ -443,19 +492,20 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<IfExpression>();
+            p.N<IfExpressionSyntax>();
             {
-                p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
-
-                p.N<BlockExpression>();
-
-                p.N<ElseClause>();
+                p.N<IdentifierExpressionSyntax>();
                 {
-                    p.N<BlockExpression>();
+                    p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+                }
+
+                p.N<BlockExpressionSyntax>();
+
+                p.N<ElseClauseSyntax>();
+                {
+                    p.N<BlockExpressionSyntax>();
                 }
             }
         }
@@ -472,11 +522,9 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<BlockExpression>();
+            p.N<BlockExpressionSyntax>();
         }
 
         p.End();
@@ -492,19 +540,20 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<LoopExpression>();
+                p.N<LoopExpressionSyntax>();
                 {
-                    p.N<BlockExpression>();
+                    p.N<BlockExpressionSyntax>();
                 }
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
@@ -520,26 +569,30 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<IfExpression>();
+                p.N<IfExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
-
-                    p.N<BlockExpression>();
-
-                    p.N<ElseClause>();
+                    p.N<IdentifierExpressionSyntax>();
                     {
-                        p.N<BlockExpression>();
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+                    }
+
+                    p.N<BlockExpressionSyntax>();
+
+                    p.N<ElseClauseSyntax>();
+                    {
+                        p.N<BlockExpressionSyntax>();
                     }
                 }
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
@@ -555,16 +608,17 @@ public class RootAndBlockExpressionTests
         }
         """, p => p.ParseBlockExpression());
 
-        p.Diagnostics.DiagnosticsShouldBe([]);
-
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<BlockExpression>();
+                p.N<BlockExpressionSyntax>();
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
@@ -585,17 +639,20 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 13, 14))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<LoopExpression>();
+                p.N<LoopExpressionSyntax>();
                 {
-                    p.N<BlockExpression>();
+                    p.N<BlockExpressionSyntax>();
                 }
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
@@ -616,24 +673,30 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 21, 22))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<IfExpression>();
+                p.N<IfExpressionSyntax>();
                 {
-                    p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
-
-                    p.N<BlockExpression>();
-
-                    p.N<ElseClause>();
+                    p.N<IdentifierExpressionSyntax>();
                     {
-                        p.N<BlockExpression>();
+                        p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+                    }
+
+                    p.N<BlockExpressionSyntax>();
+
+                    p.N<ElseClauseSyntax>();
+                    {
+                        p.N<BlockExpressionSyntax>();
                     }
                 }
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
@@ -654,16 +717,20 @@ public class RootAndBlockExpressionTests
             (ParseDiagnostics.ExpectedKinds.Id, new("test-input", 8, 9))
         ]);
 
-        p.N<BlockExpression>();
+        p.N<BlockExpressionSyntax>();
         {
-            p.N<ExpressionStatement>();
+            p.N<ExpressionStatementSyntax>();
             {
-                p.N<BlockExpression>();
+                p.N<BlockExpressionSyntax>();
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>();
+            {
+                p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+            }
         }
 
         p.End();
     }
 }
+#endif
