@@ -11,7 +11,10 @@ public static class SyntaxUtilities
         while (true)
         {
             if (node is Token token) return token;
-            node = node.Children.First();
+
+            // Only tokens should be leaves and not have any children.
+            node = node.Children.FirstOrDefault()
+                ?? throw new InvalidOperationException("Node has no children.");
         }
     }
 
@@ -24,7 +27,10 @@ public static class SyntaxUtilities
         while (true)
         {
             if (node is Token token) return token;
-            node = node.Children.Last();
+
+            // Only tokens should be leaves and not have any children.
+            node = node.Children.LastOrDefault()
+                ?? throw new InvalidOperationException("Node has no children.");
         }
     }
 
