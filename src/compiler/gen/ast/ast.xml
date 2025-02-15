@@ -2,134 +2,134 @@
 
 <Root Name="Node">
 
-  <Node Name="Block" Concrete="BlockSyntax">
+  <Node Name="Block">
     <List Name="Statements" Type="Statement"/>
     <Value Name="TrailingExpression" Type="Expression" Optional="true"/>
   </Node>
 
-  <Node Name="Root" Concrete="RootSyntax">
+  <Node Name="Root">
     <Value Name="Block" Type="Block"/>
   </Node>
 
-  <Node Name="Identifier" Concrete="Token">
+  <Node Name="Identifier">
     <Value Name="Name" Type="string" Primitive="true"/>
   </Node>
 
-  <Variant Name="Statement" Concrete="StatementSyntax"/>
+  <Variant Name="Statement"/>
 
-  <Node Name="Parameter" Concrete="ParameterSyntax">
+  <Node Name="Parameter">
     <Value Name="IsMutable" Type="bool" Primitive="true"/>
     <Value Name="Identifier" Type="Identifier"/>
   </Node>
 
-  <Variant Name="Declaration" Parent="Statement" Concrete="DeclarationSyntax"/>
+  <Variant Name="Declaration" Parent="Statement"/>
 
-  <Node Name="FunctionDeclaration" Parent="Declaration" Concrete="FunctionDeclarationSyntax">
+  <Node Name="FunctionDeclaration" Parent="Declaration">
     <Value Name="Identifier" Type="Identifier"/>
     <List Name="Parameters" Type="Parameter"/>
     <Value Name="ExpressionBody" Type="Expression" Optional="true"/>
     <Value Name="BlockBody" Type="BlockExpression" Optional="true"/>
   </Node>
 
-  <Node Name="LetDeclaration" Parent="Declaration" Concrete="LetDeclarationSyntax">
+  <Node Name="LetDeclaration" Parent="Declaration">
     <Value Name="IsMutable" Type="bool" Primitive="true"/>
     <Value Name="Identifier" Type="Identifier"/>
     <Value Name="Expression" Type="Expression"/>
   </Node>
 
-  <Node Name="AssignmentStatement" Parent="Statement" Concrete="AssignmentStatementSyntax">
+  <Node Name="AssignmentStatement" Parent="Statement">
     <Value Name="Target" Type="Expression"/>
     <Value Name="Kind" Type="AssignmentKind" Primitive="true"/>
     <Value Name="Value" Type="Expression"/>
   </Node>
 
-  <Node Name="ExpressionStatement" Parent="Statement" Concrete="ExpressionStatementSyntax">
+  <Node Name="ExpressionStatement" Parent="Statement">
     <Value Name="Expression" Type="Expression"/>
   </Node>
 
-  <Variant Name="Expression" Concrete="ExpressionSyntax"/>
+  <Variant Name="Expression"/>
 
-  <Node Name="ErrorExpression" Parent="Expression" Concrete="ErrorExpressionSyntax"/>
+  <Node Name="ErrorExpression" Parent="Expression"/>
 
-  <Node Name="BlockExpression" Parent="Expression" Concrete="BlockExpressionSyntax">
+  <Node Name="BlockExpression" Parent="Expression">
     <Value Name="Block" Type="Block"/>
   </Node>
 
-  <Node Name="CallExpression" Parent="Expression" Concrete="CallExpressionSyntax">
+  <Node Name="CallExpression" Parent="Expression">
     <Value Name="Target" Type="Expression"/>
     <List Name="Arguments" Type="Expression"/>
   </Node>
 
-  <Node Name="LambdaExpression" Parent="Expression" Concrete="LambdaExpressionSyntax">
+  <Node Name="LambdaExpression" Parent="Expression">
     <List Name="Parameters" Type="Parameter"/>
     <Value Name="Body" Type="Expression"/>
   </Node>
 
-  <Node Name="TupleExpression" Parent="Expression" Concrete="TupleExpressionSyntax">
+  <Node Name="TupleExpression" Parent="Expression">
     <List Name="Expressions" Type="Expression"/>
   </Node>
 
-  <Node Name="IfExpression" Parent="Expression" Concrete="IfExpressionSyntax">
+  <Node Name="IfExpression" Parent="Expression">
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>
     <Value Name="Else" Type="ElseClause" Optional="true"/>
   </Node>
   
-  <Node Name="ElseClause" Concrete="ElseClauseSyntax">
+  <Node Name="ElseClause">
     <Value Name="IfFalse" Type="BlockExpression"/>
   </Node>
 
-  <Node Name="LoopExpression" Parent="Expression" Concrete="LoopExpressionSyntax">
+  <Node Name="LoopExpression" Parent="Expression">
     <Value Name="Block" Type="BlockExpression"/>
   </Node>
 
-  <Node Name="ReturnExpression" Parent="Expression" Concrete="ReturnExpressionSyntax">
+  <Node Name="ReturnExpression" Parent="Expression">
     <Value Name="Expression" Type="Expression" Optional="true"/>
   </Node>
 
-  <Node Name="BreakExpression" Parent="Expression" Concrete="BreakExpressionSyntax">
+  <Node Name="BreakExpression" Parent="Expression">
     <Value Name="Expression" Type="Expression" Optional="true"/>
   </Node>
 
-  <Node Name="ContinueExpression" Parent="Expression" Concrete="ContinueExpressionSyntax"/>
+  <Node Name="ContinueExpression" Parent="Expression"/>
 
-  <Node Name="UnaryExpression" Parent="Expression" Concrete="UnaryExpressionSyntax">
+  <Node Name="UnaryExpression" Parent="Expression">
     <Value Name="Kind" Type="UnaryKind" Primitive="true"/>
     <Value Name="Operand" Type="Expression"/>
   </Node>
 
-  <Node Name="BinaryExpression" Parent="Expression" Concrete="BinaryExpressionSyntax">
+  <Node Name="BinaryExpression" Parent="Expression">
     <Value Name="Left" Type="Expression"/>
     <Value Name="Kind" Type="BinaryKind" Primitive="true"/>
     <Value Name="Right" Type="Expression"/>
   </Node>
 
-  <Node Name="IdentifierExpression" Parent="Expression" Concrete="IdentifierExpressionSyntax">
+  <Node Name="IdentifierExpression" Parent="Expression">
     <Value Name="Identifier" Type="string" Primitive="true"/>
   </Node>
 
-  <Node Name="StringExpression" Parent="Expression" Concrete="StringExpressionSyntax">
+  <Node Name="StringExpression" Parent="Expression">
     <List Name="Parts" Type="StringPart"/>
   </Node>
 
-  <Variant Name="StringPart" Concrete="StringPartSyntax"/>
+  <Variant Name="StringPart"/>
 
-  <Node Name="TextStringPart" Parent="StringPart" Concrete="TextStringPartSyntax">
+  <Node Name="TextStringPart" Parent="StringPart">
     <Value Name="Text" Type="string" Primitive="true"/>
   </Node>
 
-  <Node Name="InterpolationStringPart" Parent="StringPart" Concrete="InterpolationStringPartSyntax">
+  <Node Name="InterpolationStringPart" Parent="StringPart">
     <Value Name="Expression" Type="Expression"/>
   </Node>
 
-  <Node Name="BoolExpression" Parent="Expression" Concrete="BoolExpressionSyntax">
+  <Node Name="BoolExpression" Parent="Expression">
     <Value Name="Value" Type="bool" Primitive="true"/>
   </Node>
 
-  <Node Name="NumberExpression" Parent="Expression" Concrete="NumberExpressionSyntax">
+  <Node Name="NumberExpression" Parent="Expression">
     <Value Name="Value" Type="double" Primitive="true"/>
   </Node>
   
-  <Node Name="NilExpression" Parent="Expression" Concrete="NilExpressionSyntax"/>
+  <Node Name="NilExpression" Parent="Expression"/>
 
 </Root>
