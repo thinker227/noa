@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Services;
 
 namespace Noa.Compiler.Symbols;
 

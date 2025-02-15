@@ -2,8 +2,9 @@
 // ReSharper disable TooWideLocalVariableScope
 
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Symbols;
 
-namespace Noa.Compiler.Symbols;
+namespace Noa.Compiler.Services;
 
 internal static class LookupCorrection
 {
