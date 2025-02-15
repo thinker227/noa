@@ -35,11 +35,11 @@ public static class SyntaxUtilities
     }
 
     /// <summary>
-    /// Gets the node preceding a node.
+    /// Gets the token preceding a node (or token).
     /// </summary>
-    /// <param name="node">The node to get the preceding node of.</param>
-    /// <returns>The preceding node, or <see langword="null"/> if none could be found.</returns>
-    public static SyntaxNode? GetPreviousNode(this SyntaxNode node)
+    /// <param name="node">The node to get the token preceding.</param>
+    /// <returns>The preceding token, or <see langword="null"/> if none could be found.</returns>
+    public static Token? GetPreviousToken(this SyntaxNode node)
     {
         // Find the previous node in the tree by navigating up one level
         // and trying to find the previous sibling to the node.
@@ -51,7 +51,7 @@ public static class SyntaxUtilities
         var previous = null as SyntaxNode;
         foreach (var sibling in node.Parent.Children)
         {
-            if (sibling != node)
+            if (!sibling.Equals(node))
             {
                 previous = sibling;
                 continue;
@@ -61,7 +61,7 @@ public static class SyntaxUtilities
             {
                 // This was the first sibling in the parent.
                 // We have to recurse upwards to try find the previous node.
-                return node.Parent.GetPreviousNode();
+                return node.Parent.GetPreviousToken();
             }
             else
             {
@@ -74,14 +74,6 @@ public static class SyntaxUtilities
         // Something probably went wrong, this should be unreachable.
         throw new UnreachableException();
     }
-
-    /// <summary>
-    /// Gets the token preceding a token.
-    /// </summary>
-    /// <param name="token">The token to get the token preceding.</param>
-    /// <returns>The preceding token, or <see langword="null"/> if none could be found.</returns>
-    public static Token? GetPreviousToken(this Token token) =>
-        token.GetPreviousNode()?.GetLastToken();
     
     /// <summary>
     /// Gets the token at a specified position in a syntax node.
