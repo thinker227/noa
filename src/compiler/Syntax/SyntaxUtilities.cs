@@ -4,34 +4,83 @@ public static class SyntaxUtilities
 {
     /// <summary>
     /// Gets the first token within a syntax node.
+    /// This is used as common method for both <see cref="GetFirstToken(SyntaxNode, bool)"/>
+    /// and <see cref="GetLastToken(SyntaxNode, bool)"/> since they both do pretty much the same thing,
+    /// except <see cref="GetLastToken(SyntaxNode, bool)"/> enumerates the children in reverse.
+    /// </summary>
+    private static Token? GetFirstToken(
+        SyntaxNode node,
+        bool includeInvisible,
+        Func<SyntaxNode, IEnumerable<SyntaxNode>> getChildren)
+    {
+        if (node is Token t) return t;
+
+        foreach (var child in getChildren(node))
+        {
+            if (child is Token token)
+            {
+                // Continue if the token is invisible and we should not include invisible tokens.
+                if (token.IsInvisible && !includeInvisible) continue;
+                else return token;
+            }
+
+            if (GetFirstToken(child, includeInvisible, getChildren) is { } childToken) return childToken;
+
+            // If we failed to find a first token in the child, continue onto the next child.
+        }
+
+        // If we got here then either the node had no children (which should be impossible unless it's a token,
+        // which it also shouldn't be), or we skipped all tokens because they were invisible.
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the first token within a syntax node.
     /// </summary>
     /// <param name="node">The node to get the first token token of.</param>
-    public static Token GetFirstToken(this SyntaxNode node)
-    {
-        while (true)
-        {
-            if (node is Token token) return token;
-
-            // Only tokens should be leaves and not have any children.
-            node = node.Children.FirstOrDefault()
-                ?? throw new InvalidOperationException("Node has no children.");
-        }
-    }
+    /// <param name="includeInvisible">
+    /// Whether to include invisible tokens.
+    /// If <see langword="true"/>, the method will return <see langword="null"/>
+    /// if the node does not have any visible tokens.
+    /// </param>
+    public static Token? GetFirstToken(this SyntaxNode node, bool includeInvisible = false) =>
+        GetFirstToken(node, includeInvisible, n => n.Children);
 
     /// <summary>
     /// Gets the last token within a syntax node.
     /// </summary>
     /// <param name="node">The node to get the last token token of.</param>
-    public static Token GetLastToken(this SyntaxNode node)
+    /// <param name="includeInvisible">
+    /// Whether to include invisible tokens.
+    /// If <see langword="true"/>, the method will return <see langword="null"/>
+    /// if the node does not have any visible tokens.
+    /// </param>
+    public static Token? GetLastToken(this SyntaxNode node, bool includeInvisible = false) =>
+        // This is technically just the same as GetFirstToken, but we iterate the children in reverse.
+        GetFirstToken(node, includeInvisible, n => n.Children.Reverse());
+    
+    /// <summary>
+    /// Enumerates the previous siblings of a node in reverse order.
+    /// </summary>
+    private static IEnumerable<SyntaxNode> IteratePreviousSiblings(SyntaxNode node)
     {
-        while (true)
-        {
-            if (node is Token token) return token;
+        if (node.Parent is null) return [];
 
-            // Only tokens should be leaves and not have any children.
-            node = node.Children.LastOrDefault()
-                ?? throw new InvalidOperationException("Node has no children.");
+        var previous = new Stack<SyntaxNode>();
+        foreach (var sibling in node.Parent.Children)
+        {
+            if (!sibling.Equals(node))
+            {
+                previous.Push(sibling);
+                continue;
+            }
+
+            return previous;
         }
+
+        // This *should* be unreachable.
+        throw new UnreachableException(
+            "Failed to find source node among the children of its parent.");
     }
 
     /// <summary>
@@ -39,40 +88,22 @@ public static class SyntaxUtilities
     /// </summary>
     /// <param name="node">The node to get the token preceding.</param>
     /// <returns>The preceding token, or <see langword="null"/> if none could be found.</returns>
-    public static Token? GetPreviousToken(this SyntaxNode node)
+    /// <param name="includeInvisible">
+    /// Whether to include invisible tokens.
+    /// </param>
+    public static Token? GetPreviousToken(this SyntaxNode node, bool includeInvisible = false)
     {
-        // Find the previous node in the tree by navigating up one level
-        // and trying to find the previous sibling to the node.
-        // If the node is the first among its siblings then we have to recurse
-        // upwards one level and do the same search on the parent node.
-
+        // There logically is no previous token if this is the root.
         if (node.Parent is null) return null;
 
-        var previous = null as SyntaxNode;
-        foreach (var sibling in node.Parent.Children)
+        foreach (var sibling in IteratePreviousSiblings(node))
         {
-            if (!sibling.Equals(node))
-            {
-                previous = sibling;
-                continue;
-            }
-
-            if (previous is null)
-            {
-                // This was the first sibling in the parent.
-                // We have to recurse upwards to try find the previous node.
-                return node.Parent.GetPreviousToken();
-            }
-            else
-            {
-                // We found the previous sibling!
-                return previous.GetLastToken();
-            }
+            if (sibling.GetLastToken(includeInvisible) is Token token) return token;
         }
 
-        // We couldn't find a previous node in any of the children.
-        // Something probably went wrong, this should be unreachable.
-        throw new UnreachableException();
+        // If we (for some reason) couldn't find a previous token in the node's preceding siblings,
+        // try get the previous token of the parent.
+        return node.Parent.GetPreviousToken(includeInvisible);
     }
     
     /// <summary>
