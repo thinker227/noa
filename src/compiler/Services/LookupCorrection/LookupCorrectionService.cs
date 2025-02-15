@@ -4,9 +4,9 @@
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
 
-namespace Noa.Compiler.Services;
+namespace Noa.Compiler.Services.LookupCorrection;
 
-internal static class LookupCorrection
+internal static class LookupCorrectionService
 {
     private const int MaxDistance = 3;
     

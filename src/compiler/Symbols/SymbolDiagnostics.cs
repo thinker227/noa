@@ -1,6 +1,6 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
-using Noa.Compiler.Services;
+using Noa.Compiler.Services.LookupCorrection;
 
 namespace Noa.Compiler.Symbols;
 
@@ -47,7 +47,7 @@ internal static class SymbolDiagnostics
             (arg, page) =>
             {
                 var (name, scope, at) = arg;
-                var corrections = LookupCorrection.FindPossibleCorrections(name, scope, at);
+                var corrections = LookupCorrectionService.FindPossibleCorrections(name, scope, at);
 
                 page.Raw("Cannot find a symbol with the name ")
                     .Name(name)
