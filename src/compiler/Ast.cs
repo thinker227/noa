@@ -18,6 +18,7 @@ public sealed class Ast
 {
     private readonly List<IDiagnostic> diagnostics;
     private IReadOnlyDictionary<Node, Node>? parents = null;
+    private IReadOnlyDictionary<SyntaxNode, Node>? astNodes = null;
     
     /// <summary>
     /// The source for the AST.
@@ -125,6 +126,44 @@ public sealed class Ast
                 parents[child] = node;
                 Visit(child);
             }
+        }
+    }
+
+    /// <summary>
+    /// Gets the AST node corresponding to a syntax node.
+    /// </summary>
+    /// <param name="syntaxNode">The syntax node to get the corresponding AST node of.</param>
+    /// <remarks>
+    /// Note that the AST node corresponding to a syntax node is not always a 1:1 relation.
+    /// For instance, <see cref="SyntaxList{T}"/> and <see cref="SeparatedSyntaxList{T}"/>
+    /// have no corresponding AST representation, so they always fall back to looking up the
+    /// corresponding AST node in their <i>parents</i>.
+    /// </remarks>
+    public Node GetAstNode(SyntaxNode syntaxNode)
+    {
+        astNodes ??= ComputeAstNodes(Root);
+
+        if (astNodes.TryGetValue(syntaxNode, out var node)) return node;
+
+        if (syntaxNode.Parent is null) throw new InvalidOperationException(
+            "Attempted get AST node corresponding to a syntax node which has no parent " +
+            "and no corresponding AST node by itself.");
+        
+        return GetAstNode(syntaxNode.Parent);
+    }
+
+    private static Dictionary<SyntaxNode, Node> ComputeAstNodes(Node root)
+    {
+        var parents = new Dictionary<SyntaxNode, Node>();
+        Visit(root);
+        return parents;
+
+        void Visit(Node node)
+        {
+            parents[node.Syntax] = node;
+
+            foreach (var child in node.Children)
+                Visit(child);
         }
     }
 
