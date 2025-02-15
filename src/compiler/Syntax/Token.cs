@@ -29,6 +29,13 @@ public sealed class Token : SyntaxNode
     /// </summary>
     public string LeadingTrivia => green.LeadingTrivia;
 
+    /// <summary>
+    /// Whether the token is invisible, i.e. does not consist of any text.
+    /// This is only the case for tokens with the kind
+    /// <see cref="TokenKind.Error"/> or <see cref="TokenKind.EndOfFile"/>.
+    /// </summary>
+    public bool IsInvisible => Kind is TokenKind.Error or TokenKind.EndOfFile;
+
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
 
