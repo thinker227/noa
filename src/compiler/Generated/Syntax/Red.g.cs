@@ -25,7 +25,7 @@ public sealed class BlockSyntax : SyntaxNode
     {
         get
         {
-            yield return Statements;
+            if (Statements is not []) yield return Statements;
             if (TrailingExpression is not null) yield return TrailingExpression;
             yield break;
         }
@@ -140,7 +140,7 @@ public sealed class ParameterListSyntax : SyntaxNode
         get
         {
             yield return OpenParen;
-            yield return Parameters;
+            if (Parameters is not []) yield return Parameters;
             yield return CloseParen;
             yield break;
         }
@@ -488,7 +488,7 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         {
             yield return Target;
             yield return OpenParen;
-            yield return Arguments;
+            if (Arguments is not []) yield return Arguments;
             yield return CloseParen;
             yield break;
         }
@@ -558,7 +558,7 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
         get
         {
             yield return OpenParen;
-            yield return Expressions;
+            if (Expressions is not []) yield return Expressions;
             yield return CloseParen;
             yield break;
         }
@@ -919,7 +919,7 @@ public sealed class StringExpressionSyntax : ExpressionSyntax
         get
         {
             yield return OpenQuote;
-            yield return Parts;
+            if (Parts is not []) yield return Parts;
             yield return CloseQuote;
             yield break;
         }

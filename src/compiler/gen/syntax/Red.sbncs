@@ -43,7 +43,7 @@ public {{ if node.is_abstract }}abstract {{ else if node.children.size == 0 }}se
         get
         {
             {{~ for member in node.members ~}}
-            {{ if member.is_optional }}if ({{ member.name}} is not null) {{ end }}yield return {{ member.name }};
+            {{ if member.is_optional }}if ({{ member.name}} is not null) {{ end }}{{ if member.is_list }}if ({{ member.name }} is not []) {{ end }}yield return {{ member.name }};
             {{~ end ~}}
             yield break;
         }
