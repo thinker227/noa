@@ -17,8 +17,33 @@ public static class ContextService
         var rightToken = ast.SyntaxRoot.GetTokenAt(position);
         var leftToken = rightToken?.GetPreviousToken();
 
-        // After a statement
-        var isAfterStatement = leftToken
+        // "Marty! You're just not thinking 4th dimensionally! Don't you see? The bridge *will* exist in 1985!"
+        // This method contains a lot of "potentially"s and speculation, because we want to provide
+        // as complete of a context as possible regardless of what the user is about to write.
+        // This involves interpreting constructs which currently look like one thing as something else
+        // because they might turn into something different after the user has written something new.
+
+        // After a block which currently is an expression
+        // but which might end up being a flow control statement.
+        var isAfterPotentialFlowControlStatement = leftToken
+            // { {} | }
+            // { if x {} else {} | }
+            is {
+                Kind: TokenKind.CloseBrace,
+                Parent:
+                    BlockExpressionSyntax {
+                        Parent:
+                            BlockSyntax or
+                            ElseClauseSyntax {
+                                Parent: IfExpressionSyntax {
+                                    Parent: not FlowControlStatementSyntax
+                                }
+                            }
+                    }
+            };           
+
+        // After *strictly* a statement and not a potential flow control statement.
+        var isStrictlyAfterStatement = leftToken
             // let x = 0; |
             // x = 0; |
             // f(); |
@@ -29,10 +54,10 @@ public static class ContextService
                     AssignmentStatementSyntax or
                     ExpressionStatementSyntax
             }
-            // {} |
+            // {} | let x = 0;
             // if x {} |
-            // if x {} else {} |
-            // loop {} |
+            // if x {} else {} | let x = 0;
+            // loop {} | let x = 0;
             or {
                 Kind: TokenKind.CloseBrace,
                 Parent:
@@ -56,7 +81,7 @@ public static class ContextService
             };
 
         // Expressions
-        var isExpresssion = leftToken
+        var isExpresssion = isAfterPotentialFlowControlStatement || leftToken
             // {|}
             is {
                 Kind: TokenKind.OpenBrace,
@@ -68,7 +93,6 @@ public static class ContextService
                 Parent: LetDeclarationSyntax
             }
             // x = |
-            //
             // including compound assignment tokens
             or {
                 Kind:
@@ -138,9 +162,10 @@ public static class ContextService
                 Parent: BinaryExpressionSyntax
             };
         
-        // Check if the context could be a trailing expression.
-        if (isAfterStatement) {
-            var statement = leftToken!.GetFirstAncestorOfType<StatementSyntax>()!;
+        // Check if the context could be a trailing expression after a statement.
+        if (isStrictlyAfterStatement)
+        {
+            var statement = leftToken?.GetFirstAncestorOfType<StatementSyntax>()!;
             var statementIndex = statement.GetIndexInParent();
             var block = statement.GetFirstAncestorOfType<BlockSyntax>()!;
             var isTrailingExpression =
@@ -149,7 +174,7 @@ public static class ContextService
             isExpresssion |= isTrailingExpression;
         }
 
-        // Post expression
+        // After an expression
         var isPostExpression = leftToken
             // true |
             // false |
@@ -179,10 +204,9 @@ public static class ContextService
                     ParenthesizedExpressionSyntax or
                     TupleExpressionSyntax
             }
-            // {} |
-            // if x {} |
-            // if x {} else {} |
-            // loop {} |
+            // let x = {} |
+            // let x = if y {} else {} |
+            // let x = loop {} |
             // 
             // Specifically not when the expression is a flow control statement.
             or {
@@ -190,9 +214,6 @@ public static class ContextService
                 Parent:
                     BlockExpressionSyntax {
                         Parent:
-                            IfExpressionSyntax {
-                                Parent: not FlowControlStatementSyntax
-                            } or
                             ElseClauseSyntax {
                                 Parent: IfExpressionSyntax {
                                     Parent: not FlowControlStatementSyntax
@@ -201,11 +222,18 @@ public static class ContextService
                             LoopExpressionSyntax {
                                 Parent: not FlowControlStatementSyntax
                             }
+                    } or
+                    BlockExpressionSyntax {
+                        Parent: not (
+                            IfExpressionSyntax or
+                            BlockBodySyntax
+                        )
                     }
             };
 
         // Statements
-        var isStatement = isAfterStatement || /*isAfterTrailingFlowControlExpression ||*/ leftToken
+        var isStatement = isAfterPotentialFlowControlStatement || isStrictlyAfterStatement || leftToken
+            // {|
             is {
                 Kind: TokenKind.OpenBrace,
                 Parent: BlockExpressionSyntax
@@ -213,10 +241,13 @@ public static class ContextService
         
         // Parameters or variables
         var isParameterOrVariable = leftToken
+            // let |
             is {
                 Kind: TokenKind.Let,
                 Parent: LetDeclarationSyntax
             }
+            // (|)
+            // (|a, b)
             or {
                 Kind: TokenKind.OpenParen,
                 Parent:
@@ -226,14 +257,15 @@ public static class ContextService
                     NilExpressionSyntax or
                     ParameterListSyntax
             }
+            // (a, |)
             or {
                 Kind: TokenKind.Comma,
                 Parent: SeparatedSyntaxList<ParameterSyntax>
             };
         
-        // Post if body without an else clause
+        // After an if body without an else clause
         var isPostIfBodyWithoutElse = leftToken
-            // 
+            // if x {} |
             is {
                 Kind: TokenKind.CloseBrace,
                 Parent: BlockExpressionSyntax {
