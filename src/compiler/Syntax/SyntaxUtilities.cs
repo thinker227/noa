@@ -20,6 +20,8 @@ public static class SyntaxUtilities
         while (current is not null)
         {
             if (current is T x && (filter?.Invoke(x) ?? true)) return x;
+            
+            current = current.Parent;
         }
 
         return null;
