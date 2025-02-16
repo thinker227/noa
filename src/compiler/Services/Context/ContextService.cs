@@ -2,6 +2,9 @@ using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Services.Context;
 
+/// <summary>
+/// Service for fetching syntax contexts.
+/// </summary>
 public static class ContextService
 {
     /// <summary>
