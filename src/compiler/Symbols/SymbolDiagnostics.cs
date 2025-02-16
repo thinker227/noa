@@ -41,13 +41,13 @@ internal static class SymbolDiagnostics
                 .Raw(" in the same scope."),
             Severity.Error);
     
-    public static DiagnosticTemplate<(string, IScope, Node)> SymbolCannotBeFound { get; } =
-        DiagnosticTemplate.Create<(string name, IScope scope, Node at)>(
+    public static DiagnosticTemplate<(string, IScope, LookupLocation)> SymbolCannotBeFound { get; } =
+        DiagnosticTemplate.Create<(string name, IScope scope, LookupLocation location)>(
             "NOA-SYM-004",
             (arg, page) =>
             {
-                var (name, scope, at) = arg;
-                var corrections = LookupCorrectionService.FindPossibleCorrections(name, scope, at);
+                var (name, scope, location) = arg;
+                var corrections = LookupCorrectionService.FindPossibleCorrections(name, scope, location);
 
                 page.Raw("Cannot find a symbol with the name ")
                     .Name(name)
