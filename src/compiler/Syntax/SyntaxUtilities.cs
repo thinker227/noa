@@ -38,17 +38,15 @@ public static class SyntaxUtilities
         bool includeInvisible,
         Func<SyntaxNode, IEnumerable<SyntaxNode>> getChildren)
     {
-        if (node is Token t) return t;
+        if (node is Token token)
+        {
+            // Return null if the token is invisible and we should not include invisible tokens.
+            if (token.IsInvisible && !includeInvisible) return null;
+            else return token;
+        }
 
         foreach (var child in getChildren(node))
         {
-            if (child is Token token)
-            {
-                // Continue if the token is invisible and we should not include invisible tokens.
-                if (token.IsInvisible && !includeInvisible) continue;
-                else return token;
-            }
-
             if (GetFirstToken(child, includeInvisible, getChildren) is { } childToken) return childToken;
 
             // If we failed to find a first token in the child, continue onto the next child.
