@@ -1,0 +1,54 @@
+﻿{
+  "If": {
+    "Kind": "If",
+    "FullWidth": 2,
+    "Text": "if",
+    "LeadingTrivia": ""
+  },
+  "Condition": {
+    "Value": {
+      "Kind": "True",
+      "FullWidth": 5,
+      "Text": "true",
+      "LeadingTrivia": " "
+    }
+  },
+  "Body": {
+    "OpenBrace": {
+      "Kind": "OpenBrace",
+      "FullWidth": 2,
+      "Text": "{",
+      "LeadingTrivia": " "
+    },
+    "Block": {},
+    "CloseBrace": {
+      "Kind": "CloseBrace",
+      "FullWidth": 1,
+      "Text": "}",
+      "LeadingTrivia": ""
+    }
+  },
+  "Else": {
+    "Else": {
+      "Kind": "Else",
+      "FullWidth": 5,
+      "Text": "else",
+      "LeadingTrivia": " "
+    },
+    "Body": {
+      "OpenBrace": {
+        "Kind": "OpenBrace",
+        "FullWidth": 2,
+        "Text": "{",
+        "LeadingTrivia": " "
+      },
+      "Block": {},
+      "CloseBrace": {
+        "Kind": "CloseBrace",
+        "FullWidth": 1,
+        "Text": "}",
+        "LeadingTrivia": ""
+      }
+    }
+  }
+}

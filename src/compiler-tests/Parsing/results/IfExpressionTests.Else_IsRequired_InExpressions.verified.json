@@ -1,0 +1,58 @@
+﻿{
+  "If": {
+    "Kind": "If",
+    "FullWidth": 2,
+    "Text": "if",
+    "LeadingTrivia": ""
+  },
+  "Condition": {
+    "Value": {
+      "Kind": "True",
+      "FullWidth": 5,
+      "Text": "true",
+      "LeadingTrivia": " "
+    }
+  },
+  "Body": {
+    "OpenBrace": {
+      "Kind": "OpenBrace",
+      "FullWidth": 2,
+      "Text": "{",
+      "LeadingTrivia": " "
+    },
+    "Block": {},
+    "CloseBrace": {
+      "Kind": "CloseBrace",
+      "FullWidth": 1,
+      "Text": "}",
+      "LeadingTrivia": ""
+    }
+  },
+  "Else": {
+    "Else": {
+      "FullWidth": 0,
+      "Text": "",
+      "LeadingTrivia": ""
+    },
+    "Body": {
+      "OpenBrace": {
+        "FullWidth": 0,
+        "Text": "",
+        "LeadingTrivia": ""
+      },
+      "Block": {},
+      "CloseBrace": {
+        "FullWidth": 0,
+        "Text": "",
+        "LeadingTrivia": ""
+      }
+    }
+  },
+  "Diagnostics": [
+    {
+      "Id": "NOA-SYN-007",
+      "Offset": 0,
+      "Width": 10
+    }
+  ]
+}
