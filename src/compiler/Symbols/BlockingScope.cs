@@ -13,9 +13,9 @@ internal sealed class BlockingScope(IScope parent, Node declaration) : IScope
 
     // Blocking scopes do not declare symbols of their own, they only forward symbols from their parent scope.
     
-    public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null)
+    public LookupResult? LookupSymbol(string name, LookupLocation location, Func<ISymbol, bool>? predicate = null)
     {
-        if (Parent.LookupSymbol(name, declaration, predicate) is not { } lookup) return null;
+        if (Parent.LookupSymbol(name, LookupLocation.AtNode(declaration), predicate) is not { } lookup) return null;
 
         return lookup.Symbol switch
         {
@@ -24,8 +24,8 @@ internal sealed class BlockingScope(IScope parent, Node declaration) : IScope
         };
     }
     
-    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at) => [];
+    public IEnumerable<IDeclaredSymbol> DeclaredAt(LookupLocation location) => [];
 
-    public IEnumerable<ISymbol> AccessibleAt(Node? at) =>
-        Parent.AccessibleAt(declaration);
+    public IEnumerable<ISymbol> AccessibleAt(LookupLocation location) =>
+        Parent.AccessibleAt(LookupLocation.AtNode(declaration));
 }

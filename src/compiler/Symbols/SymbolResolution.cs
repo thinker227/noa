@@ -269,10 +269,11 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
     {
         var identifier = node.Identifier;
         
-        if (currentScope.LookupSymbol(identifier, node) is not var (symbol, accessibility))
+        var location = LookupLocation.AtNode(node);
+        if (currentScope.LookupSymbol(identifier, location) is not var (symbol, accessibility))
         {
             Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(
-                (identifier, currentScope, node),
+                (identifier, currentScope, location),
                 node.Location));
 
             node.ReferencedSymbol = new ErrorSymbol();
