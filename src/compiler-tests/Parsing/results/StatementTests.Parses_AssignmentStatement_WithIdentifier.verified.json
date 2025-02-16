@@ -1,0 +1,42 @@
+﻿{
+  "Block": {
+    "Statements": [
+      {
+        "Target": {
+          "Identifier": {
+            "Kind": "Name",
+            "FullWidth": 1,
+            "Text": "x",
+            "LeadingTrivia": ""
+          }
+        },
+        "Operator": {
+          "Kind": "Equals",
+          "FullWidth": 2,
+          "Text": "=",
+          "LeadingTrivia": " "
+        },
+        "Value": {
+          "Value": {
+            "Kind": "Number",
+            "FullWidth": 2,
+            "Text": "0",
+            "LeadingTrivia": " "
+          }
+        },
+        "Semicolon": {
+          "Kind": "Semicolon",
+          "FullWidth": 1,
+          "Text": ";",
+          "LeadingTrivia": ""
+        }
+      }
+    ]
+  },
+  "EndOfFile": {
+    "Kind": "EndOfFile",
+    "FullWidth": 0,
+    "Text": "",
+    "LeadingTrivia": ""
+  }
+}

@@ -1,0 +1,49 @@
+﻿{
+  "Block": {
+    "Statements": [
+      {
+        "Target": {
+          "Value": {
+            "Kind": "Number",
+            "FullWidth": 1,
+            "Text": "0",
+            "LeadingTrivia": ""
+          }
+        },
+        "Operator": {
+          "Kind": "Equals",
+          "FullWidth": 2,
+          "Text": "=",
+          "LeadingTrivia": " "
+        },
+        "Value": {
+          "Value": {
+            "Kind": "Number",
+            "FullWidth": 2,
+            "Text": "1",
+            "LeadingTrivia": " "
+          }
+        },
+        "Semicolon": {
+          "Kind": "Semicolon",
+          "FullWidth": 1,
+          "Text": ";",
+          "LeadingTrivia": ""
+        },
+        "Diagnostics": [
+          {
+            "Id": "NOA-SYN-006",
+            "Offset": 0,
+            "Width": 1
+          }
+        ]
+      }
+    ]
+  },
+  "EndOfFile": {
+    "Kind": "EndOfFile",
+    "FullWidth": 0,
+    "Text": "",
+    "LeadingTrivia": ""
+  }
+}
