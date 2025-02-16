@@ -28,6 +28,23 @@ internal sealed partial class Parser
         return root;
     }
 
+    /// <summary>
+    /// Parses a source file into a node of a specified type using a specific parse function.
+    /// </summary>
+    /// <typeparam name="T">The type of the node to parse.</typeparam>
+    /// <param name="parse">The parse function on the parser to invoke.</param>
+    /// <param name="source">The source file to parse.</param>
+    /// <param name="cancellationToken">The cancellation token used to signal the parser to cancel.</param>
+    internal static T Parse<T>(Func<Parser, T> parse, Source source, CancellationToken cancellationToken)
+    {
+        var tokens = Lexer.Lex(source, cancellationToken);
+        var parser = new Parser(source, tokens, cancellationToken);
+
+        var node = parse(parser);
+
+        return node;
+    }
+
     internal RootSyntax ParseRoot()
     {
         var (statements, trailingExpression) = ParseBlock(
