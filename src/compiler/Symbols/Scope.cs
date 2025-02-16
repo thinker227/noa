@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Nodes;
 
 namespace Noa.Compiler.Symbols;
@@ -16,9 +17,8 @@ public interface IScope
     /// Looks up a symbol with a specified name at a specific point in the scope.
     /// </summary>
     /// <param name="name">The name of the symbol to look up.</param>
-    /// <param name="at">
-    /// The node to look up the symbol at.
-    /// If not specified, will look up symbols at the end of the scope.
+    /// <param name="location">
+    /// The location to look up the symbol at.
     /// </param>
     /// <param name="predicate">
     /// A predicate which determines whether to return a given symbol with the specified name.
@@ -26,25 +26,53 @@ public interface IScope
     /// <returns>
     /// A result containing the symbol as well as its accessibility, or null if no symbol could not be found.
     /// </returns>
-    LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null);
+    LookupResult? LookupSymbol(string name, LookupLocation location, Func<ISymbol, bool>? predicate = null);
 
     /// <summary>
     /// Gets the declared symbols within the scope at a specific point.
     /// </summary>
-    /// <param name="at">
-    /// The node at which to find the declared symbols.
-    /// If not specified, will get the declared symbols at the end of the scope.
+    /// <param name="location">
+    /// The location at which to find the declared symbols.
     /// </param>
-    IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at);
+    IEnumerable<IDeclaredSymbol> DeclaredAt(LookupLocation location);
 
     /// <summary>
     /// Gets all accessible symbols at a specific point in the scope.
     /// </summary>
-    /// <param name="at">
-    /// The node at which to find the accessible symbols.
-    /// If not specified, will get the accessible symbols at the end of the scope.
+    /// <param name="location">
+    /// The location at which to find the declared symbols.
     /// </param>
-    IEnumerable<ISymbol> AccessibleAt(Node? at);
+    IEnumerable<ISymbol> AccessibleAt(LookupLocation location);
+}
+
+/// <summary>
+/// A location to look up a symbol at.
+/// </summary>
+public readonly struct LookupLocation
+{
+    /// <summary>
+    /// The node the lookup is at.
+    /// </summary>
+    public Node? Node { get; }
+
+    /// <summary>
+    /// Whether the lookup is at the end of its scope.
+    /// </summary>
+    [MemberNotNullWhen(false, nameof(Node))]
+    public bool IsAtEnd => Node is null;
+
+    private LookupLocation(Node? node) => Node = node;
+
+    /// <summary>
+    /// Creates a new lookup location at a specified node.
+    /// </summary>
+    /// <param name="node">The node to perform the lookup at.</param>
+    public static LookupLocation AtNode(Node node) => new(node);
+
+    /// <summary>
+    /// Creates a new lookup location at the end of a scope.
+    /// </summary>
+    public static LookupLocation AtEnd() => new();
 }
 
 /// <summary>

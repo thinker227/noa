@@ -17,16 +17,16 @@ internal sealed class MapScope(IScope? parent, Node declaration) : IScope
 
     // Lookup locations are irrelevant to map scopes because they're essentially just flat maps of symbols.
     
-    public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null) =>
+    public LookupResult? LookupSymbol(string name, LookupLocation location, Func<ISymbol, bool>? predicate = null) =>
         symbols.TryGetValue(name, out var symbol) && (predicate?.Invoke(symbol) ?? true)
             ? new(symbol, SymbolAccessibility.Accessible)
-            : Parent?.LookupSymbol(name, declaration, predicate);
+            : Parent?.LookupSymbol(name, LookupLocation.AtNode(declaration), predicate);
  
-    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at) =>
+    public IEnumerable<IDeclaredSymbol> DeclaredAt(LookupLocation location) =>
         symbols.Values;
 
-    public IEnumerable<ISymbol> AccessibleAt(Node? at) =>
-        DeclaredAt(at).Concat(Parent?.AccessibleAt(declaration) ?? []);
+    public IEnumerable<ISymbol> AccessibleAt(LookupLocation location) =>
+        DeclaredAt(location).Concat(Parent?.AccessibleAt(LookupLocation.AtNode(declaration)) ?? []);
 
     /// <summary>
     /// Declares a symbol within the scope.
