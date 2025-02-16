@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Noa.Compiler.Diagnostics;
 using TextMappingUtils;
 
 namespace Noa.Compiler.Syntax;
@@ -62,6 +63,13 @@ public abstract class SyntaxNode
         if (leadingTrivia is not null) width -= leadingTrivia.Length;
         return width;
     }
+
+    /// <summary>
+    /// Gets all diagnostics associated with this node.
+    /// </summary>
+    /// <param name="source">The source of the node.</param>
+    public IEnumerable<IDiagnostic> GetDiagnostics(Source source) =>
+        Green.Diagnostics.Select(diag => diag.Format(source, FullPosition));
 
     /// <summary>
     /// The nodes which are direct children of the node.
