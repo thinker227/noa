@@ -14,7 +14,8 @@ public static class ContextService
     /// <param name="position">The position within the AST to get the context at.</param>
     public static SyntaxContext GetSyntaxContext(this Ast ast, int position)
     {
-        var leftToken = ast.SyntaxRoot.GetLeftTokenAt(position);
+        var rightToken = ast.SyntaxRoot.GetTokenAt(position);
+        var leftToken = rightToken?.GetPreviousToken();
 
         // After a statement
         var isAfterStatement = leftToken
@@ -242,12 +243,13 @@ public static class ContextService
                 }
             };
         
-        var context = SyntaxContext.None;        
-        if (isExpresssion) context |= SyntaxContext.Expression;
-        if (isPostExpression) context |= SyntaxContext.PostExpression;
-        if (isStatement) context |= SyntaxContext.Statement;
-        if (isParameterOrVariable) context |= SyntaxContext.ParameterOrVariable;
-        if (isPostIfBodyWithoutElse) context |= SyntaxContext.PostIfBodyWithoutElse;
-        return context;
+        var kind = SyntaxContextKind.None;        
+        if (isExpresssion) kind |= SyntaxContextKind.Expression;
+        if (isPostExpression) kind |= SyntaxContextKind.PostExpression;
+        if (isStatement) kind |= SyntaxContextKind.Statement;
+        if (isParameterOrVariable) kind |= SyntaxContextKind.ParameterOrVariable;
+        if (isPostIfBodyWithoutElse) kind |= SyntaxContextKind.PostIfBodyWithoutElse;
+
+        return new(position, kind, ast, leftToken, rightToken);
     }
 }
