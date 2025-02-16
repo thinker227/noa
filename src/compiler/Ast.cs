@@ -85,6 +85,9 @@ public sealed class Ast
         var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
 
         var ast = new Ast(source, redRoot, cancellationToken);
+
+        var parseDiagnostics = CollectParseDiagnostics(source, redRoot);
+        ast.diagnostics.AddRange(parseDiagnostics);
         
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -99,6 +102,13 @@ public sealed class Ast
         ControlFlowMarker.Mark(ast, cancellationToken);
 
         return ast;
+    }
+
+    private static IEnumerable<IDiagnostic> CollectParseDiagnostics(Source source, SyntaxNode node)
+    {
+        var diags = node.GetDiagnostics(source);
+        var childDiags = node.Children.SelectMany(child => CollectParseDiagnostics(source, child));
+        return diags.Concat(childDiags);
     }
 
     /// <summary>
