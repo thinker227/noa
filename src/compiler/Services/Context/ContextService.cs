@@ -2,7 +2,7 @@ using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Services.Context;
 
-public static class ContextSleuth
+public static class ContextService
 {
     /// <summary>
     /// Fetches the syntax context for a specified position within an AST.
