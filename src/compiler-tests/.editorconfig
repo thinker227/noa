@@ -1,0 +1,4 @@
+# Don't use final newline in test results.
+[**/results/**.json]
+insert_final_newline = false
+indent_size = 2
