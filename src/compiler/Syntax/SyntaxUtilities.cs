@@ -3,6 +3,29 @@ namespace Noa.Compiler.Syntax;
 public static class SyntaxUtilities
 {
     /// <summary>
+    /// Gets the first ancestor of a specified type of a node and optionally matching a filter.
+    /// </summary>
+    /// <typeparam name="T">The type of the ancestor node to get.</typeparam>
+    /// <param name="node">The descendant node to get the ancestor of.</param>
+    /// <param name="filter">An optional filter to filter for the desired ancestor node.</param>
+    /// <returns>
+    /// The ancestor of the specified type and matching the filter if provided,
+    /// or <see langword="null"/> if none could be found.
+    /// </returns>
+    public static T? GetFirstAncestorOfType<T>(this SyntaxNode node, Func<T, bool>? filter = null)
+        where T : SyntaxNode
+    {
+        var current = node;
+
+        while (current is not null)
+        {
+            if (current is T x && (filter?.Invoke(x) ?? true)) return x;
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Gets the first token within a syntax node.
     /// This is used as common method for both <see cref="GetFirstToken(SyntaxNode, bool)"/>
     /// and <see cref="GetLastToken(SyntaxNode, bool)"/> since they both do pretty much the same thing,
