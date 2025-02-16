@@ -1,7 +1,6 @@
 // ReSharper disable IdentifierTypo
 // ReSharper disable TooWideLocalVariableScope
 
-using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
 
 namespace Noa.Compiler.Services.LookupCorrection;
@@ -16,8 +15,8 @@ internal static class LookupCorrectionService
     /// <param name="name">The name which might have a typo.</param>
     /// <param name="scope">The scope to find correction symbols in.</param>
     /// <param name="at">The node at which to look up the correction symbols.</param>
-    public static IReadOnlyCollection<ISymbol> FindPossibleCorrections(string name, IScope scope, Node at) =>
-        scope.AccessibleAt(at)
+    public static IReadOnlyCollection<ISymbol> FindPossibleCorrections(string name, IScope scope, LookupLocation location) =>
+        scope.AccessibleAt(location)
             .Where(symbol => Distance(name, symbol.Name, MaxDistance + 1) <= MaxDistance)
             .ToArray();
 

@@ -33,7 +33,7 @@ public sealed partial class NoaLanguageServer : ICodeCompletion
         }
         else
         {
-            symbolCompletions = node.Scope.Value.AccessibleAt(node)
+            symbolCompletions = node.Scope.Value.AccessibleAt(LookupLocation.AtNode(node))
                 .Select(x =>
                 {
                     var item = new CompletionItem()
