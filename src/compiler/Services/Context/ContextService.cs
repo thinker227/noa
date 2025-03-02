@@ -1,3 +1,4 @@
+using Noa.Compiler.Nodes;
 using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler.Services.Context;
@@ -275,13 +276,31 @@ public static class ContextService
                 }
             };
         
+        var isInLoop = leftToken is not null && IsInLoop(ast, leftToken);
+        
         var kind = SyntaxContextKind.None;        
         if (isExpresssion) kind |= SyntaxContextKind.Expression;
         if (isPostExpression) kind |= SyntaxContextKind.PostExpression;
         if (isStatement) kind |= SyntaxContextKind.Statement;
         if (isParameterOrVariable) kind |= SyntaxContextKind.ParameterOrVariable;
         if (isPostIfBodyWithoutElse) kind |= SyntaxContextKind.PostIfBodyWithoutElse;
+        if (isInLoop) kind |= SyntaxContextKind.InLoop;
 
         return new(position, kind, ast, leftToken, rightToken);
+    }
+
+    /// <summary>
+    /// Checks whether a token is inside the context of a loop.
+    /// </summary>
+    private static bool IsInLoop(Ast ast, Token token)
+    {
+        foreach (var node in ast.GetAstNode(token).AncestorsAndSelf())
+        {
+            // If we find a function declaration or the root then we know we're not inside a loop.
+            if (node is FunctionDeclaration or Root) break;
+            if (node is LoopExpression) return true;
+        }
+
+        return false;
     }
 }
