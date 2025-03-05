@@ -1,5 +1,7 @@
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Symbols;
 using Noa.Compiler.Syntax;
+using SuperLinq;
 
 namespace Noa.Compiler.Services.Context;
 
@@ -164,12 +166,13 @@ public static class ContextService
             };
         
         // Check if the context could be a trailing expression after a statement.
+        var isTrailingExpression = false;
         if (isStrictlyAfterStatement)
         {
             var statement = leftToken?.GetFirstAncestorOfType<StatementSyntax>()!;
             var statementIndex = statement.GetIndexInParent();
             var block = statement.GetFirstAncestorOfType<BlockSyntax>()!;
-            var isTrailingExpression =
+            isTrailingExpression =
                 statementIndex == block.Statements.Count - 1 &&
                 block.TrailingExpression is null;
             isExpresssion |= isTrailingExpression;
@@ -231,14 +234,27 @@ public static class ContextService
                         )
                     }
             };
-
-        // Statements
-        var isStatement = isAfterPotentialFlowControlStatement || isStrictlyAfterStatement || leftToken
-            // {|
+        
+        // At the very start of a block
+        var isAtStartOfBlock = leftToken
             is {
                 Kind: TokenKind.OpenBrace,
                 Parent: BlockExpressionSyntax
+            }
+            or null;
+        
+        var isAtEndOfBlock = rightToken
+            is {
+                Kind: TokenKind.CloseBrace,
+                Parent: BlockExpressionSyntax
+            }
+            or {
+                Kind: TokenKind.EndOfFile,
+                Parent: RootSyntax
             };
+
+        // Statements
+        var isStatement = isAfterPotentialFlowControlStatement || isStrictlyAfterStatement || isAtStartOfBlock;
         
         // Parameters or variables
         var isParameterOrVariable = leftToken
@@ -286,7 +302,15 @@ public static class ContextService
         if (isPostIfBodyWithoutElse) kind |= SyntaxContextKind.PostIfBodyWithoutElse;
         if (isInLoop) kind |= SyntaxContextKind.InLoop;
 
-        return new(position, kind, ast, leftToken, rightToken);
+        var accessibleSymbols = GetAccessibleSymbols(ast, rightToken, isAtEndOfBlock);
+
+        return new(
+            position,
+            kind,
+            ast,
+            leftToken,
+            rightToken,
+            accessibleSymbols);
     }
 
     /// <summary>
@@ -302,5 +326,39 @@ public static class ContextService
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Fetches the accessible symbols at the current location.
+    /// </summary>
+    private  static IBuffer<ISymbol> GetAccessibleSymbols(
+        Ast ast,
+        Token? rightToken,
+        bool isAtEndOfBlock)
+    {
+        if (isAtEndOfBlock)
+        {
+            // { | }
+            // { a; | }
+            var block = ast.GetAstNode(rightToken!) switch
+            {
+                BlockExpression b => b.Block,
+                Root r => r.Block,
+                _ => throw new UnreachableException()
+            };
+            return block.DeclaredScope.Value.AccessibleAt(LookupLocation.AtEnd()).Memoize();
+        }
+        else
+        {
+            // { | a; }
+            // { a; | b; }
+            var statement = ast.GetAstNode(rightToken!)
+                .AncestorsAndSelf()
+                .OfType<Statement>()
+                .FirstOrDefault()
+                ?? throw new InvalidOperationException(
+                    "Could not find a statement ancestor AST node.");
+            return statement.Scope.Value.AccessibleAt(LookupLocation.AtNode(statement)).Memoize();
+        }
     }
 }
