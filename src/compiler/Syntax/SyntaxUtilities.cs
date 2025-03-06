@@ -167,6 +167,14 @@ public static class SyntaxUtilities
         int position,
         bool inTrivia = true)
     {
+        // Little special case to ensure that the end-of-file token is always handled as sticky.
+        // This is necessary because the span of a file is always 1 greater than its actual length,
+        // so if we don't have this special-case handling and we try to get the token at the
+        // very end of the file, it'll return null while we're actually interested in the
+        // end-of-file token.
+        if (root is RootSyntax realRoot && position == root.FullSpan.End)
+            return realRoot.EndOfFile;
+
         // This node doesn't contain the position.
         if (!WithinSpan(root)) return null;
 
