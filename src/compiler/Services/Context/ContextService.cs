@@ -50,22 +50,26 @@ public static class ContextService
             // let x = 0; |
             // x = 0; |
             // f(); |
+            // func f() => 0; |
             is {
                 Kind: TokenKind.Semicolon,
                 Parent:
                     LetDeclarationSyntax or
                     AssignmentStatementSyntax or
-                    ExpressionStatementSyntax
+                    ExpressionStatementSyntax or
+                    ExpressionBodySyntax
             }
             // {} | let x = 0;
+            // func f() {} | let x = 0;
             // if x {} |
             // if x {} else {} | let x = 0;
             // loop {} | let x = 0;
+            // func f() {} |
             or {
                 Kind: TokenKind.CloseBrace,
                 Parent:
                     BlockExpressionSyntax {
-                        Parent: FlowControlStatementSyntax
+                        Parent: FlowControlStatementSyntax or BlockBodySyntax
                     } or
                     BlockExpressionSyntax {
                         Parent:
