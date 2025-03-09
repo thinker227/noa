@@ -2,9 +2,9 @@ using Noa.Compiler.Parsing;
 
 namespace Noa.Compiler.Syntax.Green;
 
-internal sealed class Token(TokenKind kind, string? text, string leadingTrivia, int width) : SyntaxNode
+internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia> leadingTrivia, int width) : SyntaxNode
 {
-    public override IEnumerable<SyntaxNode> Children => [];
+    public override IEnumerable<SyntaxNode> Children => LeadingTrivia;
 
     public TokenKind Kind { get; } = kind;
 
@@ -14,7 +14,7 @@ internal sealed class Token(TokenKind kind, string? text, string leadingTrivia, 
         $"Cannot create a token with kind '{kind}' without explicitly " +
         $"specifying its text because the kind does not have a constant string");
     
-    public string LeadingTrivia { get; } = leadingTrivia;
+    public ImmutableArray<Trivia> LeadingTrivia { get; } = leadingTrivia;
 
     public override int GetFullWidth() => FullWidth;
 
