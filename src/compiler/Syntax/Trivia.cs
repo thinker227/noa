@@ -1,12 +1,32 @@
+using TextMappingUtils;
+
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
 /// Trivia associated with a <see cref="Token"/>
 /// which doesn't have any significance syntactically.
 /// </summary>
-public abstract class Trivia : SyntaxNode
+public abstract class Trivia
 {
-    internal Trivia(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) { }
+    private readonly Green.Trivia green;
+    private readonly int fullPosition;
+
+    /// <summary>
+    /// The parent token which the trivia is trivia of.
+    /// </summary>
+    public Token ParentToken { get; }
+
+    /// <summary>
+    /// The full span of the trivia.
+    /// </summary>
+    public TextSpan FullSpan => TextSpan.FromLength(fullPosition, green.GetFullWidth());
+
+    internal Trivia(Green.Trivia green, int fullPosition, Token parent)
+    {
+        this.green = green;
+        this.fullPosition = fullPosition;
+        ParentToken = parent;
+    }
 }
 
 /// <summary>
@@ -17,17 +37,13 @@ public sealed class WhitespaceTrivia : Trivia
 {
     private readonly Green.WhitespaceTrivia green;
 
-    internal override Green.SyntaxNode Green => green;
-
-    public override IEnumerable<SyntaxNode> Children => [];
-
     /// <summary>
     /// The whitespace text.
     /// </summary>
     public string WhitespaceText => green.WhitespaceText;
 
-    internal WhitespaceTrivia(Green.WhitespaceTrivia green, int fullPosition, SyntaxNode parent)
-        : base(fullPosition, parent) =>
+    internal WhitespaceTrivia(Green.WhitespaceTrivia green, int fullPosition, Token parent)
+        : base(green, fullPosition, parent) =>
         this.green = green;
 }
 
@@ -42,10 +58,6 @@ public sealed class CommentTrivia : Trivia
 {
     private readonly Green.CommentTrivia green;
 
-    internal override Green.SyntaxNode Green => green;
-
-    public override IEnumerable<SyntaxNode> Children => [];
-
     /// <summary>
     /// The full text of the comment, including the leading <c>//</c>.
     /// </summary>
@@ -57,8 +69,8 @@ public sealed class CommentTrivia : Trivia
     /// </summary>
     public string CommentText => FullText[2..];
 
-    internal CommentTrivia(Green.CommentTrivia green, int fullPosition, SyntaxNode parent)
-        : base(fullPosition, parent) =>
+    internal CommentTrivia(Green.CommentTrivia green, int fullPosition, Token parent)
+        : base(green, fullPosition, parent) =>
         this.green = green;
 }
 
@@ -69,18 +81,8 @@ public sealed class UnexpectedTokenTrivia : Trivia
 {
     private readonly Green.UnexpectedTokenTrivia green;
 
-    internal override Green.SyntaxNode Green => green;
-
-    public override IEnumerable<SyntaxNode> Children => [Token];
-
-    /// <summary>
-    /// The unexpected token.
-    /// This token might have trivia of itself, potentially forming a sub-tree of trivia.
-    /// </summary>
-    public Token Token => new(green.Token, FullPosition, this);
-
-    internal UnexpectedTokenTrivia(Green.UnexpectedTokenTrivia green, int fullPosition, SyntaxNode parent)
-        : base(fullPosition, parent) =>
+    internal UnexpectedTokenTrivia(Green.UnexpectedTokenTrivia green, int fullPosition, Token parent)
+        : base(green, fullPosition, parent) =>
         this.green = green;
 }
 
@@ -91,17 +93,13 @@ public sealed class UnexpectedCharacterTrivia : Trivia
 {
     private readonly Green.UnexpectedCharacterTrivia green;
 
-    internal override Green.SyntaxNode Green => green;
-
-    public override IEnumerable<SyntaxNode> Children => [];
-
     /// <summary>
     /// The unexpected character.
     /// Yes, this is a string and not a char, because emojis.
     /// </summary>
     public string Character => green.Character;
 
-    internal UnexpectedCharacterTrivia(Green.UnexpectedCharacterTrivia green, int fullPosition, SyntaxNode parent)
-        : base(fullPosition, parent) =>
+    internal UnexpectedCharacterTrivia(Green.UnexpectedCharacterTrivia green, int fullPosition, Token parent)
+        : base(green, fullPosition, parent) =>
         this.green = green;
 }
