@@ -25,10 +25,21 @@ public sealed class Token : SyntaxNode
     /// <summary>
     /// The leading trivia of the token.
     /// </summary>
-    public ImmutableArray<Trivia> LeadingTrivia => leadingTrivia ??=
-        green.LeadingTrivia
-            .Select(x => x.ToRed(FullPosition, this))
-            .ToImmutableArray();
+    public ImmutableArray<Trivia> LeadingTrivia => leadingTrivia ??= ConstructTrivia();
+
+    private ImmutableArray<Trivia> ConstructTrivia()
+    {
+        var builder = ImmutableArray.CreateBuilder<Trivia>(green.LeadingTrivia.Length);
+
+        var offset = 0;
+        foreach (var trivia in green.LeadingTrivia)
+        {
+            builder.Add(trivia.ToRed(FullPosition + offset, this));
+            offset += trivia.GetFullWidth();
+        }
+
+        return builder.MoveToImmutable();
+    }
 
     /// <summary>
     /// Whether the token is invisible, i.e. does not consist of any text.
