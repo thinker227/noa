@@ -50,7 +50,8 @@ internal sealed partial class Parser
 
         ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current);
         
-        return new(TokenKind.Error, "", "", 0);
+        var trivia = Current.ToTriviaFollowedByUnexpectedToken().ToImmutableArray();
+        return new(TokenKind.Error, "", trivia, 0);
     }
 
     private Token? Expect(IReadOnlySet<TokenKind> kinds)
