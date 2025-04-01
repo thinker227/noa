@@ -6,7 +6,6 @@ namespace Noa.Compiler.Syntax;
 public sealed class Token : SyntaxNode
 {
     private readonly Green.Token green;
-    private ImmutableArray<Trivia>? leadingTrivia = null;
 
     internal override Green.SyntaxNode Green => green;
 
@@ -25,7 +24,7 @@ public sealed class Token : SyntaxNode
     /// <summary>
     /// The leading trivia of the token.
     /// </summary>
-    public ImmutableArray<Trivia> LeadingTrivia => leadingTrivia ??= ConstructTrivia();
+    public ImmutableArray<Trivia> LeadingTrivia => ConstructTrivia();
 
     private ImmutableArray<Trivia> ConstructTrivia()
     {

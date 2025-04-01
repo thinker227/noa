@@ -9,10 +9,6 @@ namespace Noa.Compiler.Syntax;
 /// </summary>
 public abstract class SyntaxNode
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private TextSpan? span = null;
-    private int? leadingTriviaWidth;
-
     /// <summary>
     /// The corresponding node in the green tree.
     /// </summary>
@@ -40,7 +36,7 @@ public abstract class SyntaxNode
     /// The span of the syntax node in the corresponding source text,
     /// <i>excluding</i> its leading trivia.
     /// </summary>
-    public TextSpan Span => span ??= TextSpan.FromLength(Position, CalculateNonTriviaWidth());
+    public TextSpan Span => TextSpan.FromLength(Position, CalculateNonTriviaWidth());
 
     /// <summary>
     /// The full span of the syntax node in the corresponding source text,
@@ -51,8 +47,7 @@ public abstract class SyntaxNode
     private int CalculateNonTriviaWidth() =>
         Green.GetFullWidth() - GetTriviaWidth();
 
-    private int GetTriviaWidth() => leadingTriviaWidth ??=
-        Green.FirstToken?.LeadingTrivia.Sum(x => x.GetFullWidth()) ?? 0;
+    private int GetTriviaWidth() => Green.FirstToken?.LeadingTrivia.Sum(x => x.GetFullWidth()) ?? 0;
 
     /// <summary>
     /// Gets all diagnostics associated with this node.
