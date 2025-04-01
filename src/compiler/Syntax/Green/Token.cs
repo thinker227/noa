@@ -8,7 +8,7 @@ internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia>
 
     public TokenKind Kind { get; } = kind;
 
-    public int FullWidth { get; } = width + leadingTrivia.Length;
+    public int FullWidth { get; } = width + leadingTrivia.Sum(x => x.GetFullWidth());
 
     public string Text { get; } = text ?? kind.ConstantString() ?? throw new InvalidOperationException(
         $"Cannot create a token with kind '{kind}' without explicitly " +
