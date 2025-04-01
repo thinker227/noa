@@ -1,4 +1,3 @@
-
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
@@ -11,7 +10,7 @@ public sealed class Token : SyntaxNode
 
     internal override Green.SyntaxNode Green => green;
 
-    public override IEnumerable<SyntaxNode> Children => LeadingTrivia;
+    public override IEnumerable<SyntaxNode> Children => [];
 
     /// <summary>
     /// The kind of the token.
@@ -28,17 +27,8 @@ public sealed class Token : SyntaxNode
     /// </summary>
     public ImmutableArray<Trivia> LeadingTrivia => leadingTrivia ??=
         green.LeadingTrivia
-            .Select(x => (Trivia)x.ToRed(FullPosition, this))
+            .Select(x => x.ToRed(FullPosition, this))
             .ToImmutableArray();
-
-    /// <summary>
-    /// The full leading trivia of the token.
-    /// This includes any leading trivia <i>within</i> the trivia of the current token,
-    /// namely within <see cref="UnexpectedTokenTrivia"/>.
-    /// </summary>
-    public IEnumerable<Trivia> FullLeadingTrivia => LeadingTrivia
-        .OfType<UnexpectedTokenTrivia>()
-        .SelectMany(x => x.Token.FullLeadingTrivia.Prepend(x));
 
     /// <summary>
     /// Whether the token is invisible, i.e. does not consist of any text.

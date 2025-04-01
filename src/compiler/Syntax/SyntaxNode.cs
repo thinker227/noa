@@ -11,6 +11,7 @@ public abstract class SyntaxNode
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private TextSpan? span = null;
+    private int? leadingTriviaWidth;
 
     /// <summary>
     /// The corresponding node in the green tree.
@@ -33,16 +34,7 @@ public abstract class SyntaxNode
     /// The position of the node in the tree.
     /// This does <b>not</b> include leading trivia.
     /// </summary>
-    public int Position
-    {
-        get
-        {
-            var position = FullPosition;
-            var leadingTrivia = Green.FirstToken?.LeadingTrivia;
-            if (leadingTrivia is not null) position += leadingTrivia.Length;
-            return position;
-        }
-    }
+    public int Position => FullPosition + GetTriviaWidth();
 
     /// <summary>
     /// The span of the syntax node in the corresponding source text,
@@ -56,13 +48,11 @@ public abstract class SyntaxNode
     /// </summary>
     public TextSpan FullSpan => TextSpan.FromLength(FullPosition, Green.GetFullWidth());
 
-    private int CalculateNonTriviaWidth()
-    {
-        var width = Green.GetFullWidth();
-        var leadingTrivia = Green.FirstToken?.LeadingTrivia;
-        if (leadingTrivia is not null) width -= leadingTrivia.Length;
-        return width;
-    }
+    private int CalculateNonTriviaWidth() =>
+        Green.GetFullWidth() - GetTriviaWidth();
+
+    private int GetTriviaWidth() => leadingTriviaWidth ??=
+        Green.FirstToken?.LeadingTrivia.Sum(x => x.GetFullWidth()) ?? 0;
 
     /// <summary>
     /// Gets all diagnostics associated with this node.

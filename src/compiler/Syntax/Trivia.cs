@@ -17,9 +17,10 @@ public abstract class Trivia
     public Token ParentToken { get; }
 
     /// <summary>
-    /// The full span of the trivia.
+    /// The span of the trivia.
+    /// Compared to syntax nodes, this is already the "full" span.
     /// </summary>
-    public TextSpan FullSpan => TextSpan.FromLength(fullPosition, green.GetFullWidth());
+    public TextSpan Span => TextSpan.FromLength(fullPosition, green.GetFullWidth());
 
     internal Trivia(Green.Trivia green, int fullPosition, Token parent)
     {
