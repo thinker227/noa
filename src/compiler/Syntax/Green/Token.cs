@@ -20,5 +20,12 @@ internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia>
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) => new Syntax.Token(this, position, parent);
 
+    /// <summary>
+    /// Returns a sequence of the token's trivia
+    /// followed by an <see cref="UnexpectedTokenTrivia"/> constructed from the token.
+    /// </summary>
+    public IEnumerable<Trivia> ToTriviaFollowedByUnexpectedToken() =>
+        LeadingTrivia.Append(new UnexpectedTokenTrivia(this));
+
     public override string ToString() => Text;
 }
