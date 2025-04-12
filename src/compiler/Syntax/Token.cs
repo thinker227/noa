@@ -5,7 +5,7 @@ namespace Noa.Compiler.Syntax;
 /// <summary>
 /// A syntax token, a single unit of syntax.
 /// </summary>
-// Note: the implementation of ISyntaxNavigable is in SyntaxUtilities.cs.
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
 public sealed partial class Token : SyntaxNode, ITokenLike
 {
     private readonly Green.Token green;

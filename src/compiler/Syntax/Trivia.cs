@@ -78,7 +78,7 @@ public sealed class CommentTrivia : Trivia
 /// <summary>
 /// Trivia about a single unexpected token.
 /// </summary>
-// Note: the implementation of ISyntaxNavigable is in SyntaxUtilities.cs.
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
 public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 {
     private readonly Green.UnexpectedTokenTrivia green;

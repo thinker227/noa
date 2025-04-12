@@ -31,7 +31,7 @@ public abstract partial class SyntaxNode
         GetFirstToken(includeInvisible, node => node.Children.Reverse());
 
     public virtual ITokenLike? GetPreviousToken(bool includeInvisible = false) =>
-        SyntaxUtilities.GetPreviousTokenForNodeOrToken(this, includeInvisible);
+        SyntaxNavigation.GetPreviousTokenForNodeOrToken(this, includeInvisible);
 }
 
 public sealed partial class Token
@@ -66,7 +66,7 @@ public sealed partial class Token
         if (GetLastToken(includeInvisible) is { } unexpectedToken) return unexpectedToken;
 
         // Delegate to the common utility method.
-        return SyntaxUtilities.GetPreviousTokenForNodeOrToken(this, includeInvisible);
+        return SyntaxNavigation.GetPreviousTokenForNodeOrToken(this, includeInvisible);
     }
 }
 
@@ -81,7 +81,7 @@ public sealed partial class UnexpectedTokenTrivia
 
     public ITokenLike? GetPreviousToken(bool includeInvisible = false)
     {
-        foreach (var sibling in SyntaxUtilities.IteratePreviousUnexpectedTokens(this))
+        foreach (var sibling in SyntaxNavigation.IteratePreviousUnexpectedTokens(this))
         {
             if (!sibling.Kind.IsInvisible() || includeInvisible) return sibling;
         }
@@ -90,7 +90,7 @@ public sealed partial class UnexpectedTokenTrivia
     }
 }
 
-public static class SyntaxUtilities
+public static class SyntaxNavigation
 {
     /// <summary>
     /// Gets the first ancestor of a specified type of a node and optionally matching a filter.

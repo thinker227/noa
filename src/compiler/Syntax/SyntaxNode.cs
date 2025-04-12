@@ -7,7 +7,7 @@ namespace Noa.Compiler.Syntax;
 /// <summary>
 /// A concrete syntax node. Holds exact information about the syntax of a program.
 /// </summary>
-// Note: the implementation of ISyntaxNavigable is in SyntaxUtilities.cs.
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
 public abstract partial class SyntaxNode : ISyntaxNavigable
 {
     /// <summary>
