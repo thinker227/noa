@@ -1,4 +1,94 @@
+using Noa.Compiler.Parsing;
+
 namespace Noa.Compiler.Syntax;
+
+public abstract partial class SyntaxNode
+{
+    private Token? GetFirstToken(
+        bool includeInvisible,
+        Func<SyntaxNode, IEnumerable<SyntaxNode>> getChildren)
+    {
+        // Tokens override this method, this should never happen.
+        if (this is Token) throw new InvalidOperationException("Cannot call GetFirstToken on a Token.");
+
+        foreach (var child in getChildren(this))
+        {
+            if (child.GetFirstToken(includeInvisible, getChildren) is { } childToken) return childToken;
+
+            // If we failed to find a first token in the child, continue onto the next child.
+        }
+
+        // If we got here then either the node had no children (which should be impossible unless it's a token,
+        // which it also shouldn't be), or we skipped all tokens because they were invisible.
+        return null;
+    }
+
+    public virtual ITokenLike? GetFirstToken(bool includeInvisible = false) =>
+        GetFirstToken(includeInvisible, node => node.Children);
+
+    public virtual ITokenLike? GetLastToken(bool includeInvisible = false) =>
+        // This is technically just the same as GetFirstToken, but we iterate the children in reverse.
+        GetFirstToken(includeInvisible, node => node.Children.Reverse());
+
+    public virtual ITokenLike? GetPreviousToken(bool includeInvisible = false) =>
+        SyntaxUtilities.GetPreviousTokenForNodeOrToken(this, includeInvisible);
+}
+
+public sealed partial class Token
+{
+    public override ITokenLike? GetFirstToken(bool includeInvisible = false)
+    {
+        for (var i = 0; i < LeadingTrivia.Length; i++)
+        {
+            if (LeadingTrivia[i] is not UnexpectedTokenTrivia unexpectedToken) continue;
+
+            if (!unexpectedToken.Kind.IsInvisible() || includeInvisible) return unexpectedToken;
+        }
+
+        return null;
+    }
+
+    public override ITokenLike? GetLastToken(bool includeInvisible = false)
+    {
+        for (var i = LeadingTrivia.Length - 1; i >= 0 ; i--)
+        {
+            if (LeadingTrivia[i] is not UnexpectedTokenTrivia unexpectedToken) continue;
+
+            if (!unexpectedToken.Kind.IsInvisible() || includeInvisible) return unexpectedToken;
+        }
+
+        return null;
+    }
+
+    public override ITokenLike? GetPreviousToken(bool includeInvisible = false)
+    {
+        // Check for unexpected tokens within trivia.
+        if (GetLastToken(includeInvisible) is { } unexpectedToken) return unexpectedToken;
+
+        // Delegate to the common utility method.
+        return SyntaxUtilities.GetPreviousTokenForNodeOrToken(this, includeInvisible);
+    }
+}
+
+public sealed partial class UnexpectedTokenTrivia
+{
+    // Unexpected token trivias do not have "first" or "last" tokens
+    // since they do not contain other tokens.
+
+    public ITokenLike? GetFirstToken(bool includeInvisible = false) => null;
+
+    public ITokenLike? GetLastToken(bool includeInvisible = false) => null;
+
+    public ITokenLike? GetPreviousToken(bool includeInvisible = false)
+    {
+        foreach (var sibling in SyntaxUtilities.IteratePreviousUnexpectedTokens(this))
+        {
+            if (!sibling.Kind.IsInvisible() || includeInvisible) return sibling;
+        }
+
+        return ParentToken.GetPreviousToken(includeInvisible);
+    }
+}
 
 public static class SyntaxUtilities
 {
@@ -26,61 +116,6 @@ public static class SyntaxUtilities
 
         return null;
     }
-
-    /// <summary>
-    /// Gets the first token within a syntax node.
-    /// This is used as common method for both <see cref="GetFirstToken(SyntaxNode, bool)"/>
-    /// and <see cref="GetLastToken(SyntaxNode, bool)"/> since they both do pretty much the same thing,
-    /// except <see cref="GetLastToken(SyntaxNode, bool)"/> enumerates the children in reverse.
-    /// </summary>
-    private static Token? GetFirstToken(
-        SyntaxNode node,
-        bool includeInvisible,
-        Func<SyntaxNode, IEnumerable<SyntaxNode>> getChildren)
-    {
-        if (node is Token token)
-        {
-            // Return null if the token is invisible and we should not include invisible tokens.
-            if (token.IsInvisible && !includeInvisible) return null;
-            else return token;
-        }
-
-        foreach (var child in getChildren(node))
-        {
-            if (GetFirstToken(child, includeInvisible, getChildren) is { } childToken) return childToken;
-
-            // If we failed to find a first token in the child, continue onto the next child.
-        }
-
-        // If we got here then either the node had no children (which should be impossible unless it's a token,
-        // which it also shouldn't be), or we skipped all tokens because they were invisible.
-        return null;
-    }
-
-    /// <summary>
-    /// Gets the first token within a syntax node.
-    /// </summary>
-    /// <param name="node">The node to get the first token token of.</param>
-    /// <param name="includeInvisible">
-    /// Whether to include invisible tokens.
-    /// If <see langword="true"/>, the method will return <see langword="null"/>
-    /// if the node does not have any visible tokens.
-    /// </param>
-    public static Token? GetFirstToken(this SyntaxNode node, bool includeInvisible = false) =>
-        GetFirstToken(node, includeInvisible, n => n.Children);
-
-    /// <summary>
-    /// Gets the last token within a syntax node.
-    /// </summary>
-    /// <param name="node">The node to get the last token token of.</param>
-    /// <param name="includeInvisible">
-    /// Whether to include invisible tokens.
-    /// If <see langword="true"/>, the method will return <see langword="null"/>
-    /// if the node does not have any visible tokens.
-    /// </param>
-    public static Token? GetLastToken(this SyntaxNode node, bool includeInvisible = false) =>
-        // This is technically just the same as GetFirstToken, but we iterate the children in reverse.
-        GetFirstToken(node, includeInvisible, n => n.Children.Reverse());
     
     /// <summary>
     /// Gets the index of a node within its parent.
@@ -131,6 +166,28 @@ public static class SyntaxUtilities
     }
 
     /// <summary>
+    /// Enumerates the previous unexpected tokens of an unexpected token in reverse order.
+    /// </summary>
+    internal static IEnumerable<UnexpectedTokenTrivia> IteratePreviousUnexpectedTokens(UnexpectedTokenTrivia unexpectedToken)
+    {
+        var previous = new Stack<UnexpectedTokenTrivia>();
+        foreach (var sibling in unexpectedToken.ParentToken.LeadingTrivia.OfType<UnexpectedTokenTrivia>())
+        {
+            if (!sibling.Equals(unexpectedToken))
+            {
+                previous.Push(sibling);
+                continue;
+            }
+
+            return previous;
+        }
+
+        // This *should* be unreachable.
+        throw new UnreachableException(
+            "Failed to find source unexpected token among the trivia of its parent token.");
+    }
+
+    /// <summary>
     /// Gets the token preceding a node (or token).
     /// </summary>
     /// <param name="node">The node to get the token preceding.</param>
@@ -138,21 +195,21 @@ public static class SyntaxUtilities
     /// <param name="includeInvisible">
     /// Whether to include invisible tokens.
     /// </param>
-    public static Token? GetPreviousToken(this SyntaxNode node, bool includeInvisible = false)
+    internal static ITokenLike? GetPreviousTokenForNodeOrToken(this SyntaxNode node, bool includeInvisible)
     {
         // There logically is no previous token if this is the root.
         if (node.Parent is null) return null;
 
         foreach (var sibling in IteratePreviousSiblings(node))
         {
-            if (sibling.GetLastToken(includeInvisible) is Token token) return token;
+            if (sibling.GetLastToken(includeInvisible) is { } token) return token;
         }
 
         // If we (for some reason) couldn't find a previous token in the node's preceding siblings,
         // try get the previous token of the parent.
         return node.Parent.GetPreviousToken(includeInvisible);
     }
-    
+
     /// <summary>
     /// Gets the token at a specified position in a syntax node.
     /// </summary>
@@ -242,6 +299,6 @@ public static class SyntaxUtilities
     /// <returns>
     /// The token immediately to the left of the position, or <see langword="null"/> if none could be found.
     /// </returns>
-    public static Token? GetLeftTokenAt(this SyntaxNode root, int position, bool inTrivia = true) =>
+    public static ITokenLike? GetLeftTokenAt(this SyntaxNode root, int position, bool inTrivia = true) =>
         root.GetTokenAt(position, inTrivia)?.GetPreviousToken();
 }

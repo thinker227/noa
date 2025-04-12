@@ -5,7 +5,7 @@ namespace Noa.Compiler.Syntax;
 /// <summary>
 /// Anything token-like, including <see cref="Token"/> and <see cref="UnexpectedTokenTrivia"/>.
 /// </summary>
-public interface ITokenLike
+public interface ITokenLike : ISyntaxNavigable
 {
     /// <summary>
     /// The kind of the token.
