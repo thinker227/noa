@@ -83,9 +83,9 @@ public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 {
     private readonly Green.UnexpectedTokenTrivia green;
 
-    public TokenKind Kind => green.Token.Kind;
+    public TokenKind Kind => green.Kind;
 
-    public string Text => green.Token.Text;
+    public string Text => green.Text;
 
     internal UnexpectedTokenTrivia(Green.UnexpectedTokenTrivia green, int fullPosition, Token parent)
         : base(green, fullPosition, parent) =>

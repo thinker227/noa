@@ -25,7 +25,7 @@ internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia>
     /// followed by an <see cref="UnexpectedTokenTrivia"/> constructed from the token.
     /// </summary>
     public IEnumerable<Trivia> ToTriviaFollowedByUnexpectedToken() =>
-        LeadingTrivia.Append(new UnexpectedTokenTrivia(this));
+        LeadingTrivia.Append(new UnexpectedTokenTrivia(Kind, Text, width));
 
     public override string ToString() => Text;
 }

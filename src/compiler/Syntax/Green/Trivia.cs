@@ -28,14 +28,16 @@ internal sealed class CommentTrivia(string fullText) : Trivia
     public override int GetFullWidth() => FullText.Length;
 }
 
-internal sealed class UnexpectedTokenTrivia(Token token) : Trivia
+internal sealed class UnexpectedTokenTrivia(TokenKind kind, string text, int width) : Trivia
 {
-    public Token Token { get; } = token;
+    public TokenKind Kind { get; } = kind;
+
+    public string Text { get; } = text;
 
     public override Syntax.UnexpectedTokenTrivia ToRed(int fullPosition, Syntax.Token parent) =>
         new(this, fullPosition, parent);
 
-    public override int GetFullWidth() => Token.FullWidth;
+    public override int GetFullWidth() => width;
 }
 
 internal sealed class UnexpectedCharacterTrivia(string character) : Trivia
