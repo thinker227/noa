@@ -117,4 +117,11 @@ internal static class TokenKindExtensions
         TokenKind.GreaterThanEquals => BinaryKind.GreaterThanOrEqual,
         _ => null
     };
+
+    /// <summary>
+    /// Whether the token is invisible, i.e. does not consist of any text.
+    /// This is only the case for <see cref="TokenKind.Error"/> and <see cref="TokenKind.EndOfFile"/>.
+    /// </summary>
+    public static bool IsInvisible(this TokenKind kind) =>
+        kind is TokenKind.Error or TokenKind.EndOfFile;
 }

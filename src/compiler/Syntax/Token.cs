@@ -1,3 +1,5 @@
+using Noa.Compiler.Parsing;
+
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
@@ -45,7 +47,7 @@ public sealed class Token : SyntaxNode, ITokenLike
     /// This is only the case for tokens with the kind
     /// <see cref="TokenKind.Error"/> or <see cref="TokenKind.EndOfFile"/>.
     /// </summary>
-    public bool IsInvisible => Kind is TokenKind.Error or TokenKind.EndOfFile;
+    public bool IsInvisible => Kind.IsInvisible();
 
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;
