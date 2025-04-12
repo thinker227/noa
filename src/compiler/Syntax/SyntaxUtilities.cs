@@ -158,11 +158,19 @@ public static class SyntaxUtilities
     /// </summary>
     /// <param name="root">The root node to search from.</param>
     /// <param name="position">The position to find the token at.</param>
-    /// <param name="inTrivia">Whether to count trivia as if the position is "inside" the token.</param>
+    /// <param name="inTrivia">
+    /// Whether to count trivia as if the position is "inside" the token.
+    /// Since trivia is always attached to the start of a token,
+    /// if this parameter is <see langword="true"/> and <paramref name="position"/>
+    /// is inside whitespace trivia, the returned token will be the token immediately
+    /// to the right of the position.
+    /// Note that <see cref="UnexpectedTokenTrivia"/> will still be returned
+    /// even if this parameter is <see langword="false"/>.
+    /// </param>
     /// <returns>
     /// The token at the position, or <see langword="null"/> if none could be found.
     /// </returns>
-    public static Token? GetTokenAt(
+    public static ITokenLike? GetTokenAt(
         this SyntaxNode root,
         int position,
         bool inTrivia = true)
@@ -176,20 +184,44 @@ public static class SyntaxUtilities
             return realRoot.EndOfFile;
 
         // This node doesn't contain the position.
-        if (!WithinSpan(root)) return null;
+        if (!root.FullSpan.Contains(position)) return null;
 
         var node = root;
 
         next:
 
-        // If the current node is a token, then we've reached an end
-        // since it contains no children to search.
-        if (node is Token token) return token;
+        if (node is Token token)
+        {
+            // If the token directly contains the position, return it.
+            if (token.Span.Contains(position)) return token;
+
+            // Look for an unexpected token within the token's trivia.
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                if (trivia is UnexpectedTokenTrivia unexpectedToken)
+                {
+                    // If we have found an unexpected token, then check if the token
+                    // directly contains the position. Otherwise, check if we allow
+                    // returning a token in trivia, in which case we return the unexpected token.
+                    // Pretty much the same song and dance as with normal tokens.
+                    if (unexpectedToken.Span.Contains(position)) return unexpectedToken;
+                    else if (inTrivia) return unexpectedToken;
+                }
+            }
+
+            // The token didn't directly contain the position,
+            // and we couldn't find an unexpected token within the trivia.
+            // We know that the position is within the trivia of this token,
+            // so we return based on whether we allow returning a token in trivia.
+            return inTrivia
+                ? token
+                : null;
+        }
 
         foreach (var child in node.Children)
         {
             // If the child contains the position, search the child.
-            if (WithinSpan(child))
+            if (child.FullSpan.Contains(position))
             {
                 node = child;
                 goto next;
@@ -199,15 +231,6 @@ public static class SyntaxUtilities
         // We searched all the children of the node but didn't find anything.
         // This probably implies we skipped over the relevant token.
         return null;
-
-        bool WithinSpan(SyntaxNode node)
-        {
-            var span = inTrivia
-                ? node.FullSpan
-                : node.Span;
-            
-            return span.Contains(position);
-        }
     }
 
     /// <summary>
