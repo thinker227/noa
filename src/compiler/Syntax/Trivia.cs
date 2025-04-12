@@ -78,9 +78,13 @@ public sealed class CommentTrivia : Trivia
 /// <summary>
 /// Trivia about a single unexpected token.
 /// </summary>
-public sealed class UnexpectedTokenTrivia : Trivia
+public sealed class UnexpectedTokenTrivia : Trivia, ITokenLike
 {
     private readonly Green.UnexpectedTokenTrivia green;
+
+    public TokenKind Kind => green.Token.Kind;
+
+    public string Text => green.Token.Text;
 
     internal UnexpectedTokenTrivia(Green.UnexpectedTokenTrivia green, int fullPosition, Token parent)
         : base(green, fullPosition, parent) =>

@@ -3,7 +3,7 @@ namespace Noa.Compiler.Syntax;
 /// <summary>
 /// A syntax token, a single unit of syntax.
 /// </summary>
-public sealed class Token : SyntaxNode
+public sealed class Token : SyntaxNode, ITokenLike
 {
     private readonly Green.Token green;
 
