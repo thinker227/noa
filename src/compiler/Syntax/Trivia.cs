@@ -8,7 +8,7 @@ namespace Noa.Compiler.Syntax;
 /// </summary>
 public abstract class Trivia
 {
-    private readonly Green.Trivia green;
+    internal readonly Green.Trivia green;
     private readonly int fullPosition;
 
     /// <summary>
@@ -42,7 +42,7 @@ public abstract class Trivia
 /// <param name="whitespace">The whitespace of the token.</param>
 public sealed class WhitespaceTrivia : Trivia
 {
-    private readonly Green.WhitespaceTrivia green;
+    private new readonly Green.WhitespaceTrivia green;
 
     /// <summary>
     /// The whitespace text.
@@ -63,7 +63,7 @@ public sealed class WhitespaceTrivia : Trivia
 /// </remarks>
 public sealed class CommentTrivia : Trivia
 {
-    private readonly Green.CommentTrivia green;
+    private new readonly Green.CommentTrivia green;
 
     /// <summary>
     /// The full text of the comment, including the leading <c>//</c>.
@@ -87,7 +87,7 @@ public sealed class CommentTrivia : Trivia
 // Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
 public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 {
-    private readonly Green.UnexpectedTokenTrivia green;
+    private new readonly Green.UnexpectedTokenTrivia green;
 
     public TokenKind Kind => green.Kind;
 
@@ -104,7 +104,7 @@ public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 // Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
 public sealed partial class SkippedTokenTrivia : Trivia, ITokenLike
 {
-    private readonly Green.SkippedTokenTrivia green;
+    private new readonly Green.SkippedTokenTrivia green;
 
     public TokenKind Kind => green.Kind;
 
@@ -120,7 +120,7 @@ public sealed partial class SkippedTokenTrivia : Trivia, ITokenLike
 /// </summary>
 public sealed class UnexpectedCharacterTrivia : Trivia
 {
-    private readonly Green.UnexpectedCharacterTrivia green;
+    private new readonly Green.UnexpectedCharacterTrivia green;
 
     /// <summary>
     /// The unexpected character.
