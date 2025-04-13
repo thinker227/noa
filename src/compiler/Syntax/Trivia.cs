@@ -93,7 +93,7 @@ public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 
     public string Text => green.Text;
 
-    SyntaxNode ITokenLike.ParentNode => ParentToken.Parent;
+    SyntaxNode ISyntaxNavigable.ParentNode => ParentToken.Parent;
 
     internal UnexpectedTokenTrivia(Green.UnexpectedTokenTrivia green, int fullPosition, Token parent)
         : base(green, fullPosition, parent) =>
@@ -112,7 +112,7 @@ public sealed partial class SkippedTokenTrivia : Trivia, ITokenLike
 
     public string Text => green.Text;
 
-    SyntaxNode ITokenLike.ParentNode => ParentToken.Parent;
+    SyntaxNode ISyntaxNavigable.ParentNode => ParentToken.Parent;
 
     internal SkippedTokenTrivia(Green.SkippedTokenTrivia green, int fullPosition, Token parent)
         : base(green, fullPosition, parent) =>

@@ -21,6 +21,8 @@ public abstract partial class SyntaxNode : ISyntaxNavigable
     /// </summary>
     public SyntaxNode Parent { get; }
 
+    SyntaxNode ISyntaxNavigable.ParentNode => Parent;
+
     /// <summary>
     /// The full position of the node in the tree.
     /// If the node has leading trivia, this is at the start of that trivia.
