@@ -55,7 +55,7 @@ public abstract partial class SyntaxNode : ISyntaxNavigable
     /// </summary>
     /// <param name="source">The source of the node.</param>
     public IEnumerable<IDiagnostic> GetDiagnostics(Source source) =>
-        Green.Diagnostics.Select(diag => diag.Format(source, FullPosition));
+        Green.Diagnostics.Select(diag => diag.Format(source, Position));
 
     /// <summary>
     /// The nodes which are direct children of the node.
