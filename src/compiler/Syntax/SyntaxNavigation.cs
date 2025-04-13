@@ -40,11 +40,11 @@ public abstract partial class SyntaxNode
 
 public sealed partial class Token
 {
-    public override ITokenLike? GetFirstToken(bool includeInvisible = false)
+    private ITokenLike? GetFirstTokenInTrivia(bool includeInvisible)
     {
         for (var i = 0; i < LeadingTrivia.Length; i++)
         {
-            if (LeadingTrivia[i] is not UnexpectedTokenTrivia unexpectedToken) continue;
+            if (LeadingTrivia[i] is not ITokenLike unexpectedToken) continue;
 
             if (!unexpectedToken.Kind.IsInvisible() || includeInvisible) return unexpectedToken;
         }
@@ -52,7 +52,10 @@ public sealed partial class Token
         return null;
     }
 
-    public override ITokenLike? GetLastToken(bool includeInvisible = false)
+    public override ITokenLike? GetFirstToken(bool includeInvisible = false) =>
+        GetFirstTokenInTrivia(includeInvisible) ?? this;
+    
+    private ITokenLike? GetLastTokenInTrivia(bool includeInvisible)
     {
         for (var i = LeadingTrivia.Length - 1; i >= 0 ; i--)
         {
@@ -64,10 +67,13 @@ public sealed partial class Token
         return null;
     }
 
+    public override ITokenLike? GetLastToken(bool includeInvisible = false) =>
+        GetLastTokenInTrivia(includeInvisible) ?? this;
+
     public override ITokenLike? GetPreviousToken(bool includeInvisible = false)
     {
         // Check for unexpected tokens within trivia.
-        if (GetLastToken(includeInvisible) is { } unexpectedToken) return unexpectedToken;
+        if (GetLastTokenInTrivia(includeInvisible) is { } unexpectedToken) return unexpectedToken;
 
         // Delegate to the common utility method.
         return SyntaxNavigation.GetPreviousTokenForNodeOrToken(this, includeInvisible);
@@ -75,13 +81,9 @@ public sealed partial class Token
 }
 
 public sealed partial class UnexpectedTokenTrivia
-{
-    // Unexpected token trivias do not have "first" or "last" tokens
-    // since they do not contain other tokens.
+{    public ITokenLike? GetFirstToken(bool includeInvisible = false) => this;
 
-    public ITokenLike? GetFirstToken(bool includeInvisible = false) => null;
-
-    public ITokenLike? GetLastToken(bool includeInvisible = false) => null;
+    public ITokenLike? GetLastToken(bool includeInvisible = false) => this;
 
     public ITokenLike? GetPreviousToken(bool includeInvisible = false)
     {
@@ -96,9 +98,9 @@ public sealed partial class UnexpectedTokenTrivia
 
 public sealed partial class SkippedTokenTrivia
 {
-    public ITokenLike? GetFirstToken(bool includeInvisible = false) => null;
+    public ITokenLike? GetFirstToken(bool includeInvisible = false) => this;
     
-    public ITokenLike? GetLastToken(bool includeInvisible = false) => null;
+    public ITokenLike? GetLastToken(bool includeInvisible = false) => this;
     
     public ITokenLike? GetPreviousToken(bool includeInvisible = false)
     {
