@@ -24,6 +24,7 @@ internal sealed partial class Parser
             {
                 // An unexpected token was encountered.
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
                 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);
@@ -62,6 +63,7 @@ internal sealed partial class Parser
                 // If the current token is not a closing brace, then there's an unexpected token here.
 
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);

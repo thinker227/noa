@@ -50,8 +50,7 @@ internal sealed partial class Parser
 
         ReportDiagnostic(ParseDiagnostics.ExpectedKinds, [kind], Current);
         
-        var trivia = Current.ToTriviaFollowedByUnexpectedToken().ToImmutableArray();
-        return new(TokenKind.Error, "", trivia, 0);
+        return new(TokenKind.Error, "", [], 0);
     }
 
     private Token? Expect(IReadOnlySet<TokenKind> kinds)
@@ -63,6 +62,12 @@ internal sealed partial class Parser
         return null;
     }
 
+    private void ConsumeUnexpected() =>
+        state.ConsumeAsTrivia(TriviaTokenKind.Unexpected);
+
+    private void ConsumeSkipped() =>
+        state.ConsumeAsTrivia(TriviaTokenKind.Skipped);
+
     /// <summary>
     /// Synchronizes the parser with a set of token kinds.
     /// </summary>
@@ -73,7 +78,7 @@ internal sealed partial class Parser
         {
             cancellationToken.ThrowIfCancellationRequested();
             
-            Advance();
+            ConsumeSkipped();
         }
     }
 
@@ -110,6 +115,7 @@ internal sealed partial class Parser
             if (Current == previousToken)
             {
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
 
                 Advance();
             }

@@ -2,11 +2,15 @@ using Noa.Compiler.Parsing;
 
 namespace Noa.Compiler.Syntax.Green;
 
+#pragma warning disable IDE0003 // Allow this. to improve readability.
+
 internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia> leadingTrivia, int width) : SyntaxNode
 {
     public override IEnumerable<SyntaxNode> Children => [];
 
     public TokenKind Kind { get; } = kind;
+
+    public int Width { get; } = width;
 
     public int FullWidth { get; } = width + leadingTrivia.Sum(x => x.GetFullWidth());
 
@@ -19,29 +23,24 @@ internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia>
     public override int GetFullWidth() => FullWidth;
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) => new Syntax.Token(this, position, parent);
-
-    /// <summary>
-    /// Returns the token with a new set of leading trivia.
-    /// </summary>
-    /// <param name="trivia">The new leading trivia.</param>
-    public Token WithTrivia(ImmutableArray<Trivia> trivia) =>
-        new(Kind, Text, trivia, width);
     
     private Token AddTokenAsTrivia(Token token, Func<Token, Trivia> createTrivia)
     {
         var trivia = createTrivia(token);
         ReadOnlySpan<Trivia> appendTrivia = [..token.LeadingTrivia, trivia];
-        var newTrivia = LeadingTrivia.InsertRange(0, appendTrivia);
+        var newTrivia = this.LeadingTrivia.InsertRange(0, appendTrivia);
 
-        var newToken = WithTrivia(newTrivia);
+        var newToken = new Token(Kind, Text, newTrivia, Width);
 
         if (token.Diagnostics.Count > 0)
         {
-            var existingTriviaWidth = token.LeadingTrivia.Sum(x => x.GetFullWidth());
+            var existingTriviaWidth = this.LeadingTrivia.Sum(x => x.GetFullWidth());
+            var tokenWidth = token.Width;
+            var offset = existingTriviaWidth + tokenWidth;
 
             foreach (var diagnostic in token.Diagnostics)
             {
-                newToken.AddDiagnostic(diagnostic.AddOffset(-existingTriviaWidth));
+                newToken.AddDiagnostic(diagnostic.AddOffset(offset));
             }
         }
 
@@ -68,20 +67,20 @@ internal sealed class Token(TokenKind kind, string? text, ImmutableArray<Trivia>
     /// Converts the token into an <see cref="UnexpectedTokenTrivia"/>.
     /// </summary>
     public UnexpectedTokenTrivia ToUnexpectedTokenTrivia() =>
-        new(Kind, Text, width);
+        new(Kind, Text, Width);
 
     /// <summary>
     /// Converts the token into an <see cref="SkippedTokenTrivia"/>.
     /// </summary>
     public SkippedTokenTrivia ToSkippedTokenTrivia() =>
-        new(Kind, Text, width);
+        new(Kind, Text, Width);
 
     /// <summary>
     /// Returns a sequence of the token's trivia
     /// followed by an <see cref="UnexpectedTokenTrivia"/> constructed from the token.
     /// </summary>
     public IEnumerable<Trivia> ToTriviaFollowedByUnexpectedToken() =>
-        LeadingTrivia.Append(new UnexpectedTokenTrivia(Kind, Text, width));
+        LeadingTrivia.Append(new UnexpectedTokenTrivia(Kind, Text, Width));
 
     public override string ToString() => Text;
 }
