@@ -33,7 +33,7 @@ public static class ContextService
             // { if x {} else {} | }
             is {
                 Kind: TokenKind.CloseBrace,
-                Parent:
+                ParentNode:
                     BlockExpressionSyntax {
                         Parent:
                             BlockSyntax or
@@ -53,7 +53,7 @@ public static class ContextService
             // func f() => 0; |
             is {
                 Kind: TokenKind.Semicolon,
-                Parent:
+                ParentNode:
                     LetDeclarationSyntax or
                     AssignmentStatementSyntax or
                     ExpressionStatementSyntax or
@@ -67,7 +67,7 @@ public static class ContextService
             // func f() {} |
             or {
                 Kind: TokenKind.CloseBrace,
-                Parent:
+                ParentNode:
                     BlockExpressionSyntax {
                         Parent: FlowControlStatementSyntax or BlockBodySyntax
                     } or
@@ -92,12 +92,12 @@ public static class ContextService
             // {|}
             is {
                 Kind: TokenKind.OpenBrace,
-                Parent: BlockExpressionSyntax { Block.Statements: [] }
+                ParentNode: BlockExpressionSyntax { Block.Statements: [] }
             }
             // let x = |
             or {
                 Kind: TokenKind.Equals,
-                Parent: LetDeclarationSyntax
+                ParentNode: LetDeclarationSyntax
             }
             // x = |
             // including compound assignment tokens
@@ -108,12 +108,12 @@ public static class ContextService
                     TokenKind.DashEquals or
                     TokenKind.StarEquals or
                     TokenKind.SlashEquals,
-                Parent: AssignmentStatementSyntax
+                ParentNode: AssignmentStatementSyntax
             }
             // (|
             or {
                 Kind: TokenKind.OpenParen,
-                Parent:
+                ParentNode:
                     // Parens will typically auto-complete the closing paren,
                     // so if the user is about to type a parenthesized expression
                     // then it will start off looking like a nil expression.
@@ -126,32 +126,32 @@ public static class ContextService
             // func f() => |
             or {
                 Kind: TokenKind.EqualsGreaterThan,
-                Parent: LambdaExpressionSyntax or ExpressionBodySyntax
+                ParentNode: LambdaExpressionSyntax or ExpressionBodySyntax
             }
             // (x, |)
             or {
                 Kind: TokenKind.Comma,
-                Parent: SeparatedSyntaxList<ExpressionSyntax>
+                ParentNode: SeparatedSyntaxList<ExpressionSyntax>
             }
             // if |
             or {
                 Kind: TokenKind.If,
-                Parent: IfExpressionSyntax
+                ParentNode: IfExpressionSyntax
             }
             // return |
             or {
                 Kind: TokenKind.Return,
-                Parent: ReturnExpressionSyntax
+                ParentNode: ReturnExpressionSyntax
             }
             // break |
             or {
                 Kind: TokenKind.Break,
-                Parent: BreakExpressionSyntax
+                ParentNode: BreakExpressionSyntax
             }
             // Unary expressions
             or {
                 Kind: TokenKind.Plus or TokenKind.Dash,
-                Parent: UnaryExpressionSyntax
+                ParentNode: UnaryExpressionSyntax
             }
             // Binary expressions
             or {
@@ -166,7 +166,7 @@ public static class ContextService
                     TokenKind.GreaterThan or
                     TokenKind.LessThanEquals or
                     TokenKind.GreaterThanEquals,
-                Parent: BinaryExpressionSyntax
+                ParentNode: BinaryExpressionSyntax
             };
         
         // Check if the context could be a trailing expression after a statement.
@@ -187,27 +187,27 @@ public static class ContextService
             // true |
             // false |
             is {
-                Parent: BoolExpressionSyntax
+                ParentNode: BoolExpressionSyntax
             }
             // 0 |
             or {
-                Parent: NumberExpressionSyntax
+                ParentNode: NumberExpressionSyntax
             }
             // "uwu" |
             or {
                 Kind: TokenKind.EndString,
-                Parent: StringExpressionSyntax
+                ParentNode: StringExpressionSyntax
             }
             // x |
             or {
-                Parent: IdentifierExpressionSyntax
+                ParentNode: IdentifierExpressionSyntax
             }
             // () |
             // (x) |
             // (a, b) |
             or {
                 Kind: TokenKind.CloseParen,
-                Parent:
+                ParentNode:
                     NilExpressionSyntax or
                     ParenthesizedExpressionSyntax or
                     TupleExpressionSyntax
@@ -219,7 +219,7 @@ public static class ContextService
             // Specifically not when the expression is a flow control statement.
             or {
                 Kind: TokenKind.CloseBrace,
-                Parent:
+                ParentNode:
                     BlockExpressionSyntax {
                         Parent:
                             ElseClauseSyntax {
@@ -243,18 +243,18 @@ public static class ContextService
         var isAtStartOfBlock = leftToken
             is {
                 Kind: TokenKind.OpenBrace,
-                Parent: BlockExpressionSyntax
+                ParentNode: BlockExpressionSyntax
             }
             or null;
         
         var isAtEndOfBlock = rightToken
             is {
                 Kind: TokenKind.CloseBrace,
-                Parent: BlockExpressionSyntax
+                ParentNode: BlockExpressionSyntax
             }
             or {
                 Kind: TokenKind.EndOfFile,
-                Parent: RootSyntax
+                ParentNode: RootSyntax
             };
 
         // Statements
@@ -265,13 +265,13 @@ public static class ContextService
             // let |
             is {
                 Kind: TokenKind.Let,
-                Parent: LetDeclarationSyntax
+                ParentNode: LetDeclarationSyntax
             }
             // (|)
             // (|a, b)
             or {
                 Kind: TokenKind.OpenParen,
-                Parent:
+                ParentNode:
                     // Parens will typically auto-complete the closing paren,
                     // so if the user is about to type a lambda expression
                     // then it will start off looking like a nil expression.
@@ -281,7 +281,7 @@ public static class ContextService
             // (a, |)
             or {
                 Kind: TokenKind.Comma,
-                Parent: SeparatedSyntaxList<ParameterSyntax>
+                ParentNode: SeparatedSyntaxList<ParameterSyntax>
             };
         
         // After an if body without an else clause
@@ -289,7 +289,7 @@ public static class ContextService
             // if x {} |
             is {
                 Kind: TokenKind.CloseBrace,
-                Parent: BlockExpressionSyntax {
+                ParentNode: BlockExpressionSyntax {
                     Parent: IfExpressionSyntax {
                         Else: null
                     }
@@ -320,9 +320,9 @@ public static class ContextService
     /// <summary>
     /// Checks whether a token is inside the context of a loop.
     /// </summary>
-    private static bool IsInLoop(Ast ast, Token token)
+    private static bool IsInLoop(Ast ast, ITokenLike token)
     {
-        foreach (var node in ast.GetAstNode(token).AncestorsAndSelf())
+        foreach (var node in ast.GetAstNode(token.ParentNode).AncestorsAndSelf())
         {
             // If we find a function declaration or the root then we know we're not inside a loop.
             if (node is FunctionDeclaration or Root) break;
@@ -337,14 +337,14 @@ public static class ContextService
     /// </summary>
     private  static IBuffer<ISymbol> GetAccessibleSymbols(
         Ast ast,
-        Token? rightToken,
+        ITokenLike? rightToken,
         bool isAtEndOfBlock)
     {
         if (isAtEndOfBlock)
         {
             // { | }
             // { a; | }
-            var block = ast.GetAstNode(rightToken!) switch
+            var block = ast.GetAstNode(rightToken!.ParentNode) switch
             {
                 BlockExpression b => b.Block,
                 Root r => r.Block,
@@ -356,7 +356,7 @@ public static class ContextService
         {
             // { | a; }
             // { a; | b; }
-            var statement = ast.GetAstNode(rightToken!)
+            var statement = ast.GetAstNode(rightToken!.ParentNode)
                 .AncestorsAndSelf()
                 .OfType<Statement>()
                 .FirstOrDefault()

@@ -16,6 +16,6 @@ public sealed record SyntaxContext(
     int Position,
     SyntaxContextKind Kind,
     Ast Ast,
-    Token? LeftToken,
-    Token? RightToken,
+    ITokenLike? LeftToken,
+    ITokenLike? RightToken,
     IBuffer<ISymbol> AccessibleSymbols);
