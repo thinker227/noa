@@ -1,7 +1,9 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
 using Cocona;
+using Noa.CodeGen;
 using Scriban;
+using Scriban.Runtime;
 using Spectre.Console;
 
 var console = AnsiConsole.Create(new() { Out = new AnsiConsoleOutput(Console.Out) });
@@ -97,7 +99,13 @@ bool Render<TDto, TModel>(
         console.WriteLine();
         
         console.MarkupLine($"  Rendering template [aqua]{name}[/]");
-        var text = template.Render(root);
+
+        var scriptObject = TemplateContext.GetDefaultBuiltinObject();
+        scriptObject.Import(root);
+        scriptObject.Import(typeof(ExtraBuiltins));
+
+        var context = new TemplateContext(scriptObject);
+        var text = template.Render(context);
 
         var fileName = $"{name}.g.cs";
         var outputPath = Path.Combine(outputFolder.FullName, fileName);
