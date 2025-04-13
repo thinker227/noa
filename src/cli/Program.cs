@@ -1,15 +1,7 @@
 ﻿using Cocona;
 using Cocona.Lite;
 using Noa.Cli;
-using Noa.Compiler;
-using Noa.Compiler.Syntax;
 using Spectre.Console;
-
-var source = """
-mut 1
-""";
-var ast = Ast.Create(new Source(source, "uwu"));
-ast.SyntaxRoot.GetLeftTokenAt(4);
 
 var builder = CoconaLiteApp.CreateBuilder(args, options =>
 {
