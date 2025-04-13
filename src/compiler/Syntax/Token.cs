@@ -29,7 +29,7 @@ public sealed partial class Token : SyntaxNode, ITokenLike
     /// </summary>
     public ImmutableArray<Trivia> LeadingTrivia => ConstructTrivia();
 
-    SyntaxNode ITokenLike.ParentNode => Parent;
+    SyntaxNode ISyntaxNavigable.ParentNode => Parent;
 
     private ImmutableArray<Trivia> ConstructTrivia()
     {

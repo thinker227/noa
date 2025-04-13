@@ -31,4 +31,11 @@ public interface ISyntaxNavigable
     /// <returns>The preceding token, or <see langword="null"/> if none could be found.</returns>
     /// <param name="includeInvisible">Whether to include invisible tokens.</param>
     ITokenLike? GetPreviousToken(bool includeInvisible = false);
+
+    /// <summary>
+    /// The parent syntax node of the syntax.
+    /// For token trivia, this is <i>not</i> the parent token,
+    /// instead the parent syntax node of the parent token.
+    /// </summary>
+    SyntaxNode ParentNode { get; }
 }
