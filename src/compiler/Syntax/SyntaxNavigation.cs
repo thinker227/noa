@@ -13,7 +13,11 @@ public abstract partial class SyntaxNode
 
         foreach (var child in getChildren(this))
         {
-            if (child.GetFirstToken(includeInvisible, getChildren) is { } childToken) return childToken;
+            if (child is Token token)
+            {
+                if (!token.IsInvisible || includeInvisible) return token;
+            }
+            else if (child.GetFirstToken(includeInvisible, getChildren) is { } childToken) return childToken;
 
             // If we failed to find a first token in the child, continue onto the next child.
         }
