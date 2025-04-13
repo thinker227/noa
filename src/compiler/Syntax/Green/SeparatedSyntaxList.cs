@@ -59,6 +59,57 @@ internal sealed class SeparatedSyntaxList<TNode>
         return new(elements.ToImmutable());
     }
 
+    private sealed class CreateContainer(IEnumerator<SyntaxNode> enumerator)
+    {
+        public IEnumerator<SyntaxNode> Enumerator { get; } = enumerator;
+
+        public bool Stopped { get; set; } = false;
+
+        public int Index { get; set; } = 0;
+    }
+
+    public static SeparatedSyntaxList<TNode> Create(IEnumerable<SyntaxNode> nodes)
+    {
+        var container = new CreateContainer(nodes.GetEnumerator());
+
+        return Create(Nodes(), Tokens());
+
+        IEnumerable<TNode> Nodes()
+        {
+            while (!container.Stopped)
+            {
+                if (!container.Enumerator.MoveNext())
+                {
+                    container.Stopped = true;
+                    break;
+                }
+
+                if (container.Enumerator.Current is not TNode node)
+                    throw new InvalidOperationException($"Element at index {container.Index} has to be a node.");
+                
+                container.Index += 1;
+                yield return node;
+            }
+        }
+
+        IEnumerable<Token> Tokens()
+        {
+            while (!container.Stopped)
+            {
+                if (!container.Enumerator.MoveNext())
+                {
+                    container.Stopped = true;
+                    break;
+                }
+
+                if (container.Enumerator.Current is not Token token)
+                    throw new InvalidOperationException($"Element at index {container.Index} has to be a token.");
+                
+                container.Index += 1;
+                yield return token;
+            }
+        }
+    }
 
     public IEnumerable<TNode> Nodes() => this.OfType<TNode>();
     

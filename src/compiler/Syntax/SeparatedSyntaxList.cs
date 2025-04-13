@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Noa.Compiler.Syntax;
 
@@ -6,6 +8,7 @@ namespace Noa.Compiler.Syntax;
 /// A list which holds syntax nodes separated by tokens.
 /// </summary>
 /// <typeparam name="TNode">The type of the nodes in the list.</typeparam>
+[CollectionBuilder(typeof(SeparatedSyntaxListBuilder), nameof(SeparatedSyntaxListBuilder.Build))]
 public sealed class SeparatedSyntaxList<TNode>
     : SyntaxNode, ISeparatedSyntaxList<SyntaxNode, TNode, Token>
     where TNode : SyntaxNode
@@ -100,4 +103,18 @@ public sealed class SeparatedSyntaxList<TNode>
 
     public override int GetHashCode() =>
         Green.GetHashCode();
+}
+
+public static class SeparatedSyntaxListBuilder
+{
+    public static SeparatedSyntaxList<T> Build<T>(ReadOnlySpan<SyntaxNode> xs) where T : SyntaxNode
+    {
+        var greenElementsArray = new Green.SyntaxNode[xs.Length];
+        for (var i = 0; i < xs.Length; i++) greenElementsArray[i] = xs[i].Green;
+        var greenElements = ImmutableCollectionsMarshal.AsImmutableArray(greenElementsArray);
+        
+        var green = (Green.SyntaxNode)ReflectionInfo<T>.GreenSeparatedSyntaxListCreate.Invoke(null, [greenElements])!;
+
+        return new SeparatedSyntaxList<T>(green, 0, null!, greenElements);
+    }
 }
