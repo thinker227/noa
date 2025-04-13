@@ -123,7 +123,7 @@ public static class SyntaxNavigation
     /// The ancestor of the specified type and matching the filter if provided,
     /// or <see langword="null"/> if none could be found.
     /// </returns>
-    public static T? GetFirstAncestorOfType<T>(this SyntaxNode node, Func<T, bool>? filter = null)
+    public static T? GetFirstAncestorOfType<T>(this ISyntaxNavigable node, Func<T, bool>? filter = null)
         where T : SyntaxNode
     {
         var current = node;
@@ -132,7 +132,9 @@ public static class SyntaxNavigation
         {
             if (current is T x && (filter?.Invoke(x) ?? true)) return x;
             
-            current = current.Parent;
+            current = current is Trivia trivia
+                ? trivia.ParentToken
+                : current.ParentNode;
         }
 
         return null;
