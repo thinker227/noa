@@ -28,6 +28,12 @@ public abstract class Trivia
         this.fullPosition = fullPosition;
         ParentToken = parent;
     }
+
+    public override bool Equals(object? obj) =>
+        obj is Trivia trivia &&
+        trivia.green == green;
+
+    public override int GetHashCode() => green.GetHashCode();
 }
 
 /// <summary>
