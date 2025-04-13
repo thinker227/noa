@@ -29,6 +29,12 @@ public interface IPartialDiagnostic
     /// <param name="source">The source the diagnostic is located in.</param>
     /// <param name="fullPosition">The full position in the source text which the diagnostic is relative to.</param>
     IDiagnostic Format(Source source, int fullPosition);
+
+    /// <summary>
+    /// Returns the partial diagnostic with an offset added.
+    /// </summary>
+    /// <param name="offset">The offset to add.</param>
+    IPartialDiagnostic AddOffset(int offset);
 }
 
 /// <summary>
@@ -56,6 +62,9 @@ public sealed record class PartialDiagnostic(
             Template,
             new Location(source.Name, span));
     }
+
+    public IPartialDiagnostic AddOffset(int offset) =>
+        new PartialDiagnostic(Template, Offset + offset, Width);
 }
 
 /// <summary>
@@ -87,4 +96,7 @@ public sealed record class PartialDiagnostic<TArg>(
             Argument,
             new Location(source.Name, span));
     }
+
+    public IPartialDiagnostic AddOffset(int offset) =>
+        new PartialDiagnostic<TArg>(Template, Argument, Offset + offset, Width);
 }

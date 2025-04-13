@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Noa.Compiler.Diagnostics;
 using TextMappingUtils;
 
 namespace Noa.Compiler.Syntax;
@@ -6,11 +7,9 @@ namespace Noa.Compiler.Syntax;
 /// <summary>
 /// A concrete syntax node. Holds exact information about the syntax of a program.
 /// </summary>
-public abstract class SyntaxNode
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
+public abstract partial class SyntaxNode : ISyntaxNavigable
 {
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private TextSpan? span = null;
-
     /// <summary>
     /// The corresponding node in the green tree.
     /// </summary>
@@ -32,22 +31,13 @@ public abstract class SyntaxNode
     /// The position of the node in the tree.
     /// This does <b>not</b> include leading trivia.
     /// </summary>
-    public int Position
-    {
-        get
-        {
-            var position = FullPosition;
-            var leadingTrivia = Green.FirstToken?.LeadingTrivia;
-            if (leadingTrivia is not null) position += leadingTrivia.Length;
-            return position;
-        }
-    }
+    public int Position => FullPosition + GetTriviaWidth();
 
     /// <summary>
     /// The span of the syntax node in the corresponding source text,
     /// <i>excluding</i> its leading trivia.
     /// </summary>
-    public TextSpan Span => span ??= TextSpan.FromLength(Position, CalculateNonTriviaWidth());
+    public TextSpan Span => TextSpan.FromLength(Position, CalculateNonTriviaWidth());
 
     /// <summary>
     /// The full span of the syntax node in the corresponding source text,
@@ -55,13 +45,17 @@ public abstract class SyntaxNode
     /// </summary>
     public TextSpan FullSpan => TextSpan.FromLength(FullPosition, Green.GetFullWidth());
 
-    private int CalculateNonTriviaWidth()
-    {
-        var width = Green.GetFullWidth();
-        var leadingTrivia = Green.FirstToken?.LeadingTrivia;
-        if (leadingTrivia is not null) width -= leadingTrivia.Length;
-        return width;
-    }
+    private int CalculateNonTriviaWidth() =>
+        Green.GetFullWidth() - GetTriviaWidth();
+
+    private int GetTriviaWidth() => Green.FirstToken?.LeadingTrivia.Sum(x => x.GetFullWidth()) ?? 0;
+
+    /// <summary>
+    /// Gets all diagnostics associated with this node.
+    /// </summary>
+    /// <param name="source">The source of the node.</param>
+    public IEnumerable<IDiagnostic> GetDiagnostics(Source source) =>
+        Green.Diagnostics.Select(diag => diag.Format(source, Position));
 
     /// <summary>
     /// The nodes which are direct children of the node.

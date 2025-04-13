@@ -1,6 +1,6 @@
 namespace Noa.Compiler.Syntax.Tests;
 
-public class SyntaxUtilitiesTests
+public class SyntaxNavigationTests
 {
     [Fact]
     public void GetFirstToken_ReturnsSelf_ForToken()
