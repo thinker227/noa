@@ -306,7 +306,7 @@ public static class ContextService
         if (isPostIfBodyWithoutElse) kind |= SyntaxContextKind.PostIfBodyWithoutElse;
         if (isInLoop) kind |= SyntaxContextKind.InLoop;
 
-        var accessibleSymbols = GetAccessibleSymbols(ast, rightToken, isAtEndOfBlock);
+        var accessibleSymbols = GetAccessibleSymbols(ast, leftToken, rightToken, isAtEndOfBlock);
 
         return new(
             position,
@@ -337,9 +337,27 @@ public static class ContextService
     /// </summary>
     private  static IBuffer<ISymbol> GetAccessibleSymbols(
         Ast ast,
+        ITokenLike? leftToken,
         ITokenLike? rightToken,
         bool isAtEndOfBlock)
     {
+        // => |
+        if (leftToken?.Kind is TokenKind.EqualsGreaterThan)
+        {
+            var expressionBody = leftToken.ParentNode switch
+            {
+                LambdaExpressionSyntax { Expression: var e } => e,
+                ExpressionBodySyntax { Expression: var e } => e,
+                _ => null
+            };
+
+            if (expressionBody is not null)
+            {
+                var node = ast.GetAstNode(expressionBody);
+                return node.Scope.Value.AccessibleAt(LookupLocation.AtNode(node)).Memoize();
+            }
+        }
+
         if (isAtEndOfBlock)
         {
             // { | }
