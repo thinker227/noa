@@ -40,6 +40,18 @@ internal sealed class UnexpectedTokenTrivia(TokenKind kind, string text, int wid
     public override int GetFullWidth() => width;
 }
 
+internal sealed class SkippedTokenTrivia(TokenKind kind, string text, int widthh) : Trivia
+{
+    public TokenKind Kind { get; } = kind;
+
+    public string Text { get; } = text;
+
+    public override Syntax.SkippedTokenTrivia ToRed(int fullPosition, Syntax.Token parent) =>
+        new(this, fullPosition, parent);
+
+    public override int GetFullWidth() => throw new NotImplementedException();
+}
+
 internal sealed class UnexpectedCharacterTrivia(string character) : Trivia
 {
     public string Character { get; } = character;

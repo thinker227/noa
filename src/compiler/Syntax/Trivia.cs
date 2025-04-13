@@ -93,6 +93,23 @@ public sealed partial class UnexpectedTokenTrivia : Trivia, ITokenLike
 }
 
 /// <summary>
+/// Trivia about a single skipped token.
+/// </summary>
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
+public sealed partial class SkippedTokenTrivia : Trivia, ITokenLike
+{
+    private readonly Green.SkippedTokenTrivia green;
+
+    public TokenKind Kind => green.Kind;
+
+    public string Text => green.Text;
+
+    internal SkippedTokenTrivia(Green.SkippedTokenTrivia green, int fullPosition, Token parent)
+        : base(green, fullPosition, parent) =>
+        this.green = green;
+}
+
+/// <summary>
 /// Trivia about a single unexpected character.
 /// </summary>
 public sealed class UnexpectedCharacterTrivia : Trivia

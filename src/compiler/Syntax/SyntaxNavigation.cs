@@ -90,6 +90,23 @@ public sealed partial class UnexpectedTokenTrivia
     }
 }
 
+public sealed partial class SkippedTokenTrivia
+{
+    public ITokenLike? GetFirstToken(bool includeInvisible = false) => null;
+    
+    public ITokenLike? GetLastToken(bool includeInvisible = false) => null;
+    
+    public ITokenLike? GetPreviousToken(bool includeInvisible = false)
+    {
+        foreach (var sibling in SyntaxNavigation.IteratePreviousUnexpectedTokens(this))
+        {
+            if (!sibling.Kind.IsInvisible() || includeInvisible) return sibling;
+        }
+
+        return ParentToken.GetPreviousToken(includeInvisible);
+    }
+}
+
 public static class SyntaxNavigation
 {
     /// <summary>
@@ -166,14 +183,14 @@ public static class SyntaxNavigation
     }
 
     /// <summary>
-    /// Enumerates the previous unexpected tokens of an unexpected token in reverse order.
+    /// Enumerates the previous token-like trivias of a piece of trivia in reverse order.
     /// </summary>
-    internal static IEnumerable<UnexpectedTokenTrivia> IteratePreviousUnexpectedTokens(UnexpectedTokenTrivia unexpectedToken)
+    internal static IEnumerable<ITokenLike> IteratePreviousUnexpectedTokens(Trivia trivia)
     {
-        var previous = new Stack<UnexpectedTokenTrivia>();
-        foreach (var sibling in unexpectedToken.ParentToken.LeadingTrivia.OfType<UnexpectedTokenTrivia>())
+        var previous = new Stack<ITokenLike>();
+        foreach (var sibling in trivia.ParentToken.LeadingTrivia.OfType<ITokenLike>())
         {
-            if (!sibling.Equals(unexpectedToken))
+            if (!sibling.Equals(trivia))
             {
                 previous.Push(sibling);
                 continue;
@@ -255,14 +272,14 @@ public static class SyntaxNavigation
             // Look for an unexpected token within the token's trivia.
             foreach (var trivia in token.LeadingTrivia)
             {
-                if (trivia is UnexpectedTokenTrivia unexpectedToken)
+                if (trivia is ITokenLike triviaToken)
                 {
                     // If we have found an unexpected token, then check if the token
                     // directly contains the position. Otherwise, check if we allow
                     // returning a token in trivia, in which case we return the unexpected token.
                     // Pretty much the same song and dance as with normal tokens.
-                    if (unexpectedToken.Span.Contains(position)) return unexpectedToken;
-                    else if (inTrivia) return unexpectedToken;
+                    if (triviaToken.Span.Contains(position)) return triviaToken;
+                    else if (inTrivia) return triviaToken;
                 }
             }
 
