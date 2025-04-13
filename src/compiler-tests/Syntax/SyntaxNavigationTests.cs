@@ -9,7 +9,7 @@ public class SyntaxNavigationTests
     {
         var token = Token(TokenKind.True);
 
-        token.GetFirstToken().ShouldBeNull();
+        token.GetFirstToken().ShouldBe(token);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class SyntaxNavigationTests
     {
         var token = Token(TokenKind.True);
 
-        token.GetLastToken().ShouldBeNull();
+        token.GetLastToken().ShouldBe(token);
     }
 
     [Fact]
@@ -46,6 +46,38 @@ public class SyntaxNavigationTests
             Whitespace(" "));
 
         token.GetLastToken().ShouldBe(skipped);
+    }
+
+    [Fact]
+    public void GetFirstToken_ReturnsSelf_ForUnexpectedToken()
+    {
+        var unexpected = UnexpectedToken(TokenKind.Mut);
+
+        unexpected.GetFirstToken().ShouldBe(unexpected);
+    }
+
+    [Fact]
+    public void GetLastToken_ReturnsSelf_ForUnexpectedToken()
+    {
+        var unexpected = UnexpectedToken(TokenKind.Mut);
+
+        unexpected.GetLastToken().ShouldBe(unexpected);
+    }
+
+    [Fact]
+    public void GetFirstToken_ReturnsSelf_ForSkippedToken()
+    {
+        var skipped = SkippedToken(TokenKind.Mut);
+
+        skipped.GetFirstToken().ShouldBe(skipped);
+    }
+
+    [Fact]
+    public void GetLastToken_ReturnsSelf_ForSkippedToken()
+    {
+        var skipped = SkippedToken(TokenKind.Mut);
+
+        skipped.GetLastToken().ShouldBe(skipped);
     }
 
     [Fact]
