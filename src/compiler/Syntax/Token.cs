@@ -29,6 +29,8 @@ public sealed partial class Token : SyntaxNode, ITokenLike
     /// </summary>
     public ImmutableArray<Trivia> LeadingTrivia => ConstructTrivia();
 
+    SyntaxNode ITokenLike.ParentNode => Parent;
+
     private ImmutableArray<Trivia> ConstructTrivia()
     {
         var builder = ImmutableArray.CreateBuilder<Trivia>(green.LeadingTrivia.Length);
