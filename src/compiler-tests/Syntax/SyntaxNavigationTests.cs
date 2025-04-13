@@ -189,4 +189,59 @@ public class SyntaxNavigationTests
         
         target.GetPreviousToken().ShouldBe(returnToken);
     }
+
+    [Fact]
+    public void GetFirstAncestorOfType_ReturnsNull_ForNodeWithoutAncestorOfType()
+    {
+        var node = Root(
+            Block(
+                [
+                    ExpressionStatement(
+                        ReturnExpression(
+                            Token(TokenKind.Return),
+                            null),
+                        Token(TokenKind.Semicolon))
+                ],
+            null),
+            Token(TokenKind.EndOfFile));
+        
+        var target =
+            ((node.Block.Statements[0] as ExpressionStatementSyntax)!
+                .Expression as ReturnExpressionSyntax)!
+                    .Return;
+        
+        target.GetFirstAncestorOfType<NumberExpressionSyntax>().ShouldBeNull();
+    }
+
+    [Fact]
+    public void GetFirstAncestorOfType_ReturnsParentToken_ForTokenTrivia()
+    {
+        var token = Token(TokenKind.Number, "1", UnexpectedToken(TokenKind.Mut));
+
+        var target = (token.LeadingTrivia[0] as UnexpectedTokenTrivia)!;
+
+        target.GetFirstAncestorOfType<Token>().ShouldBe(token);
+    }
+
+    [Fact]
+    public void GetFirstAncestorOfType_ReturnsFirstAncestor_ForNodeWithAncestor()
+    {
+        var node = Root(
+            Block(
+                [
+                    ExpressionStatement(
+                        ReturnExpression(
+                            Token(TokenKind.Return),
+                            null),
+                        Token(TokenKind.Semicolon))
+                ],
+            null),
+            Token(TokenKind.EndOfFile));
+        
+        var target =
+            ((node.Block.Statements[0] as ExpressionStatementSyntax)!
+                .Expression as ReturnExpressionSyntax)!;
+        
+        target.GetFirstAncestorOfType<RootSyntax>().ShouldBe(node);
+    }
 }
