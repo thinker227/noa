@@ -63,6 +63,7 @@ internal sealed partial class Parser
             {
                 // An unexpected token was encountered.
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
             
                 // Try synchronize with the next parameter.
                 Synchronize(SyntaxFacts.LambdaParameterListSynchronize);

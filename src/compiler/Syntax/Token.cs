@@ -1,10 +1,12 @@
+using Noa.Compiler.Parsing;
 
 namespace Noa.Compiler.Syntax;
 
 /// <summary>
 /// A syntax token, a single unit of syntax.
 /// </summary>
-public sealed class Token : SyntaxNode
+// Note: the implementation of ISyntaxNavigable is in SyntaxNavigation.cs.
+public sealed partial class Token : SyntaxNode, ITokenLike
 {
     private readonly Green.Token green;
 
@@ -24,17 +26,29 @@ public sealed class Token : SyntaxNode
 
     /// <summary>
     /// The leading trivia of the token.
-    /// Trivia counts as whitespace and any invalid characters encountered
-    /// between the previous and current token.
     /// </summary>
-    public string LeadingTrivia => green.LeadingTrivia;
+    public ImmutableArray<Trivia> LeadingTrivia => ConstructTrivia();
+
+    private ImmutableArray<Trivia> ConstructTrivia()
+    {
+        var builder = ImmutableArray.CreateBuilder<Trivia>(green.LeadingTrivia.Length);
+
+        var offset = 0;
+        foreach (var trivia in green.LeadingTrivia)
+        {
+            builder.Add(trivia.ToRed(FullPosition + offset, this));
+            offset += trivia.GetFullWidth();
+        }
+
+        return builder.MoveToImmutable();
+    }
 
     /// <summary>
     /// Whether the token is invisible, i.e. does not consist of any text.
     /// This is only the case for tokens with the kind
     /// <see cref="TokenKind.Error"/> or <see cref="TokenKind.EndOfFile"/>.
     /// </summary>
-    public bool IsInvisible => Kind is TokenKind.Error or TokenKind.EndOfFile;
+    public bool IsInvisible => Kind.IsInvisible();
 
     internal Token(Green.Token green, int position, SyntaxNode parent) : base(position, parent) =>
         this.green = green;

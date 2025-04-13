@@ -12,6 +12,10 @@ internal sealed class SyntaxList<TNode>(ImmutableArray<TNode> nodes)
     public int Count => nodes.Length;
 
     public override IEnumerable<SyntaxNode> Children => nodes;
+
+    public static SyntaxList<TNode> Create(IEnumerable<SyntaxNode> nodes) =>
+        new(nodes.Select(x => (TNode)x).ToImmutableArray());
+
     public override int GetFullWidth() => nodes.Sum(x => x.GetFullWidth());
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>

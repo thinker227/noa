@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Noa.Compiler.Syntax;
 
@@ -6,6 +8,7 @@ namespace Noa.Compiler.Syntax;
 /// A list which holds syntax nodes.
 /// </summary>
 /// <typeparam name="TNode">The type of the nodes in the list.</typeparam>
+[CollectionBuilder(typeof(SyntaxListBuilder), nameof(SyntaxListBuilder.Build))]
 public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where TNode : SyntaxNode
 {
     private readonly TNode?[] constructed;
@@ -71,4 +74,18 @@ public sealed class SyntaxList<TNode> : SyntaxNode, IReadOnlyList<TNode> where T
 
     public override int GetHashCode() =>
         Green.GetHashCode();
+}
+
+public static class SyntaxListBuilder
+{
+    public static SyntaxList<T> Build<T>(ReadOnlySpan<T> xs) where T : SyntaxNode
+    {
+        var greenElementsArray = new Green.SyntaxNode[xs.Length];
+        for (var i = 0; i < xs.Length; i++) greenElementsArray[i] = xs[i].Green;
+        var greenElements = ImmutableCollectionsMarshal.AsImmutableArray(greenElementsArray);
+
+        var green = (Green.SyntaxNode)ReflectionInfo<T>.GreenSyntaxListCreate.Invoke(null, [greenElements])!;
+        
+        return new(green, 0, null!, greenElements);
+    }
 }

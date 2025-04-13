@@ -11,6 +11,7 @@ internal sealed class ParseState
 {
     private readonly ImmutableArray<Token> tokens;
     private int position;
+    private readonly List<TriviaToken> triviaTokens;
     
     /// <summary>
     /// The source which is being parsed.
@@ -20,17 +21,21 @@ internal sealed class ParseState
     /// <summary>
     /// The current token.
     /// </summary>
-    public Token Current => tokens[position];
+    public Token Current { get; private set; }
 
     private ParseState(
         Source source,
+        Token current,
         ImmutableArray<Token> tokens,
-        int position)
+        int position,
+        IEnumerable<TriviaToken> triviaTokens)
     {
         Source = source;
+        Current = current;
         
         this.tokens = tokens;
         this.position = position;
+        this.triviaTokens = triviaTokens.ToList();
     }
 
     /// <summary>
@@ -42,23 +47,43 @@ internal sealed class ParseState
     public ParseState(Source source, ImmutableArray<Token> tokens)
     {
         Source = source;
+        Current = tokens[0];
         
         this.tokens = tokens;
         position = 0;
+        triviaTokens = [];
     }
-    
+
+    private Token MoveNext()
+    {
+        // Ensure that the position does not progress past the end of the tokens.
+        if (position < tokens.Length - 1) position += 1;
+        
+        return tokens[position];
+    }
+
     /// <summary>
     /// Advances the parser by one token and returns the previous token.
-    /// Skips over any invalid tokens.
     /// </summary>
     public Token Advance()
     {
         var token = Current;
 
-        // Ensure that the position does not progress past the end of the tokens.
-        if (position < tokens.Length - 1) position += 1;
+        Current = MoveNext();
 
         return token;
+    }
+
+    /// <summary>
+    /// Consumes the current token and adds it as a trivia
+    /// which will be appended as trivia to the next token.
+    /// </summary>
+    public void ConsumeAsTrivia(TriviaTokenKind kind)
+    {
+        var triviaToken = new TriviaToken(Current, kind);
+        var next = MoveNext();
+
+        Current = triviaToken.AttachTo(next);
     }
 
     /// <summary>
@@ -67,6 +92,8 @@ internal sealed class ParseState
     /// </summary>
     public ParseState Branch() => new(
         Source,
+        Current,
         tokens,
-        position);
+        position,
+        triviaTokens);
 }

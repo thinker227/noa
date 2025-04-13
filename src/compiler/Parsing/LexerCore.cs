@@ -12,7 +12,7 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
     private readonly List<ILexerDiagnostic> diagnosticsForNextToken = [];
     private readonly string text = source.Text;
     private int position = 0;
-    private int leadingTriviaLength = 0;
+    private readonly ImmutableArray<Trivia>.Builder trivia = ImmutableArray.CreateBuilder<Trivia>();
 
     private char Current =>
         position < text.Length
@@ -41,15 +41,11 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
     private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, int width) =>
         diagnosticsForNextToken.Add(new LexerDiagnostic<T>(template, arg, position, width));
     
-    private string ConsumeLeadingTrivia()
+    private ImmutableArray<Trivia> ConsumeLeadingTrivia()
     {
-        var leadingTrivia = leadingTriviaLength > 0
-            ? text[(position - leadingTriviaLength)..position]
-            : "";
-
-        leadingTriviaLength = 0;
-
-        return leadingTrivia;
+        var built = trivia.ToImmutable();
+        trivia.Clear();
+        return built;
     }
 
     private void ConstructToken(TokenKind kind, int length)

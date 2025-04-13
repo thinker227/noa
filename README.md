@@ -16,6 +16,8 @@ In addition to the language itself, Noa also features a **VSCode extension** wit
 
 This merely a passion project of mine and is not meant to be taken seriously! It's not meant to be a "production-ready" language, but I hope to one day be able to write some somewhat useful programs in it.
 
+> *Noa is 100% guaranteed free from the output of generative AI!*
+
 ## Installation
 
 > [!NOTE]

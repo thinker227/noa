@@ -21,31 +21,44 @@ internal sealed partial class Lexer
         while (!AtEnd)
         {
             // Whitespace
-            while (SyntaxFacts.IsWhitespace(Current))
+            if (SyntaxFacts.IsWhitespace(Current))
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var whitespaceLength = 0;
 
-                leadingTriviaLength += 1;
-                Progress(1);
+                while (whitespaceLength < Rest.Length && SyntaxFacts.IsWhitespace(Rest[whitespaceLength]))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    whitespaceLength += 1;
+                }
+
+                var whitespace = Rest[..whitespaceLength].ToString();
+                trivia.Add(new WhitespaceTrivia(whitespace));
+
+                Progress(whitespaceLength);
+
+                continue;
             }
 
             // Comments
             if (Get(2) is "//")
             {
-                while (!AtEnd && Current is not '\n')
+                var commentLength = 2;
+
+                while (commentLength < Rest.Length && Rest[commentLength] is not '\n')
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Progress(1);
+                    commentLength += 1;
                 }
+
+                var comment = Rest[..commentLength].ToString();
+                trivia.Add(new CommentTrivia(comment));
+
+                Progress(commentLength);
 
                 continue;
             }
-
-            // If there is trailing whitespace before the end of the source,
-            // the previous step has eaten all the whitespace, and we need to break
-            // to avoid choking on the end.
-            if (AtEnd) break;
 
             // Symbol clusters
             if (TrySymbol() is var (kind, tokenLength))
@@ -87,11 +100,14 @@ internal sealed partial class Lexer
             if (TryString()) continue;
 
             // Unknown
+            var unexpectedText = Rest[..1].ToString();
+            
             ReportDiagnostic(
                 ParseDiagnostics.UnexpectedCharacter,
-                Rest[..1].ToString(),
+                unexpectedText,
                 width: 1);
-            leadingTriviaLength += 1;
+            
+            trivia.Add(new UnexpectedCharacterTrivia(unexpectedText));
             
             Progress(1);
         }
