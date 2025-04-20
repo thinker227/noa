@@ -5,7 +5,7 @@ namespace Noa.Compiler.FlowAnalysis;
 
 internal static class FlowDiagnostics
 {
-    public static DiagnosticTemplate ReturnOutsideFunction { get; } =
+    public static DiagnosticTemplate<Unit> ReturnOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-001",
             page => page
@@ -15,7 +15,7 @@ internal static class FlowDiagnostics
                 .Raw("."),
             Severity.Error);
     
-    public static DiagnosticTemplate BreakOutsideFunction { get; } =
+    public static DiagnosticTemplate<Unit> BreakOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-002",
             page => page
@@ -25,7 +25,7 @@ internal static class FlowDiagnostics
                 .Raw("."),
             Severity.Error);
     
-    public static DiagnosticTemplate ContinueOutsideFunction { get; } =
+    public static DiagnosticTemplate<Unit> ContinueOutsideFunction { get; } =
         DiagnosticTemplate.Create(
             "NOA-FLW-003",
             page => page

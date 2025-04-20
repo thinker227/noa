@@ -35,8 +35,8 @@ internal sealed partial class Lexer(Source source, CancellationToken cancellatio
             ? Rest.Slice(from, length)
             : [];
     
-    private void ReportDiagnostic(DiagnosticTemplate template, int width) =>
-        diagnosticsForNextToken.Add(new LexerDiagnostic(template, position, width));
+    private void ReportDiagnostic(DiagnosticTemplate<Unit> template, int width) =>
+        diagnosticsForNextToken.Add(new LexerDiagnostic<Unit>(template, new Unit(), position, width));
     
     private void ReportDiagnostic<T>(DiagnosticTemplate<T> template, T arg, int width) =>
         diagnosticsForNextToken.Add(new LexerDiagnostic<T>(template, arg, position, width));

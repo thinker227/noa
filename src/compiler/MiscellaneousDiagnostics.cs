@@ -5,7 +5,7 @@ namespace Noa.Compiler;
 
 internal static class MiscellaneousDiagnostics
 {
-    public static DiagnosticTemplate TuplesUnsupported { get; } =
+    public static DiagnosticTemplate<Unit> TuplesUnsupported { get; } =
         DiagnosticTemplate.Create(
             "NOA-MISC-001",
             page => page
