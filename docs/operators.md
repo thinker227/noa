@@ -12,23 +12,33 @@ Operator | Operand | Result                               |
 ---------|---------|--------------------------------------|
 `+`      | Number  | Same value as the operand (identity) |
 `-`      | Number  | Negative of operand                  |
+`not`    | Boolean | Logical negation of operand          |
 
 ## Binary operators
 
 A binary operator is an operator which takes in two operands, a left and right operand.
 
-Operator | Left   | Right  | Result                                                                 |
----------|--------|--------|------------------------------------------------------------------------|
-`+`      | Number | Number | The sum of left and right                                              |
-`-`      | Number | Number | The difference between left and right                                  |
-`*`      | Number | Number | The product of left and right                                          |
-`/`      | Number | Number | The quotient of left and right                                         |
-`==`     | Any    | Any    | Whether left and right are equal (see [equality](./equality.md))       |
-`!=`     | Any    | Any    | Whether left and right are *not* equal (see [equality](./equality.md)) |
-`<`      | Number | Number | Whether left is less than right                                        |
-`>`      | Number | Number | Whether left is greater than right                                     |
-`<=`     | Number | Number | Whether left is less than or equal to right                            |
-`>=`     | Number | Number | Whether left is greater than or equal to right                         |
+Operator | Left    | Right   | Result                                                                 |
+---------|---------|---------|------------------------------------------------------------------------|
+`+`      | Number  | Number  | The sum of left and right                                              |
+`-`      | Number  | Number  | The difference between left and right                                  |
+`*`      | Number  | Number  | The product of left and right                                          |
+`/`      | Number  | Number  | The quotient of left and right                                         |
+`==`     | Any     | Any     | Whether left and right are equal (see [equality](./equality.md))       |
+`!=`     | Any     | Any     | Whether left and right are *not* equal (see [equality](./equality.md)) |
+`<`      | Number  | Number  | Whether left is less than right                                        |
+`>`      | Number  | Number  | Whether left is greater than right                                     |
+`<=`     | Number  | Number  | Whether left is less than or equal to right                            |
+`>=`     | Number  | Number  | Whether left is greater than or equal to right                         |
+`or`     | Boolean | Boolean | The logical disjunction of left and right                              |
+`and`    | Boolean | Boolean | The logical conjunction of left and right                              |
+
+### Short-circuiting
+
+Some operators, namely `or` and `and`, only evaluate their right-side operand if necessary.
+
+- For `or`, the right-side operand is only evaluated if the left-side operand is `false`.
+- For `and`, the right-side operand is only evaluated if the left-side operand is `true`.
 
 ## Operator precedence
 
@@ -36,8 +46,10 @@ Operator precedence specifies in what order multiple chained operators parse. Fo
 
 The following is a list of operators and their precedence in order from lowest to highest:
 
-1. `a == b`, `a != b`
-2. `a < b`, `a > b`, `a <= b`, `a >= b`
-3. `a + b`, `a - b`
-4. `a * b`, `a / b`
-5. `+x`, `-x`
+1. `a or b`
+2. `a and b`
+3. `a == b`, `a != b`
+4. `a < b`, `a > b`, `a <= b`, `a >= b`
+5. `a + b`, `a - b`
+6. `a * b`, `a / b`
+7. `+x`, `-x`, `not x`
