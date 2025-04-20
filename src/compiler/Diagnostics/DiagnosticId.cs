@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Noa.Compiler.Diagnostics;
@@ -40,9 +41,12 @@ public sealed partial record DiagnosticId : IParsable<DiagnosticId>
     [GeneratedRegex("^([A-Z]+)-([A-Z]+)-([0-9]+)$")]
     private static partial Regex IdRegex();
 
-    public static bool TryParse(string? s, IFormatProvider? provider, out DiagnosticId result)
+    public static bool TryParse(
+        [NotNullWhen(true)] string? s,
+        IFormatProvider? provider,
+        [MaybeNullWhen(false)] out DiagnosticId result)
     {
-        result = null!;
+        result = null;
 
         if (s is null) return false;
 
