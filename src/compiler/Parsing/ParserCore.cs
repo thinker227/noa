@@ -22,9 +22,10 @@ internal sealed partial class Parser
         this.cancellationToken = cancellationToken;
     }
 
-    private void ReportDiagnostic(DiagnosticTemplate template, SyntaxNode node, int offset = 0) =>
-        node.AddDiagnostic(new PartialDiagnostic(
+    private void ReportDiagnostic(DiagnosticTemplate<Unit> template, SyntaxNode node, int offset = 0) =>
+        node.AddDiagnostic(new PartialDiagnostic<Unit>(
             template,
+            new Unit(),
             Offset: offset,
             Width: node.GetSnugWidth()));
 

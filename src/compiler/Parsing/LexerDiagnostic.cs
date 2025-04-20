@@ -10,19 +10,6 @@ internal interface ILexerDiagnostic
     IPartialDiagnostic ToPartial(int currentLexerPosition);
 }
 
-internal readonly record struct LexerDiagnostic(
-    DiagnosticTemplate Template,
-    int Position,
-    int Width)
-    : ILexerDiagnostic
-{
-    public IPartialDiagnostic ToPartial(int currentLexerPosition) =>
-        new PartialDiagnostic(
-            Template,
-            Offset: Position - currentLexerPosition,
-            Width);
-}
-
 internal readonly record struct LexerDiagnostic<T>(
     DiagnosticTemplate<T> Template,
     T Arg,
