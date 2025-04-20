@@ -746,7 +746,14 @@ impl Vm {
                 )?;
             },
 
-            opcode::EQUAL => todo!(),
+            opcode::EQUAL => {
+                let a = self.pop()?;
+                let b = self.pop()?;
+
+                let val = self.equal(a, b)?;
+
+                self.push(Value::Bool(val))?;
+            },
 
             opcode::LESS_THAN => {
                 self.binary_op(

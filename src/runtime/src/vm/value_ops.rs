@@ -25,6 +25,53 @@ impl Vm {
         }
     }
 
+    /// Checks whether two values are equal.
+    pub fn equal(&self, a: Value, b: Value) -> Result<bool> {
+        // Try checking whether both values are string-like first.
+        if let (Some(a), Some(b)) = (self.try_get_string(a)?, self.try_get_string(b)?) {
+            return Ok(a == b);
+        }
+
+        match (a, b) {
+            (Value::Number(a), Value::Number(b)) => Ok(a == b),
+
+            (Value::Bool(a), Value::Bool(b)) => Ok(a == b),
+
+            (Value::InternedString(_), Value::InternedString(_)) => unreachable!(),
+
+            (Value::Function(a), Value::Function(b)) => Ok(a == b),
+
+            (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
+                (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
+                (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
+                (HeapValue::Object(_), HeapValue::Object(_)) => todo!("not yet specified"),
+                _ => Ok(false)
+            },
+
+            (Value::Nil, Value::Nil) => Ok(true),
+
+            _ => Ok(false)
+        }
+    }
+
+    /// Tries to get a string from a value without performing any coercion.
+    pub fn try_get_string(&self, val: Value) -> Result<Option<String>> {
+        match val {
+            Value::InternedString(index) =>
+                self.consts.strings.get(index)
+                    .cloned()
+                    .ok_or_else(|| self.exception(Exception::InvalidString(index)))
+                    .map(|x| Some(x)),
+            
+            Value::Object(heap_addresss) => match self.get_heap_value(heap_addresss)? {
+                HeapValue::String(str) => Ok(Some(str.clone())),
+                _ => Ok(None)
+            },
+
+            _ => Ok(None)
+        }
+    }
+
     /// Turns a value into a string representation.
     pub fn to_string(&self, val: Value) -> Result<String> {
         match val {
