@@ -79,6 +79,32 @@ internal abstract class SyntaxNode
     }
 
     /// <summary>
+    /// Gets the width of the node, excluding trivia.
+    /// </summary>
+    public int GetSnugWidth()
+    {
+        var width = 0;
+
+        if (this is Token token) return token.Width;
+
+        var first = true;
+        foreach (var child in Children)
+        {
+            if (first)
+            {
+                width += child.GetSnugWidth();
+                first = false;
+            }
+            else
+            {
+                width += child.GetFullWidth();
+            }
+        }
+
+        return width;
+    }
+
+    /// <summary>
     /// Gets the width of the node, including trivia.
     /// </summary>
     public abstract int GetFullWidth();
