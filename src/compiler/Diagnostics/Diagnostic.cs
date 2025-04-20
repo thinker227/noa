@@ -47,9 +47,9 @@ public static class Diagnostic
         TArg argument,
         Location location) : IDiagnostic
     {
-        public DiagnosticId Id { get; } = template.Id;
+        public DiagnosticId Id => template.Id;
 
-        public Severity Severity { get; } = template.Severity;
+        public Severity Severity => template.Severity;
 
         public Location Location { get; } = location;
 
