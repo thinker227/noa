@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Noa.Compiler;
 using Spectre.Console;
 
@@ -12,7 +13,7 @@ public sealed class Root(
     FileInfo inputFile,
     string[] args,
     FileInfo? outputFile,
-    FileInfo? runtime,
+    FileInfo? runtimeOverride,
     bool printReturnValue,
     bool doTime)
 {
@@ -102,8 +103,8 @@ public sealed class Root(
 
     private int Execute()
     {
-        var inputDisplayPath = Compile.GetDisplayPath(inputFile);
-        
+        if (FindRuntime() is not {} runtime) return 1;
+
         Ast ast;
         try
         {
@@ -146,31 +147,50 @@ public sealed class Root(
         return exitCode;
     }
 
-    private (TimeSpan, int)? ExecuteArk(FileInfo? runtime, FileInfo arkFile, bool printReturnValue)
+    private FileInfo? FindRuntime()
     {
-        if (runtime is null)
+        if (runtimeOverride is not null) return runtimeOverride;
+
+        const string runtimePathEnvVar = "NOA_RUNTIME";
+        var envRuntimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
+
+        if (envRuntimePath is not null)
         {
-            const string runtimePathEnvVar = "NOA_RUNTIME";
-            var runtimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
-            if (runtimePath is null)
+            var envProvidedRuntime = new FileInfo(envRuntimePath);
+
+            if (!envProvidedRuntime.Exists)
             {
-                console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The environment variable [/][aqua]{runtimePathEnvVar}[/] [red]is not set.[/]");
-                console.MarkupLine("[gray]Make sure the variable is set for the process and contains the path to the runtime executable, " +
-                                   "or specify the [/][white]--runtime[/][gray] option with the path.[/]");
-                return null;
+                console.MarkupLine($"[yellow]The environment variable [/][white]{runtimePathEnvVar}[/][yellow] is set, but it doesn't refer to a valid file.[/]");
             }
-            else
-            {
-                runtime = new(runtimePath);
-            }
+            else return envProvidedRuntime;
         }
 
-        if (!runtime.Exists)
+        var siblingRuntimeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "noa_runtime.exe"
+            : "noa_runtime";
+        var processPath = Environment.ProcessPath!;
+        var processDirectory = Path.GetDirectoryName(processPath)!;
+        var siblingRuntimePath = Path.Combine(processDirectory, siblingRuntimeName);
+        var siblingRuntime = new FileInfo(siblingRuntimePath);
+
+        if (!siblingRuntime.Exists)
         {
-            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The specified runtime executable path [/][aqua]{runtime.FullName}[/][red] does not exist.[/]");
+            console.MarkupLine($"""
+                [red]Cannot find the Noa runtime. Tried to find the runtime in the following places:
+                  - A path provided by the [/][white]--runtime|-r[/][red] CLI option.
+                  - A path provided by the [/][white]NOA_RUNTIME[/][red] environment variable.
+                  - [/][white]{siblingRuntimePath}[/][red], which did not exist.
+                [/]
+                """);
+            
             return null;
         }
 
+        return siblingRuntime;
+    }
+
+    private (TimeSpan, int)? ExecuteArk(FileInfo runtime, FileInfo arkFile, bool printReturnValue)
+    {
         var runtimeArgs = new List<string> { $"-f {arkFile.FullName}" };
         if (printReturnValue) runtimeArgs.Add("--print-ret");
 
