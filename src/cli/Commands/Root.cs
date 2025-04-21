@@ -133,6 +133,8 @@ public sealed class Root(
             outputFile = new(outputFilePath);
         }
 
+        if (!outputFile.Directory!.Exists) Directory.CreateDirectory(outputFile.Directory.FullName);
+
         using (var stream = outputFile.OpenWrite())
         {
             ast.Emit(stream);

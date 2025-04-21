@@ -82,6 +82,8 @@ public sealed class Build(
             var outputFilePath = Path.Combine(inputFile.Directory?.FullName ?? "", outputFileName);
             outputFile = new(outputFilePath);
         }
+
+        if (!outputFile.Directory!.Exists) Directory.CreateDirectory(outputFile.Directory.FullName);
         
         var outputDisplayPath = Compile.GetDisplayPath(outputFile);
         
