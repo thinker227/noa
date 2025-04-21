@@ -23,7 +23,7 @@ public sealed class Root(
     {
         var command = new Command ("noa")
         {
-            Description = "Compiles and runs a source file."
+            Description = "Compiles and runs a Noa file."
         };
         command.Options.Clear();
 
@@ -36,30 +36,33 @@ public sealed class Root(
 
         var argsArgument = new Argument<string[]>("args")
         {
-            Description  = "The command-line arguments passed to the compiled program when running."
+            Description  = "The command-line arguments to pass to the compiled program when running it."
         };
 
         var outputFileOption = new Option<FileInfo>("--output", "-o")
         {
-            Description = "The output .ark file."
+            Description = "A path to the intermediate .ark file to output."
         };
         outputFileOption.AcceptLegalFilePathsOnly();
 
         var runtimeOption = new Option<FileInfo>("--runtime", "-r")
         {
-            Description = "The path to the runtime executable."
+            Description = """
+                The path to the runtime executable to invoke to run the program.
+                If specified, overrides any existing runtime executable.
+                """
         };
         runtimeOption.AcceptLegalFilePathsOnly();
         runtimeOption.AcceptExistingOnly();
 
         var printRetOption = new Option<bool>("--print-ret")
         {
-            Description = "Prints the return value from the main function."
+            Description = "Prints value returned from the main function of the program."
         };
 
         var timeOption = new Option<bool>("--time")
         {
-            Description = "Prints the execution time of the program."
+            Description = "Prints the time the program takes to execute once it has exited."
         };
 
         var helpOption = new HelpOption("--help", "-h")

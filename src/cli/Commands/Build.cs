@@ -14,7 +14,7 @@ public sealed class Build(
     {
         var command = new Command("build")
         {
-            Description = "Builds a source file."
+            Description = "Builds a Noa file into an Ark file, without running it."
         };
 
         var inputFileArgument = new Argument<FileInfo>("input-file")
@@ -26,7 +26,7 @@ public sealed class Build(
 
         var outputFileOption = new Option<FileInfo>("--output", "-o")
         {
-            Description = "The output .ark file."
+            Description = "A path to the intermediate .ark file to output."
         };
         outputFileOption.AcceptLegalFilePathsOnly();
 
