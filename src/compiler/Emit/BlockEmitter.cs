@@ -97,6 +97,19 @@ internal class BlockEmitter(
 
     protected override void VisitBinaryExpression(BinaryExpression node)
     {
+        // Special short-circuiting operators
+        switch (node.Kind)
+        {
+        case BinaryKind.Or:
+            EmitBinaryOr(node);
+            return;
+        
+        case BinaryKind.And:
+            EmitBinaryAnd(node);
+            return;
+        }
+
+        // Normal operators
         Visit(node.Left);
         Visit(node.Right);
         
@@ -138,7 +151,6 @@ internal class BlockEmitter(
         case BinaryKind.LessThanOrEqual:
             Code.GreaterThan();
             Code.Not();
-            
             break;
         
         case BinaryKind.GreaterThanOrEqual:
@@ -148,6 +160,33 @@ internal class BlockEmitter(
         
         default: throw new UnreachableException();
         }
+    }
+
+    private void EmitBinaryOr(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
+    }
+
+    private void EmitBinaryAnd(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+        Code.Not();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
     }
 
     protected override void VisitNumberExpression(NumberExpression node) => Code.PushFloat(node.Value);
