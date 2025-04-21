@@ -55,7 +55,7 @@ public sealed class Root(
         runtimeOption.AcceptLegalFilePathsOnly();
         runtimeOption.AcceptExistingOnly();
 
-        var printRetOption = new Option<bool>("--print-ret")
+        var printRetOption = new Option<bool>("--print-ret", "-p")
         {
             Description = "Prints value returned from the main function of the program."
         };
