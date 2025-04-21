@@ -110,7 +110,7 @@ assignmentOperator = '='
 
 unaryOperator = '+'
               | '-'
-              | '!'
+              | 'not'
               ;
 
 binaryOperator = '+'
@@ -123,4 +123,6 @@ binaryOperator = '+'
                | '>='
                | '=='
                | '!='
+               | 'or'
+               | 'and'
                ;
