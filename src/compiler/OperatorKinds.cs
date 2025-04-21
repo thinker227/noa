@@ -28,4 +28,6 @@ public enum BinaryKind
     GreaterThan,
     LessThanOrEqual,
     GreaterThanOrEqual,
+    Or,
+    And,
 }
