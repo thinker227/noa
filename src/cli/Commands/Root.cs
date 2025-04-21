@@ -1,10 +1,20 @@
 using System.CommandLine;
 using System.CommandLine.Help;
+using System.Diagnostics;
+using Noa.Compiler;
 using Spectre.Console;
 
 namespace Noa.Cli.Commands;
 
-public sealed class Root
+public sealed class Root(
+    IAnsiConsole console,
+    CancellationToken ct,
+    FileInfo inputFile,
+    string[] args,
+    FileInfo? outputFile,
+    FileInfo? runtime,
+    bool printReturnValue,
+    bool doTime)
 {
     public static Command CreateCommand(
         HelpBuilder helpBuilder,
@@ -74,6 +84,118 @@ public sealed class Root
         command.Add(buildCommand);
         command.Add(langServerCommand);
 
+        command.SetAction((ctx, ct) =>
+            Task.FromResult(
+                new Root(
+                    console,
+                    ct,
+                    ctx.GetValue(inputFileArgument)!,
+                    ctx.GetValue(argsArgument) ?? [],
+                    ctx.GetValue(outputFileOption),
+                    ctx.GetValue(runtimeOption),
+                    ctx.GetValue(printRetOption),
+                    ctx.GetValue(timeOption))
+                .Execute()));
+
         return command;
+    }
+
+    private int Execute()
+    {
+        var inputDisplayPath = Compile.GetDisplayPath(inputFile);
+        
+        Ast ast;
+        try
+        {
+            (ast, _) = Compile.CoreCompile(inputFile, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            console.MarkupLine($"{Emoji.Known.Multiply}  [red]Build cancelled[/]️");
+            
+            return 1;
+        }
+
+        if (ast.HasErrors)
+        {
+            Compile.PrintStatus(console, ast.Source, ast.Diagnostics);
+            return 1;
+        }
+        
+        if (outputFile is null)
+        {
+            var outputFileName = $"{Path.GetFileNameWithoutExtension(inputFile.Name)}.ark";
+            var outputFilePath = Path.Combine(inputFile.Directory?.FullName ?? "", outputFileName);
+            outputFile = new(outputFilePath);
+        }
+
+        using (var stream = outputFile.OpenWrite())
+        {
+            ast.Emit(stream);
+        }
+
+        var result = ExecuteArk(runtime, outputFile, printReturnValue);
+        if (result is not var (time, exitCode)) return 1;
+
+        if (doTime)
+        {
+            var duration = Compile.DisplayDuration(time);
+            console.MarkupLine($"{Emoji.Known.Stopwatch}  Execution took [aqua]{duration}[/]");
+        }
+
+        return exitCode;
+    }
+
+    private (TimeSpan, int)? ExecuteArk(FileInfo? runtime, FileInfo arkFile, bool printReturnValue)
+    {
+        if (runtime is null)
+        {
+            const string runtimePathEnvVar = "NOA_RUNTIME";
+            var runtimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
+            if (runtimePath is null)
+            {
+                console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The environment variable [/][aqua]{runtimePathEnvVar}[/] [red]is not set.[/]");
+                console.MarkupLine("[gray]Make sure the variable is set for the process and contains the path to the runtime executable, " +
+                                   "or specify the [/][white]--runtime[/][gray] option with the path.[/]");
+                return null;
+            }
+            else
+            {
+                runtime = new(runtimePath);
+            }
+        }
+
+        if (!runtime.Exists)
+        {
+            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [red]The specified runtime executable path [/][aqua]{runtime.FullName}[/][red] does not exist.[/]");
+            return null;
+        }
+
+        var runtimeArgs = new List<string> { $"-f {arkFile.FullName}" };
+        if (printReturnValue) runtimeArgs.Add("--print-ret");
+
+        var process = new Process()
+        {
+            StartInfo =
+            {
+                FileName = runtime.FullName,
+                Arguments = string.Join(" ", runtimeArgs),
+                UseShellExecute = true,
+                CreateNoWindow = true,
+            }
+        };
+
+        GC.Collect();
+        
+        var timer = new Stopwatch();
+        timer.Start();
+        
+        process.Start();
+        process.WaitForExit();
+        
+        timer.Stop();
+        var time = timer.Elapsed;
+
+        return (time, process.ExitCode);
     }
 }

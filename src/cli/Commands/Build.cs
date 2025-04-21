@@ -1,9 +1,14 @@
 using System.CommandLine;
+using Noa.Compiler;
 using Spectre.Console;
 
 namespace Noa.Cli.Commands;
 
-public sealed class Build
+public sealed class Build(
+    IAnsiConsole console,
+    CancellationToken ct,
+    FileInfo inputFile,
+    FileInfo? outputFile)
 {
     public static Command CreateCommand(IAnsiConsole console)
     {
@@ -28,6 +33,63 @@ public sealed class Build
         command.Add(inputFileArgument);
         command.Add(outputFileOption);
 
+        command.SetAction((ctx, ct) =>
+            Task.FromResult(
+                new Build(
+                    console,
+                    ct,
+                    ctx.GetValue(inputFileArgument)!,
+                    ctx.GetValue(outputFileOption))
+                .Execute()));
+
         return command;
+    }
+
+    private int Execute()
+    {
+        var inputDisplayPath = Compile.GetDisplayPath(inputFile);
+        
+        if (!inputFile.Exists)
+        {
+            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [aqua]{inputDisplayPath}[/] [red]does not exist.[/]");
+            return 1;
+        }
+
+        console.MarkupLine($"{Emoji.Known.Wrench} Building [aqua]{inputDisplayPath}[/]...");
+
+        Ast ast;
+        TimeSpan time;
+        try
+        {
+            (ast, time) = Compile.CoreCompile(inputFile, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            console.MarkupLine($"{Emoji.Known.Multiply}  [red]Build cancelled[/]️");
+            
+            return 1;
+        }
+
+        console.Write(Compile.DisplayBuildDuration(time));
+        console.WriteLine();
+        Compile.PrintStatus(console, ast.Source, ast.Diagnostics);
+
+        if (ast.HasErrors) return 1;
+        
+        if (outputFile is null)
+        {
+            var outputFileName = $"{Path.GetFileNameWithoutExtension(inputFile.Name)}.ark";
+            var outputFilePath = Path.Combine(inputFile.Directory?.FullName ?? "", outputFileName);
+            outputFile = new(outputFilePath);
+        }
+        
+        var outputDisplayPath = Compile.GetDisplayPath(outputFile);
+        
+        console.MarkupLine($"{Emoji.Known.Hammer} Assembling ark to [aqua]{outputDisplayPath}[/]...");
+
+        using var stream = outputFile.OpenWrite();
+        ast.Emit(stream);
+        
+        return 0;
     }
 }

@@ -1,57 +1,146 @@
-using Cocona;
+using System.Diagnostics;
 using Noa.Compiler;
+using Noa.Compiler.Diagnostics;
 using Spectre.Console;
+using TextMappingUtils;
 
 namespace Noa.Cli;
 
-public sealed class Compile(IAnsiConsole console, CancellationToken ct) : CommandBase(console)
-{
-    [Command("build", Description = "Compiles a source file")]
-    public int Execute(
-        [Argument("input-file", Description = "The file to compile")] string inputFilePath,
-        [Option("output-file", ['o'], Description = "The output Ark file", ValueName = "path")] string? outputFilePath)
+internal static class Compile
+{    
+    public static string GetDisplayPath(FileInfo file) =>
+        Path.GetRelativePath(Environment.CurrentDirectory, file.FullName);
+    
+    public static (Ast ast, TimeSpan time) CoreCompile(FileInfo file, CancellationToken ct)
     {
-        var inputFile = new FileInfo(inputFilePath);
-        var inputDisplayPath = GetDisplayPath(inputFile);
+        var text = File.ReadAllText(file.FullName);
+        var name = GetDisplayPath(file);
+        var source = new Source(text, name);
+
+        var timer = new Stopwatch();
+        timer.Start();
         
-        if (!inputFile.Exists)
-        {
-            console.MarkupLine($"{Emoji.Known.WhiteQuestionMark} [aqua]{inputDisplayPath}[/] [red]does not exist.[/]");
-            return 1;
-        }
+        var ast = Ast.Create(source, ct);
 
-        console.MarkupLine($"{Emoji.Known.Wrench} Building [aqua]{inputDisplayPath}[/]...");
+        timer.Stop();
+        var time = timer.Elapsed;
 
-        Ast ast;
-        TimeSpan time;
-        try
-        {
-            (ast, time) = CoreCompile(inputFile, ct);
-        }
-        catch (OperationCanceledException)
-        {
-            console.MarkupLine($"{Emoji.Known.Multiply}  [red]Build cancelled[/]️");
-            
-            return 1;
-        }
-
-        console.Write(DisplayBuildDuration(time));
-        console.WriteLine();
-        PrintStatus(ast.Source, ast.Diagnostics);
-
-        if (ast.HasErrors) return 1;
-
-        var outputFileName = $"{Path.GetFileNameWithoutExtension(inputFile.Name)}.ark";
-        outputFilePath ??= Path.Combine(inputFile.Directory?.FullName ?? "", outputFileName);
-        
-        var outputFile = new FileInfo(outputFilePath);
-        var outputDisplayPath = GetDisplayPath(outputFile);
-        
-        console.MarkupLine($"{Emoji.Known.Hammer} Assembling ark to [aqua]{outputDisplayPath}[/]...");
-
-        using var stream = outputFile.OpenWrite();
-        ast.Emit(stream);
-        
-        return 0;
+        return (ast, time);
     }
+
+    public static void PrintStatus(IAnsiConsole console, Source source, IReadOnlyCollection<IDiagnostic> diagnosticsResult)
+    {
+        var collectedDiagnostics = diagnosticsResult
+            .GroupBy(x => x.Severity)
+            .ToDictionary(x => x.Key, x => x.ToArray());
+        
+        var diagnostics = collectedDiagnostics
+            .GetValueOrDefault(Severity.Error, [])
+            .Concat(collectedDiagnostics.GetValueOrDefault(Severity.Warning, []))
+            .OrderBy(x => x.Location.SourceName)
+            .ThenBy(x => x.Location.Span.Start)
+            .ThenBy(x => x.Location.Span.Length);
+
+        var statusText = DisplayBuildStatusText(collectedDiagnostics);
+        var diagnosticsGrid = DisplayDiagnosticsGrid(source, diagnostics);
+        var diagnosticsDisplay = new Padder(diagnosticsGrid).Padding(6, 1, 0, 1);
+        
+        console.Write(statusText);
+        console.WriteLine();
+        if (diagnosticsResult.Count > 0)
+            console.Write(diagnosticsDisplay);
+    }
+
+    private static Markup DisplayBuildStatusText(IReadOnlyDictionary<Severity, IDiagnostic[]> diagnostics)
+    {
+        var warnings = diagnostics.GetValueOrDefault(Severity.Warning);
+        var errors = diagnostics.GetValueOrDefault(Severity.Error);
+
+        var text = (warnings, errors) switch
+        {
+            (null, null) =>
+                $"{Emoji.Known.CheckMarkButton} [green]Build succeeded![/]",
+            
+            (not null, null) =>
+                $"{Emoji.Known.CheckMarkButton} [green]Build succeeded[/] " +
+                $"with [yellow]{warnings.Length} warning{Plural(warnings)}[/]",
+            
+            (null, not null) =>
+                $"{Emoji.Known.CrossMark} [red]Build failed[/] " +
+                $"with [red]{errors.Length} error{Plural(errors)}[/]",
+            
+            (not null, not null) =>
+                $"{Emoji.Known.CrossMark} [red]Build failed[/] " +
+                $"with [red]{errors.Length} error{Plural(errors)}[/] " +
+                $"and [yellow]{warnings.Length} warning{Plural(warnings)}[/]"
+        };
+
+        return new Markup(text);
+        
+        static string Plural<T>(IReadOnlyCollection<T> xs) =>
+            xs.Count > 1
+                ? "s"
+                : "";
+    }
+
+    private static Grid DisplayDiagnosticsGrid(Source source, IEnumerable<IDiagnostic> diagnostics)
+    {
+        var lineMap = LineMap.Create(source.Text);
+
+        var grid = new Grid()
+            .AddColumn(new GridColumn()
+                .Padding(0, 0, 1, 0))
+            .AddColumn(new GridColumn()
+                .Padding(0, 0, 0, 0));
+
+        var dash = new Text("-");
+        foreach (var diagnostic in diagnostics)
+        {
+            var display = DisplayDiagnostic(lineMap, diagnostic);
+            grid.AddRow(dash, display);
+        }
+
+        return grid;
+    }
+
+    private static Markup DisplayDiagnostic(LineMap lineMap, IDiagnostic diagnostic)
+    {
+        var location = diagnostic.Location;
+        var start = lineMap.GetCharacterPosition(location.Span.Start);
+        var end = lineMap.GetCharacterPosition(location.Span.End);
+        
+        var color = diagnostic.Severity switch
+        {
+            Severity.Warning => Color.Yellow,
+            Severity.Error => Color.Red,
+            _ => Color.White
+        };
+
+        var message = diagnostic.WriteMessage(SpectreDiagnosticWriter.Writer);
+        var text = $"[white]{diagnostic.Id}[/] at " +
+                   $"[aqua]{start.Line.LineNumber + 1}:{start.Offset + 1}[/] to " +
+                   $"[aqua]{end.Line.LineNumber + 1}:{end.Offset + 1}[/] " +
+                   $"in [aqua]{location.SourceName}[/]\n" +
+                   $"[{color.ToMarkup()}]{message}[/]";
+            
+        return new Markup(text, Color.Grey);
+    }
+
+    public static Markup DisplayBuildDuration(TimeSpan time)
+    {
+        var duration = DisplayDuration(time);
+        
+        return new($"{Emoji.Known.Stopwatch}  Build took [aqua]{duration}[/]");
+    }
+
+    public static string DisplayDuration(TimeSpan time) =>
+        (time.TotalMilliseconds, time.TotalSeconds, time.TotalMinutes, time.TotalHours) switch
+        {
+            (< 5, _, _, _) => $"{time.TotalMicroseconds:F0}μs",
+            (_, < 1, _, _) => $"{time.TotalMilliseconds:F0}ms",
+            (_, < 10, _, _) => $"{time.Seconds}s{time.Milliseconds}ms",
+            (_, _, < 1, _) => $"{time.Seconds}s",
+            (_, _, >= 1, < 1) => $"{time.Minutes}m{time.Seconds}s",
+            _ => $"{time.Hours}h{time.Minutes}m{time.Seconds}s"
+        };
 }
