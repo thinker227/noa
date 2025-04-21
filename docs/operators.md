@@ -46,10 +46,11 @@ Operator precedence specifies in what order multiple chained operators parse. Fo
 
 The following is a list of operators and their precedence in order from lowest to highest:
 
-1. `a or b`
-2. `a and b`
-3. `a == b`, `a != b`
-4. `a < b`, `a > b`, `a <= b`, `a >= b`
-5. `a + b`, `a - b`
-6. `a * b`, `a / b`
-7. `+x`, `-x`, `not x`
+1. `not x`
+2. `a or b`
+3. `a and b`
+4. `a == b`, `a != b`
+5. `a < b`, `a > b`, `a <= b`, `a >= b`
+6. `a + b`, `a - b`
+7. `a * b`, `a / b`
+8. `+x`, `-x`
