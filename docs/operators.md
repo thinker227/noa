@@ -44,12 +44,15 @@ Some operators, namely `or` and `and`, only evaluate their right-side operand if
 
 Operator precedence specifies in what order multiple chained operators parse. For instance, `1 + 2 * 3` is equivalent to `1 + (2 * 3)` because `*` has a *higher* precedence than `+`. If two operators with the same precedence are chained, then the operators are evaluated from left to right (all operators in Noa are left-associative).
 
+Notably, `not x` has the highest precedence out of any operator. This is different from most other languages where `!` has the same precedence as the other unary operators `+x` and `-x`. This is because Noa uses keywords for these operators instead of symbols, so that `not a or b` works consistently with the way most people will mentally parse the phrase "not a or b" as "not a or not b".
+
 The following is a list of operators and their precedence in order from lowest to highest:
 
-1. `a or b`
-2. `a and b`
-3. `a == b`, `a != b`
-4. `a < b`, `a > b`, `a <= b`, `a >= b`
-5. `a + b`, `a - b`
-6. `a * b`, `a / b`
-7. `+x`, `-x`, `not x`
+1. `not x`
+2. `a or b`
+3. `a and b`
+4. `a == b`, `a != b`
+5. `a < b`, `a > b`, `a <= b`, `a >= b`
+6. `a + b`, `a - b`
+7. `a * b`, `a / b`
+8. `+x`, `-x`
