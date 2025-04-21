@@ -66,6 +66,15 @@ internal sealed class Help
         arg.Arity.MaximumNumberOfValues > 1
             ? $"[[<[purple]{arg.Name}[/]>...]]"
             : $"<[purple]{arg.Name}[/]>");
+    
+    private static string ShowOptionValues(Option option)
+    {
+        if (option is not IExtraHelpOption { HelpValue: {} helpValue }) return "";
+
+        var values = helpValue.Split('|', StringSplitOptions.TrimEntries);
+        var formatted = values.Select(x => $"[b]{x}[/]");
+        return $" <{string.Join("|", formatted)}>";
+    }
 
     private bool Description(Command command)
     {
@@ -116,8 +125,10 @@ internal sealed class Help
                 var ns = option.Aliases.Prepend(option.Name)
                     .Select(s => $"[yellow]{s}[/]");
                 
+                var values = ShowOptionValues(option);
+                
                 return (
-                    new Markup(string.Join("|", ns)),
+                    new Markup(string.Join("|", ns) + values),
                     new Markup(option.Description ?? " "));
             }));
         

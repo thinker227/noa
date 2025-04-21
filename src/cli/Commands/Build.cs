@@ -24,9 +24,10 @@ public sealed class Build(
         inputFileArgument.AcceptLegalFilePathsOnly();
         inputFileArgument.AcceptExistingOnly();
 
-        var outputFileOption = new Option<FileInfo>("--output", "-o")
+        var outputFileOption = new ExtraHelpOption<FileInfo>("--output", "-o")
         {
-            Description = "A path to the intermediate .ark file to output."
+            Description = "A path to the intermediate .ark file to output.",
+            HelpValue = "path"
         };
         outputFileOption.AcceptLegalFilePathsOnly();
 

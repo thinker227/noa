@@ -22,15 +22,20 @@ public sealed class LangServer(
             Description = "Specifies that the language server should communicate across standard IO."
         };
 
-        var logOption = new Option<FileInfo>("--log")
+        var logOption = new ExtraHelpOption<FileInfo>("--log")
         {
-            Description = "A path to a file to which logs will be written."
+            Description = "A path to a file to which logs will be written.",
+            HelpValue = "file"
         };
         logOption.AcceptLegalFilePathsOnly();
 
-        var logLevelOption = new Option<LogLevel>("--log-level")
+        var logLevelOption = new ExtraHelpOption<LogLevel>("--log-level")
         {
-            Description = "The level of messages to log from the language server."
+            Description = """
+                The level of messages to log from the language server.
+                Default: [b]info[/]
+                """,
+            HelpValue = "info|debug"
         };
         logLevelOption.AcceptOnlyFromAmong("info", "debug");
         logLevelOption.DefaultValueFactory = _ => LogLevel.Info;

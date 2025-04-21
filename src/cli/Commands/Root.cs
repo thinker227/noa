@@ -39,18 +39,20 @@ public sealed class Root(
             Description  = "The command-line arguments to pass to the compiled program when running it."
         };
 
-        var outputFileOption = new Option<FileInfo>("--output", "-o")
+        var outputFileOption = new ExtraHelpOption<FileInfo>("--output", "-o")
         {
-            Description = "A path to the intermediate .ark file to output."
+            Description = "A path to the intermediate .ark file to output.",
+            HelpValue = "path"
         };
         outputFileOption.AcceptLegalFilePathsOnly();
 
-        var runtimeOption = new Option<FileInfo>("--runtime", "-r")
+        var runtimeOption = new ExtraHelpOption<FileInfo>("--runtime", "-r")
         {
             Description = """
                 The path to the runtime executable to invoke to run the program.
                 If specified, overrides any existing runtime executable.
-                """
+                """,
+            HelpValue = "executable"
         };
         runtimeOption.AcceptLegalFilePathsOnly();
         runtimeOption.AcceptExistingOnly();
