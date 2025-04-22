@@ -11,7 +11,8 @@ mod interpret;
 mod value_ops;
 mod stack;
 
-type Result<T> = std::result::Result<T, FormattedException>;
+/// The result of a VM operation.
+pub type Result<T> = std::result::Result<T, FormattedException>;
 
 /// Constants for a single execution of the virtual machine.
 struct VmConsts {
