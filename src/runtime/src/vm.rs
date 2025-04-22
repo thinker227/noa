@@ -74,8 +74,13 @@ impl Vm {
         }
     }
 
+    /// Gets the heap.
+    pub fn heap(&mut self) -> &mut Heap {
+        &mut self.heap
+    }
+
     /// Gets a value at a specified address on the heap.
-    fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
+    pub fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
         self.heap.get(address)
             .map_err(|e| {
                 let ex = match e {
@@ -87,7 +92,7 @@ impl Vm {
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].
-    fn exception(&self, exception: Exception) -> FormattedException {
+    pub fn exception(&self, exception: Exception) -> FormattedException {
         let stack_trace = self.construct_stack_trace();
 
         FormattedException {
