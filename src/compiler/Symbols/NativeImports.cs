@@ -8,7 +8,7 @@ internal static class NativeImports
     /// <summary>
     /// Constructs a <see cref="ImportScope"/> containing a set of imported native symbols.
     /// </summary>
-    public static ImportScope GetImports()
+    public static ImportScope ConstructImportScope()
     {
         var scope = new ImportScope();
 

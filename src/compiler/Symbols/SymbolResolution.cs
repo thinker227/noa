@@ -15,7 +15,7 @@ internal static class SymbolResolution
         Ast ast,
         CancellationToken cancellationToken = default)
     {
-        var importScope = NativeImports.GetImports();
+        var importScope = NativeImports.ConstructImportScope();
         
         var globalScope = new MapScope(importScope, ast.Root);
         
