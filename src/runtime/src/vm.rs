@@ -3,7 +3,7 @@ use stack::Stack;
 
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
-use crate::native::NativeFunction;
+use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
@@ -61,7 +61,7 @@ impl Vm {
         Self {
             consts: VmConsts {
                 functions,
-                native_functions: vec![],
+                native_functions: functions::get_functions(),
                 strings,
                 code
             },

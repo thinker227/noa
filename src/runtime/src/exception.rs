@@ -44,6 +44,9 @@ pub enum Exception {
 
     #[error("out of memory")]
     OutOfMemory,
+
+    #[error("{0}")]
+    Custom(String),
 }
 
 /// An [`Exception`] formatted with a stack trace.
