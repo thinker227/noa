@@ -1,5 +1,3 @@
-using Noa.Compiler.Nodes;
-
 namespace Noa.Compiler.Symbols;
 
 /// <summary>
@@ -25,13 +23,13 @@ public sealed class ImportScope : IScope
                                                 "the same name has already been imported into the scope.");
     }
     
-    public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null) =>
+    public LookupResult? LookupSymbol(string name, LookupLocation location, Func<ISymbol, bool>? predicate = null) =>
         symbols.TryGetValue(name, out var symbol) && (predicate?.Invoke(symbol) ?? true)
             ? new(symbol, SymbolAccessibility.Accessible)
             : null;
 
-    public IEnumerable<ISymbol> AccessibleAt(Node? at) => symbols.Values;
+    public IEnumerable<ISymbol> AccessibleAt(LookupLocation location) => symbols.Values;
 
     // An import scope doesn't declare any symbols because all of its symbols are externally defined.
-    IEnumerable<IDeclaredSymbol> IScope.DeclaredAt(Node? at) => [];
+    IEnumerable<IDeclaredSymbol> IScope.DeclaredAt(LookupLocation location) => [];
 }
