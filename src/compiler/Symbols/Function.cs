@@ -237,6 +237,8 @@ public sealed class NativeFunction : ISymbol, IFunction
     
     public required string Name { get; init; }
 
+    public required uint Id { get; init; }
+
     public IReadOnlyList<NativeParameterSymbol> Parameters => parameters;
 
     IReadOnlyList<IParameterSymbol> IFunction.Parameters => Parameters;

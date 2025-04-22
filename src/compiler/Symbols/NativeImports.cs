@@ -13,35 +13,40 @@ internal static class NativeImports
         var scope = new ImportScope();
 
         // Console IO
-        Declare("print", ["what", "appendNewline"]);
-        Declare("getInput", []);
+        Declare("print", ["what", "appendNewline"], 0x0);
+        Declare("getInput", [], 0x1);
         
         // File IO
-        Declare("readFile", ["path"]);
-        Declare("writeFile", ["path", "content"]);
+        Declare("readFile", ["path"], 0x2);
+        Declare("writeFile", ["path", "content"], 0x3);
+
+        // Strings
+        Declare("toString", ["x"], 0x4);
         
-        // // Lists
-        // Declare("push", ["list", "value"]);
-        // Declare("pop", ["list"]);
-        //
-        // // Functional
-        // Declare("append", ["list", "value"]);
-        // Declare("concat", ["list", "values"]);
-        // Declare("slice", ["list", "start", "end"]);
-        // Declare("map", ["list", "transform"]);
-        // Declare("flatMap", ["list", "transform"]);
-        // Declare("filter", ["list", "predicate"]);
-        // Declare("reduce", ["list", "seed", "function"]);
-        // Declare("reverse", ["list"]);
-        // Declare("any", ["list", "predicate"]);
-        // Declare("all", ["list", "predicate"]);
-        // Declare("find", ["list", "predicate", "fromEnd"]);
+        // Lists
+        Declare("push", ["list", "value"], 0x5);
+        Declare("pop", ["list"], 0x6);
+        Declare("append", ["source", "value"], 0x7);
+        Declare("concat", ["source", "values"], 0x8);
+        Declare("slice", ["source", "start", "end"], 0x9);
+        Declare("map", ["source", "transform"], 0xA);
+        Declare("flatMap", ["source", "transform"], 0xB);
+        Declare("filter", ["source", "predicate"], 0xC);
+        Declare("reduce", ["source", "function", "seed"], 0xD);
+        Declare("reverse", ["source"], 0xE);
+        Declare("any", ["source", "predicate"], 0xF);
+        Declare("all", ["source", "predicate"], 0x10);
+        Declare("find", ["source", "predicate", "fromEnd"], 0x11);
         
         return scope;
 
-        void Declare(string name, string[] parameters)
+        void Declare(string name, ReadOnlySpan<string> parameters, uint id)
         {
-            var function = new NativeFunction() { Name = name };
+            var function = new NativeFunction()
+            {
+                Name = name,
+                Id = id
+            };
             foreach (var param in parameters) function.AddParameter(param);
             scope.Declare(function);
         }
