@@ -299,11 +299,22 @@ internal class BlockEmitter(
         switch (node.ReferencedSymbol.Value)
         {
         case NomialFunction func:
-            var funcId = functionBuilders[func].Id;
+            {
+                var funcId = functionBuilders[func].Id;
             
-            Code.PushFunc(funcId);
-            
-            break;
+                Code.PushFunc(funcId);
+                
+                break;
+            }
+        
+        case NativeFunction native:
+            {
+                var funcId = FunctionId.Native(native.Id);
+
+                Code.PushFunc(funcId);
+
+                break;
+            }
 
         case IVariableSymbol var:
             var varIndex = Locals.GetOrCreateVariable(var);
