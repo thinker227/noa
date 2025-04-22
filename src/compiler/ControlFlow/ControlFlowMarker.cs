@@ -47,8 +47,6 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
     private ControlFlowVisitor CreateNewVisitor() =>
         new(Reachability.Reachable, cancellationToken);
 
-    protected override ControlFlowResult VisitRoot(Root node) => VisitBlockExpression(node);
-
     protected override ControlFlowResult VisitFunctionDeclaration(FunctionDeclaration node)
     {
         var bodyVisitor = CreateNewVisitor();
@@ -58,13 +56,7 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
         return new(current, current);
     }
 
-    protected override ControlFlowResult VisitLetDeclaration(LetDeclaration node) =>
-        Visit(node.Expression);
-
-    protected override ControlFlowResult VisitAssignmentStatement(AssignmentStatement node) =>
-        Visit(node.Value);
-
-    protected override ControlFlowResult VisitBlockExpression(BlockExpression node)
+    protected override ControlFlowResult VisitBlock(Block node)
     {
         var blockVisitor = CreateSubVisitor();
         var statements = blockVisitor.Visit(node.Statements, true);
@@ -83,6 +75,12 @@ file sealed class ControlFlowVisitor(Reachability current, CancellationToken can
 
         return new(current, next);
     }
+
+    protected override ControlFlowResult VisitLetDeclaration(LetDeclaration node) =>
+        Visit(node.Expression);
+
+    protected override ControlFlowResult VisitAssignmentStatement(AssignmentStatement node) =>
+        Visit(node.Value);
 
     protected override ControlFlowResult VisitReturnExpression(ReturnExpression node)
     {

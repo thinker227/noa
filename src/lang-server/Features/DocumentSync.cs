@@ -10,22 +10,25 @@ public sealed partial class NoaLanguageServer : ITextDocumentSync
     
     public Task TextDocumentDidOpenAsync(DidOpenTextDocumentParams param)
     {
-        GetOrCreateDocument(param.TextDocument.Uri);
+        logger.Verbose("Opening document {documentUri}", param.TextDocument.Uri);
+        workspace.GetOrCreateDocument(param.TextDocument.Uri);
         
         return Task.CompletedTask;
     }
 
     public Task TextDocumentDidCloseAsync(DidCloseTextDocumentParams param)
     {
-        DeleteDocument(param.TextDocument.Uri);
+        logger.Verbose("Closing document {documentUri}", param.TextDocument.Uri);
+        workspace.DeleteDocument(param.TextDocument.Uri);
 
         return Task.CompletedTask;
     }
 
     public Task TextDocumentDidChangeAsync(DidChangeTextDocumentParams param)
     {
-        var change = param.ContentChanges.First();
-        UpdateOrCreateDocument(param.TextDocument.Uri, change.Text);
+        logger.Verbose("Updating document {documentUri}", param.TextDocument.Uri);
+        var newText = param.ContentChanges[0].Text;
+        workspace.UpdateOrCreateDocument(param.TextDocument.Uri, newText);
         
         return Task.CompletedTask;
     }

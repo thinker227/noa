@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Noa.Compiler;
 using Noa.Compiler.Diagnostics;
+using TextMappingUtils;
 using Spectre.Console;
 
 namespace Noa.Cli;
@@ -119,8 +120,8 @@ public abstract class CommandBase(IAnsiConsole console)
 
         var message = diagnostic.WriteMessage(SpectreDiagnosticWriter.Writer);
         var text = $"[white]{diagnostic.Id}[/] at " +
-                   $"[aqua]{start.Line.LineNumber}:{start.Offset + 1}[/] to " +
-                   $"[aqua]{end.Line.LineNumber}:{end.Offset + 1}[/] " +
+                   $"[aqua]{start.Line.LineNumber + 1}:{start.Offset + 1}[/] to " +
+                   $"[aqua]{end.Line.LineNumber + 1}:{end.Offset + 1}[/] " +
                    $"in [aqua]{location.SourceName}[/]\n" +
                    $"[{color.ToMarkup()}]{message}[/]";
             

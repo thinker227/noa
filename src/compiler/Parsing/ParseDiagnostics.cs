@@ -1,5 +1,6 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
+using Token = Noa.Compiler.Syntax.Green.Token;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -47,7 +48,7 @@ internal static class ParseDiagnostics
             },
             Severity.Error);
 
-    public static DiagnosticTemplate InvalidExpressionStatement { get; } =
+    public static DiagnosticTemplate<Unit> InvalidExpressionStatement { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-004",
             page => page
@@ -72,7 +73,7 @@ internal static class ParseDiagnostics
                 .Raw(")."),
             Severity.Error);
 
-    public static DiagnosticTemplate InvalidLValue { get; } =
+    public static DiagnosticTemplate<Unit> InvalidLValue { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-006",
             // "Only identifier expressions can be used on the left-hand side of an assignment statement",
@@ -84,7 +85,7 @@ internal static class ParseDiagnostics
                 .Raw("."),
             Severity.Error);
 
-    public static DiagnosticTemplate ElseOmitted { get; } =
+    public static DiagnosticTemplate<Unit> ElseOmitted { get; } =
         DiagnosticTemplate.Create(
             "NOA-SYN-007",
             page => page
@@ -93,5 +94,23 @@ internal static class ParseDiagnostics
                 .Raw(" of an ")
                 .Keyword("if expression")
                 .Raw(" can only be omitted when the expression is used as a statement."),
+            Severity.Error);
+    
+    public static DiagnosticTemplate<Unit> UnterminatedString { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-008",
+            page => page
+                .Raw("Unterminated ")
+                .Keyword("string literal")
+                .Raw("."),
+            Severity.Error);
+    
+    public static DiagnosticTemplate<string> UnknownEscapeSequence { get; } =
+        DiagnosticTemplate.Create<string>(
+            "NOA-SYN-009",
+            (seq, page) => page
+                .Raw("Unknown escape sequence ")
+                .Source(seq)
+                .Raw("."),
             Severity.Error);
 }

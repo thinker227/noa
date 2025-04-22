@@ -1,114 +1,152 @@
-use std::collections::HashMap;
-
-use crate::ark::Ark;
-use code_reader::CodeReader;
-use crate::runtime::exception::{Exception, ExceptionData, StackTraceAddress, StackTraceFrame, VMException};
-use crate::ark::function::Function;
-use crate::ark::opcode::FuncId;
-use frame::StackFrame;
+use frame::{Frame, FrameKind};
 use stack::Stack;
-use gc::Gc;
 
-mod code_reader;
-mod stack;
-mod frame;
+use crate::ark::Function;
+use crate::exception::{Exception, FormattedException, TraceFrame};
+use crate::native::NativeFunction;
+use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
+
+pub mod frame;
 mod interpret;
-mod flow_control;
-pub mod gc;
+mod value_ops;
+mod stack;
 
-/// A virtual machine. Contains the entire state of the runtime.
-#[derive(Debug)]
-pub struct VM {
-    functions: HashMap<FuncId, Function>,
-    strings: Vec<String>,
-    main: FuncId,
-    call_stack: Vec<StackFrame>,
-    stack: Stack,
-    code: CodeReader,
-    gc: Gc
+type Result<T> = std::result::Result<T, FormattedException>;
+
+/// Constants for a single execution of the virtual machine.
+struct VmConsts {
+    /// User functions.
+    pub functions: Vec<Function>,
+    /// Native functions.
+    pub native_functions: Vec<NativeFunction>,
+    /// Constant strings.
+    pub strings: Vec<String>,
+    /// Bytecode instructions.
+    pub code: Vec<u8>,
 }
 
-impl VM {
-    /// Constructs a new virtual machine.
-    pub fn new(ark: Ark, call_stack_size: usize, stack_size: usize) -> Self {
-        let main = ark.header.main;
+/// The runtime virtual machine.
+pub struct Vm {
+    /// Immutable 'constants' for the vm execution.
+    consts: VmConsts,
+    /// The vm's stack memory.
+    /// Home of all function arguments, local variables, and temporaries.
+    stack: Stack,
+    /// The vm's heap where all non-stack memory is allocated.
+    heap: Heap,
+    /// The vm's call stack.
+    /// Responsible for keeping track of what function is currently being executed.
+    call_stack: Vec<Frame>,
+    /// The instruction pointer. Points to a specific byte in [`VmConsts::code`]
+    /// which is the *next* bytecode instruction to be executed.
+    ip: usize,
+    /// The instruction pointer used as reference when constructing a stack trace.
+    /// This is not the same as [`Self::ip`] since this will always point at the
+    /// bytecode instruction which is *currently* being executed, to provide
+    /// better traces.
+    trace_ip: usize,
+}
 
-        let mut functions = HashMap::new();
-        for function in ark.function_section.functions {
-            functions.insert(function.id(), function);
+impl Vm {
+    /// Creates a new [`Vm`].
+    pub fn new(
+        functions: Vec<Function>,
+        strings: Vec<String>,
+        code: Vec<u8>,
+        stack_size: usize,
+        call_stack_size: usize,
+        heap_size: usize
+    ) -> Self {
+        Self {
+            consts: VmConsts {
+                functions,
+                native_functions: vec![],
+                strings,
+                code
+            },
+            stack: Stack::new(stack_size),
+            heap: Heap::new(heap_size),
+            call_stack: Vec::with_capacity(call_stack_size),
+            // This is just a placeholder, the instruction pointer will be overridden once a function is called.
+            ip: 0,
+            trace_ip: 0
         }
-
-        let strings = ark.string_section.strings;
-
-        let call_stack = Vec::with_capacity(call_stack_size);
-        let stack = Stack::new(stack_size);
-
-        let code = CodeReader::new(ark.code_section.code);
-
-        let gc = Gc::new();
-
-        let vm = Self {
-            functions,
-            strings,
-            main,
-            call_stack,
-            stack,
-            code,
-            gc
-        };
-
-        vm
     }
 
-    /// The functions the virtual machine interprets.
-    pub fn functions(&self) -> &HashMap<FuncId, Function> {
-        &self.functions
+    /// Gets a value at a specified address on the heap.
+    fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
+        self.heap.get(address)
+            .map_err(|e| {
+                let ex = match e {
+                    HeapGetError::OutOfBounds => Exception::OutOfBoundsHeapAddress,
+                    HeapGetError::SlotFreed => Exception::FreedHeapAddress,
+                };
+                self.exception(ex)
+            })
     }
 
-    /// Gets a string with a specified index.
-    pub fn get_string(&self, index: u32) -> Result<&String, ExceptionData> {
-        self.strings.get(index as usize)
-            .ok_or_else(|| ExceptionData::VM(VMException::InvalidString))
+    /// Formats an [`Exception`] into a [`FormattedException`].
+    fn exception(&self, exception: Exception) -> FormattedException {
+        let stack_trace = self.construct_stack_trace();
+
+        FormattedException {
+            exception,
+            stack_trace
+        }
     }
 
-    /// Gets a string with a specified index,
-    /// or returns a fallback string in case a string with the specified index
-    /// does not exist.
-    pub fn get_string_or_fallback<'a>(&'a self, index: u32, s: &'static str) -> &'a str {
-        self.strings.get(index as usize)
-            .map(|x| x.as_str())
-            .unwrap_or(s)
-    }
+    /// Constructs a stack trace from the current call stack.
+    fn construct_stack_trace(&self) -> Vec<TraceFrame> {
+        let mut stack_trace = Vec::new();
 
-    /// The ID of the main function.
-    pub fn main(&self) -> FuncId {
-        self.main
-    }
+        let mut frames = self.call_stack.iter()
+            .rev()
+            .filter(|frame| !matches!(frame.kind, FrameKind::Temp { .. }));
 
-    /// Gets the current stack trace.
-    fn get_stack_trace(&self) -> Vec<StackTraceFrame> {
-        let mut trace = Vec::new();
-
-        let mut caller_address = StackTraceAddress::Explicit(self.code.ip());
-        
-        for frame in self.call_stack.iter().rev() {
-            trace.push(StackTraceFrame {
-                function: frame.as_function().function,
-                address: caller_address
-            });
-            
-            caller_address = match frame.as_function().caller_address() {
-                Some(x) => StackTraceAddress::Explicit(x.value()),
-                None => StackTraceAddress::Implicit,
+        if let Some(first) = frames.next() {
+            let mut address = match first.kind {
+                FrameKind::UserFunction => Some(self.trace_ip),
+                FrameKind::NativeFunction => None,
+                FrameKind::Temp { .. } => unreachable!()
+            };
+            stack_trace.push(self.construct_trace_frame(first, address));
+    
+            let mut previous = first;
+    
+            for frame in frames {
+                address = previous.ret;
+                stack_trace.push(self.construct_trace_frame(frame, address));
+                previous = frame;
             }
         }
 
-        trace
+        stack_trace.push(TraceFrame {
+            function: "<execution root>".into(),
+            address: None
+        });
+
+        stack_trace
     }
 
-    /// Creates an exception.
-    fn create_exception(&self, data: ExceptionData) -> Exception {
-        let stack_trace = self.get_stack_trace();
-        Exception::new(data, stack_trace)
+    fn construct_trace_frame(&self, frame: &Frame, address: Option<usize>) -> TraceFrame {
+        let is_native = frame.function.is_native();
+        let func_id = frame.function.decode();
+
+        let func_name = if is_native {
+            "<native function>".into() // todo: native function names
+        } else {
+            match self.consts.functions.get(func_id as usize) {
+                Some(function) => match self.consts.strings.get(function.name_index as usize) {
+                    Some(str) => str.clone(),
+                    None => "<invalid string index>".into(),
+                },
+                None => "<invalid function index>".into(),
+            }
+        };
+
+        TraceFrame {
+            function: func_name,
+            address
+        }
     }
 }

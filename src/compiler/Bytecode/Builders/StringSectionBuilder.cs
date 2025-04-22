@@ -7,7 +7,7 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// </summary>
 internal sealed class StringSectionBuilder : IWritable
 {
-    private readonly List<ArkString> strings = [];
+    private readonly List<LenString> strings = [];
     private readonly Dictionary<string, StringIndex> indices = [];
     private uint stringsByteLength;
 
@@ -17,7 +17,7 @@ internal sealed class StringSectionBuilder : IWritable
     /// Gets a string from a string index.
     /// </summary>
     /// <param name="index">The index into the section.</param>
-    public ArkString this[StringIndex index] => strings[(int)index.Index];
+    public LenString this[StringIndex index] => strings[(int)index.Index];
 
     /// <summary>
     /// Gets or adds a string to the section.
@@ -28,7 +28,7 @@ internal sealed class StringSectionBuilder : IWritable
     {
         if (indices.TryGetValue(str, out var index)) return index;
         
-        var arkString = new ArkString(str);
+        var arkString = new LenString(str);
 
         stringsByteLength += arkString.Length;
         
@@ -41,13 +41,13 @@ internal sealed class StringSectionBuilder : IWritable
 
     public void Write(Carpenter writer)
     {
-        writer.UInt(stringsByteLength);
+        writer.UInt((uint)strings.Count);
 
         foreach (var str in strings) writer.Write(str);
     }
 }
 
-internal readonly record struct ArkString(string String) : IWritable
+internal readonly record struct LenString(string String) : IWritable
 {
     private readonly uint stringByteLength = (uint)Encoding.UTF8.GetByteCount(String);
     

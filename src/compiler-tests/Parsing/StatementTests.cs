@@ -1,5 +1,5 @@
-using Noa.Compiler.Nodes;
-using Noa.Compiler.Tests;
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
 
@@ -9,18 +9,34 @@ public class StatementTests
     public void Parses_AssignmentStatement_WithIdentifier()
     {
         var p = ParseAssertion.Create("x = 0;", p => p.ParseRoot());
-        
-        p.Diagnostics.DiagnosticsShouldBe([]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<AssignmentStatement>();
+            p.N<BlockSyntax>();
             {
-                p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+                p.N<SyntaxList<StatementSyntax>>();
+                {
+                    p.N<AssignmentStatementSyntax>();
+                    {
+                        p.N<IdentifierExpressionSyntax>();
+                        {
+                            p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+                        }
 
-                p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+                        p.T(TokenKind.Equals);
+
+                        p.N<NumberExpressionSyntax>();
+                        {
+                            p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+                        }
+
+                        p.T(TokenKind.Semicolon);
+                    }
+                }
             }
         }
+
+        p.T(TokenKind.EndOfFile);
 
         p.End();
     }
@@ -29,20 +45,35 @@ public class StatementTests
     public void Parses_AssignmentStatement_WithNumber_AndProduces_InvalidLValue()
     {
         var p = ParseAssertion.Create("0 = 1;", p => p.ParseRoot());
-        
-        p.Diagnostics.DiagnosticsShouldBe([
-            (ParseDiagnostics.InvalidLValue.Id, new("test-input", 0, 1))
-        ]);
 
-        p.N<Root>();
+        p.N<RootSyntax>();
         {
-            p.N<AssignmentStatement>();
+            p.N<BlockSyntax>();
             {
-                p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+                p.N<SyntaxList<StatementSyntax>>();
+                {
+                    p.N<AssignmentStatementSyntax>();
+                    {
+                        p.N<NumberExpressionSyntax>();
+                        p.D(ParseDiagnostics.InvalidLValue.Id);
+                        {
+                            p.T(TokenKind.Number, t => t.Text.ShouldBe("0"));
+                        }
 
-                p.N<NumberExpression>(n => n.Value.ShouldBe(1));
+                        p.T(TokenKind.Equals);
+
+                        p.N<NumberExpressionSyntax>();
+                        {
+                            p.T(TokenKind.Number, t => t.Text.ShouldBe("1"));
+                        }
+
+                        p.T(TokenKind.Semicolon);
+                    }
+                }
             }
         }
+
+        p.T(TokenKind.EndOfFile);
 
         p.End();
     }

@@ -7,6 +7,7 @@ using Noa.Compiler.FlowAnalysis;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Parsing;
 using Noa.Compiler.Symbols;
+using Noa.Compiler.Syntax;
 
 namespace Noa.Compiler;
 
@@ -15,9 +16,9 @@ namespace Noa.Compiler;
 /// </summary>
 public sealed class Ast
 {
-    private readonly Root? root;
     private readonly List<IDiagnostic> diagnostics;
     private IReadOnlyDictionary<Node, Node>? parents = null;
+    private IReadOnlyDictionary<SyntaxNode, Node>? astNodes = null;
     
     /// <summary>
     /// The source for the AST.
@@ -25,12 +26,14 @@ public sealed class Ast
     public Source Source { get; }
 
     /// <summary>
+    /// The root of the AST.
+    /// </summary>
+    public Root Root { get; }
+
+    /// <summary>
     /// The root of the syntax tree.
     /// </summary>
-    // The root is exposed to the public API as non-nullable because it won't be
-    // null when control is returned to the caller, the field is only null
-    // within the constructor.
-    public Root Root => root!;
+    public RootSyntax SyntaxRoot => (RootSyntax)Root.Syntax;
 
     /// <summary>
     /// The diagnostics in the AST.
@@ -52,33 +55,24 @@ public sealed class Ast
     /// </summary>
     public TopLevelFunction TopLevelFunction => Root.Function.Value;
 
-    private Ast(Source source, CancellationToken cancellationToken)
+    private Ast(Source source, RootSyntax root, CancellationToken cancellationToken)
     {
-        var (root, diagnostics) = Parser.Parse(source, this, cancellationToken);
-
-        this.root = root;
-        this.diagnostics = diagnostics.ToList();
-        Source = source;
-    }
-
-    /// <summary>
-    /// This constructor exists for tests only.
-    /// Otherwise <see cref="Ast(Source, CancellationToken)"/> should be used.
-    /// </summary>
-    internal Ast()
-    {
-        root = null;
         diagnostics = [];
-        Source = default;
+        Source = source;
+        Root = new IntoAst(this).FromRoot(root);
     }
 
     /// <summary>
-    /// Creates a new AST by parsing a source.
+    /// Creates a new AST from source without running any additional semantic passes after parsing.
     /// </summary>
-    /// <param name="source">The source file to parse.</param>
-    /// <param name="cancellationToken">The cancellation token for the parser.</param>
-    internal static Ast Parse(Source source, CancellationToken cancellationToken = default) =>
-        new(source, cancellationToken);
+    /// <param name="source">The source to create the AST from.</param>
+    internal static Ast Parse(Source source)
+    {
+        var greenRoot = Parser.Parse(source, default);
+        var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
+
+        return new Ast(source, redRoot, default);
+    }
 
     /// <summary>
     /// Creates a new AST from source.
@@ -87,7 +81,13 @@ public sealed class Ast
     /// <param name="cancellationToken">The cancellation token for the AST creation.</param>
     public static Ast Create(Source source, CancellationToken cancellationToken = default)
     {
-        var ast = Parse(source, cancellationToken);
+        var greenRoot = Parser.Parse(source, cancellationToken);
+        var redRoot = (RootSyntax)greenRoot.ToRed(0, null!);
+
+        var ast = new Ast(source, redRoot, cancellationToken);
+
+        var parseDiagnostics = CollectParseDiagnostics(source, redRoot);
+        ast.diagnostics.AddRange(parseDiagnostics);
         
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -104,15 +104,22 @@ public sealed class Ast
         return ast;
     }
 
+    private static IEnumerable<IDiagnostic> CollectParseDiagnostics(Source source, SyntaxNode node)
+    {
+        var diags = node.GetDiagnostics(source);
+        var childDiags = node.Children.SelectMany(child => CollectParseDiagnostics(source, child));
+        return diags.Concat(childDiags);
+    }
+
     /// <summary>
     /// Gets the parent of a node, or null if the node is the root node.
     /// </summary>
     /// <param name="node">The node to get the parent of.</param>
     internal Semantic<Node?> GetParent(Node node)
     {
-        if (root is null) return new();
+        if (Root is null) return new();
 
-        parents ??= ComputeParents(root);
+        parents ??= ComputeParents(Root);
         return parents.GetValueOrDefault(node);
     }
 
@@ -129,6 +136,44 @@ public sealed class Ast
                 parents[child] = node;
                 Visit(child);
             }
+        }
+    }
+
+    /// <summary>
+    /// Gets the AST node corresponding to a syntax node.
+    /// </summary>
+    /// <param name="syntaxNode">The syntax node to get the corresponding AST node of.</param>
+    /// <remarks>
+    /// Note that the AST node corresponding to a syntax node is not always a 1:1 relation.
+    /// For instance, <see cref="SyntaxList{T}"/> and <see cref="SeparatedSyntaxList{T}"/>
+    /// have no corresponding AST representation, so they always fall back to looking up the
+    /// corresponding AST node in their <i>parents</i>.
+    /// </remarks>
+    public Node GetAstNode(SyntaxNode syntaxNode)
+    {
+        astNodes ??= ComputeAstNodes(Root);
+
+        if (astNodes.TryGetValue(syntaxNode, out var node)) return node;
+
+        if (syntaxNode.Parent is null) throw new InvalidOperationException(
+            "Attempted get AST node corresponding to a syntax node which has no parent " +
+            "and no corresponding AST node by itself.");
+        
+        return GetAstNode(syntaxNode.Parent);
+    }
+
+    private static Dictionary<SyntaxNode, Node> ComputeAstNodes(Node root)
+    {
+        var parents = new Dictionary<SyntaxNode, Node>();
+        Visit(root);
+        return parents;
+
+        void Visit(Node node)
+        {
+            parents[node.Syntax] = node;
+
+            foreach (var child in node.Children)
+                Visit(child);
         }
     }
 

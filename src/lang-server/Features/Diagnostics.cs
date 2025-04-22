@@ -1,6 +1,7 @@
 using Noa.Compiler.Diagnostics;
 using Draco.Lsp.Model;
 using Draco.Lsp.Server.Language;
+using Noa.Compiler.Workspaces;
 
 namespace Noa.LangServer;
 
@@ -20,7 +21,7 @@ public sealed partial class NoaLanguageServer : IDiagnostics
         var documentUri = param.TextDocument.Uri;
         logger.Debug("Fetching diagnostics for {documentUri}", documentUri);
         
-        var document = GetOrCreateDocument(documentUri, cancellationToken);
+        var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var report = new RelatedFullDocumentDiagnosticReport()
         {
             Items = document.Ast.Diagnostics
@@ -37,7 +38,7 @@ public sealed partial class NoaLanguageServer : IDiagnostics
         return new(report);
     }
 
-    private Draco.Lsp.Model.Diagnostic ConvertDiagnostic(IDiagnostic diagnostic, NoaDocument document)
+    private Draco.Lsp.Model.Diagnostic ConvertDiagnostic(IDiagnostic diagnostic, NoaDocument<DocumentUri> document)
     {
         var location = diagnostic.Location;
         var message = diagnostic.WriteMessage(StringDiagnosticWriter.Writer);

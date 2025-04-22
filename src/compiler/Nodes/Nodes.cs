@@ -1,18 +1,20 @@
-using System.Diagnostics.CodeAnalysis;
 using Noa.Compiler.Symbols;
 using Noa.Compiler.ControlFlow;
+using TextMappingUtils;
 
 namespace Noa.Compiler.Nodes;
 
 /// <summary>
 /// An abstract syntax node.
 /// </summary>
-public abstract class Node
+/// <param name="ast">The AST the node belongs to.</param>
+/// <param name="syntax">The concrete syntax node the node corresponds to.</param>
+public abstract class Node(Ast ast, Syntax.SyntaxNode syntax)
 {
     /// <summary>
     /// The AST the node belongs to.
     /// </summary>
-    public required Ast Ast { get; init; }
+    public Ast Ast { get; } = ast;
 
     /// <summary>
     /// The parent of the node, or null if the node is the root node.
@@ -22,12 +24,17 @@ public abstract class Node
     /// <summary>
     /// The span of the node within the text.
     /// </summary>
-    public required TextSpan Span { get; init; }
+    public TextSpan Span => Syntax.Span;
 
     /// <summary>
     /// The source location of the node.
     /// </summary>
     public Location Location => new(Ast.Source.Name, Span);
+
+    /// <summary>
+    /// The concrete syntax node the node corresponds to.
+    /// </summary>
+    public Syntax.SyntaxNode Syntax { get; } = syntax;
     
     /// <summary>
     /// The child nodes of the node.
@@ -47,6 +54,20 @@ public abstract class Node
         node is not null
             ? [node]
             : [];
+}
+
+public partial class Block
+{
+    /// <summary>
+    /// The scope <i>declared</i> by the scope,
+    /// different from the scope the block is <i>in</i>.
+    /// </summary>
+    public Semantic<IScope> DeclaredScope { get; internal set; }
+    
+    /// <summary>
+    /// The reachability of the very end of the block, past the last statement or the trailing expression.
+    /// </summary>
+    public Semantic<Reachability> TailReachability { get; internal set; }
 }
 
 public sealed partial class Root
@@ -80,20 +101,6 @@ public abstract partial class Expression
     public Semantic<Reachability> Reachability { get; internal set; }
 }
 
-public partial class BlockExpression
-{
-    /// <summary>
-    /// The scope <i>declared</i> by the scope,
-    /// different from the scope the block is <i>in</i>.
-    /// </summary>
-    public Semantic<IScope> DeclaredScope { get; internal set; }
-    
-    /// <summary>
-    /// The reachability of the very end of the block, past the last statement or the trailing expression.
-    /// </summary>
-    public Semantic<Reachability> TailReachability { get; internal set; }
-}
-
 public sealed partial class LambdaExpression
 {
     public Semantic<LambdaFunction> Function { get; internal set; }
@@ -117,24 +124,4 @@ public sealed partial class ContinueExpression
 public sealed partial class IdentifierExpression
 {
     public Semantic<ISymbol> ReferencedSymbol { get; internal set; }
-}
-public enum UnaryKind
-{
-    Identity,
-    Negate,
-    Not,
-}
-
-public enum BinaryKind
-{
-    Plus,
-    Minus,
-    Mult,
-    Div,
-    Equal,
-    NotEqual,
-    LessThan,
-    GreaterThan,
-    LessThanOrEqual,
-    GreaterThanOrEqual,
 }

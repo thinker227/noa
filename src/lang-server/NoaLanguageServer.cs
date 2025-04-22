@@ -4,6 +4,8 @@ using Draco.Lsp.Server;
 using Noa.Compiler;
 using Noa.Compiler.Nodes;
 using Noa.Compiler.Symbols;
+using TextMappingUtils;
+using Noa.Compiler.Workspaces;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
 using Range = Draco.Lsp.Model.Range;
@@ -15,13 +17,15 @@ namespace Noa.LangServer;
 /// </summary>
 /// <param name="client">The language client for the server.</param>
 /// <param name="logger">The logger to log messages to.</param>
+/// <param name="sourceProvider">The source provider for the workspace.</param>
 public sealed partial class NoaLanguageServer(
     ILanguageClient client,
-    ILogger logger)
+    ILogger logger,
+    ISourceProvider<DocumentUri> sourceProvider)
     : ILanguageServer
 {
-    private readonly Dictionary<DocumentUri, NoaDocument> documents = [];
-    
+    private readonly Workspace<DocumentUri> workspace = new(sourceProvider);
+
     public InitializeResult.ServerInfoResult? Info { get; } = new()
     {
         Name = "Noa Language Server",
@@ -36,74 +40,10 @@ public sealed partial class NoaLanguageServer(
             Pattern = "**/*.noa"
         }
     ];
-
-    /// <summary>
-    /// Gets an existing document, or creates a new one and saves it if one doesn't already exist.
-    /// </summary>
-    /// <param name="documentUri">The URI of the document to get or create.</param>
-    /// <param name="cancellationToken">The cancellation token for the operation.</param>
-    /// <returns>The existing or the newly created document.</returns>
-    private NoaDocument GetOrCreateDocument(
-        DocumentUri documentUri,
-        CancellationToken cancellationToken = default) =>
-        documents.TryGetValue(documentUri, out var document)
-            ? document
-            : UpdateOrCreateDocument(documentUri, cancellationToken: cancellationToken);
-
-    /// <summary>
-    /// Updates an existing document, or creates a new one if one doesn't already exist.
-    /// The updated or newly created document is subsequently saved.
-    /// </summary>
-    /// <param name="documentUri">The URI of the document to update or create.</param>
-    /// <param name="text">
-    /// The text to update or create the document from.
-    /// If not specified, reads the text from the document on disk.
-    /// </param>
-    /// <param name="cancellationToken">The cancellation token for the operation.</param>
-    /// <returns>The updated or newly created document.</returns>
-    private NoaDocument UpdateOrCreateDocument(
-        DocumentUri documentUri,
-        string? text = null,
-        CancellationToken cancellationToken = default)
-    {
-        var document = CreateDocument(documentUri, text, cancellationToken);
-        documents[documentUri] = document;
-        return document;
-    }
-
-    /// <summary>
-    /// Creates a new document. The created document is <b>not</b> saved after being created.
-    /// </summary>
-    /// <param name="documentUri">The URI of the document to create.</param>
-    /// <param name="text">
-    /// The text to create the document from.
-    /// If not specified, reads the text from the document on disk.
-    /// </param>
-    /// <param name="cancellationToken">The cancellation token for the operation.</param>
-    /// <returns>The newly created document.</returns>
-    private NoaDocument CreateDocument(
-        DocumentUri documentUri,
-        string? text,
-        CancellationToken cancellationToken = default)
-    {
-        var path = documentUri.ToUri().LocalPath;
-        text ??= File.ReadAllText(path);
-        var source = new Source(text, path);
-        
-        // Todo: compilation safety measures
-        logger.Verbose("Compiling {documentUri}", documentUri);
-        var ast = Ast.Create(source, cancellationToken);
-        var lineMap = LineMap.Create(text);
-        
-        return new NoaDocument(ast, lineMap, documentUri);
-    }
-
-    private void DeleteDocument(DocumentUri documentUri) => documents.Remove(documentUri);
-
     private static int ToAbsolutePosition(Position position, LineMap lineMap) =>
-        lineMap.GetLine((int)position.Line + 1).Start + (int)position.Character;
+        lineMap.GetLine((int)position.Line).Span.Start + (int)position.Character;
 
-    private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument document) =>
+    private static Location ToLspLocation(Noa.Compiler.Location location, NoaDocument<DocumentUri> document) =>
         new()
         {
             Range = ToLspRange(location.Span, document),
@@ -115,15 +55,15 @@ public sealed partial class NoaLanguageServer(
     /// </summary>
     /// <param name="span">The span to convert.</param>
     /// <param name="document">The document the location is from.</param>
-    private static Range ToLspRange(TextSpan span, NoaDocument document)
+    private static Range ToLspRange(TextSpan span, NoaDocument<DocumentUri> document)
     {
         var start = document.LineMap.GetCharacterPosition(span.Start);
         var end = document.LineMap.GetCharacterPosition(span.End);
 
         return new()
         {
-            Start = new() { Line = (uint)start.Line.LineNumber - 1, Character = (uint)start.Offset },
-            End = new() { Line = (uint)end.Line.LineNumber - 1, Character = (uint)end.Offset }
+            Start = new() { Line = (uint)start.Line.LineNumber, Character = (uint)start.Offset },
+            End = new() { Line = (uint)end.Line.LineNumber, Character = (uint)end.Offset }
         };
     }
     

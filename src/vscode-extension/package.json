@@ -58,6 +58,11 @@
                     "default": null,
                     "description": "A path to the executable for the Noa CLI. If not specified, invokes the default `noa` command. Requires restarting the extension to take effect."
                 },
+                "noa-lang.runtimeExecutable": {
+                    "type": "string",
+                    "default": null,
+                    "description": "A path to the executable for the Noa runtime. If not specified, uses the `NOA_RUNTIME` environment variable."
+                },
                 "noa-lang.serverLogPath": {
                     "type": "string",
                     "default": null,

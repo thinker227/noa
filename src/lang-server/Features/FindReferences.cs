@@ -1,6 +1,7 @@
 using Draco.Lsp.Model;
 using Draco.Lsp.Server.Language;
 using Noa.Compiler.Nodes;
+using Noa.Compiler.Symbols;
 
 namespace Noa.LangServer;
 
@@ -16,7 +17,7 @@ public sealed partial class NoaLanguageServer : IFindReferences
             param.Position.Line,
             param.Position.Character);
         
-        var document = GetOrCreateDocument(documentUri, cancellationToken);
+        var document = workspace.GetOrCreateDocument(documentUri, cancellationToken);
         var position = ToAbsolutePosition(param.Position, document.LineMap);
         var node = document.Ast.Root.FindNodeAt(position);
         
@@ -30,7 +31,12 @@ public sealed partial class NoaLanguageServer : IFindReferences
         };
         if (symbol is null) return Task.FromResult<IList<Location>>([]);
 
-        var references = document.GetReferences(symbol, param.Context.IncludeDeclaration);
+        var references = document.GetReferences(symbol)
+            .Select(x => x.Location);
+
+        if (param.Context.IncludeDeclaration && symbol is IDeclaredSymbol declared)
+            references = references.Prepend(declared.DefinitionLocation);
+        
         var locations = references
             .Select(x => ToLspLocation(x, document))
             .ToList();

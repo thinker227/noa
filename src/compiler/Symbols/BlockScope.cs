@@ -17,7 +17,7 @@ namespace Noa.Compiler.Symbols;
 [DebuggerDisplay("{GetDebuggerDisplay()}")]
 internal sealed class BlockScope(
     IScope? parent,
-    BlockExpression block,
+    Block block,
     IReadOnlyDictionary<string, NomialFunction> functions,
     IReadOnlyList<ImmutableDictionary<string, VariableSymbol>> variableTimeline,
     IReadOnlyDictionary<Node, int> timelineIndexMap)
@@ -48,21 +48,15 @@ internal sealed class BlockScope(
     /// <summary>
     /// Tries to get the timeline index of a node.
     /// </summary>
-    /// <param name="node">
-    /// The node to look up the timeline index of,
-    /// or null to look up the timeline index for the end of the block.
-    /// </param>
-    /// <param name="parentLookupNode">
-    /// The node to look up the symbol at in the parent scope
-    /// if the requested symbol doesn't exist in the current scope.</param>
+    /// <param name="location">The location to look up the timeline index at.</param>
     /// <param name="timelineIndex">The timeline index for the node.</param>
     private bool TryGetTimelineIndex(
-        Node? node,
+        LookupLocation location,
         out int timelineIndex)
     {
-        if (node is null)
+        if (location.IsAtEnd)
         {
-            // If the node we're trying to get the timeline index for is null,
+            // If the lookup we're trying to get the timeline index for is null,
             // that means we want to get the timeline index and parent lookup node for the very end of the scope.
             timelineIndex = VariableTimeline.Count - 1;
             return true;
@@ -70,7 +64,7 @@ internal sealed class BlockScope(
 
         // If the node is a statement then we just use that.
         // Otherwise, we try to find the first statement-like node.
-        var statementLikeNode = node as Statement ?? FindRelevantStatementLikeAncestor(node);
+        var statementLikeNode = location.Node as Statement ?? FindRelevantStatementLikeAncestor(location.Node);
 
         if (statementLikeNode is null)
         {
@@ -89,7 +83,7 @@ internal sealed class BlockScope(
         return false;
     }
     
-    public LookupResult? LookupSymbol(string name, Node? at, Func<ISymbol, bool>? predicate = null)
+    public LookupResult? LookupSymbol(string name, LookupLocation location, Func<ISymbol, bool>? predicate = null)
     {
         // If there is a function with the name then we don't need to look up anything else.
         if (Functions.TryGetValue(name, out var function) &&
@@ -98,11 +92,11 @@ internal sealed class BlockScope(
             return new(function, SymbolAccessibility.Accessible);
         }
 
-        if (!TryGetTimelineIndex(at, out var timelineIndex))
+        if (!TryGetTimelineIndex(location, out var timelineIndex))
         {
-            // If we can't find the timeline index for the node we're looking up at, we're heading to
+            // If we can't find the timeline index for the location we're looking up at, we're heading to
             // the parent scope to check if it has a symbol available at the location of this block.
-            return Parent?.LookupSymbol(name, block, predicate);
+            return Parent?.LookupSymbol(name, LookupLocation.AtNode(block), predicate);
         }
 
         var variables = VariableTimeline[timelineIndex];
@@ -115,7 +109,7 @@ internal sealed class BlockScope(
         // We can't find the symbol in this scope.
 
         // Check if the symbol can be found in a parent scope.
-        if (Parent?.LookupSymbol(name, block, predicate) is { } parentLookup) return parentLookup;
+        if (Parent?.LookupSymbol(name, LookupLocation.AtNode(block), predicate) is { } parentLookup) return parentLookup;
         
         // We know at this point that the symbol is not accessible, but to provide better error reporting
         // we also check future points in the variable timeline to see if the symbol is accessible there.
@@ -132,9 +126,9 @@ internal sealed class BlockScope(
         return null;
     }
 
-    public IEnumerable<IDeclaredSymbol> DeclaredAt(Node? at)
+    public IEnumerable<IDeclaredSymbol> DeclaredAt(LookupLocation location)
     {
-        if (!TryGetTimelineIndex(at, out var timelineIndex)) return [];
+        if (!TryGetTimelineIndex(location, out var timelineIndex)) return [];
 
         var variables = VariableTimeline[timelineIndex];
 
@@ -142,16 +136,16 @@ internal sealed class BlockScope(
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
     }
 
-    public IEnumerable<ISymbol> AccessibleAt(Node? at)
+    public IEnumerable<ISymbol> AccessibleAt(LookupLocation location)
     {
-        if (!TryGetTimelineIndex(at, out var timelineIndex)) return [];
+        if (!TryGetTimelineIndex(location, out var timelineIndex)) return [];
 
         var variables = VariableTimeline[timelineIndex];
 
         var declared = Functions.Values
             .Concat((IEnumerable<IDeclaredSymbol>)variables.Values);
 
-        var parentAccessible = Parent?.AccessibleAt(block) ?? [];
+        var parentAccessible = Parent?.AccessibleAt(LookupLocation.AtNode(block)) ?? [];
 
         return declared.Concat(parentAccessible);
     }

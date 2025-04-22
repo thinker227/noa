@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Root Name="SyntaxNode">
+
+  <Node Name="BlockSyntax">
+    <List Name="Statements" Type="StatementSyntax"/>
+    <Value Name="TrailingExpression" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+
+  <Node Name="RootSyntax">
+    <Value Name="Block" Type="BlockSyntax"/>
+    <Token Name="EndOfFile"/>
+  </Node>
+
+  <Variant Name="StatementSyntax"/>
+
+  <Variant Name="DeclarationSyntax" Parent="StatementSyntax"/>
+
+  <Node Name="FunctionDeclarationSyntax" Parent="DeclarationSyntax">
+    <Token Name="Func"/>
+    <Token Name="Name"/>
+    <Value Name="Parameters" Type="ParameterListSyntax"/>
+    <Value Name="Body" Type="FunctionBodySyntax"/>
+  </Node>
+
+  <Node Name="ParameterListSyntax">
+    <Token Name="OpenParen"/>
+    <SeparatedList Name="Parameters" Type="ParameterSyntax"/>
+    <Token Name="CloseParen"/>
+  </Node>
+
+  <Node Name="ParameterSyntax">
+    <Token Name="Mut" Optional="true"/>
+    <Token Name="Name"/>
+  </Node>
+
+  <Variant Name="FunctionBodySyntax"/>
+
+  <Node Name="BlockBodySyntax" Parent="FunctionBodySyntax">
+    <Value Name="Block" Type="BlockExpressionSyntax"/>
+  </Node>
+
+  <Node Name="ExpressionBodySyntax" Parent="FunctionBodySyntax">
+    <Token Name="Arrow"/>
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="Semicolon"/>
+  </Node>
+
+  <Node Name="LetDeclarationSyntax" Parent="DeclarationSyntax">
+    <Token Name="Let"/>
+    <Token Name="Mut" Optional="true"/>
+    <Token Name="Name"/>
+    <Token Name="EqualsToken"/>
+    <Value Name="Value" Type="ExpressionSyntax"/>
+    <Token Name="Semicolon"/>
+  </Node>
+
+  <Node Name="AssignmentStatementSyntax" Parent="StatementSyntax">
+    <Value Name="Target" Type="ExpressionSyntax"/>
+    <Token Name="Operator"/>
+    <Value Name="Value" Type="ExpressionSyntax"/>
+    <Token Name="Semicolon"/>
+  </Node>
+
+  <Node Name="FlowControlStatementSyntax" Parent="StatementSyntax">
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Node Name="ExpressionStatementSyntax" Parent="StatementSyntax">
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="Semicolon"/>
+  </Node>
+
+  <Variant Name="ExpressionSyntax"/>
+
+  <Node Name="ErrorExpressionSyntax" Parent="ExpressionSyntax"/>
+
+  <Node Name="BlockExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenBrace"/>
+    <Value Name="Block" Type="BlockSyntax"/>
+    <Token Name="CloseBrace"/>
+  </Node>
+
+  <Node Name="CallExpressionSyntax" Parent="ExpressionSyntax">
+    <Value Name="Target" Type="ExpressionSyntax"/>
+    <Token Name="OpenParen"/>
+    <SeparatedList Name="Arguments" Type="ExpressionSyntax"/>
+    <Token Name="CloseParen"/>
+  </Node>
+
+  <Node Name="LambdaExpressionSyntax" Parent="ExpressionSyntax">
+    <Value Name="Parameters" Type="ParameterListSyntax"/>
+    <Token Name="Arrow"/>
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Node Name="TupleExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenParen"/>
+    <SeparatedList Name="Expressions" Type="ExpressionSyntax"/>
+    <Token Name="CloseParen"/>
+  </Node>
+
+  <Node Name="ParenthesizedExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenParen"/>
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="CloseParen"/>
+  </Node>
+
+  <Node Name="IfExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="If"/>
+    <Value Name="Condition" Type="ExpressionSyntax"/>
+    <Value Name="Body" Type="BlockExpressionSyntax"/>
+    <Value Name="Else" Type="ElseClauseSyntax" Optional="true"/>
+  </Node>
+
+  <Node Name="ElseClauseSyntax">
+    <Token Name="Else"/>
+    <Value Name="Body" Type="BlockExpressionSyntax"/>
+  </Node>
+
+  <Node Name="LoopExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Loop"/>
+    <Value Name="Body" Type="BlockExpressionSyntax"/>
+  </Node>
+
+  <Node Name="ReturnExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Return"/>
+    <Value Name="Value" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+
+  <Node Name="BreakExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Break"/>
+    <Value Name="Value" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+
+  <Node Name="ContinueExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Continue"/>
+  </Node>
+
+  <Node Name="UnaryExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Operator"/>
+    <Value Name="Operand" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Node Name="BinaryExpressionSyntax" Parent="ExpressionSyntax">
+    <Value Name="Left" Type="ExpressionSyntax"/>
+    <Token Name="Operator"/>
+    <Value Name="Right" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Node Name="IdentifierExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Identifier"/>
+  </Node>
+
+  <Node Name="StringExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenQuote"/>
+    <List Name="Parts" Type="StringPartSyntax"/>
+    <Token Name="CloseQuote"/>
+  </Node>
+
+  <Variant Name="StringPartSyntax"/>
+
+  <Node Name="TextStringPartSyntax" Parent="StringPartSyntax">
+    <Token Name="Text"/>
+  </Node>
+
+  <Node Name="InterpolationStringPartSyntax" Parent="StringPartSyntax">
+    <Token Name="OpenDelimiter"/>
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="CloseDelimiter"/>
+  </Node>
+
+  <Node Name="BoolExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Value"/>
+  </Node>
+
+  <Node Name="NumberExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="Value"/>
+  </Node>
+
+  <Node Name="NilExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenParen"/>
+    <Token Name="CloseParen"/>
+  </Node>
+
+</Root>

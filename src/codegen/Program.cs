@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 using Cocona;
 using Noa.CodeGen;
 using Scriban;
+using Scriban.Runtime;
 using Spectre.Console;
 
 var console = AnsiConsole.Create(new() { Out = new AnsiConsoleOutput(Console.Out) });
@@ -25,13 +26,40 @@ app.Run((
 
     var outputFolder = new DirectoryInfo(outputFolderPath);
     if (!outputFolder.Exists) outputFolder.Create();
+
+    var astToModel = Noa.CodeGen.Ast.DtoExtensions.ToModel;
+    Render(
+        new(Path.Combine(inputFolder.FullName, "ast")),
+        new(Path.Combine(outputFolder.FullName, "Ast")),
+        "ast.xml",
+        astToModel);
+
+    console.WriteLine();
     
-    var xmlFilePath = Path.Combine(inputFolderPath, "nodes.xml");
+    var syntaxToModel = Noa.CodeGen.Syntax.DtoExtensions.ToModel;
+    Render(
+        new(Path.Combine(inputFolder.FullName, "syntax")),
+        new(Path.Combine(outputFolder.FullName, "Syntax")),
+        "syntax.xml",
+        syntaxToModel);
+
+    return 0;
+});
+
+bool Render<TDto, TModel>(
+    DirectoryInfo inputFolder,
+    DirectoryInfo outputFolder,
+    string xmlName,
+    Func<TDto, TModel> toModel)
+    where TDto : class
+    where TModel : class
+{
+    var xmlFilePath = Path.Combine(inputFolder.FullName, xmlName);
     var xmlFile = new FileInfo(xmlFilePath);
     if (!xmlFile.Exists)
     {
         error.MarkupLine($"[red]Cannot find input XML file at [/][aqua]{xmlFile.FullName}[/]");
-        return 1;
+        return false;
     }
 
     var templates = Directory
@@ -57,19 +85,27 @@ app.Run((
         .ToList();
 
     console.MarkupLine($"Parsing input [aqua]{xmlFile.FullName}[/]");
-    var rootDto = ReadXml<RootDto>(xmlFile);
-    if (rootDto is null) return 1;
-    var root = ToModel(rootDto);
+    var rootDto = ReadXml<TDto>(xmlFile);
+    if (rootDto is null) return false;
+    var root = toModel(rootDto);
 
     console.MarkupLine($"Rendering [yellow]{templates.Count}[/] templates");
     console.MarkupLine($"Outputting to folder [aqua]{outputFolder.FullName}[/]");
+
+    Directory.CreateDirectory(outputFolder.FullName);
     
     foreach (var (name, template) in templates)
     {
         console.WriteLine();
         
         console.MarkupLine($"  Rendering template [aqua]{name}[/]");
-        var text = template.Render(root);
+
+        var scriptObject = TemplateContext.GetDefaultBuiltinObject();
+        scriptObject.Import(root);
+        scriptObject.Import(typeof(ExtraBuiltins));
+
+        var context = new TemplateContext(scriptObject);
+        var text = template.Render(context);
 
         var fileName = $"{name}.g.cs";
         var outputPath = Path.Combine(outputFolder.FullName, fileName);
@@ -77,82 +113,21 @@ app.Run((
         File.WriteAllText(outputPath, text);
     }
 
-    return 0;
-});
+    return true;
+}
 
-TRoot? ReadXml<TRoot>(FileInfo file) where TRoot : class
+T? ReadXml<T>(FileInfo file) where T : class
 {
     try
     {
         using var stream = file.OpenText();
         var reader = XmlReader.Create(stream);
-        var serializer = new XmlSerializer(typeof(TRoot));
-        return (TRoot)serializer.Deserialize(reader)!;
+        var serializer = new XmlSerializer(typeof(T));
+        return (T)serializer.Deserialize(reader)!;
     }
     catch (InvalidOperationException e) when (e.InnerException is XmlException xmlException)
     {
         error.MarkupLine($"[red]Error deserializing XML: [/][gray]{xmlException.Message}[/]");
         return null;
-    }
-}
-
-static Root ToModel(RootDto rootDto)
-{
-    var rootNode = new NodeLike() { Name = rootDto.rootName };
-    var nodes = rootDto.nodes
-        .ToDictionary(
-            x => x.name,
-            x => (dto: x, node: new Node() { Name = x.name, IsAbstract = x is VariantDto }));
-    
-    foreach (var (nodeDto, node) in nodes.Values)
-    {
-        var parent = nodeDto.parent is not null
-            ? nodes[nodeDto.parent].node
-            : rootNode;
-        
-        node.Parent = parent;
-        parent.Children.Add(node);
-    }
-
-    var ordered = rootNode.Children.SelectMany(GetOrderedNodes);
-
-    foreach (var node in ordered)
-    {
-        var nodeDto = nodes[node.Name].dto;
-
-        if (nodeDto is not NodeDto { members: var dtoMembers }) continue;
-        
-        foreach (var memberDto in dtoMembers)
-        {
-            var member = memberDto is ValueDto x
-                ? new Member()
-                {
-                    Name = x.name,
-                    Type = x.type,
-                    IsOptional = x.isOptional,
-                    IsPrimitive = x.isPrimitive,
-                    IsInherited = false,
-                    IsList = x is ListDto
-                }
-                : FindMember(memberDto.name, node) with { IsInherited = true };
-            
-            node.Members.Add(member);
-        }
-    }
-
-    return new Root()
-    {
-        RootNode = rootNode,
-        Nodes = nodes.Values.Select(x => x.node).ToList()
-    };
-
-    static IEnumerable<Node> GetOrderedNodes(Node node) =>
-        node.Children.SelectMany(GetOrderedNodes).Prepend(node);
-
-    static Member FindMember(string name, Node node)
-    {
-        if (node.Members.FirstOrDefault(x => x.Name == name) is { } member) return member;
-        if (node.Parent is Node parent) return FindMember(name, parent);
-        throw new InvalidOperationException($"No member with name {name}");
     }
 }

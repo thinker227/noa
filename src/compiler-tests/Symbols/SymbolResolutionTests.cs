@@ -19,8 +19,8 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var x1Decl = (LetDeclaration)ast.Root.Statements[0];
-        var x2Decl = (LetDeclaration)ast.Root.Statements[1];
+        var x1Decl = (LetDeclaration)ast.Root.Block.Statements[0];
+        var x2Decl = (LetDeclaration)ast.Root.Block.Statements[1];
         
         var x1 = x1Decl.Symbol.Value;
         var x2 = x2Decl.Symbol.Value;
@@ -30,11 +30,11 @@ public class SymbolResolutionTests
 
         var scope = x1Decl.Scope.Value;
 
-        var x2Lookup = scope.LookupSymbol("x", x2Decl).ShouldNotBeNull();
+        var x2Lookup = scope.LookupSymbol("x", LookupLocation.AtNode(x2Decl)).ShouldNotBeNull();
         x2Lookup.Symbol.ShouldBe(x1);
         x2Lookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
 
-        var endLookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
+        var endLookup = scope.LookupSymbol("x", LookupLocation.AtEnd()).ShouldNotBeNull();
         endLookup.Symbol.ShouldBe(x2);
         endLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
     }
@@ -53,23 +53,23 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var x = ((LetDeclaration)ast.Root.Statements[0]).Symbol.Value;
-        var y = ((LetDeclaration)ast.Root.Statements[1]).Symbol.Value;
+        var x = ((LetDeclaration)ast.Root.Block.Statements[0]).Symbol.Value;
+        var y = ((LetDeclaration)ast.Root.Block.Statements[1]).Symbol.Value;
 
-        var scope = ast.Root.Statements[0].Scope.Value;
+        var scope = ast.Root.Block.Statements[0].Scope.Value;
 
-        var xLookup = scope.LookupSymbol("x", null).ShouldNotBeNull();
+        var xLookup = scope.LookupSymbol("x", LookupLocation.AtEnd()).ShouldNotBeNull();
         xLookup.Symbol.ShouldBe(x);
         xLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
         
-        var yLookup = scope.LookupSymbol("y", null).ShouldNotBeNull();
+        var yLookup = scope.LookupSymbol("y", LookupLocation.AtEnd()).ShouldNotBeNull();
         yLookup.Symbol.ShouldBe(y);
         yLookup.Accessibility.ShouldBe(SymbolAccessibility.Accessible);
 
-        var declared = scope.DeclaredAt(null);
+        var declared = scope.DeclaredAt(LookupLocation.AtEnd());
         declared.ShouldBe([x, y], ignoreOrder: true);
         
-        var accessible = scope.AccessibleAt(null);
+        var accessible = scope.AccessibleAt(LookupLocation.AtEnd());
         accessible.ShouldBe([x, y], ignoreOrder: true);
     }
 
@@ -133,7 +133,7 @@ public class SymbolResolutionTests
 
         SymbolResolution.ResolveSymbols(ast);
         
-        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", null)!.Value.Symbol;
+        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", LookupLocation.AtEnd())!.Value.Symbol;
         
         var assignmentIdentifier = (IdentifierExpression)ast.Root.FindNodeAt(23)!;
         
@@ -157,10 +157,10 @@ public class SymbolResolutionTests
         
         var at = ast.Root.FindNodeAt(38)!;
         
-        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", null)!.Value.Symbol;
-        var y = at.Scope.Value.LookupSymbol("y", null)!.Value.Symbol;
+        var x = ast.TopLevelFunction.BodyScope.LookupSymbol("x", LookupLocation.AtEnd())!.Value.Symbol;
+        var y = at.Scope.Value.LookupSymbol("y", LookupLocation.AtEnd())!.Value.Symbol;
         
-        at.Scope.Value.AccessibleAt(at).ShouldBe([x, y], ignoreOrder: true);
+        at.Scope.Value.AccessibleAt(LookupLocation.AtNode(at)).ShouldBe([x, y], ignoreOrder: true);
     }
     
     [Fact]
@@ -181,7 +181,7 @@ public class SymbolResolutionTests
 
         diagnostics.DiagnosticsShouldBe([]);
 
-        var declaration = (LetDeclaration)ast.Root.Statements[0];
+        var declaration = (LetDeclaration)ast.Root.Block.Statements[0];
         var reference = (IdentifierExpression)ast.Root.FindNodeAt(35)!;
         
         reference.ReferencedSymbol.Value.ShouldBe(declaration.Symbol.Value);
@@ -200,7 +200,7 @@ public class SymbolResolutionTests
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
         diagnostics.DiagnosticsShouldBe([
-            (SymbolDiagnostics.FunctionAlreadyDeclared.Id, new("test-input", 12, 23))
+            (SymbolDiagnostics.FunctionAlreadyDeclared.Id, new("test-input", 17, 18))
         ]);
     }
 
@@ -233,7 +233,7 @@ public class SymbolResolutionTests
         var diagnostics = SymbolResolution.ResolveSymbols(ast);
 
         diagnostics.DiagnosticsShouldBe([
-            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 0, 10))
+            (SymbolDiagnostics.VariableShadowsFunction.Id, new("test-input", 4, 5))
         ]);
     }
 

@@ -1,16 +1,18 @@
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
+using TextMappingUtils;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Parser
 {
-    internal (ImmutableArray<Statement>, Expression?) ParseBlock(
+    internal (SyntaxList<StatementSyntax>, ExpressionSyntax?) ParseBlock(
         bool allowTrailingExpression,
         TokenKind endKind,
         IReadOnlySet<TokenKind> synchronizationTokens)
     {
-        var statements = ImmutableArray.CreateBuilder<Statement>();
-        var trailingExpression = null as Expression;
+        var statements = ImmutableArray.CreateBuilder<StatementSyntax>();
+        var trailingExpression = null as ExpressionSyntax;
         
         while (!AtEnd && Current.Kind != endKind)
         {
@@ -22,6 +24,7 @@ internal sealed partial class Parser
             {
                 // An unexpected token was encountered.
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
                 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);
@@ -60,6 +63,7 @@ internal sealed partial class Parser
                 // If the current token is not a closing brace, then there's an unexpected token here.
 
                 ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
 
                 // Try synchronize with the next statement or closing brace.
                 Synchronize(synchronizationTokens);
@@ -85,28 +89,38 @@ internal sealed partial class Parser
             
             // The expression is an expression statement.
 
-            if (!expression.IsExpressionStatement())
+            if (!expression.IsExpressionStatement() && expression is not ErrorExpressionSyntax)
             {
-                ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression.Span);
+                ReportDiagnostic(ParseDiagnostics.InvalidExpressionStatement, expression);
             }
             
             // If the expression is a control flow expression statement then we don't expect a semicolon.
-            var semicolon = expression.IsControlFlowExpressionStatement()
-                ? null as Token?
-                : Expect(TokenKind.Semicolon);
-
-            statements.Add(new ExpressionStatement()
+            if (expression.IsControlFlowExpressionStatement() && expression is not ErrorExpressionSyntax)
             {
-                Ast = Ast,
-                Span = expression.Span with { End = semicolon?.Span.End ?? expression.Span.End },
-                Expression = expression
-            });
+                statements.Add(new FlowControlStatementSyntax()
+                {
+                    Expression = expression
+                });
+            }
+            else
+            {
+                var semicolon = Expect(TokenKind.Semicolon);
+
+                // If the expression is an error then we have to consume the current token to avoid choking on it.
+                if (expression is ErrorExpressionSyntax) Advance();
+
+                statements.Add(new ExpressionStatementSyntax()
+                {
+                    Expression = expression,
+                    Semicolon = semicolon
+                });
+            }
         }
 
-        return (statements.ToImmutable(), trailingExpression);
+        return (new(statements.ToImmutable()), trailingExpression);
     }
     
-    internal (Statement?, Expression?)? ParseStatementOrExpressionOrNull()
+    internal (StatementSyntax?, ExpressionSyntax?)? ParseStatementOrExpressionOrNull()
     {
         // Begin by checking whether the current token can begin a statement at all.
         if (Expect(SyntaxFacts.CanBeginStatement) is not { Kind: var kind }) return null;
@@ -125,8 +139,8 @@ internal sealed partial class Parser
         
         var expression = ParseExpressionOrError();
 
-        // Parse an assignment statement if we find an equals token.
-        if (Current.Kind is TokenKind.Equals)
+        // Parse an assignment statement if we find a token which is a valid assignment operator.
+        if (SyntaxFacts.AssignmentOperator.Contains(Current.Kind))
         {
             return (ContinueParsingAssignmentStatement(expression), null);
         }
@@ -136,25 +150,25 @@ internal sealed partial class Parser
         return (null, expression);
     }
 
-    private AssignmentStatement ContinueParsingAssignmentStatement(Expression target)
+    private AssignmentStatementSyntax ContinueParsingAssignmentStatement(ExpressionSyntax target)
     {
-        Expect(TokenKind.Equals);
+        var operatorToken = Advance();
 
         var value = ParseExpressionOrError();
 
-        Expect(TokenKind.Semicolon);
+        var semicolon = Expect(TokenKind.Semicolon);
 
         if (!target.IsValidLValue())
         {
-            ReportDiagnostic(ParseDiagnostics.InvalidLValue, target.Span);
+            ReportDiagnostic(ParseDiagnostics.InvalidLValue, target);
         }
 
-        return new AssignmentStatement()
+        return new AssignmentStatementSyntax()
         {
-            Ast = Ast,
-            Span = TextSpan.Between(target.Span, value.Span),
             Target = target,
+            Operator = operatorToken,
             Value = value,
+            Semicolon = semicolon
         };
     }
 }

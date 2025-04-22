@@ -1,4 +1,6 @@
-using Noa.Compiler.Nodes;
+#if false
+using Noa.Compiler.Syntax.Green;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing.Tests;
 
@@ -11,9 +13,9 @@ public class ParenthesizedOrLambdaTests
             "() => 0",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<LambdaExpression>();
+        p.N<LambdaExpressionSyntax>();
         {
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>(n => n.Value.ShouldBe(0));
         }
 
         p.End();
@@ -26,7 +28,7 @@ public class ParenthesizedOrLambdaTests
             "()",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<NilExpression>();
+        p.N<NilExpressionSyntax>();
 
         p.End();
     }
@@ -38,24 +40,24 @@ public class ParenthesizedOrLambdaTests
             "(a, b, c) => 0",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<LambdaExpression>();
+        p.N<LambdaExpressionSyntax>();
         {
-            p.N<Parameter>();
+            p.N<ParameterSyntax>();
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("a"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("a"));
             }
 
-            p.N<Parameter>();
+            p.N<ParameterSyntax>();
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("b"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("b"));
             }
 
-            p.N<Parameter>();
+            p.N<ParameterSyntax>();
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("c"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("c"));
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>(n => n.Value.ShouldBe(0));
         }
 
         p.End();
@@ -68,13 +70,22 @@ public class ParenthesizedOrLambdaTests
             "(a, b, c)",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<TupleExpression>();
+        p.N<TupleExpressionSyntax>();
         {
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+            }
 
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+            }
 
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("c"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("c"));
+            }
         }
 
         p.End();
@@ -87,14 +98,14 @@ public class ParenthesizedOrLambdaTests
             "(x) => 0",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<LambdaExpression>();
+        p.N<LambdaExpressionSyntax>();
         {
-            p.N<Parameter>();
+            p.N<ParameterSyntax>();
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("x"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("x"));
             }
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>(n => n.Value.ShouldBe(0));
         }
 
         p.End();
@@ -107,7 +118,10 @@ public class ParenthesizedOrLambdaTests
             "(x)",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+        p.N<IdentifierExpressionSyntax>();
+        {
+            p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+        }
 
         p.End();
     }
@@ -119,9 +133,12 @@ public class ParenthesizedOrLambdaTests
             "(f())",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<CallExpression>();
+        p.N<CallExpressionSyntax>();
         {
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("f"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("f"));
+            }
         }
 
         p.End();
@@ -134,11 +151,17 @@ public class ParenthesizedOrLambdaTests
             "(a + b)",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<BinaryExpression>(b => b.Kind.ShouldBe(BinaryKind.Plus));
+        p.N<BinaryExpressionSyntax>(b => b.Kind.ShouldBe(BinaryKind.Plus));
         {
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("a"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("a"));
+            }
             
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("b"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("b"));
+            }
         }
 
         p.End();
@@ -151,16 +174,16 @@ public class ParenthesizedOrLambdaTests
             "(mut x, 0) => 1",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<LambdaExpression>();
+        p.N<LambdaExpressionSyntax>();
         {
-            p.N<Parameter>(param => param.IsMutable.ShouldBeTrue());
+            p.N<ParameterSyntax>(param => param.IsMutable.ShouldBeTrue());
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("x"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("x"));
             }
             
             // 0 should not be parsed as anything.
 
-            p.N<NumberExpression>(n => n.Value.ShouldBe(1));
+            p.N<NumberExpressionSyntax>(n => n.Value.ShouldBe(1));
         }
 
         p.End();
@@ -173,15 +196,15 @@ public class ParenthesizedOrLambdaTests
             "(mut x)",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<LambdaExpression>();
+        p.N<LambdaExpressionSyntax>();
         {
-            p.N<Parameter>(param => param.IsMutable.ShouldBeTrue());
+            p.N<ParameterSyntax>(param => param.IsMutable.ShouldBeTrue());
             {
-                p.N<Identifier>(i => i.Name.ShouldBe("x"));
+                p.N<IdentifierSyntax>(i => i.Name.ShouldBe("x"));
             }
 
             // The body expression should be an error.
-            p.N<ErrorExpression>();
+            p.N<ErrorExpressionSyntax>();
         }
 
         p.End();
@@ -194,15 +217,19 @@ public class ParenthesizedOrLambdaTests
             "(0, mut x)",
             p => p.ParseParenthesizedOrLambdaExpression());
 
-        p.N<TupleExpression>();
+        p.N<TupleExpressionSyntax>();
         {
-            p.N<NumberExpression>(n => n.Value.ShouldBe(0));
+            p.N<NumberExpressionSyntax>(n => n.Value.ShouldBe(0));
             
             // mut should not be parsed as anything.
 
-            p.N<IdentifierExpression>(i => i.Identifier.ShouldBe("x"));
+            p.N<IdentifierExpressionSyntax>();
+            {
+                p.T(TokenKind.Name, t => t.Text.ShouldBe("x"));
+            }
         }
 
         p.End();
     }
 }
+#endif

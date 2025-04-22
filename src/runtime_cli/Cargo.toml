@@ -1,0 +1,9 @@
+[package]
+name = "noa_runtime_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noa_runtime = { path = "../runtime", version = "0.1.0" }
+clap = { version = "4.5.27", features = ["derive"] }
+binrw = "0.14.1"

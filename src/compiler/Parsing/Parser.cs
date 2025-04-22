@@ -1,6 +1,7 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
-using Expression = Noa.Compiler.Nodes.Expression;
+using Noa.Compiler.Syntax.Green;
+using TextMappingUtils;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
@@ -15,21 +16,19 @@ internal sealed partial class Parser
     /// <param name="source">The source file to parse.</param>
     /// <param name="ast">The AST which parsed nodes belong to.</param>
     /// <param name="cancellationToken">The cancellation token used to signal the parser to cancel.</param>
-    public static (Root, IReadOnlyCollection<IDiagnostic>) Parse(
+    public static RootSyntax Parse(
         Source source,
-        Ast ast,
         CancellationToken cancellationToken)
     {
-        var (tokens, lexDiagnostics) = Lexer.Lex(source, cancellationToken);
-        var parser = new Parser(source, ast, tokens, cancellationToken);
+        var tokens = Lexer.Lex(source, cancellationToken);
+        var parser = new Parser(source, tokens, cancellationToken);
         
         var root = parser.ParseRoot();
-        var diagnostics = parser.Diagnostics;
         
-        return (root, lexDiagnostics.Concat(diagnostics).ToList());
+        return root;
     }
 
-    internal Root ParseRoot()
+    internal RootSyntax ParseRoot()
     {
         var (statements, trailingExpression) = ParseBlock(
             allowTrailingExpression: true,
@@ -38,32 +37,18 @@ internal sealed partial class Parser
 
         var endOfFile = Expect(TokenKind.EndOfFile);
 
-        var start = statements.FirstOrDefault()?.Span.Start
-                    ?? trailingExpression?.Span.Start
-                    ?? endOfFile.Span.Start;
-
         return new()
         {
-            Ast = Ast,
-            Span = endOfFile.Span with { Start = start },
-            Statements = statements,
-            TrailingExpression = trailingExpression
+            Block = new()
+            {
+                Statements = statements,
+                TrailingExpression = trailingExpression,
+            },
+            EndOfFile = endOfFile
         };
     }
 
-    internal Identifier ParseIdentifier()
-    {
-        var name = Expect(TokenKind.Name);
-
-        return new()
-        {
-            Ast = Ast,
-            Span = name.Span,
-            Name = name.Text
-        };
-    }
-
-    internal Declaration ParseDeclaration() => Current.Kind switch
+    internal DeclarationSyntax ParseDeclaration() => Current.Kind switch
     {
         TokenKind.Func => ParseFunctionDeclaration(),
         TokenKind.Let => ParseLetDeclaration(),
@@ -71,13 +56,52 @@ internal sealed partial class Parser
             $"Cannot parse a declaration starting with {Current.Kind}.")
     };
 
-    internal FunctionDeclaration ParseFunctionDeclaration()
+    internal FunctionDeclarationSyntax ParseFunctionDeclaration()
     {
         var func = Expect(TokenKind.Func);
 
-        var identifier = ParseIdentifier();
+        var identifier = Expect(TokenKind.Name);
 
-        Expect(TokenKind.OpenParen);
+        var parameters = ParseParameterList();
+
+        FunctionBodySyntax body;
+        
+        if (Current.Kind is TokenKind.OpenBrace)
+        {
+            var blockBody = ParseBlockExpression();
+            body = new BlockBodySyntax()
+            {
+                Block = blockBody
+            };
+        }
+        else
+        {
+            var arrow = Expect(TokenKind.EqualsGreaterThan);
+
+            var expression = ParseExpressionOrError();
+            
+            var semicolon = Expect(TokenKind.Semicolon);
+
+            body = new ExpressionBodySyntax()
+            {
+                Arrow = arrow,
+                Expression = expression,
+                Semicolon = semicolon
+            };
+        }
+
+        return new()
+        {
+            Func = func,
+            Name = identifier,
+            Parameters = parameters,
+            Body = body
+        };
+    }
+
+    internal ParameterListSyntax ParseParameterList()
+    {
+        var openParen = Expect(TokenKind.OpenParen);
 
         var parameters = ParseSeparatedList(
             TokenKind.Comma,
@@ -87,80 +111,42 @@ internal sealed partial class Parser
             TokenKind.EqualsGreaterThan,
             TokenKind.OpenBrace);
 
-        Expect(TokenKind.CloseParen);
-
-        var expressionBody = null as (Expression expression, Token semicolon)?;
-        var blockBody = null as BlockExpression;
-        
-        if (Current.Kind is TokenKind.OpenBrace)
-        {
-            blockBody = ParseBlockExpression();
-        }
-        else
-        {
-            Expect(TokenKind.EqualsGreaterThan);
-
-            var expression = ParseExpressionOrError();
-            
-            var semicolon = Expect(TokenKind.Semicolon);
-
-            expressionBody = (expression, semicolon);
-        }
-
-        var end = (expressionBody, blockBody) switch
-        {
-            (var (_, semicolon), null) => semicolon.Span.End,
-            (null, not null) => blockBody.Span.End,
-            // It's impossible for the expression body and block body to both be null or both not be null.
-            _ => throw new UnreachableException()
-        };
+        var closeParen = Expect(TokenKind.CloseParen);
 
         return new()
         {
-            Ast = Ast,
-            Span = func.Span with { End = end },
-            FuncKeyword = func,
-            Identifier = identifier,
+            OpenParen = openParen,
             Parameters = parameters,
-            ExpressionBody = expressionBody?.expression,
-            BlockBody = blockBody
+            CloseParen = closeParen
         };
     }
 
-    internal Parameter ParseParameter()
+    internal ParameterSyntax ParseParameter()
     {
         var mutToken = Current.Kind is TokenKind.Mut
             ? Advance()
-            : null as Token?;
+            : null;
 
-        var identifier = ParseIdentifier();
-
-        var start = mutToken?.Span.Start ?? identifier.Span.Start;
+        var identifier = Expect(TokenKind.Name);
         
         return new()
         {
-            Ast = Ast,
-            Span = identifier.Span with { Start = start },
-            IsMutable = mutToken is not null,
-            Identifier = identifier
+            Mut = mutToken,
+            Name = identifier
         };
     }
 
-    internal LetDeclaration ParseLetDeclaration()
+    internal LetDeclarationSyntax ParseLetDeclaration()
     {
         var let = Expect(TokenKind.Let);
 
-        bool isMutable;
-        if (Current.Kind is TokenKind.Mut)
-        {
-            isMutable = true;
-            Advance();
-        }
-        else isMutable = false;
+        var mut = Current.Kind is TokenKind.Mut
+            ? Advance()
+            : null;
 
-        var identifier = ParseIdentifier();
+        var identifier = Expect(TokenKind.Name);
 
-        Expect(TokenKind.Equals);
+        var equals = Expect(TokenKind.Equals);
 
         var expression = ParseExpressionOrError();
 
@@ -168,12 +154,12 @@ internal sealed partial class Parser
 
         return new()
         {
-            Ast = Ast,
-            Span = TextSpan.Between(let.Span, semicolon.Span),
-            LetKeyword = let,
-            IsMutable = isMutable,
-            Identifier = identifier,
-            Expression = expression
+            Let = let,
+            Mut = mut,
+            Name = identifier,
+            EqualsToken = equals,
+            Value = expression,
+            Semicolon = semicolon
         };
     }
 }

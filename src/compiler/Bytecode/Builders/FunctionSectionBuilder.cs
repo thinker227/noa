@@ -67,7 +67,7 @@ internal sealed class FunctionSectionBuilder : IWritable
 
     public void Write(Carpenter writer)
     {
-        writer.UInt(FunctionsLength);
+        writer.UInt((uint)functions.Count);
 
         foreach (var function in functions) writer.Write(function);
     }

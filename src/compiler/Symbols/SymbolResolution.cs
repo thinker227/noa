@@ -1,6 +1,5 @@
 using Noa.Compiler.Diagnostics;
 using Noa.Compiler.Nodes;
-using SuperLinq;
 
 namespace Noa.Compiler.Symbols;
 
@@ -54,7 +53,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         currentScope = parent;
     }
 
-    private IScope DeclareBlock(BlockExpression block)
+    private IScope DeclareBlock(Block block)
     {
         // Begin by declaring all functions in the block
         // since they are accessible regardless of location within the block.
@@ -147,7 +146,18 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         
         return new BlockScope(currentScope, block, functions, variableTimeline, timelineIndexMap);
     }
-    
+
+    protected override void VisitBlock(Block node)
+    {
+        var blockScope = DeclareBlock(node);
+        node.DeclaredScope = new(blockScope);
+        InScope(blockScope, () =>
+        {
+            Visit(node.Statements);
+            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        });
+    }
+
     protected override void VisitRoot(Root node)
     {
         
@@ -161,13 +171,7 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         
         // Note: the root is in the global scope, not the block scope it itself declares.
         
-        var blockScope = DeclareBlock(node);
-        node.DeclaredScope = new(blockScope);
-        InScope(blockScope, () =>
-        {
-            Visit(node.Statements);
-            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
-        });
+        Visit(node.Block);
 
         functionStack.Pop();
     }
@@ -212,17 +216,6 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         });
 
         functionStack.Pop();
-    }
-
-    protected override void VisitBlockExpression(BlockExpression node)
-    {
-        var blockScope = DeclareBlock(node);
-        node.DeclaredScope = new(blockScope);
-        InScope(blockScope, () =>
-        {
-            Visit(node.Statements);
-            if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
-        });
     }
 
     protected override void VisitLambdaExpression(LambdaExpression node)
@@ -278,10 +271,11 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
     {
         var identifier = node.Identifier;
         
-        if (currentScope.LookupSymbol(identifier, node) is not var (symbol, accessibility))
+        var location = LookupLocation.AtNode(node);
+        if (currentScope.LookupSymbol(identifier, location) is not var (symbol, accessibility))
         {
             Diagnostics.Add(SymbolDiagnostics.SymbolCannotBeFound.Format(
-                (identifier, currentScope, node),
+                (identifier, currentScope, location),
                 node.Location));
 
             node.ReferencedSymbol = new ErrorSymbol();

@@ -24,8 +24,10 @@ public sealed partial class NoaLanguageServer
         var client = LanguageServer.Connect(stream);
         
         var logger = CreateLogger(logFilePath, logLevel, client);
+
+        var sourceProvider = new DiskSourceProvider(logger);
         
-        var server = new NoaLanguageServer(client, logger);
+        var server = new NoaLanguageServer(client, logger, sourceProvider);
         await client.RunAsync(server);
     }
 

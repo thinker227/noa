@@ -6,14 +6,6 @@ namespace Noa.Compiler.Diagnostics;
 public static class Diagnostic
 {
     /// <summary>
-    /// Creates a simple diagnostic from a diagnostic template and a location.
-    /// </summary>
-    /// <param name="template">The template to create the diagnostic from.</param>
-    /// <param name="location">The location of the diagnostic.</param>
-    public static IDiagnostic Create(DiagnosticTemplate template, Location location) =>
-        new SimpleDiagnostic(template, location);
-
-    /// <summary>
     /// Creates a diagnostic with from a template with an argument and a location.
     /// </summary>
     /// <param name="template">The template to create the diagnostic from.</param>
@@ -50,31 +42,14 @@ public static class Diagnostic
          return $"{id}: \"{message}\" ({severityString}) at {location}";
     }
     
-    private sealed class SimpleDiagnostic(DiagnosticTemplate template, Location location) : IDiagnostic
-    {
-        public DiagnosticId Id { get; } = template.Id;
-    
-        public Severity Severity { get; } = template.Severity;
-    
-        public Location Location { get; } = location;
-
-        public void WriteToPage(IDiagnosticPage page) => template.WriteMessage(page);
-
-        public override string ToString()
-        {
-            var message = WriteMessage(this, StringDiagnosticWriter.Writer);
-            return DisplayDiagnostic(Id, message, Severity, Location);
-        }
-    }
-    
     private sealed class ArgumentDiagnostic<TArg>(
         DiagnosticTemplate<TArg> template,
         TArg argument,
         Location location) : IDiagnostic
     {
-        public DiagnosticId Id { get; } = template.Id;
+        public DiagnosticId Id => template.Id;
 
-        public Severity Severity { get; } = template.Severity;
+        public Severity Severity => template.Severity;
 
         public Location Location { get; } = location;
 

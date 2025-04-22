@@ -46,15 +46,14 @@ public interface IDeclaredFunction : IFunction, IDeclared
     /// <summary>
     /// The block body of the function.
     /// </summary>
-    BlockExpression? BlockBody { get; }
+    Block? BlockBody { get; }
 
     /// <summary>
     /// The body of the function.
-    /// This may be a non-block expression in the case of the body being an expression body,
-    /// or a block expression in the case of the body being a block body or an expression body
-    /// where the expression is a block expression.
+    /// Should always be either an <see cref="Expression"/> in the case of the function having
+    /// an expression body, or a <see cref="Block"/> in the case of the function having a block body.
     /// </summary>
-    Expression Body => HasExpressionBody
+    Node Body => HasExpressionBody
         ? ExpressionBody
         : BlockBody;
 
@@ -102,9 +101,9 @@ public sealed class NomialFunction : IDeclaredFunction, IDeclaredSymbol
 
     public Expression? ExpressionBody => Declaration.ExpressionBody;
 
-    public BlockExpression? BlockBody => Declaration.BlockBody;
+    public Block? BlockBody => Declaration.BlockBody?.Block;
     
-    public Expression Body => HasExpressionBody
+    public Node Body => HasExpressionBody
         ? ExpressionBody
         : BlockBody;
     
@@ -139,7 +138,10 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 
     Node IDeclared.Declaration => Declaration;
 
-    Location IDeclared.DefinitionLocation => Declaration.Location with { Span = Declaration.ArrowToken.Span };
+    Location IDeclared.DefinitionLocation => Declaration.Location with
+    {
+        Span = ((Syntax.LambdaExpressionSyntax)Declaration.Syntax).Arrow.Span
+    };
 
     public IReadOnlyList<ParameterSymbol> Parameters => parameters;
 
@@ -147,9 +149,9 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 
     bool IDeclaredFunction.HasExpressionBody => true;
 
-    Expression? IDeclaredFunction.ExpressionBody => Body;
+    Expression IDeclaredFunction.ExpressionBody => Body;
 
-    BlockExpression? IDeclaredFunction.BlockBody => null;
+    Block? IDeclaredFunction.BlockBody => null;
 
     /// <summary>
     /// The body of the lambda.
@@ -211,13 +213,13 @@ public sealed class TopLevelFunction : IDeclaredFunction
 
     IReadOnlyList<ParameterSymbol> IDeclaredFunction.Parameters { get; } = [];
 
-    public IScope BodyScope => Declaration.DeclaredScope.Value;
+    public IScope BodyScope => Declaration.Block.DeclaredScope.Value;
 
     bool IDeclaredFunction.HasExpressionBody => false;
 
     Expression? IDeclaredFunction.ExpressionBody => null;
 
-    BlockExpression? IDeclaredFunction.BlockBody => Declaration;
+    Block? IDeclaredFunction.BlockBody => Declaration.Block;
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {

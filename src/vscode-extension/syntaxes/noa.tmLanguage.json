@@ -3,22 +3,35 @@
     "name": "noa",
     "patterns": [
         {
-            "include": "#comments"
-        },
-        {
-            "include": "#keywords"
-        },
-        {
-            "include": "#calls"
-        },
-        {
-            "include": "#numbers"
-        },
-        {
-            "include": "#names"
+            "include": "#all"
         }
     ],
     "repository": {
+        "all": {
+            "patterns": [
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#interpolated-strings"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "include": "#keywords"
+                },
+                {
+                    "include": "#calls"
+                },
+                {
+                    "include": "#numbers"
+                },
+                {
+                    "include": "#names"
+                }
+            ]
+        },
         "keywords": {
             "patterns": [
                 {
@@ -38,8 +51,16 @@
                     "match": "\\b(if|else|loop|return|break|continue)\\b"
                 },
                 {
+                    "name": "keyword.operator.expression.noa",
+                    "match": "\\b(not|or|and)\\b"
+                },
+                {
                     "name": "constant.language.boolean.noa",
                     "match": "\\b(true|false)\\b"
+                },
+                {
+                    "name": "meta.punctuation.noa",
+                    "match": "\\+=|-=|\\*=|/="
                 },
                 {
                     "name": "keyword.operator.noa",
@@ -61,7 +82,7 @@
         },
         "numbers": {
             "name": "constant.numeric.noa",
-            "match": "\\b([0-9]+)"
+            "match": "\\b([0-9]+(?:\\.[0-9]+)?)"
         },
         "names": {
             "name": "variable.noa",
@@ -70,6 +91,80 @@
         "comments": {
             "name": "comment.line.double-slash.noa",
             "match": "\\/\\/.*"
+        },
+        "strings": {
+            "name": "string.quoted.double.noa",
+            "begin": "\"",
+            "end": "\"|$",
+            "patterns": [
+                {
+                    "begin": "\\\\{",
+                    "end": "}",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "endCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
+                    "include": "#escape-sequence"
+                }
+            ]
+        },
+        "interpolated-strings": {
+            "name": "string.quoted.double.noa",
+            "begin": "(\\\\)\"",
+            "end": "\"|$",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.other.noa"
+                }
+            },
+            "patterns": [
+                {
+                    "begin": "{",
+                    "end": "}",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "endCaptures": {
+                        "0": {
+                            "name": "keyword.other.noa"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#all"
+                        }
+                    ]
+                },
+                {
+                    "include": "#escape-sequence"
+                },
+                {
+                    "include": "#interpolation-escape"
+                }
+            ]
+        },
+        "escape-sequence": {
+            "name": "constant.character.escape.noa",
+            "match": "\\\\[\\\\0nrt\"]"
+        },
+        "interpolation-escape": {
+            "name": "constant.character.escape.noa",
+            "match": "\\\\{"
         }
     },
     "scopeName": "source.noa"

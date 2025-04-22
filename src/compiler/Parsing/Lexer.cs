@@ -1,17 +1,19 @@
 using Noa.Compiler.Diagnostics;
-using Noa.Compiler.Nodes;
+using Noa.Compiler.Syntax.Green;
+using TextMappingUtils;
+using TokenKind = Noa.Compiler.Syntax.TokenKind;
 
 namespace Noa.Compiler.Parsing;
 
 internal sealed partial class Lexer
 {
-    public static (ImmutableArray<Token>, IReadOnlyCollection<IDiagnostic>) Lex(
+    public static ImmutableArray<Token> Lex(
         Source source,
         CancellationToken cancellationToken)
     {
         var lexer = new Lexer(source, cancellationToken);
         lexer.Lex();
-        return (lexer.tokens.ToImmutable(), lexer.diagnostics);
+        return lexer.tokens.ToImmutable();
     }
 
     private void Lex()
@@ -19,34 +21,63 @@ internal sealed partial class Lexer
         while (!AtEnd)
         {
             // Whitespace
-            while (SyntaxFacts.IsWhitespace(Current))
+            if (SyntaxFacts.IsWhitespace(Current))
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var whitespaceLength = 0;
 
-                Progress(1);
+                while (whitespaceLength < Rest.Length && SyntaxFacts.IsWhitespace(Rest[whitespaceLength]))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    whitespaceLength += 1;
+                }
+
+                var whitespace = Rest[..whitespaceLength].ToString();
+                trivia.Add(new WhitespaceTrivia(whitespace));
+
+                Progress(whitespaceLength);
+
+                continue;
             }
 
             // Comments
             if (Get(2) is "//")
             {
-                while (!AtEnd && Current is not '\n')
+                var commentLength = 2;
+
+                while (commentLength < Rest.Length && Rest[commentLength] is not '\n')
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Progress(1);
+                    commentLength += 1;
                 }
+
+                var comment = Rest[..commentLength].ToString();
+                trivia.Add(new CommentTrivia(comment));
+
+                Progress(commentLength);
 
                 continue;
             }
 
-            // If there is trailing whitespace before the end of the source,
-            // the previous step has eaten all the whitespace, and we need to break
-            // to avoid choking on the end.
-            if (AtEnd) break;
-
             // Symbol clusters
             if (TrySymbol() is var (kind, tokenLength))
             {
+                int depth;
+
+                // Count curly depths if inside interpolation.
+
+                if (kind is TokenKind.OpenBrace && interpolationCurlyDepths.TryPop(out depth))
+                    interpolationCurlyDepths.Push(depth + 1);
+                
+                if (kind is TokenKind.CloseBrace && interpolationCurlyDepths.TryPop(out depth))
+                {
+                    interpolationCurlyDepths.Push(depth - 1);
+                    
+                    // Return from lexing the current string interpolation.
+                    if (depth == 0) return;
+                }
+
                 ConstructToken(kind, tokenLength);
                 continue;
             }
@@ -65,15 +96,23 @@ internal sealed partial class Lexer
                 continue;
             }
 
+            // Strings
+            if (TryString()) continue;
+
             // Unknown
-            var unexpectedSpan = TextSpan.FromLength(position, 1);
-            var unexpectedToken = new Token(TokenKind.Error, Rest[..1].ToString(), unexpectedSpan);
-            diagnostics.Add(ParseDiagnostics.UnexpectedToken.Format(unexpectedToken, new(source.Name, unexpectedSpan)));
+            var unexpectedText = Rest[..1].ToString();
+            
+            ReportDiagnostic(
+                ParseDiagnostics.UnexpectedCharacter,
+                unexpectedText,
+                width: 1);
+            
+            trivia.Add(new UnexpectedCharacterTrivia(unexpectedText));
+            
             Progress(1);
         }
         
-        var endSpan = TextSpan.FromLength(source.Text.Length, 0);
-        AddToken(new(TokenKind.EndOfFile, null, endSpan));
+        ConstructToken(TokenKind.EndOfFile, 0);
     }
 
     private (TokenKind, int)? TrySymbol()
@@ -85,6 +124,10 @@ internal sealed partial class Lexer
             "=>" => TokenKind.EqualsGreaterThan,
             "==" => TokenKind.EqualsEquals,
             "!=" => TokenKind.BangEquals,
+            "+=" => TokenKind.PlusEquals,
+            "-=" => TokenKind.DashEquals,
+            "*=" => TokenKind.StarEquals,
+            "/=" => TokenKind.SlashEquals,
             _ => null as TokenKind?
         };
 
@@ -140,6 +183,9 @@ internal sealed partial class Lexer
         "continue" => TokenKind.Continue,
         "true" => TokenKind.True,
         "false" => TokenKind.False,
+        "not" => TokenKind.Not,
+        "or" => TokenKind.Or,
+        "and" => TokenKind.And,
         _ => null
     };
 
@@ -147,12 +193,107 @@ internal sealed partial class Lexer
     {
         if (Rest.IsEmpty) return ReadOnlySpan<char>.Empty;
 
+        var afterDecimalPoint = false;
+
         var i = 0;
         for (; i < Rest.Length; i++)
         {
+            // Only try to lex a decimal point if we've lexed at least one digit
+            // and haven't already lexed a decimal point.
+            if (i >= 1 && !afterDecimalPoint && Rest[i] is '.')
+            {
+                // Exit if there's no digit after the decimal point.
+                if (Rest[(i + 1)..] is not [var next, ..] || !SyntaxFacts.IsDigit(next)) break;
+
+                afterDecimalPoint = true;
+                continue;
+            }
+
             if (!SyntaxFacts.IsDigit(Rest[i])) break;
         }
 
         return Rest[..i];
+    }
+
+    private bool TryString()
+    {
+        bool isOptOut;
+        switch (Rest)
+        {
+        case ['\\', '"', ..]:
+            isOptOut = true;
+            break;
+        case ['"', ..]:
+            isOptOut = false;
+            break;
+        default:
+            return false;
+        }
+
+        var startQuoteLength = isOptOut ? 2 : 1;
+        var interpolationStartLength = isOptOut ? 1 : 2;
+
+        ConstructToken(TokenKind.BeginString, startQuoteLength);
+
+        var i = 0;
+        for (; i < Rest.Length; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var current = Rest[i];
+
+            // Begin interpolation.
+            if (!isOptOut && Rest[i..] is ['\\', '{', ..] ||
+                 isOptOut && Rest[i..] is ['{', ..])
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+
+                ConstructToken(TokenKind.BeginInterpolation, interpolationStartLength);
+
+                // Push an interpolation curly depth of 0 to keep track of how deep within curly pairs the lexer is
+                // and when to break out of the interpolation.
+                interpolationCurlyDepths.Push(0);
+
+                // Recursively invoke the lexer to lex the tokens within the interpolation.
+                Lex();
+
+                interpolationCurlyDepths.Pop();
+
+                // Once the lexer has lexed the tokens within the interpolation and returned here,
+                // it might be the case that the string was unterminated and that there is not closing }.
+                if (!AtEnd) ConstructToken(TokenKind.EndInterpolation, 1);
+
+                // Reset i to -1 so that the next iteration will start back at index 0 of the new rest.
+                i = -1;
+                continue;
+            }
+
+            // If we encounter a quote which is not preceded by a \, then we've reached the end of the string.
+            if (current is '"')
+            {
+                // Only construct string text if there are any characters within.
+                if (i > 0) ConstructToken(TokenKind.StringText, i);
+                
+                ConstructToken(TokenKind.EndString, 1);
+
+                return true;
+            }
+
+            // Encountered an unterminated string, either because of a newline or end of input.
+            if (current is '\n' || i == Rest.Length - 1) break;
+
+            // Skip escape sequences.
+            // An escape sequence here is considered a \ followed by any character except a newline.
+            if (Rest[i..] is ['\\', not '\n', ..]) i++;
+        }
+
+        // If we got here then the string is unterminated.
+        // Report a diagnostic at the very end of the string.
+        ReportDiagnostic(
+            ParseDiagnostics.UnterminatedString,
+            width: 1);
+
+        return true;
     }
 }

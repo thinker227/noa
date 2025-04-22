@@ -99,11 +99,11 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
 
     public void ExitTempFrame() => Add(Opcode.ExitTempFrame);
 
-    public void PushInt(int value)
+    public void PushFloat(double value)
     {
-        var bytes = new byte[4];
-        BinaryPrimitives.WriteInt32BigEndian(bytes, value);
-        Add(Opcode.PushInt, bytes);
+        var bytes = new byte[8];
+        BinaryPrimitives.WriteDoubleBigEndian(bytes, value);
+        Add(Opcode.PushFloat, bytes);
     }
 
     public void PushBool(bool value)
@@ -120,6 +120,13 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     }
 
     public void PushNil() => Add(Opcode.PushNil);
+
+    public void PushString(StringIndex index)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, index.Index);
+        Add(Opcode.PushString, bytes);
+    }
     
     public void Pop() => Add(Opcode.Pop);
 
@@ -160,6 +167,10 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Or() => Add(Opcode.Or);
 
     public void GreaterThan() => Add(Opcode.GreaterThan);
+
+    public void Concat() => Add(Opcode.Concat);
+
+    public new void ToString() => Add(Opcode.ToString);
 }
 
 /// <summary>

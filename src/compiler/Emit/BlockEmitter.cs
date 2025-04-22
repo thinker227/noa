@@ -20,13 +20,11 @@ internal class BlockEmitter(
         Code.Pop();
     }
 
-    protected override void VisitRoot(Root node) => VisitBlockExpression(node);
-
     protected override void VisitBlockExpression(BlockExpression node)
     {
-        Visit(node.Statements);
+        Visit(node.Block.Statements);
 
-        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
         else
         {
             Code.PushNil();
@@ -35,12 +33,40 @@ internal class BlockEmitter(
 
     protected override void VisitAssignmentStatement(AssignmentStatement node)
     {
-        Visit(node.Value);
-        
         // TODO: refactor this to allow targets other than identifiers
         var target = (IdentifierExpression)node.Target;
 
         var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
+
+        if (node.Kind is not AssignmentKind.Assign)
+        {
+            Code.LoadVar(varIndex);
+
+            Visit(node.Value);
+
+            switch (node.Kind)
+            {
+            case AssignmentKind.Plus:
+                Code.Add();
+                break;
+            
+            case AssignmentKind.Minus:
+                Code.Sub();
+                break;
+            
+            case AssignmentKind.Mult:
+                Code.Mult();
+                break;
+            
+            case AssignmentKind.Div:
+                Code.Div();
+                break;
+            }
+        }
+        else
+        {
+            Visit(node.Value);
+        }
         
         Code.StoreVar(varIndex);
     }
@@ -56,7 +82,7 @@ internal class BlockEmitter(
             break;
 
         case UnaryKind.Negate:
-            Code.PushInt(0);
+            Code.PushFloat(0);
             Code.Swap();
             Code.Sub();
             break;
@@ -71,6 +97,19 @@ internal class BlockEmitter(
 
     protected override void VisitBinaryExpression(BinaryExpression node)
     {
+        // Special short-circuiting operators
+        switch (node.Kind)
+        {
+        case BinaryKind.Or:
+            EmitBinaryOr(node);
+            return;
+        
+        case BinaryKind.And:
+            EmitBinaryAnd(node);
+            return;
+        }
+
+        // Normal operators
         Visit(node.Left);
         Visit(node.Right);
         
@@ -112,7 +151,6 @@ internal class BlockEmitter(
         case BinaryKind.LessThanOrEqual:
             Code.GreaterThan();
             Code.Not();
-            
             break;
         
         case BinaryKind.GreaterThanOrEqual:
@@ -124,9 +162,61 @@ internal class BlockEmitter(
         }
     }
 
-    protected override void VisitNumberExpression(NumberExpression node) => Code.PushInt(node.Value);
+    private void EmitBinaryOr(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
+    }
+
+    private void EmitBinaryAnd(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+        Code.Not();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
+    }
+
+    protected override void VisitNumberExpression(NumberExpression node) => Code.PushFloat(node.Value);
 
     protected override void VisitBoolExpression(BoolExpression node) => Code.PushBool(node.Value);
+
+    protected override void VisitStringExpression(StringExpression node)
+    {
+        var first = true;
+
+        foreach (var part in node.Parts)
+        {
+            Visit(part);
+            
+            if (!first) Code.Concat();
+            first = false;
+        }
+    }
+
+    protected override void VisitTextStringPart(TextStringPart node)
+    {
+        var index = strings.GetOrAdd(node.Text);
+        Code.PushString(index);
+    }
+
+    protected override void VisitInterpolationStringPart(InterpolationStringPart node)
+    {
+        Visit(node.Expression);
+        Code.ToString(); // This is not built-in `ToString` which returns a string.
+    }
 
     protected override void VisitNilExpression(NilExpression node) => Code.PushNil();
 
