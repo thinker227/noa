@@ -36,8 +36,12 @@ fn set_panic_hook() {
 /// 
 /// Copied from [`ratatui::try_init`].
 fn init_terminal() {
+    color_eyre::install()
+        .expect("failed to install color_eyre");
+
+    set_panic_hook();
+
     let res: Result<(), io::Error> = try {
-        set_panic_hook();
         enable_raw_mode()?;
         execute!(
             io::stdout(),
@@ -77,6 +81,8 @@ impl DebuggerTui {
             terminal
         })
     }
+
+
 }
 
 impl Debugger for DebuggerTui {
