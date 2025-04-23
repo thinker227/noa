@@ -10,7 +10,6 @@ use clap::Parser;
 
 use noa_debugger_tui::DebuggerTui;
 use noa_runtime::exception::FormattedException;
-use noa_runtime::value::Value;
 use noa_runtime::vm::debugger::Debugger;
 use noa_runtime::vm::Vm;
 use noa_runtime::ark::{Ark, CodeSection, FuncId, FunctionSection, Header, StringSection};
