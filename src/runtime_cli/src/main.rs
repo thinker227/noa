@@ -47,10 +47,7 @@ fn main() -> Exit<()> {
     } = ark;
 
     let debugger: Option<Box<dyn Debugger>> = if args.debug {
-        Some(Box::new(
-            DebuggerTui::new(io::stdout())
-                .into_exit()?
-        ))
+        Some(Box::new(DebuggerTui::new().into_exit()?))
     } else {
         None
     };
