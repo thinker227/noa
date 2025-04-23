@@ -2,6 +2,12 @@ use super::Vm;
 
 /// User interface for debugging.
 pub trait Debugger {
+    // Initiates the debugging session.
+    fn init(&mut self);
+
+    /// Exits the debugging session.
+    fn exit(&mut self);
+
     /// Called by the VM when a debug breakpoint has been hit.
     fn debug_break(&mut self, vm: &mut Vm) -> DebugControlFlow;
 }

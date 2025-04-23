@@ -80,6 +80,11 @@ impl Vm {
         }
     }
 
+    /// Gets the debugger interface.
+    pub fn debugger(&mut self) -> &mut Option<Box<dyn Debugger>> {
+        &mut self.debugger
+    }
+
     /// Gets a value at a specified address on the heap.
     fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
         self.heap.get(address)

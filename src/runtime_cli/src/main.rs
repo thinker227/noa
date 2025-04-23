@@ -49,7 +49,7 @@ fn main() -> Exit<()> {
 
     let debugger: Option<Box<dyn Debugger>> = if args.debug {
         Some(Box::new(
-            DebuggerTui::init(io::stdout())
+            DebuggerTui::new(io::stdout())
                 .into_exit()?
         ))
     } else {
@@ -77,7 +77,15 @@ fn main() -> Exit<()> {
 }
 
 fn run(vm: &mut Vm, main: FuncId, print_ret: bool) -> Result<(), FormattedException> {
+    if let Some(debugger) = vm.debugger() {
+        debugger.init();
+    }
+
     let result = vm.call_run(main.into(), &[])?;
+
+    if let Some(debugger) = vm.debugger() {
+        debugger.exit();
+    }
 
     if print_ret {
         let str = vm.to_string(result)?;
