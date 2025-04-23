@@ -13,6 +13,8 @@ use crossterm::{
 };
 use ratatui::{
     prelude::CrosstermBackend,
+    widgets::Widget,
+    Frame,
     Terminal
 };
 use noa_runtime::vm::debugger::{
@@ -69,7 +71,12 @@ fn restore_terminal() {
 
 /// A debugger which provides a terminal user interface.
 pub struct DebuggerTui {
-    terminal: Terminal<CrosstermBackend<io::Stdout>>
+    terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    state: State
+}
+
+struct State {
+    exit: bool
 }
 
 impl DebuggerTui {
@@ -78,11 +85,12 @@ impl DebuggerTui {
         let terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
         Ok(Self {
-            terminal
+            terminal,
+            state: State {
+                exit: false,
+            },
         })
     }
-
-
 }
 
 impl Debugger for DebuggerTui {
@@ -95,6 +103,21 @@ impl Debugger for DebuggerTui {
     }
 
     fn debug_break(&mut self, _: DebugInspection) -> DebugControlFlow {
+        while !self.state.exit {
+            self.terminal.draw(|frame| draw(&self.state, frame))
+                .expect("failed to render");
+        }
+
+        DebugControlFlow::Continue
+    }
+}
+
+fn draw(state: &State, frame: &mut Frame) {
+    frame.render_widget(state, frame.area());
+}
+
+impl Widget for &State {
+    fn render(self, _: ratatui::prelude::Rect, _: &mut ratatui::prelude::Buffer) {
         todo!()
     }
 }
