@@ -1,12 +1,11 @@
 #![feature(try_blocks)]
 
-use std::io::{self, Write};
+use std::io::Write;
 
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
+use crossterm::Result;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
-use noa_runtime::vm::Vm;
-use noa_runtime::vm::debugger::{DebugControlFlow, Debugger};
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 use noa_runtime::vm::debugger::{DebugControlFlow, DebugInspection, Debugger};
@@ -18,7 +17,7 @@ pub struct DebuggerTui<W: Write> {
 
 impl<W: Write> DebuggerTui<W> {
     /// Creates a new debugger TUI and initializes the terminal.
-    pub fn new(buffer: W) -> Result<Self, io::Error> {
+    pub fn new(buffer: W) -> Result<Self> {
         let backend = CrosstermBackend::new(buffer);
 
         Ok(Self {
@@ -29,7 +28,7 @@ impl<W: Write> DebuggerTui<W> {
 
 impl<W: Write> Debugger for DebuggerTui<W> {
     fn init(&mut self) {
-        let res: Result<(), io::Error> = try {
+        let res: Result<()> = try {
             enable_raw_mode()?;
 
             execute!(
@@ -45,7 +44,7 @@ impl<W: Write> Debugger for DebuggerTui<W> {
     }
     
     fn exit(&mut self) {
-        let res: Result<(), io::Error> = try {
+        let res: Result<()> = try {
             disable_raw_mode()?;
 
             execute!(
