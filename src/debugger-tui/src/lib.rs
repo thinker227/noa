@@ -21,22 +21,6 @@ use noa_runtime::vm::debugger::{
     Debugger
 };
 
-/// A debugger which provides a terminal user interface.
-pub struct DebuggerTui {
-    terminal: Terminal<CrosstermBackend<io::Stdout>>
-}
-
-impl DebuggerTui {
-    /// Creates a new debugger TUI and initializes the terminal.
-    pub fn new() -> Result<Self, io::Error> {
-        let terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
-
-        Ok(Self {
-            terminal
-        })
-    }
-}
-
 /// Sets a panic hook that restores the terminal before panicking.
 /// 
 /// Copied from Ratatui's internal `set_panic_hook`.
@@ -77,6 +61,22 @@ fn restore_terminal() {
     };
 
     res.expect("failed to restore terminal");
+}
+
+/// A debugger which provides a terminal user interface.
+pub struct DebuggerTui {
+    terminal: Terminal<CrosstermBackend<io::Stdout>>
+}
+
+impl DebuggerTui {
+    /// Creates a new debugger TUI and initializes the terminal.
+    pub fn new() -> Result<Self, io::Error> {
+        let terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
+
+        Ok(Self {
+            terminal
+        })
+    }
 }
 
 impl Debugger for DebuggerTui {
