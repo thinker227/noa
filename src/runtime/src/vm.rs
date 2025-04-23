@@ -17,7 +17,7 @@ pub mod debugger;
 pub type Result<T> = std::result::Result<T, FormattedException>;
 
 /// Constants for a single execution of the virtual machine.
-struct VmConsts {
+pub struct VmConsts {
     /// User functions.
     pub functions: Vec<Function>,
     /// Native functions.

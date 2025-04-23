@@ -9,6 +9,7 @@ use noa_runtime::vm::Vm;
 use noa_runtime::vm::debugger::{DebugControlFlow, Debugger};
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
+use noa_runtime::vm::debugger::{DebugControlFlow, DebugInspection, Debugger};
 
 /// A debugger which provides a terminal user interface.
 pub struct DebuggerTui<W: Write> {
@@ -61,7 +62,7 @@ impl<W: Write> Debugger for DebuggerTui<W> {
         }
     }
 
-    fn debug_break(&mut self, _: &mut Vm) -> DebugControlFlow {
+    fn debug_break(&mut self, _: DebugInspection) -> DebugControlFlow {
         todo!()
     }
 }
