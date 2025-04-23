@@ -7,6 +7,7 @@ use exit::{Exit, IntoExit};
 use binrw::BinRead;
 use clap::Parser;
 
+use noa_debugger_tui::DebuggerTui;
 use noa_runtime::exception::FormattedException;
 use noa_runtime::value::Value;
 use noa_runtime::vm::Vm;
@@ -44,6 +45,8 @@ fn main() -> Exit<()> {
         ..
     } = ark;
 
+    let debugger = DebuggerTui::new();
+
     let mut vm = Vm::new(
         functions,
         strings,
@@ -51,7 +54,7 @@ fn main() -> Exit<()> {
         100_000,
         10_000,
         100_000,
-        None
+        Some(Box::new(debugger))
     );
 
     let result = run(&mut vm, main, args.print_return_value);
