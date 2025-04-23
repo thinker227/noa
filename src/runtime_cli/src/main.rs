@@ -1,6 +1,7 @@
 #![feature(try_trait_v2)]
 
-use std::{fs, io::Cursor};
+use std::fs;
+use std::io::{self, Cursor};
 
 use args::Args;
 use exit::{Exit, IntoExit};
@@ -10,6 +11,7 @@ use clap::Parser;
 use noa_debugger_tui::DebuggerTui;
 use noa_runtime::exception::FormattedException;
 use noa_runtime::value::Value;
+use noa_runtime::vm::debugger::Debugger;
 use noa_runtime::vm::Vm;
 use noa_runtime::ark::{Ark, CodeSection, FuncId, FunctionSection, Header, StringSection};
 
@@ -45,7 +47,14 @@ fn main() -> Exit<()> {
         ..
     } = ark;
 
-    let debugger = DebuggerTui::new();
+    let debugger: Option<Box<dyn Debugger>> = if args.debug {
+        Some(Box::new(
+            DebuggerTui::init(io::stdout())
+                .into_exit()?
+        ))
+    } else {
+        None
+    };
 
     let mut vm = Vm::new(
         functions,
@@ -54,7 +63,7 @@ fn main() -> Exit<()> {
         100_000,
         10_000,
         100_000,
-        Some(Box::new(debugger))
+        debugger
     );
 
     let result = run(&mut vm, main, args.print_return_value);

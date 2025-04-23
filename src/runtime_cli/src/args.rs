@@ -12,6 +12,10 @@ pub struct Args {
     /// Specifies to print the return value from the main function.
     #[arg(long = "print-ret")]
     pub print_return_value: bool,
+
+    /// Whether to enable debugging through the debugger TUI.
+    #[arg(long = "debug")]
+    pub debug: bool,
 }
 
 fn file_exists(s: &str) -> Result<PathBuf, String> {
