@@ -479,13 +479,14 @@ impl Vm {
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
-                    depth -= 1;
                     
                     if depth <= 0 {
                         return Ok(ret);
-                    } else {
-                        self.push(ret)?;
                     }
+
+                    self.push(ret)?;
+                    
+                    depth -= 1;
                 },
             }
         }
