@@ -50,7 +50,8 @@ fn main() -> Exit<()> {
         code,
         100_000,
         10_000,
-        100_000
+        100_000,
+        None
     );
 
     let result = run(&mut vm, main, args.print_return_value);

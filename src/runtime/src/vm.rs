@@ -1,3 +1,4 @@
+use debugger::Debugger;
 use frame::{Frame, FrameKind};
 use stack::Stack;
 
@@ -10,6 +11,7 @@ pub mod frame;
 mod interpret;
 mod value_ops;
 mod stack;
+pub mod debugger;
 
 /// The result of a VM operation.
 pub type Result<T> = std::result::Result<T, FormattedException>;
@@ -46,6 +48,8 @@ pub struct Vm {
     /// bytecode instruction which is *currently* being executed, to provide
     /// better traces.
     trace_ip: usize,
+    /// The debugger interface.
+    debugger: Option<Box<dyn Debugger>>,
 }
 
 impl Vm {
@@ -56,7 +60,8 @@ impl Vm {
         code: Vec<u8>,
         stack_size: usize,
         call_stack_size: usize,
-        heap_size: usize
+        heap_size: usize,
+        debugger: Option<Box<dyn Debugger + 'static>>
     ) -> Self {
         Self {
             consts: VmConsts {
@@ -70,7 +75,8 @@ impl Vm {
             call_stack: Vec::with_capacity(call_stack_size),
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
-            trace_ip: 0
+            trace_ip: 0,
+            debugger
         }
     }
 
