@@ -1,0 +1,283 @@
+use noa_runtime::ark::FuncId;
+use noa_runtime::heap::HeapValue;
+use noa_runtime::value::Value;
+use noa_runtime::vm::frame::{Frame, FrameKind};
+use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
+use ratatui::prelude::*;
+
+use noa_runtime::vm::debugger::DebugInspection;
+
+use crate::instruction::InstructionSummary;
+use crate::state::Focus;
+use crate::State;
+
+pub struct MainWidget<'insp, 'vm, 'state> {
+    pub inspection: &'insp DebugInspection<'vm>,
+    pub state: &'state State
+}
+
+impl Widget for MainWidget<'_, '_, '_> {
+    fn render(self, area: Rect, buf: &mut Buffer) {    
+        let super_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Fill(1),
+                Constraint::Length(1)
+            ])
+            .split(area);
+        
+        self.shortcuts(super_layout[1], buf);
+
+        let main_layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Percentage(30),
+                Constraint::Fill(1),
+                Constraint::Percentage(30)
+            ])
+            .split(super_layout[0]);
+                
+        self.stack_widget(main_layout[0], buf);
+        self.exec_info_widget(main_layout[1], buf);
+        self.call_stack_widget(main_layout[2], buf);
+    }
+}
+
+impl MainWidget<'_, '_, '_> {
+    fn shortcuts(&self, area: Rect, buf: &mut Buffer) {
+        let text = (match self.state.focus {
+            Focus::Stack => Line::from(""),
+            Focus::ExecInfo => Line::from(vec![
+                " continue: ".into(),
+                "<space> ".blue().bold()
+            ]),
+            Focus::CallStack => Line::from("")
+        }).centered();
+
+        Block::default()
+            .borders(Borders::BOTTOM)
+            .border_type(BorderType::Double)
+            .title_bottom(text)
+            .render(area, buf);
+    }
+
+    fn stack_widget(&self, area: Rect, buf: &mut Buffer) {
+        let has_focus = matches!(self.state.focus, Focus::Stack);
+
+        let title = Line::from(" Stack ").centered();
+
+        let (border_style, title_style) = focus_style(has_focus);
+        Block::bordered()
+            .border_type(BorderType::Rounded)
+            .border_style(border_style)
+            .title_top(title)
+            .title_style(title_style)
+            .render(area, buf);
+
+        let vars: Option<(usize, usize)> = try {
+            let frame = match self.inspection.call_stack.last()? {
+                Frame { kind: FrameKind::Temp { parent_function_index }, .. } =>
+                    self.inspection.call_stack.get(*parent_function_index).unwrap(),
+                x => x
+            };
+
+            let id = frame.function;
+            if id.is_native() { None? }
+
+            let function = self.inspection.consts.functions.get(id.decode() as usize)?;
+
+            let start = self.inspection.stack.head() - frame.stack_start;
+            let size = (function.arity + function.locals_count) as usize;
+            (start - size, start)
+        };
+
+        let mut values = Vec::new();
+        let mut i = 0;
+        for val in self.inspection.stack.iter() {
+            let mut line = self.show_value(*val);
+            
+            if let Some((start, end)) = vars {
+                if i >= start && i < end {
+                    line = line.patch_style(Style::new().add_modifier(Modifier::ITALIC));
+                }
+                if i >= end {
+                    for span in line.iter_mut() {
+                        *span = span.clone().style(Style::new().add_modifier(Modifier::DIM));
+                    }
+                    // line = line.style(Style::new().add_modifier(Modifier::DIM));
+                    // line = line.patch_style(Style::new().add_modifier(Modifier::CROSSED_OUT));
+                }
+            }
+
+            values.push(line);
+
+            i += 1;
+        }
+
+        Paragraph::new(values)
+            .wrap(Wrap { trim: false })
+            .render(area.inner(Margin::new(2, 2)), buf);
+    }
+
+    fn show_value(&self, value: Value) -> Line<'static> {
+        match value {
+            Value::Number(x) => x.to_string().cyan().into(),
+
+            Value::Bool(x) => x.to_string().blue().into(),
+
+            Value::InternedString(index) =>
+                self.show_istr(index).into(),
+            
+            Value::Function(closure) =>
+                self.show_func(closure.function).into(),
+
+            Value::Object(adr) => {
+                if let Ok(obj) = self.inspection.heap.get(adr) {
+                    match obj {
+                        HeapValue::String(s) =>
+                            format!("\"{}\"", s.clone()).light_yellow().into(),
+                        
+                        HeapValue::List(_) => "list".into(),
+
+                        HeapValue::Object(_) => "object".into(),
+                    }
+                } else {
+                    format!("bad obj {}", adr.0).red().into()
+                }
+            },
+
+            Value::Nil => "()".into(),
+        }
+    }
+
+    fn show_istr(&self, index: usize) -> Line<'static> {
+        if let Some(s) = self.inspection.consts.strings.get(index) {
+            format!("i\"{}\"", s.clone()).yellow().into()
+        } else {
+            "bad istr".red().into()
+        }
+    }
+
+    fn show_func(&self, function: FuncId) -> Line<'static> {
+        let id = function.decode() as usize;
+
+        if function.is_native() {
+            if id < self.inspection.consts.native_functions.len() {
+                format!("nfunc {id}").green().into()
+            } else {
+                format!("bad nfunc {id}").red().into()
+            }
+        } else {
+            if let Some(function) = self.inspection.consts.functions.get(id) {
+                let mut spans = Vec::new();
+                spans.push(format!("func {id} ").green());
+                spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
+                Line::from(spans)
+            } else {
+                format!("bad func {id}").red().into()
+            }
+        }
+    }
+
+    fn exec_info_widget(&self, area: Rect, buf: &mut Buffer) {
+        let has_focus = matches!(self.state.focus, Focus::ExecInfo);
+
+        let title = Line::from(" Execution Info ").centered();
+
+        let (border_style, title_style) = focus_style(has_focus);
+        Block::new()
+            .borders(Borders::TOP | Borders::BOTTOM)
+            .border_style(border_style)
+            .border_type(BorderType::Rounded)
+            .title_top(title)
+            .title_style(title_style)
+            .render(area, buf);
+
+        let main_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Fill(1)
+            ])
+            .split(area.inner(Margin::new(4, 2)));
+
+        let ip = self.inspection.ip;
+        let summary = InstructionSummary::from(self.inspection);
+        let mut lines = vec![
+            Line::from(vec![
+                "Instruction pointer: ".into(),
+                format!("{ip:X}").blue()                
+            ]),
+            Line::from(vec![
+                "Opcode: ".into(),
+                format!("{:X} ", summary.opcode).blue(),
+                "(".into(),
+                summary.name.blue(),
+                ")".into()
+            ])
+        ];
+        
+        if !summary.operands.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from("Operands:"));
+
+            for operand in &summary.operands {
+                let mut spans = vec![
+                    operand.name.clone().magenta(),
+                    " [".into(),
+                    operand.typ.clone().magenta(),
+                    "]".into()
+                ];
+
+                if let Some(value) = &operand.value {
+                    spans.push(" = ".into());
+                    spans.push(value.clone().magenta())
+                }
+
+                lines.push(Line::from(spans));
+            }
+        }
+
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .render(main_layout[0], buf);
+    }
+
+    fn call_stack_widget(&self, area: Rect, buf: &mut Buffer) {
+        let has_focus = matches!(self.state.focus, Focus::CallStack);
+
+        let title = Line::from(" Call Stack ").centered();
+
+        let (border_style, title_style) = focus_style(has_focus);
+        Block::bordered()
+            .border_type(BorderType::Rounded)
+            .border_style(border_style)
+            .title_top(title)
+            .title_style(title_style)
+            .render(area, buf);
+
+        let frames = self.inspection.call_stack
+            .iter()
+            .rev()
+            .map(|f| self.show_frame(f))
+            .collect::<Vec<_>>();
+
+        Paragraph::new(frames)
+            .wrap(Wrap { trim: false })
+            .render(area.inner(Margin::new(2, 2)), buf);
+    }
+
+    fn show_frame(&self, frame: &Frame) -> Line<'static> {
+        match frame.kind {
+            FrameKind::Temp { .. } => Line::from("temp frame".magenta()),
+            _ => self.show_func(frame.function)
+        }
+    }
+}
+
+fn focus_style(has_focus: bool) -> (Style, Style) {
+    if has_focus {
+        (Style::new().fg(Color::LightGreen), Style::new().fg(Color::Yellow))
+    } else {
+        (Style::new(), Style::new())
+    }
+}

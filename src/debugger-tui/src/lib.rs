@@ -3,6 +3,12 @@
 use std::io;
 
 use crossterm::{
+    event::{
+        self,
+        Event,
+        KeyEvent,
+        KeyCode
+    },
     execute,
     terminal::{
         enable_raw_mode,
@@ -12,16 +18,19 @@ use crossterm::{
     }
 };
 use ratatui::{
-    prelude::CrosstermBackend,
-    widgets::Widget,
-    Frame,
-    Terminal
+    prelude::CrosstermBackend, Frame, Terminal
 };
 use noa_runtime::vm::debugger::{
     DebugControlFlow,
     DebugInspection,
     Debugger
 };
+use state::{Focus, State};
+use widgets::MainWidget;
+
+mod state;
+mod instruction;
+mod widgets;
 
 /// Sets a panic hook that restores the terminal before panicking.
 /// 
@@ -75,10 +84,6 @@ pub struct DebuggerTui {
     state: State
 }
 
-struct State {
-    exit: bool
-}
-
 impl DebuggerTui {
     /// Creates a new debugger TUI and initializes the terminal.
     pub fn new() -> Result<Self, io::Error> {
@@ -86,9 +91,7 @@ impl DebuggerTui {
 
         Ok(Self {
             terminal,
-            state: State {
-                exit: false,
-            },
+            state: State::default(),
         })
     }
 }
@@ -102,22 +105,75 @@ impl Debugger for DebuggerTui {
         restore_terminal();
     }
 
-    fn debug_break(&mut self, _: DebugInspection) -> DebugControlFlow {
-        while !self.state.exit {
-            self.terminal.draw(|frame| draw(&self.state, frame))
+    fn debug_break(&mut self, inspection: DebugInspection) -> DebugControlFlow {
+        adjust_state(&inspection, &mut self.state);
+
+        loop {
+            self.terminal.draw(|frame| draw(&self.state, &inspection, frame))
                 .expect("failed to render");
+
+            match event::read() {
+                Ok(event) => {
+                    let result = handle_event(event, &mut self.state);
+
+                    match result {
+                        EventHandleResult::Continue => {},
+                        EventHandleResult::Exit => break,
+                    }
+                },
+                Err(e) => {
+                    eprintln!("failed to read input: {e}");
+                    break;
+                },
+            }
         }
 
         DebugControlFlow::Continue
     }
 }
 
-fn draw(state: &State, frame: &mut Frame) {
-    frame.render_widget(state, frame.area());
+fn adjust_state(_: &DebugInspection, _: &mut State) {
+    
 }
 
-impl Widget for &State {
-    fn render(self, _: ratatui::prelude::Rect, _: &mut ratatui::prelude::Buffer) {
-        todo!()
+enum EventHandleResult {
+    Continue,
+    Exit,
+}
+
+fn handle_event(event: Event, state: &mut State) -> EventHandleResult {
+    match event {
+        Event::Key(key_event) => match key_event {
+            KeyEvent { code: KeyCode::Char(' '), .. } if matches!(state.focus, Focus::ExecInfo) => {
+                return EventHandleResult::Exit;
+            },
+            KeyEvent { code: KeyCode::Left, .. } => {
+                state.focus = match state.focus {
+                    Focus::Stack => Focus::Stack,
+                    Focus::ExecInfo => Focus::Stack,
+                    Focus::CallStack => Focus::ExecInfo,
+                };
+            },
+            KeyEvent { code: KeyCode::Right, .. } => {
+                state.focus = match state.focus {
+                    Focus::Stack => Focus::ExecInfo,
+                    Focus::ExecInfo => Focus::CallStack,
+                    Focus::CallStack => Focus::CallStack,
+                };
+            },
+            _ => {}
+        },
+        _ => {}
     }
+
+    EventHandleResult::Continue
+}
+
+fn draw(state: &State, inspection: &DebugInspection, frame: &mut Frame) {
+    let main_widget = MainWidget {
+        inspection,
+        state
+    };
+
+    frame.render_widget(main_widget, frame.area());
 }
