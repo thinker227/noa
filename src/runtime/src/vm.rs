@@ -8,10 +8,10 @@ use crate::native::NativeFunction;
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
+pub mod stack;
+pub mod debugger;
 mod interpret;
 mod value_ops;
-mod stack;
-pub mod debugger;
 
 /// The result of a VM operation.
 pub type Result<T> = std::result::Result<T, FormattedException>;
