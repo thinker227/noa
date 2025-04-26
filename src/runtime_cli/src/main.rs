@@ -1,7 +1,7 @@
 #![feature(try_trait_v2)]
 
 use std::fs;
-use std::io::{self, Cursor};
+use std::io::Cursor;
 
 use args::Args;
 use exit::{Exit, IntoExit};
