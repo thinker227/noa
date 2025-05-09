@@ -9,6 +9,8 @@ using Noa.Compiler.Workspaces;
 using Serilog;
 using Location = Draco.Lsp.Model.Location;
 using Range = Draco.Lsp.Model.Range;
+using Noa.Compiler.Services.Completion;
+using Noa.Compiler.Services.Completion.Providers;
 
 namespace Noa.LangServer;
 
@@ -25,6 +27,17 @@ public sealed partial class NoaLanguageServer(
     : ILanguageServer
 {
     private readonly Workspace<DocumentUri> workspace = new(sourceProvider);
+
+    private readonly CompletionService completionService = new([
+        new MutKeywordProvider(),
+        new ElseKeywordProvider(),
+        new StatementKeywordProvider(),
+        new ExpressionStatementKeywordProvider(),
+        new LoopExpressionStatementKeywordProvider(),
+        new ExpressionKeywordProvider(),
+        new ExpressionContinuationKeywordProvider(),
+        new SymbolProvider(),
+    ]);
 
     public InitializeResult.ServerInfoResult? Info { get; } = new()
     {
