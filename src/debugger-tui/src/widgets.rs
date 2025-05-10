@@ -81,21 +81,27 @@ impl MainWidget<'_, '_, '_> {
             (start - size, start)
         };
 
+        let mut separator = String::new();
+        for _ in 0..(area.width - 4) {
+            separator.push('─');
+        }
+
         let mut values = Vec::new();
         let mut i = 0;
         for val in self.inspection.stack.iter() {
             let mut line = self.show_value(*val);
             
             if let Some((start, end)) = vars {
-                if i >= start && i < end {
-                    line = line.patch_style(Style::new().add_modifier(Modifier::ITALIC));
+                if i == start {
+                    values.push(separator.clone().into());
+                }
+                if i == end {
+                    values.push(separator.clone().into());
                 }
                 if i >= end {
                     for span in line.iter_mut() {
                         *span = span.clone().style(Style::new().add_modifier(Modifier::DIM));
                     }
-                    // line = line.style(Style::new().add_modifier(Modifier::DIM));
-                    // line = line.patch_style(Style::new().add_modifier(Modifier::CROSSED_OUT));
                 }
             }
 
