@@ -184,53 +184,100 @@ impl MainWidget<'_, '_, '_> {
             .title_top(title)
             .render(area, buf);
 
-        let main_layout = Layout::default()
+        let subarea = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Fill(1)
+                Constraint::Length(10)
             ])
-            .split(area.inner(Margin::new(4, 2)));
+            .split(area.inner(Margin::new(4, 2)))
+            [0];
 
+        self.code_widget(subarea, buf);
+    }
+
+    fn code_widget(&self, area: Rect, buf: &mut Buffer) {
         let ip = self.inspection.ip;
         let summary = InstructionSummary::from(self.inspection);
-        let mut lines = vec![
-            Line::from(vec![
-                "Instruction pointer: ".into(),
-                format!("{ip:X}").blue()                
-            ]),
-            Line::from(vec![
-                "Opcode: ".into(),
-                format!("{:X} ", summary.opcode).blue(),
-                "(".into(),
-                summary.name.blue(),
-                ")".into()
+
+        let mut opcodes = self.show_opcodes(ip, &summary);
+        opcodes.spans.insert(0, Span::from(format!(":{ip} | ")));
+
+        let (layout, _) = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(1),
+                Constraint::Length(1),
+                Constraint::Length(summary.operands.len() as u16),
+                Constraint::Length(summary.arguments.len() as u16),
+                Constraint::Fill(1)
             ])
-        ];
+            .spacing(1)
+            .split_with_spacers(area);
+
+        Paragraph::new(vec![
+                Line::from(opcodes)
+            ])
+            .render(layout[0], buf);
+
+        Paragraph::new(vec![
+                Line::from(vec![
+                    summary.name.clone().blue()
+                ])
+            ])
+            .render(layout[1], buf);
+
+        self.show_operands(&summary).render(layout[2], buf);
+    }
+
+    fn show_opcodes(&self, ip: usize, summary: &InstructionSummary) -> Line<'static> {
+        let code = &self.inspection.consts.code[ip..];
+        let mut opcodes = Vec::new();
+
+        opcodes.push(format!("{:X} ", code[0]).blue());
+
+        let mut operands = summary.operands.iter();
+        let mut operand = operands
+            .next()
+            .map(|op| (op, 0));
         
-        if !summary.operands.is_empty() {
-            lines.push(Line::from(""));
-            lines.push(Line::from("Operands:"));
+        for c in &code[1..] {
+            let color = match &mut operand {
+                Some((op, index)) => {
+                    *index += 1;
+                    if *index >= op.length {
+                        operand = operands.next().map(|op| (op, 0));
+                    }
 
-            for operand in &summary.operands {
-                let mut spans = vec![
-                    operand.name.clone().magenta(),
-                    " [".into(),
-                    operand.typ.clone().magenta(),
-                    "]".into()
-                ];
+                    Color::Magenta
+                },
+                None => Color::Gray,
+            };
 
-                if let Some(value) = &operand.value {
-                    spans.push(" = ".into());
-                    spans.push(value.clone().magenta())
-                }
+            opcodes.push(Span::from(format!("{:X} ", *c)).style(color));
+        }
 
-                lines.push(Line::from(spans));
+        opcodes.into()
+    }
+
+    fn show_operands(&self, summary: &InstructionSummary) -> Paragraph<'static> {
+        let mut lines = Vec::new();
+
+        for operand in &summary.operands {
+            let mut spans = vec![
+                operand.name.clone().yellow(),
+                ": ".into(),
+                operand.typ.clone().yellow()
+            ];
+
+            if let Some(value) = &operand.value {
+                spans.push(" = ".into());
+                spans.push(value.clone().magenta())
             }
+
+            lines.push(Line::from(spans));
         }
 
         Paragraph::new(lines)
-            .wrap(Wrap { trim: false })
-            .render(main_layout[0], buf);
     }
 
     fn call_stack_widget(&self, area: Rect, buf: &mut Buffer) {

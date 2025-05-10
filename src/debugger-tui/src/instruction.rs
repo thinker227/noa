@@ -3,15 +3,15 @@ use noa_runtime::value::Type;
 use noa_runtime::opcode;
 
 pub struct InstructionSummary {
-    pub opcode: u8,
+    pub _opcode: u8,
     pub name: String,
     pub operands: Vec<Operand>,
-    pub _arguments: Vec<Argument>,
+    pub arguments: Vec<Argument>,
 }
 
 pub struct Operand {
     pub name: String,
-    pub _length: usize,
+    pub length: usize,
     pub typ: String,
     pub value: Option<String>,
 }
@@ -265,9 +265,9 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
 
         InstructionSummary {
             name: name.into(),
-            opcode,
+            _opcode: opcode,
             operands,
-            _arguments: arguments
+            arguments
         }
     }
 }
@@ -279,7 +279,7 @@ fn make_operand<'insp, 'vm, T: IntoOperand>(
 {
     Operand {
         name: name.to_string(),
-        _length: T::length(),
+        length: T::length(),
         typ: T::typ(),
         value: read_operand::<T>(inspection)
             .map(|x| x.show())
@@ -293,7 +293,7 @@ fn operand_from<'insp, 'vm, T: IntoOperand>(
 {
     Operand {
         name: name.to_string(),
-        _length: T::length(),
+        length: T::length(),
         typ: T::typ(),
         value: value.map(|x| x.to_string())
     }
