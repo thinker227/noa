@@ -25,7 +25,7 @@ use noa_runtime::vm::debugger::{
     DebugInspection,
     Debugger
 };
-use state::{Focus, State};
+use state::State;
 use widgets::MainWidget;
 
 mod state;
@@ -141,25 +141,11 @@ enum EventHandleResult {
     Exit,
 }
 
-fn handle_event(event: Event, state: &mut State) -> EventHandleResult {
+fn handle_event(event: Event, _state: &mut State) -> EventHandleResult {
     match event {
         Event::Key(key_event) => match key_event {
-            KeyEvent { code: KeyCode::Char(' '), .. } if matches!(state.focus, Focus::ExecInfo) => {
+            KeyEvent { code: KeyCode::Char(' '), .. } => {
                 return EventHandleResult::Exit;
-            },
-            KeyEvent { code: KeyCode::Left, .. } => {
-                state.focus = match state.focus {
-                    Focus::Stack => Focus::Stack,
-                    Focus::ExecInfo => Focus::Stack,
-                    Focus::CallStack => Focus::ExecInfo,
-                };
-            },
-            KeyEvent { code: KeyCode::Right, .. } => {
-                state.focus = match state.focus {
-                    Focus::Stack => Focus::ExecInfo,
-                    Focus::ExecInfo => Focus::CallStack,
-                    Focus::CallStack => Focus::CallStack,
-                };
             },
             _ => {}
         },
@@ -172,7 +158,7 @@ fn handle_event(event: Event, state: &mut State) -> EventHandleResult {
 fn draw(state: &State, inspection: &DebugInspection, frame: &mut Frame) {
     let main_widget = MainWidget {
         inspection,
-        state
+        _state: state
     };
 
     frame.render_widget(main_widget, frame.area());

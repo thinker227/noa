@@ -8,12 +8,11 @@ use ratatui::prelude::*;
 use noa_runtime::vm::debugger::DebugInspection;
 
 use crate::instruction::InstructionSummary;
-use crate::state::Focus;
 use crate::State;
 
 pub struct MainWidget<'insp, 'vm, 'state> {
     pub inspection: &'insp DebugInspection<'vm>,
-    pub state: &'state State
+    pub _state: &'state State
 }
 
 impl Widget for MainWidget<'_, '_, '_> {
@@ -45,14 +44,10 @@ impl Widget for MainWidget<'_, '_, '_> {
 
 impl MainWidget<'_, '_, '_> {
     fn shortcuts(&self, area: Rect, buf: &mut Buffer) {
-        let text = (match self.state.focus {
-            Focus::Stack => Line::from(""),
-            Focus::ExecInfo => Line::from(vec![
-                " continue: ".into(),
-                "<space> ".blue().bold()
-            ]),
-            Focus::CallStack => Line::from("")
-        }).centered();
+        let text = Line::from(vec![
+            " continue: ".into(),
+            "<space> ".blue().bold()
+        ]).centered();
 
         Block::default()
             .borders(Borders::BOTTOM)
@@ -62,16 +57,11 @@ impl MainWidget<'_, '_, '_> {
     }
 
     fn stack_widget(&self, area: Rect, buf: &mut Buffer) {
-        let has_focus = matches!(self.state.focus, Focus::Stack);
-
         let title = Line::from(" Stack ").centered();
 
-        let (border_style, title_style) = focus_style(has_focus);
         Block::bordered()
             .border_type(BorderType::Rounded)
-            .border_style(border_style)
             .title_top(title)
-            .title_style(title_style)
             .render(area, buf);
 
         let vars: Option<(usize, usize)> = try {
@@ -180,17 +170,12 @@ impl MainWidget<'_, '_, '_> {
     }
 
     fn exec_info_widget(&self, area: Rect, buf: &mut Buffer) {
-        let has_focus = matches!(self.state.focus, Focus::ExecInfo);
-
         let title = Line::from(" Execution Info ").centered();
 
-        let (border_style, title_style) = focus_style(has_focus);
         Block::new()
             .borders(Borders::TOP | Borders::BOTTOM)
-            .border_style(border_style)
             .border_type(BorderType::Rounded)
             .title_top(title)
-            .title_style(title_style)
             .render(area, buf);
 
         let main_layout = Layout::default()
@@ -243,16 +228,11 @@ impl MainWidget<'_, '_, '_> {
     }
 
     fn call_stack_widget(&self, area: Rect, buf: &mut Buffer) {
-        let has_focus = matches!(self.state.focus, Focus::CallStack);
-
         let title = Line::from(" Call Stack ").centered();
 
-        let (border_style, title_style) = focus_style(has_focus);
         Block::bordered()
             .border_type(BorderType::Rounded)
-            .border_style(border_style)
             .title_top(title)
-            .title_style(title_style)
             .render(area, buf);
 
         let frames = self.inspection.call_stack
@@ -271,13 +251,5 @@ impl MainWidget<'_, '_, '_> {
             FrameKind::Temp { .. } => Line::from("temp frame".magenta()),
             _ => self.show_func(frame.function)
         }
-    }
-}
-
-fn focus_style(has_focus: bool) -> (Style, Style) {
-    if has_focus {
-        (Style::new().fg(Color::LightGreen), Style::new().fg(Color::Yellow))
-    } else {
-        (Style::new(), Style::new())
     }
 }
