@@ -1,4 +1,6 @@
-use noa_runtime::{opcode, value::Type, vm::debugger::DebugInspection};
+use noa_runtime::vm::debugger::DebugInspection;
+use noa_runtime::value::Type;
+use noa_runtime::opcode;
 
 pub struct InstructionSummary {
     pub opcode: u8,
