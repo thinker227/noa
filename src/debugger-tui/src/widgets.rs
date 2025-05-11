@@ -204,8 +204,7 @@ impl MainWidget<'_, '_, '_> {
                 Constraint::Length(1),
                 Constraint::Length(1),
                 Constraint::Length(summary.operands.len() as u16 + 1),
-                Constraint::Length(summary.arguments.len() as u16 + 1),
-                Constraint::Fill(1)
+                Constraint::Length(summary.arguments.len() as u16 + 1)
             ])
             .spacing(1)
             .split_with_spacers(area);
