@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.CommandLine.Help;
-using System.Text;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -30,7 +29,6 @@ internal sealed class Help
         yield return Section(help.Outline);
         yield return Section(help.Arguments);
         yield return Section(help.Options);
-        yield return Section(help.SubcommandsOutline);
         yield return Section(help.Subcommands);
     }
 
@@ -87,7 +85,12 @@ internal sealed class Help
 
     private bool Outline(Command command)
     {
-        console.Write(ShowFullCommandName(command));
+        console.WriteLine("usage:");
+
+        var commandName = ShowFullCommandName(command);
+
+        console.Write("  ");
+        console.Write(commandName);
 
         foreach (var arg in command.Arguments)
         {
@@ -97,18 +100,15 @@ internal sealed class Help
 
         console.Markup(" [[[yellow]options[/]]]");
 
-        console.WriteLine();
+        if (command.Subcommands.Count != 0 && command.Arguments.Count != 0)
+        {
+            console.WriteLine();
 
-        return true;
-    }
+            console.Write("  ");
+            console.Write(commandName);
 
-    private bool SubcommandsOutline(Command command)
-    {
-        if (command.Subcommands.Count == 0 || command.Arguments.Count == 0) return false;
-
-        console.Write(ShowFullCommandName(command));
-
-        console.Markup($" <[green]command[/]> [[[purple]command arguments[/]]] [[[yellow]command options[/]]]");
+            console.Markup($" <[green]command[/]> [[[purple]command arguments[/]]] [[[yellow]command options[/]]]");
+        }
 
         console.WriteLine();
 
