@@ -195,7 +195,7 @@ public sealed class Root(
                 
                 By default, the runtime should be located at [white]{siblingRuntimePath}[/].
                 If running in a development environment, specify the path manually or set the environment variable.
-                There's probably a runtime around here somewhere...
+                There's probably a runtime somewhere around here...
                 [/]
                 """);
             
