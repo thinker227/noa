@@ -20,15 +20,12 @@ internal class BlockEmitter(
         Code.Pop();
     }
 
-    protected override void VisitBlockExpression(BlockExpression node)
+    protected override void VisitBlock(Block node)
     {
-        Visit(node.Block.Statements);
+        Visit(node.Statements);
 
-        if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
-        else
-        {
-            Code.PushNil();
-        }
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        else Code.PushNil();
     }
 
     protected override void VisitAssignmentStatement(AssignmentStatement node)
