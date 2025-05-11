@@ -35,7 +35,7 @@ internal sealed class Help
     private static Func<HelpContext, bool> Section(Func<Command, bool> section) =>
         ctx => section(ctx.Command);
 
-    private static IRenderable ShowDualList<TLeft, TRight>(IEnumerable<(TLeft, TRight)> xs)
+    private static Grid ShowDualList<TLeft, TRight>(IEnumerable<(TLeft, TRight)> xs)
         where TLeft : IRenderable
         where TRight : IRenderable
     {
@@ -54,13 +54,13 @@ internal sealed class Help
         return grid;
     }
 
-    private static IRenderable ShowFullCommandName(Command command)
+    private static Text ShowFullCommandName(Command command)
     {
         var names = command.Parents.Reverse().Append(command).Select(x => x.Name);
-        return new Text(string.Join(' ', names), Color.White);
+        return new(string.Join(' ', names), Color.White);
     }
 
-    private static IRenderable ShowArgument(Argument arg) => new Markup(
+    private static Markup ShowArgument(Argument arg) => new(
         arg.Arity.MaximumNumberOfValues > 1
             ? $"[[<[purple]{arg.Name}[/]>...]]"
             : $"<[purple]{arg.Name}[/]>");
