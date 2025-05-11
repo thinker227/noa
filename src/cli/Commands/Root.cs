@@ -7,15 +7,18 @@ using Spectre.Console;
 
 namespace Noa.Cli.Commands;
 
+// Todo: allow passing command-line arguments to the running program.
+#pragma warning disable CS9113
 public sealed class Root(
     IAnsiConsole console,
-    CancellationToken ct,
     FileInfo inputFile,
     string[] args,
     FileInfo? outputFile,
     FileInfo? runtimeOverride,
     bool printReturnValue,
-    bool doTime)
+    bool doTime,
+    CancellationToken ct)
+#pragma warning restore CS9113
 {
     public static Command CreateCommand(
         HelpBuilder helpBuilder,
@@ -94,13 +97,13 @@ public sealed class Root(
             Task.FromResult(
                 new Root(
                     console,
-                    ct,
                     ctx.GetValue(inputFileArgument)!,
                     ctx.GetValue(argsArgument) ?? [],
                     ctx.GetValue(outputFileOption),
                     ctx.GetValue(runtimeOption),
                     ctx.GetValue(printRetOption),
-                    ctx.GetValue(timeOption))
+                    ctx.GetValue(timeOption),
+                    ct)
                 .Execute()));
 
         return command;

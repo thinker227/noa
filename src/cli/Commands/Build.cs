@@ -6,9 +6,9 @@ namespace Noa.Cli.Commands;
 
 public sealed class Build(
     IAnsiConsole console,
-    CancellationToken ct,
     FileInfo inputFile,
-    FileInfo? outputFile)
+    FileInfo? outputFile,
+    CancellationToken ct)
 {
     public static Command CreateCommand(IAnsiConsole console)
     {
@@ -38,9 +38,9 @@ public sealed class Build(
             Task.FromResult(
                 new Build(
                     console,
-                    ct,
                     ctx.GetValue(inputFileArgument)!,
-                    ctx.GetValue(outputFileOption))
+                    ctx.GetValue(outputFileOption),
+                    ct)
                 .Execute()));
 
         return command;
