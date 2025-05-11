@@ -59,10 +59,9 @@ public sealed class LangServer(
     {
         if (!stdio)
         {
-            console.WriteLine(
-                "Language server does not support non-stdio transport kinds. " +
-                "Specify --stdio to launch the server through stdio.",
-                Color.Red);
+            console.MarkupLine(
+                "[red]Language server does not support non-stdio transport kinds. " +
+                "Specify [white]--stdio[/] to launch the server through stdio.[/]");
             return 1;
         }
         
