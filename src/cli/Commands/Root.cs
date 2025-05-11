@@ -17,6 +17,7 @@ public sealed class Root(
     FileInfo? runtimeOverride,
     bool printReturnValue,
     bool doTime,
+    bool debug,
     CancellationToken ct)
 #pragma warning restore CS9113
 {
@@ -70,6 +71,11 @@ public sealed class Root(
             Description = "Prints the time the program takes to execute once it has exited."
         };
 
+        var debugOption = new Option<bool>("--debug")
+        {
+            Description = "Launches the integrated runtime debugger when running the program."
+        };
+
         var helpOption = new HelpOption("--help", "-h")
         {
             Action = new HelpAction()
@@ -89,6 +95,7 @@ public sealed class Root(
         command.Add(runtimeOption);
         command.Add(printRetOption);
         command.Add(timeOption);
+        command.Add(debugOption);
         command.Add(helpOption);
         command.Add(buildCommand);
         command.Add(langServerCommand);
@@ -103,6 +110,7 @@ public sealed class Root(
                     ctx.GetValue(runtimeOption),
                     ctx.GetValue(printRetOption),
                     ctx.GetValue(timeOption),
+                    ctx.GetValue(debugOption),
                     ct)
                 .Execute()));
 
@@ -145,7 +153,7 @@ public sealed class Root(
             ast.Emit(stream);
         }
 
-        var result = ExecuteArk(runtime, outputFile, printReturnValue);
+        var result = ExecuteArk(runtime, outputFile, printReturnValue, debug);
         if (result is not var (time, exitCode)) return 1;
 
         if (doTime)
@@ -205,10 +213,11 @@ public sealed class Root(
         return siblingRuntime;
     }
 
-    private (TimeSpan, int)? ExecuteArk(FileInfo runtime, FileInfo arkFile, bool printReturnValue)
+    private (TimeSpan, int)? ExecuteArk(FileInfo runtime, FileInfo arkFile, bool printReturnValue, bool debug)
     {
         var runtimeArgs = new List<string> { $"-f {arkFile.FullName}" };
         if (printReturnValue) runtimeArgs.Add("--print-ret");
+        if (debug) runtimeArgs.Add("--debug");
 
         var process = new Process()
         {
