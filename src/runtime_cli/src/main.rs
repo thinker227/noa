@@ -1,14 +1,16 @@
 #![feature(try_trait_v2)]
 
-use std::{fs, io::Cursor};
+use std::fs;
+use std::io::Cursor;
 
 use args::Args;
 use exit::{Exit, IntoExit};
 use binrw::BinRead;
 use clap::Parser;
 
+use noa_debugger_tui::DebuggerTui;
 use noa_runtime::exception::FormattedException;
-use noa_runtime::value::Value;
+use noa_runtime::vm::debugger::Debugger;
 use noa_runtime::vm::Vm;
 use noa_runtime::ark::{Ark, CodeSection, FuncId, FunctionSection, Header, StringSection};
 
@@ -44,13 +46,20 @@ fn main() -> Exit<()> {
         ..
     } = ark;
 
+    let debugger: Option<Box<dyn Debugger>> = if args.debug {
+        Some(Box::new(DebuggerTui::new().into_exit()?))
+    } else {
+        None
+    };
+
     let mut vm = Vm::new(
         functions,
         strings,
         code,
         100_000,
         10_000,
-        100_000
+        100_000,
+        debugger
     );
 
     let result = run(&mut vm, main, args.print_return_value);
@@ -64,7 +73,15 @@ fn main() -> Exit<()> {
 }
 
 fn run(vm: &mut Vm, main: FuncId, print_ret: bool) -> Result<(), FormattedException> {
+    if let Some(debugger) = vm.debugger() {
+        debugger.init();
+    }
+
     let result = vm.call_run(main.into(), &[])?;
+
+    if let Some(debugger) = vm.debugger() {
+        debugger.exit();
+    }
 
     if print_ret {
         let str = vm.to_string(result)?;

@@ -158,6 +158,7 @@ use crate::opcode;
 use crate::value::{Closure, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
+use super::debugger::DebugInspection;
 use super::{Vm, Result};
 
 enum InterpretControlFlow {
@@ -467,6 +468,21 @@ impl Vm {
 
         while !self.call_stack.is_empty() {
             self.trace_ip = self.ip;
+
+            // Todo: only do this when a breakpoint is reached.
+            if let Some(debugger) = &mut self.debugger {
+                // Break for the debugger and allow it to inspect the VM's state.
+
+                let inspection = DebugInspection {
+                    consts: &self.consts,
+                    stack: &self.stack,
+                    heap: &self.heap,
+                    call_stack: &self.call_stack,
+                    ip: self.ip
+                };
+
+                debugger.debug_break(inspection);
+            }
 
             let ctrl_flw = self.interpret_instruction()?;
 
