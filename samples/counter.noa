@@ -11,6 +11,3 @@ let counter = createCounter(0);
 print(counter());
 print(counter());
 print(counter());
-
-// stub
-func print() {}

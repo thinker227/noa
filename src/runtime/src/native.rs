@@ -1,6 +1,8 @@
 use crate::value::Value;
 use crate::vm::{Vm, Result};
 
+pub mod functions;
+
 /// A function implemented natively within the runtime.
 /// 
 /// Alias for a function pointer.
