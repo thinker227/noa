@@ -1,6 +1,6 @@
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
-use noa_runtime::value::Value;
+use noa_runtime::value::{Type, Value};
 use noa_runtime::vm::frame::{Frame, FrameKind};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::prelude::*;
@@ -8,7 +8,7 @@ use ratatui::prelude::*;
 use noa_runtime::vm::debugger::DebugInspection;
 
 use crate::instruction::InstructionSummary;
-use crate::State;
+use crate::{utils, State};
 
 pub struct MainWidget<'insp, 'vm, 'state> {
     pub inspection: &'insp DebugInspection<'vm>,
@@ -64,22 +64,7 @@ impl MainWidget<'_, '_, '_> {
             .title_top(title)
             .render(area, buf);
 
-        let vars: Option<(usize, usize)> = try {
-            let frame = match self.inspection.call_stack.last()? {
-                Frame { kind: FrameKind::Temp { parent_function_index }, .. } =>
-                    self.inspection.call_stack.get(*parent_function_index).unwrap(),
-                x => x
-            };
-
-            let id = frame.function;
-            if id.is_native() { None? }
-
-            let function = self.inspection.consts.functions.get(id.decode() as usize)?;
-
-            let start = self.inspection.stack.head() - frame.stack_start;
-            let size = (function.arity + function.locals_count) as usize;
-            (start - size, start)
-        };
+        let var_indices = utils::get_stack_variable_indices(&self.inspection);
 
         let mut separator = String::new();
         for _ in 0..(area.width - 4) {
@@ -91,7 +76,7 @@ impl MainWidget<'_, '_, '_> {
         for val in self.inspection.stack.iter() {
             let mut line = self.show_value(*val);
             
-            if let Some((start, end)) = vars {
+            if let Some((start, end)) = var_indices {
                 if i == start {
                     values.push(separator.clone().into());
                 }
@@ -113,6 +98,17 @@ impl MainWidget<'_, '_, '_> {
         Paragraph::new(values)
             .wrap(Wrap { trim: false })
             .render(area.inner(Margin::new(2, 2)), buf);
+    }
+
+    fn show_type(&self, typ: Type) -> Span<'static> {
+        match typ {
+            Type::Number => "number".cyan(),
+            Type::Bool => "bool".blue(),
+            Type::Function => "function".green(),
+            Type::String => "string".yellow(),
+            Type::List => "list".white(),
+            Type::Nil => "object".white(),
+        }
     }
 
     fn show_value(&self, value: Value) -> Line<'static> {
@@ -207,8 +203,8 @@ impl MainWidget<'_, '_, '_> {
             .constraints([
                 Constraint::Length(1),
                 Constraint::Length(1),
-                Constraint::Length(summary.operands.len() as u16),
-                Constraint::Length(summary.arguments.len() as u16),
+                Constraint::Length(summary.operands.len() as u16 + 1),
+                Constraint::Length(summary.arguments.len() as u16 + 1),
                 Constraint::Fill(1)
             ])
             .spacing(1)
@@ -227,6 +223,7 @@ impl MainWidget<'_, '_, '_> {
             .render(layout[1], buf);
 
         self.show_operands(&summary).render(layout[2], buf);
+        self.show_args(&summary).render(layout[3], buf);
     }
 
     fn show_opcodes(&self, ip: usize, summary: &InstructionSummary) -> Line<'static> {
@@ -260,7 +257,9 @@ impl MainWidget<'_, '_, '_> {
     }
 
     fn show_operands(&self, summary: &InstructionSummary) -> Paragraph<'static> {
-        let mut lines = Vec::new();
+        let mut lines = vec![
+            "Operands:".into()
+        ];
 
         for operand in &summary.operands {
             let mut spans = vec![
@@ -269,9 +268,40 @@ impl MainWidget<'_, '_, '_> {
                 operand.typ.clone().yellow()
             ];
 
+            spans.push(" = ".into());
             if let Some(value) = &operand.value {
-                spans.push(" = ".into());
                 spans.push(value.clone().magenta())
+            } else {
+                spans.push("<!>".red());
+            }
+
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+    }
+
+    fn show_args(&self, summary: &InstructionSummary) -> Paragraph<'static> {
+        let mut lines = vec![
+            "Arguments:".into()
+        ];
+
+        for arg in &summary.arguments {
+            let mut spans = vec![
+                arg.name.clone().yellow()
+            ];
+
+            if let Some(typ) = &arg.expected_type {
+                spans.push(": ".into());
+                spans.push(self.show_type(*typ));
+            }
+
+            spans.push(" = ".into());
+            if let Some(value) = &arg.value {
+                let shown = self.show_value(*value);
+                spans.extend_from_slice(&shown.spans[..]);
+            } else {
+                spans.push("<!>".red());
             }
 
             lines.push(Line::from(spans));

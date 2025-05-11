@@ -31,6 +31,7 @@ use widgets::MainWidget;
 mod state;
 mod instruction;
 mod widgets;
+mod utils;
 
 /// Sets a panic hook that restores the terminal before panicking.
 /// 
