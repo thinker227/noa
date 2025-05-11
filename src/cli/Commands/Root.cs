@@ -85,6 +85,11 @@ public sealed class Root(
             Description = "Shows info about how to use the CLI."
         };
 
+        var versionOption = new VersionOption("--version")
+        {
+            Description = "Shows version information."
+        };
+
         var buildCommand = Build.CreateCommand(console);
 
         var langServerCommand = LangServer.CreateCommand(console);
@@ -97,6 +102,7 @@ public sealed class Root(
         command.Add(timeOption);
         command.Add(debugOption);
         command.Add(helpOption);
+        command.Add(versionOption);
         command.Add(buildCommand);
         command.Add(langServerCommand);
 
