@@ -197,6 +197,14 @@ internal class BlockEmitter(
     {
         var first = true;
 
+        if (node.Parts is [])
+        {
+            var empty = strings.GetOrAdd("");
+            Code.PushString(empty);
+            
+            return;
+        }
+
         foreach (var part in node.Parts)
         {
             Visit(part);

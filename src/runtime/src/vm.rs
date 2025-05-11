@@ -1,3 +1,4 @@
+use debugger::Debugger;
 use frame::{Frame, FrameKind};
 use stack::Stack;
 
@@ -7,15 +8,16 @@ use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
 
 pub mod frame;
+pub mod stack;
+pub mod debugger;
 mod interpret;
 mod value_ops;
-mod stack;
 
 /// The result of a VM operation.
 pub type Result<T> = std::result::Result<T, FormattedException>;
 
 /// Constants for a single execution of the virtual machine.
-struct VmConsts {
+pub struct VmConsts {
     /// User functions.
     pub functions: Vec<Function>,
     /// Native functions.
@@ -46,6 +48,8 @@ pub struct Vm {
     /// bytecode instruction which is *currently* being executed, to provide
     /// better traces.
     trace_ip: usize,
+    /// The debugger interface.
+    debugger: Option<Box<dyn Debugger>>,
 }
 
 impl Vm {
@@ -56,7 +60,8 @@ impl Vm {
         code: Vec<u8>,
         stack_size: usize,
         call_stack_size: usize,
-        heap_size: usize
+        heap_size: usize,
+        debugger: Option<Box<dyn Debugger + 'static>>
     ) -> Self {
         Self {
             consts: VmConsts {
@@ -70,13 +75,19 @@ impl Vm {
             call_stack: Vec::with_capacity(call_stack_size),
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
-            trace_ip: 0
+            trace_ip: 0,
+            debugger
         }
     }
 
     /// Gets the heap.
     pub fn heap(&mut self) -> &mut Heap {
         &mut self.heap
+    }
+    
+    /// Gets the debugger interface.
+    pub fn debugger(&mut self) -> &mut Option<Box<dyn Debugger>> {
+        &mut self.debugger
     }
 
     /// Gets a value at a specified address on the heap.

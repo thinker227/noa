@@ -43,4 +43,8 @@ impl Stack {
     pub fn shrink(&mut self, new_size: usize) {
         self.stack.truncate(new_size);
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Value> {
+        self.stack.iter().rev()
+    }
 }

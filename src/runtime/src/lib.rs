@@ -7,5 +7,5 @@ pub mod ark;
 pub mod value;
 pub mod vm;
 pub mod exception;
-mod heap;
+pub mod heap;
 mod native;
