@@ -1,5 +1,5 @@
-func greet(name) {
-    "Hello, \{name}!"
-}
+print("What's your name?");
 
-greet("Noa")
+let name = getInput();
+
+print("Hello, \{name}!");
