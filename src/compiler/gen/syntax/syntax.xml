@@ -100,6 +100,36 @@
     <Token Name="CloseParen"/>
   </Node>
 
+  <Node Name="ObjectExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="DynToken" Optional="true"/>
+    <Token Name="OpenBraceToken"/>
+    <SeparatedList Name="Fields" Type="FieldSyntax"/>
+    <Token Name="CloseBraceToken"/>
+  </Node>
+
+  <Node Name="FieldSyntax">
+    <Token Name="MutToken" Optional="true"/>
+    <Value Name="Name" Type="FieldNameSyntax" Optional="true"/>
+    <Token Name="ColonToken"/>
+    <Value Name="Value" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Variant Name="FieldNameSyntax"/>
+
+  <Node Name="SimpleFieldNameSyntax" Parent="FieldNameSyntax">
+    <Token Name="NameToken"/>
+  </Node>
+
+  <Node Name="StringFieldNameSyntax" Parent="FieldNameSyntax">
+    <Value Name="String" Type="StringExpressionSyntax"/>
+  </Node>
+
+  <Node Name="ExpressionFieldNameSyntax" Parent="FieldNameSyntax">
+    <Token Name="OpenParenToken"/>
+    <Value Name="Expression" Type="ExpressionSyntax"/>
+    <Token Name="CloseParenToken"/>
+  </Node>
+
   <Node Name="ParenthesizedExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="OpenParen"/>
     <Value Name="Expression" Type="ExpressionSyntax"/>
@@ -146,6 +176,12 @@
     <Value Name="Left" Type="ExpressionSyntax"/>
     <Token Name="Operator"/>
     <Value Name="Right" Type="ExpressionSyntax"/>
+  </Node>
+
+  <Node Name="AccessExpressionSyntax" Parent="ExpressionSyntax">
+    <Value Name="Target" Type="ExpressionSyntax"/>
+    <Token Name="DotToken"/>
+    <Value Name="Name" Type="FieldNameSyntax"/>
   </Node>
 
   <Node Name="IdentifierExpressionSyntax" Parent="ExpressionSyntax">

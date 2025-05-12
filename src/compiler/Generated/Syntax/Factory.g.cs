@@ -193,6 +193,64 @@ public static partial class SyntaxFactory
         return (TupleExpressionSyntax)green.ToRed(0, null!);
     }
 
+    public static ObjectExpressionSyntax ObjectExpression(Token? @dynToken, Token @openBraceToken, SeparatedSyntaxList<FieldSyntax> @fields, Token @closeBraceToken)
+    {
+        var green = new Green.ObjectExpressionSyntax()
+        {
+            DynToken = (Green.Token?)@dynToken?.Green,
+            OpenBraceToken = (Green.Token)@openBraceToken.Green,
+            Fields = (Green.SeparatedSyntaxList<Green.FieldSyntax>)@fields.Green,
+            CloseBraceToken = (Green.Token)@closeBraceToken.Green
+        };
+
+        return (ObjectExpressionSyntax)green.ToRed(0, null!);
+    }
+
+    public static FieldSyntax Field(Token? @mutToken, FieldNameSyntax? @name, Token @colonToken, ExpressionSyntax @value)
+    {
+        var green = new Green.FieldSyntax()
+        {
+            MutToken = (Green.Token?)@mutToken?.Green,
+            Name = (Green.FieldNameSyntax?)@name?.Green,
+            ColonToken = (Green.Token)@colonToken.Green,
+            Value = (Green.ExpressionSyntax)@value.Green
+        };
+
+        return (FieldSyntax)green.ToRed(0, null!);
+    }
+
+    public static SimpleFieldNameSyntax SimpleFieldName(Token @nameToken)
+    {
+        var green = new Green.SimpleFieldNameSyntax()
+        {
+            NameToken = (Green.Token)@nameToken.Green
+        };
+
+        return (SimpleFieldNameSyntax)green.ToRed(0, null!);
+    }
+
+    public static StringFieldNameSyntax StringFieldName(StringExpressionSyntax @string)
+    {
+        var green = new Green.StringFieldNameSyntax()
+        {
+            String = (Green.StringExpressionSyntax)@string.Green
+        };
+
+        return (StringFieldNameSyntax)green.ToRed(0, null!);
+    }
+
+    public static ExpressionFieldNameSyntax ExpressionFieldName(Token @openParenToken, ExpressionSyntax @expression, Token @closeParenToken)
+    {
+        var green = new Green.ExpressionFieldNameSyntax()
+        {
+            OpenParenToken = (Green.Token)@openParenToken.Green,
+            Expression = (Green.ExpressionSyntax)@expression.Green,
+            CloseParenToken = (Green.Token)@closeParenToken.Green
+        };
+
+        return (ExpressionFieldNameSyntax)green.ToRed(0, null!);
+    }
+
     public static ParenthesizedExpressionSyntax ParenthesizedExpression(Token @openParen, ExpressionSyntax @expression, Token @closeParen)
     {
         var green = new Green.ParenthesizedExpressionSyntax()
@@ -293,6 +351,18 @@ public static partial class SyntaxFactory
         };
 
         return (BinaryExpressionSyntax)green.ToRed(0, null!);
+    }
+
+    public static AccessExpressionSyntax AccessExpression(ExpressionSyntax @target, Token @dotToken, FieldNameSyntax @name)
+    {
+        var green = new Green.AccessExpressionSyntax()
+        {
+            Target = (Green.ExpressionSyntax)@target.Green,
+            DotToken = (Green.Token)@dotToken.Green,
+            Name = (Green.FieldNameSyntax)@name.Green
+        };
+
+        return (AccessExpressionSyntax)green.ToRed(0, null!);
     }
 
     public static IdentifierExpressionSyntax IdentifierExpression(Token @identifier)

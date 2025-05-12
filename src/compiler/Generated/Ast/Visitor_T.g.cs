@@ -16,6 +16,8 @@ public abstract partial class Visitor<T>
         Statement x => VisitStatement(x),
         Parameter x => VisitParameter(x),
         Expression x => VisitExpression(x),
+        Field x => VisitField(x),
+        FieldName x => VisitFieldName(x),
         ElseClause x => VisitElseClause(x),
         StringPart x => VisitStringPart(x),
         _ => throw new UnreachableException()
@@ -100,6 +102,7 @@ public abstract partial class Visitor<T>
         CallExpression x => VisitCallExpression(x),
         LambdaExpression x => VisitLambdaExpression(x),
         TupleExpression x => VisitTupleExpression(x),
+        ObjectExpression x => VisitObjectExpression(x),
         IfExpression x => VisitIfExpression(x),
         LoopExpression x => VisitLoopExpression(x),
         ReturnExpression x => VisitReturnExpression(x),
@@ -107,6 +110,7 @@ public abstract partial class Visitor<T>
         ContinueExpression x => VisitContinueExpression(x),
         UnaryExpression x => VisitUnaryExpression(x),
         BinaryExpression x => VisitBinaryExpression(x),
+        AccessExpression x => VisitAccessExpression(x),
         IdentifierExpression x => VisitIdentifierExpression(x),
         StringExpression x => VisitStringExpression(x),
         BoolExpression x => VisitBoolExpression(x),
@@ -143,6 +147,44 @@ public abstract partial class Visitor<T>
     protected virtual T VisitTupleExpression(TupleExpression node)
     {
         Visit(node.Expressions);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitObjectExpression(ObjectExpression node)
+    {
+        Visit(node.Fields);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitField(Field node)
+    {
+        if (node.Name is not null) Visit(node.Name);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitFieldName(FieldName node) => node switch
+    {
+        SimpleFieldName x => VisitSimpleFieldName(x),
+        StringFieldName x => VisitStringFieldName(x),
+        ExpressionFieldName x => VisitExpressionFieldName(x),
+        _ => throw new UnreachableException()
+    };
+
+    protected virtual T VisitSimpleFieldName(SimpleFieldName node) => GetDefault(node);
+
+    protected virtual T VisitStringFieldName(StringFieldName node)
+    {
+        Visit(node.String);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitExpressionFieldName(ExpressionFieldName node)
+    {
+        Visit(node.Expression);
 
         return GetDefault(node);
     }
@@ -197,6 +239,14 @@ public abstract partial class Visitor<T>
     {
         Visit(node.Left);
         Visit(node.Right);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitAccessExpression(AccessExpression node)
+    {
+        Visit(node.Target);
+        Visit(node.Name);
 
         return GetDefault(node);
     }

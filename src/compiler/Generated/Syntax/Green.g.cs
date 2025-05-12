@@ -471,6 +471,149 @@ internal sealed class TupleExpressionSyntax : ExpressionSyntax
         new Syntax.TupleExpressionSyntax(this, position, parent);
 }
 
+internal sealed class ObjectExpressionSyntax : ExpressionSyntax
+{
+    private int? width;
+
+    public required Token? DynToken { get; init; }
+
+    public required Token OpenBraceToken { get; init; }
+
+    public required SeparatedSyntaxList<FieldSyntax> Fields { get; init; }
+
+    public required Token CloseBraceToken { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (DynToken is not null) yield return DynToken;
+            yield return OpenBraceToken;
+            if (Fields is not []) yield return Fields;
+            yield return CloseBraceToken;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + (DynToken?.GetFullWidth() ?? 0) + OpenBraceToken.GetFullWidth() + Fields.GetFullWidth() + CloseBraceToken.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.ObjectExpressionSyntax(this, position, parent);
+}
+
+internal sealed class FieldSyntax : SyntaxNode
+{
+    private int? width;
+
+    public required Token? MutToken { get; init; }
+
+    public required FieldNameSyntax? Name { get; init; }
+
+    public required Token ColonToken { get; init; }
+
+    public required ExpressionSyntax Value { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (MutToken is not null) yield return MutToken;
+            if (Name is not null) yield return Name;
+            yield return ColonToken;
+            yield return Value;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + (MutToken?.GetFullWidth() ?? 0) + (Name?.GetFullWidth() ?? 0) + ColonToken.GetFullWidth() + Value.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.FieldSyntax(this, position, parent);
+}
+
+internal abstract class FieldNameSyntax : SyntaxNode
+{
+}
+
+internal sealed class SimpleFieldNameSyntax : FieldNameSyntax
+{
+    private int? width;
+
+    public required Token NameToken { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return NameToken;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + NameToken.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.SimpleFieldNameSyntax(this, position, parent);
+}
+
+internal sealed class StringFieldNameSyntax : FieldNameSyntax
+{
+    private int? width;
+
+    public required StringExpressionSyntax String { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return String;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + String.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.StringFieldNameSyntax(this, position, parent);
+}
+
+internal sealed class ExpressionFieldNameSyntax : FieldNameSyntax
+{
+    private int? width;
+
+    public required Token OpenParenToken { get; init; }
+
+    public required ExpressionSyntax Expression { get; init; }
+
+    public required Token CloseParenToken { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParenToken;
+            yield return Expression;
+            yield return CloseParenToken;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + OpenParenToken.GetFullWidth() + Expression.GetFullWidth() + CloseParenToken.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.ExpressionFieldNameSyntax(this, position, parent);
+}
+
 internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     private int? width;
@@ -712,6 +855,35 @@ internal sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.BinaryExpressionSyntax(this, position, parent);
+}
+
+internal sealed class AccessExpressionSyntax : ExpressionSyntax
+{
+    private int? width;
+
+    public required ExpressionSyntax Target { get; init; }
+
+    public required Token DotToken { get; init; }
+
+    public required FieldNameSyntax Name { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return DotToken;
+            yield return Name;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + Target.GetFullWidth() + DotToken.GetFullWidth() + Name.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.AccessExpressionSyntax(this, position, parent);
 }
 
 internal sealed class IdentifierExpressionSyntax : ExpressionSyntax

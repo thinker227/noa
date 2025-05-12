@@ -572,6 +572,180 @@ public sealed class TupleExpressionSyntax : ExpressionSyntax
         green.GetHashCode();
 }
 
+public sealed class ObjectExpressionSyntax : ExpressionSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.ObjectExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public Token? DynToken => (Token?)green.DynToken?.ToRed(FullPosition, this);
+    
+    public Token OpenBraceToken => (Token)green.OpenBraceToken.ToRed(FullPosition + (green.DynToken?.GetFullWidth() ?? 0), this);
+    
+    public SeparatedSyntaxList<FieldSyntax> Fields => (SeparatedSyntaxList<FieldSyntax>)green.Fields.ToRed(FullPosition + (green.DynToken?.GetFullWidth() ?? 0) + green.OpenBraceToken.GetFullWidth(), this);
+    
+    public Token CloseBraceToken => (Token)green.CloseBraceToken.ToRed(FullPosition + (green.DynToken?.GetFullWidth() ?? 0) + green.OpenBraceToken.GetFullWidth() + green.Fields.GetFullWidth(), this);
+    
+    internal ObjectExpressionSyntax(Green.ObjectExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (DynToken is not null) yield return DynToken;
+            yield return OpenBraceToken;
+            if (Fields is not []) yield return Fields;
+            yield return CloseBraceToken;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is ObjectExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public sealed class FieldSyntax : SyntaxNode
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.FieldSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public Token? MutToken => (Token?)green.MutToken?.ToRed(FullPosition, this);
+    
+    public FieldNameSyntax? Name => (FieldNameSyntax?)green.Name?.ToRed(FullPosition + (green.MutToken?.GetFullWidth() ?? 0), this);
+    
+    public Token ColonToken => (Token)green.ColonToken.ToRed(FullPosition + (green.MutToken?.GetFullWidth() ?? 0) + (green.Name?.GetFullWidth() ?? 0), this);
+    
+    public ExpressionSyntax Value => (ExpressionSyntax)green.Value.ToRed(FullPosition + (green.MutToken?.GetFullWidth() ?? 0) + (green.Name?.GetFullWidth() ?? 0) + green.ColonToken.GetFullWidth(), this);
+    
+    internal FieldSyntax(Green.FieldSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            if (MutToken is not null) yield return MutToken;
+            if (Name is not null) yield return Name;
+            yield return ColonToken;
+            yield return Value;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is FieldSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public abstract class FieldNameSyntax : SyntaxNode
+{
+    internal FieldNameSyntax(int fullPosition, SyntaxNode parent) : base(fullPosition, parent) {}
+}
+
+public sealed class SimpleFieldNameSyntax : FieldNameSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.SimpleFieldNameSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public Token NameToken => (Token)green.NameToken.ToRed(FullPosition, this);
+    
+    internal SimpleFieldNameSyntax(Green.SimpleFieldNameSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return NameToken;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is SimpleFieldNameSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public sealed class StringFieldNameSyntax : FieldNameSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.StringFieldNameSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public StringExpressionSyntax String => (StringExpressionSyntax)green.String.ToRed(FullPosition, this);
+    
+    internal StringFieldNameSyntax(Green.StringFieldNameSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return String;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is StringFieldNameSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public sealed class ExpressionFieldNameSyntax : FieldNameSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.ExpressionFieldNameSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public Token OpenParenToken => (Token)green.OpenParenToken.ToRed(FullPosition, this);
+    
+    public ExpressionSyntax Expression => (ExpressionSyntax)green.Expression.ToRed(FullPosition + green.OpenParenToken.GetFullWidth(), this);
+    
+    public Token CloseParenToken => (Token)green.CloseParenToken.ToRed(FullPosition + green.OpenParenToken.GetFullWidth() + green.Expression.GetFullWidth(), this);
+    
+    internal ExpressionFieldNameSyntax(Green.ExpressionFieldNameSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenParenToken;
+            yield return Expression;
+            yield return CloseParenToken;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is ExpressionFieldNameSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
 public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -863,6 +1037,41 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     public override bool Equals(object? obj) =>
         obj is BinaryExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public sealed class AccessExpressionSyntax : ExpressionSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.AccessExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(FullPosition, this);
+    
+    public Token DotToken => (Token)green.DotToken.ToRed(FullPosition + green.Target.GetFullWidth(), this);
+    
+    public FieldNameSyntax Name => (FieldNameSyntax)green.Name.ToRed(FullPosition + green.Target.GetFullWidth() + green.DotToken.GetFullWidth(), this);
+    
+    internal AccessExpressionSyntax(Green.AccessExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return DotToken;
+            yield return Name;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is AccessExpressionSyntax other &&
         other.green.Equals(green);
     
     public override int GetHashCode() =>

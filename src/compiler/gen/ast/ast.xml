@@ -69,6 +69,30 @@
     <List Name="Expressions" Type="Expression"/>
   </Node>
 
+  <Node Name="ObjectExpression" Parent="Expression">
+    <Value Name="IsDynamic" Type="bool" Primitive="true"/>
+    <List Name="Fields" Type="Field"/>
+  </Node>
+
+  <Node Name="Field">
+    <Value Name="IsMutable" Type="bool" Primitive="true"/>
+    <Value Name="Name" Type="FieldName" Optional="true"/>
+  </Node>
+
+  <Variant Name="FieldName"/>
+
+  <Node Name="SimpleFieldName" Parent="FieldName">
+    <Value Name="Name" Type="string" Primitive="true"/>
+  </Node>
+
+  <Node Name="StringFieldName" Parent="FieldName">
+    <Value Name="String" Type="StringExpression"/>
+  </Node>
+
+  <Node Name="ExpressionFieldName" Parent="FieldName">
+    <Value Name="Expression" Type="Expression"/>
+  </Node>
+
   <Node Name="IfExpression" Parent="Expression">
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>
@@ -102,6 +126,11 @@
     <Value Name="Left" Type="Expression"/>
     <Value Name="Kind" Type="BinaryKind" Primitive="true"/>
     <Value Name="Right" Type="Expression"/>
+  </Node>
+
+  <Node Name="AccessExpression" Parent="Expression">
+    <Value Name="Target" Type="Expression"/>
+    <Value Name="Name" Type="FieldName"/>
   </Node>
 
   <Node Name="IdentifierExpression" Parent="Expression">

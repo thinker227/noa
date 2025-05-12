@@ -127,6 +127,49 @@ public sealed partial class TupleExpression(Ast ast, Syntax.SyntaxNode syntax) :
     public override IEnumerable<Node> Children => [..Expressions];
 }
 
+public sealed partial class ObjectExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
+{
+    public required bool IsDynamic { get; init; }
+
+    public required ImmutableArray<Field> Fields { get; init; }
+
+    public override IEnumerable<Node> Children => [..Fields];
+}
+
+public sealed partial class Field(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
+{
+    public required bool IsMutable { get; init; }
+
+    public required FieldName? Name { get; init; }
+
+    public override IEnumerable<Node> Children => [..EmptyIfNull(Name)];
+}
+
+public abstract partial class FieldName(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
+{
+}
+
+public sealed partial class SimpleFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
+{
+    public required string Name { get; init; }
+
+    public override IEnumerable<Node> Children => [];
+}
+
+public sealed partial class StringFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
+{
+    public required StringExpression String { get; init; }
+
+    public override IEnumerable<Node> Children => [String];
+}
+
+public sealed partial class ExpressionFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
+{
+    public required Expression Expression { get; init; }
+
+    public override IEnumerable<Node> Children => [Expression];
+}
+
 public sealed partial class IfExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Expression Condition { get; init; }
@@ -189,6 +232,15 @@ public sealed partial class BinaryExpression(Ast ast, Syntax.SyntaxNode syntax) 
     public required Expression Right { get; init; }
 
     public override IEnumerable<Node> Children => [Left, Right];
+}
+
+public sealed partial class AccessExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
+{
+    public required Expression Target { get; init; }
+
+    public required FieldName Name { get; init; }
+
+    public override IEnumerable<Node> Children => [Target, Name];
 }
 
 public sealed partial class IdentifierExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
