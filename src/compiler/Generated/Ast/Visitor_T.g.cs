@@ -170,6 +170,7 @@ public abstract partial class Visitor<T>
         SimpleFieldName x => VisitSimpleFieldName(x),
         StringFieldName x => VisitStringFieldName(x),
         ExpressionFieldName x => VisitExpressionFieldName(x),
+        ErrorFieldName x => VisitErrorFieldName(x),
         _ => throw new UnreachableException()
     };
 
@@ -188,6 +189,8 @@ public abstract partial class Visitor<T>
 
         return GetDefault(node);
     }
+
+    protected virtual T VisitErrorFieldName(ErrorFieldName node) => GetDefault(node);
 
     protected virtual T VisitIfExpression(IfExpression node)
     {

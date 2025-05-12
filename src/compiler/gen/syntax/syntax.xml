@@ -124,6 +124,8 @@
     <Value Name="String" Type="StringExpressionSyntax"/>
   </Node>
 
+  <Node Name="ErrorFieldNameSyntax" Parent="FieldNameSyntax"/>
+
   <Node Name="ExpressionFieldNameSyntax" Parent="FieldNameSyntax">
     <Token Name="OpenParenToken"/>
     <Value Name="Expression" Type="ExpressionSyntax"/>

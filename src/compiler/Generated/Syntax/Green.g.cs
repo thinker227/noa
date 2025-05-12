@@ -585,6 +585,27 @@ internal sealed class StringFieldNameSyntax : FieldNameSyntax
         new Syntax.StringFieldNameSyntax(this, position, parent);
 }
 
+internal sealed class ErrorFieldNameSyntax : FieldNameSyntax
+{
+    private int? width;
+
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0;
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.ErrorFieldNameSyntax(this, position, parent);
+}
+
 internal sealed class ExpressionFieldNameSyntax : FieldNameSyntax
 {
     private int? width;

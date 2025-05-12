@@ -234,6 +234,9 @@ public abstract partial class Visitor
         case ExpressionFieldName x:
             VisitExpressionFieldName(x);
             break;
+        case ErrorFieldName x:
+            VisitErrorFieldName(x);
+            break;
         default:
             throw new UnreachableException();
         }
@@ -250,6 +253,8 @@ public abstract partial class Visitor
     {
         Visit(node.Expression);
     }
+
+    protected virtual void VisitErrorFieldName(ErrorFieldName node) {}
 
     protected virtual void VisitIfExpression(IfExpression node)
     {

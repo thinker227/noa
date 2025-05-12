@@ -170,6 +170,11 @@ public sealed partial class ExpressionFieldName(Ast ast, Syntax.SyntaxNode synta
     public override IEnumerable<Node> Children => [Expression];
 }
 
+public sealed partial class ErrorFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
+{
+    public override IEnumerable<Node> Children => [];
+}
+
 public sealed partial class IfExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Expression Condition { get; init; }

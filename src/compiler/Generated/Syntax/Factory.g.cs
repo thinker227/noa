@@ -239,6 +239,15 @@ public static partial class SyntaxFactory
         return (StringFieldNameSyntax)green.ToRed(0, null!);
     }
 
+    public static ErrorFieldNameSyntax ErrorFieldName()
+    {
+        var green = new Green.ErrorFieldNameSyntax()
+        {
+        };
+
+        return (ErrorFieldNameSyntax)green.ToRed(0, null!);
+    }
+
     public static ExpressionFieldNameSyntax ExpressionFieldName(Token @openParenToken, ExpressionSyntax @expression, Token @closeParenToken)
     {
         var green = new Green.ExpressionFieldNameSyntax()

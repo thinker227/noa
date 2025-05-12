@@ -93,6 +93,8 @@
     <Value Name="Expression" Type="Expression"/>
   </Node>
 
+  <Node Name="ErrorFieldName" Parent="FieldName"/>
+
   <Node Name="IfExpression" Parent="Expression">
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>

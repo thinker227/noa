@@ -711,6 +711,32 @@ public sealed class StringFieldNameSyntax : FieldNameSyntax
         green.GetHashCode();
 }
 
+public sealed class ErrorFieldNameSyntax : FieldNameSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.ErrorFieldNameSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    internal ErrorFieldNameSyntax(Green.ErrorFieldNameSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is ErrorFieldNameSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
 public sealed class ExpressionFieldNameSyntax : FieldNameSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
