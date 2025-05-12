@@ -161,6 +161,7 @@ public abstract partial class Visitor<T>
     protected virtual T VisitField(Field node)
     {
         if (node.Name is not null) Visit(node.Name);
+        Visit(node.Value);
 
         return GetDefault(node);
     }

@@ -219,6 +219,7 @@ public abstract partial class Visitor
     protected virtual void VisitField(Field node)
     {
         if (node.Name is not null) Visit(node.Name);
+        Visit(node.Value);
     }
 
     protected virtual void VisitFieldName(FieldName node)

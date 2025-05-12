@@ -178,7 +178,8 @@ internal sealed class IntoAst(Ast ast)
         IsMutable = syntax.MutToken is not null,
         Name = syntax.Name is not null
             ? FromFieldName(syntax.Name)
-            : null
+            : null,
+        Value = FromExpression(syntax.Value)
     };
 
     public FieldName FromFieldName(FieldNameSyntax syntax) => syntax switch

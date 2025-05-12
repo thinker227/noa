@@ -142,7 +142,9 @@ public sealed partial class Field(Ast ast, Syntax.SyntaxNode syntax) : Node(ast,
 
     public required FieldName? Name { get; init; }
 
-    public override IEnumerable<Node> Children => [..EmptyIfNull(Name)];
+    public required Expression Value { get; init; }
+
+    public override IEnumerable<Node> Children => [..EmptyIfNull(Name), Value];
 }
 
 public abstract partial class FieldName(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
