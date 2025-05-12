@@ -6,6 +6,7 @@ use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
+use crate::value::Value;
 
 pub mod frame;
 pub mod stack;
@@ -106,6 +107,12 @@ impl Vm {
     pub fn alloc_heap_value(&mut self, value: HeapValue) -> Result<HeapAddress> {
         self.heap.alloc(value)
             .map_err(|_| self.exception(Exception::OutOfMemory))
+    }
+
+    /// Allocates a string on the heap and returns a [Value::Object] containing the address to the string.
+    pub fn alloc_string(&mut self, str: String) -> Result<Value> {
+        let address = self.alloc_heap_value(HeapValue::String(str))?;
+        Ok(Value::Object(address))
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].
