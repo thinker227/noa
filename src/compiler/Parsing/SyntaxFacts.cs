@@ -214,6 +214,8 @@ internal static class SyntaxFacts
         IdentifierExpressionSyntax => true,
         AccessExpressionSyntax { Name: SimpleFieldNameSyntax or ErrorFieldNameSyntax } => true,
         AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.CanInferFieldNameFrom(),
+        ParenthesizedExpressionSyntax parenthesized => parenthesized.Expression.CanInferFieldNameFrom(),
+        BlockExpressionSyntax block => block.Block.TrailingExpression?.CanInferFieldNameFrom() ?? false,
         ErrorExpressionSyntax => true,
         _ => false
     };
