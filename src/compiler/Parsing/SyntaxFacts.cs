@@ -214,6 +214,7 @@ internal static class SyntaxFacts
         IdentifierExpressionSyntax => true,
         AccessExpressionSyntax { Name: SimpleFieldNameSyntax or ErrorFieldNameSyntax } => true,
         AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.CanInferFieldNameFrom(),
+        ErrorExpressionSyntax => true,
         _ => false
     };
 
@@ -222,5 +223,6 @@ internal static class SyntaxFacts
     /// </summary>
     /// <param name="expression">The expression to check.</param>
     public static bool IsValidLValue(this ExpressionSyntax expression) => expression
-        is IdentifierExpressionSyntax;
+        is IdentifierExpressionSyntax
+        or AccessExpressionSyntax;
 }
