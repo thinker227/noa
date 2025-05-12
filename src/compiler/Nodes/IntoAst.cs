@@ -94,6 +94,11 @@ internal sealed class IntoAst(Ast ast)
         {
             Expressions = tuple.Expressions.Nodes().Select(FromExpression).ToImmutableArray()
         },
+        ObjectExpressionSyntax obj => new ObjectExpression(ast, syntax)
+        {
+            IsDynamic = obj.DynToken is not null,
+            Fields = obj.Fields.Nodes().Select(FromField).ToImmutableArray()
+        },
         ParenthesizedExpressionSyntax parens => FromExpression(parens.Expression),
         IfExpressionSyntax @if => new IfExpression(ast, syntax)
         {
@@ -136,14 +141,16 @@ internal sealed class IntoAst(Ast ast)
                 ?? throw new InvalidOperationException(),
             Right = FromExpression(binary.Right)
         },
+        AccessExpressionSyntax access => new AccessExpression(ast, syntax)
+        {
+            Target = FromExpression(access.Target),
+            Name = FromFieldName(access.Name)
+        },
         IdentifierExpressionSyntax identifier => new IdentifierExpression(ast, syntax)
         {
             Identifier = identifier.Identifier.Text
         },
-        StringExpressionSyntax @string => new StringExpression(ast, syntax)
-        {
-            Parts = @string.Parts.Select(FromStringPart).ToImmutableArray()
-        },
+        StringExpressionSyntax @string => FromString(@string),
         BoolExpressionSyntax @bool => new BoolExpression(ast, syntax)
         {
             Value = @bool.Value.Kind switch
@@ -164,6 +171,37 @@ internal sealed class IntoAst(Ast ast)
     public BlockExpression FromBlockExpression(BlockExpressionSyntax syntax) => new BlockExpression(ast, syntax)
     {
         Block = FromBlock(syntax.Block)
+    };
+
+    public Field FromField(FieldSyntax syntax) => new(ast, syntax)
+    {
+        IsMutable = syntax.MutToken is not null,
+        Name = syntax.Name is not null
+            ? FromFieldName(syntax.Name)
+            : null
+    };
+
+    public FieldName FromFieldName(FieldNameSyntax syntax) => syntax switch
+    {
+        SimpleFieldNameSyntax simple => new SimpleFieldName(ast, syntax)
+        {
+            Name = simple.NameToken.Text
+        },
+        StringFieldNameSyntax @string => new StringFieldName(ast, syntax)
+        {
+            String = FromString(@string.String)
+        },
+        ExpressionFieldNameSyntax expression => new ExpressionFieldName(ast, syntax)
+        {
+            Expression = FromExpression(expression.Expression)
+        },
+        ErrorFieldNameSyntax => new ErrorFieldName(ast, syntax),
+        _ => throw new UnreachableException()
+    };
+
+    public StringExpression FromString(StringExpressionSyntax syntax) => new(ast, syntax)
+    {
+        Parts = syntax.Parts.Select(FromStringPart).ToImmutableArray()
     };
     
     public StringPart FromStringPart(StringPartSyntax syntax) => syntax switch
