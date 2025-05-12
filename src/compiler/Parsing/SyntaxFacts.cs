@@ -91,6 +91,24 @@ internal static class SyntaxFacts
     }.ToFrozenSet();
 
     /// <summary>
+    /// The set of tokens which can begin a field name.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanBeginFieldName { get; } = new[]
+    {
+        TokenKind.Name,
+        TokenKind.OpenParen,
+        TokenKind.BeginString
+    }.ToFrozenSet();
+
+    /// <summary>
+    /// The set of tokens which can begin a field.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanBeginField { get; } =
+        CanBeginFieldName
+            .Append(TokenKind.Colon)
+            .ToFrozenSet();
+
+    /// <summary>
     /// The set of tokens which are binary expression operators.
     /// </summary>
     public static FrozenSet<TokenKind> BinaryExpressionOperator { get; } = new[]
@@ -186,6 +204,18 @@ internal static class SyntaxFacts
     /// <param name="expression">The expression to check.</param>
     public static bool IsAllowedAsTrailingExpression(this ExpressionSyntax expression) => expression
         is not IfExpressionSyntax { Else: null };
+    
+    /// <summary>
+    /// Returns whether the name of a field can be inferred from an expression.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool CanInferFieldNameFrom(this ExpressionSyntax expression) => expression switch
+    {
+        IdentifierExpressionSyntax => true,
+        AccessExpressionSyntax { Name: SimpleFieldNameSyntax or ErrorFieldNameSyntax } => true,
+        AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.CanInferFieldNameFrom(),
+        _ => false
+    };
 
     /// <summary>
     /// Returns whether an expression is a valid l-value.

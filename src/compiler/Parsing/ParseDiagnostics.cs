@@ -113,4 +113,14 @@ internal static class ParseDiagnostics
                 .Source(seq)
                 .Raw("."),
             Severity.Error);
+    
+    public static DiagnosticTemplate<Unit> CannotInferFieldName { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-010",
+            page => page
+                .Keyword("Field")
+                .Raw(" has to ")
+                .Emphasized("specify a name")
+                .Raw(" because the name cannot be inferred."),
+            Severity.Error);
 }

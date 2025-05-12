@@ -119,6 +119,26 @@ internal sealed partial class Parser
     private readonly ExpressionParser unaryExpressionParser = PrefixUnaryParser(
         TokenKind.Plus,
         TokenKind.Dash);
+    
+    internal ExpressionSyntax ParseAccessExpression(int precedence)
+    {
+        var expression = ParseExpressionOrError(precedence + 1);
+
+        if (Current.Kind is not TokenKind.Dot) return expression;
+
+        var dotToken = Advance();
+
+        var name = ParseFieldNameOrError();
+
+        return new AccessExpressionSyntax()
+        {
+            Target = expression,
+            DotToken = dotToken,
+            Name = name
+        };
+
+        throw new NotImplementedException();
+    }
 
     internal ExpressionSyntax ParseCallExpression(int precedence)
     {
@@ -150,6 +170,9 @@ internal sealed partial class Parser
 
     internal ExpressionSyntax ParsePrimaryExpression()
     {
+        if (ParseObjectExpressionOrNull() is { } objectExpression)
+            return objectExpression;
+
         if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Expression) is { } flowControlExpression)
             return flowControlExpression;
         
@@ -255,6 +278,94 @@ internal sealed partial class Parser
         };
     }
 
+    internal ObjectExpressionSyntax? ParseObjectExpressionOrNull()
+    {
+        var backtrackState = state.Branch();
+
+        var dynToken = Current.Kind is TokenKind.Dyn
+            ? Advance()
+            : null;
+        
+        var lockedIn = dynToken is not null;
+
+        Token openBraceToken;
+        if (lockedIn) openBraceToken = Expect(TokenKind.OpenBrace);
+        else
+        {
+            if (Current.Kind is TokenKind.OpenBrace) openBraceToken = Advance();
+            else return null;
+        }
+
+        var fields = ImmutableArray.CreateBuilder<FieldSyntax>();
+        var separators = ImmutableArray.CreateBuilder<Token>();
+
+        while (!AtEnd && Current.Kind is not (TokenKind.CloseBrace or TokenKind.Semicolon))
+        {
+            var mutToken = null as Token;
+            if (Current.Kind is TokenKind.Mut)
+            {
+                mutToken = Advance();
+                lockedIn = true;
+            }
+
+            var name = ParseFieldNameOrNull();
+
+            Token colonToken;
+            if (lockedIn) colonToken = Expect(TokenKind.Colon);
+            else
+            {
+                if (Current.Kind is TokenKind.Colon) colonToken = Advance();
+                else
+                {
+                    state = backtrackState;
+                    return null;
+                }
+            }
+            lockedIn = true;
+
+            var value = ParseExpressionOrError();
+
+            if (name is null && !value.CanInferFieldNameFrom())
+            {
+                ReportDiagnostic(ParseDiagnostics.CannotInferFieldName, colonToken);
+            }
+
+            fields.Add(new FieldSyntax()
+            {
+                MutToken = mutToken,
+                Name = name,
+                ColonToken = colonToken,
+                Value = value
+            });
+
+            Token comma;
+            
+            if (Current.Kind is TokenKind.CloseBrace or TokenKind.Semicolon)
+            {
+                if (Current.Kind is TokenKind.Comma)
+                {
+                    comma = Advance();
+                    separators.Add(comma);
+                }
+
+                break;
+            }
+
+            comma = Expect(TokenKind.Comma);
+            separators.Add(comma);
+        }
+
+        var closeBraceToken = Expect(TokenKind.CloseBrace);
+
+        return new()
+        {
+            DynToken = dynToken,
+            OpenBraceToken = openBraceToken,
+            Fields = SeparatedSyntaxList<FieldSyntax>.Create(fields, separators),
+            CloseBraceToken = closeBraceToken
+        };
+    }
+
     internal ExpressionSyntax? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
     {
         switch (Current.Kind)
@@ -335,8 +446,9 @@ internal sealed partial class Parser
         5 => termExpressionParser(this, precedence),
         6 => factorExpressionParser(this, precedence),
         7 => unaryExpressionParser(this, precedence),
-        8 => ParseCallExpression(precedence),
-        9 => ParsePrimaryExpression(),
+        8 => ParseAccessExpression(precedence),
+        9 => ParseCallExpression(precedence),
+        10 => ParsePrimaryExpression(),
         _ => throw new UnreachableException()
     };
 
