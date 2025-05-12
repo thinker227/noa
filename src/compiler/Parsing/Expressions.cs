@@ -124,20 +124,21 @@ internal sealed partial class Parser
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
-        if (Current.Kind is not TokenKind.Dot) return expression;
-
-        var dotToken = Advance();
-
-        var name = ParseFieldNameOrError();
-
-        return new AccessExpressionSyntax()
+        while (!AtEnd && Current.Kind is TokenKind.Dot)
         {
-            Target = expression,
-            DotToken = dotToken,
-            Name = name
-        };
+            var dotToken = Advance();
 
-        throw new NotImplementedException();
+            var name = ParseFieldNameOrError();
+
+            expression = new AccessExpressionSyntax()
+            {
+                Target = expression,
+                DotToken = dotToken,
+                Name = name
+            };
+        }
+
+        return expression;
     }
 
     internal ExpressionSyntax ParseCallExpression(int precedence)
