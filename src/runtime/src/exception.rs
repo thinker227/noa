@@ -45,6 +45,21 @@ pub enum Exception {
     #[error("out of memory")]
     OutOfMemory,
 
+    #[error("expected {}{} arguments but got {}", expected, if *or_more { " or more" } else { "" }, actual)]
+    BadArity {
+        expected: u32,
+        or_more: bool,
+        actual: u32,
+    },
+
+    #[error("expected parameter {param} to function {function} to be of type {expected} but was {actual}")]
+    BadArgumentType {
+        param: String,
+        function: String,
+        expected: String,
+        actual: String,
+    },
+
     #[error("{0}")]
     Custom(String),
 }
