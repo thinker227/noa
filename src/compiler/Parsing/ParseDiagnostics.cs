@@ -80,6 +80,8 @@ internal static class ParseDiagnostics
             page => page
                 .Raw("Only ")
                 .Keyword("identifier expressions")
+                .Raw(" and ")
+                .Keyword("object access expressions")
                 .Raw(" can be used on the ")
                 .Emphasized("left-hand side of an assignment statement")
                 .Raw("."),
