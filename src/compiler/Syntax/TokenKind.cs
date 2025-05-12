@@ -16,6 +16,7 @@ public enum TokenKind
     CloseBrace,
     Semicolon,
     Comma,
+    Dot,
     Equals,
     Bang,
     Plus,

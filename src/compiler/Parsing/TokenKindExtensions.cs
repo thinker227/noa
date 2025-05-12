@@ -19,6 +19,7 @@ internal static class TokenKindExtensions
         TokenKind.OpenBrace => "{",
         TokenKind.CloseBrace => "}",
         TokenKind.Comma => ",",
+        TokenKind.Dot => ".",
         TokenKind.Semicolon => ";",
         TokenKind.Equals => "=",
         TokenKind.Bang => "!",
