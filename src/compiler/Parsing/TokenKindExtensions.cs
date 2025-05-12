@@ -41,6 +41,7 @@ internal static class TokenKindExtensions
         TokenKind.Func => "func",
         TokenKind.Let => "let",
         TokenKind.Mut => "mut",
+        TokenKind.Dyn => "dyn",
         TokenKind.If => "if",
         TokenKind.Else => "else",
         TokenKind.Loop => "loop",

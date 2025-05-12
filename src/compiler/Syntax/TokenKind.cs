@@ -38,6 +38,7 @@ public enum TokenKind
     Func,
     Let,
     Mut,
+    Dyn,
     If,
     Else,
     Loop,

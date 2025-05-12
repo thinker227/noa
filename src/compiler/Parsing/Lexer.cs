@@ -175,6 +175,7 @@ internal sealed partial class Lexer
         "func" => TokenKind.Func,
         "let" => TokenKind.Let,
         "mut" => TokenKind.Mut,
+        "dyn" => TokenKind.Dyn,
         "if" => TokenKind.If,
         "else" => TokenKind.Else,
         "loop" => TokenKind.Loop,
