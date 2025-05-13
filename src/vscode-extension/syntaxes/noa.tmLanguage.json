@@ -19,13 +19,16 @@
                     "include": "#strings"
                 },
                 {
+                    "include": "#keywords"
+                },
+                {
                     "include": "#fieldNames"
                 },
                 {
                     "include": "#access"
                 },
                 {
-                    "include": "#keywords"
+                    "include": "#symbols"
                 },
                 {
                     "include": "#calls"
@@ -53,10 +56,6 @@
                     "match": "\\b(mut|dyn)\\b"
                 },
                 {
-                    "name": "keyword.other.noa",
-                    "match": "=>"
-                },
-                {
                     "name": "keyword.control.noa",
                     "match": "\\b(if|else|loop|return|break|continue)\\b"
                 },
@@ -67,6 +66,14 @@
                 {
                     "name": "constant.language.boolean.noa",
                     "match": "\\b(true|false)\\b"
+                }
+            ]
+        },
+        "symbols": {
+            "patterns": [
+                {
+                    "name": "keyword.other.noa",
+                    "match": "=>"
                 },
                 {
                     "name": "meta.punctuation.noa",
