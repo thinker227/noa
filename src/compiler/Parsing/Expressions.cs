@@ -302,6 +302,13 @@ internal sealed partial class Parser
 
         while (!AtEnd && Current.Kind is not (TokenKind.CloseBrace or TokenKind.Semicolon))
         {
+            if (Current.Kind is TokenKind.Comma)
+            {
+                // A comma here is invalid, but since a comma isn't valid as a statement
+                // we assume the user is gonna write an object expression.
+                lockedIn = true;
+            }
+
             var mutToken = null as Token;
             if (Current.Kind is TokenKind.Mut)
             {
