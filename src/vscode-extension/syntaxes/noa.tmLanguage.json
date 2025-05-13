@@ -112,7 +112,7 @@
                     "name": "meta.punctuation.noa"
                 },
                 "2": {
-                    "name": "string.other.noa"
+                    "name": "string.member.noa"
                 }
             }
         },
@@ -120,7 +120,7 @@
             "match": "\\b(\\p{L}(?:\\p{L}|\\p{N})*)(:)",
             "captures": {
                 "1": {
-                    "name": "string.other.noa"
+                    "name": "string.member.noa"
                 },
                 "2": {
                     "name": "meta.punctuation.noa"
