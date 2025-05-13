@@ -19,6 +19,12 @@
                     "include": "#strings"
                 },
                 {
+                    "include": "#fieldNames"
+                },
+                {
+                    "include": "#access"
+                },
+                {
                     "include": "#keywords"
                 },
                 {
@@ -35,12 +41,16 @@
         "keywords": {
             "patterns": [
                 {
-                    "name": "keyword.other.noa",
-                    "match": "\\b(func|let)\\b"
+                    "name": "storage.type.function.noa",
+                    "match": "\\b(func)\\b"
+                },
+                {
+                    "name": "storage.type.variable.noa",
+                    "match": "\\b(let)\\b"
                 },
                 {
                     "name": "storage.modifier.noa",
-                    "match": "\\bmut\\b"
+                    "match": "\\b(mut|dyn)\\b"
                 },
                 {
                     "name": "keyword.other.noa",
@@ -64,19 +74,22 @@
                 },
                 {
                     "name": "keyword.operator.noa",
-                    "match": "\\+|-|\\*|\\/|!|<|>|<=|>=|==|!="
+                    "match": "\\+|-|\\*|\\/|<|>|<=|>=|==|!="
                 },
                 {
                     "name": "meta.punctuation.noa",
-                    "match": ";|,|=|\\(|\\)|{|}"
+                    "match": ",|\\.|:|;|=|\\(|\\)|{|}"
                 }
             ]
         },
         "calls": {
-            "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*\\(",
+            "match": "(\\p{L}(?:\\p{L}|\\p{N})*)\\s*(\\()",
             "captures": {
                 "1": {
                     "name": "entity.name.function.noa"
+                },
+                "2": {
+                    "name": "meta.punctuation.noa"
                 }
             }
         },
@@ -91,6 +104,28 @@
         "comments": {
             "name": "comment.line.double-slash.noa",
             "match": "\\/\\/.*"
+        },
+        "access": {
+            "match": "(\\.)(\\p{L}(?:\\p{L}|\\p{N})*)",
+            "captures": {
+                "1": {
+                    "name": "meta.punctuation.noa"
+                },
+                "2": {
+                    "name": "string.other.noa"
+                }
+            }
+        },
+        "fieldNames": {
+            "match": "\\b(\\p{L}(?:\\p{L}|\\p{N})*)(:)",
+            "captures": {
+                "1": {
+                    "name": "string.other.noa"
+                },
+                "2": {
+                    "name": "meta.punctuation.noa"
+                }
+            }
         },
         "strings": {
             "name": "string.quoted.double.noa",
