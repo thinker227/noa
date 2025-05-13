@@ -113,7 +113,7 @@
             "match": "\\/\\/.*"
         },
         "access": {
-            "match": "(\\.)(\\p{L}(?:\\p{L}|\\p{N})*)",
+            "match": "(\\.)\\s*(\\p{L}(?:\\p{L}|\\p{N})*)",
             "captures": {
                 "1": {
                     "name": "meta.punctuation.noa"
@@ -124,7 +124,7 @@
             }
         },
         "fieldNames": {
-            "match": "\\b(\\p{L}(?:\\p{L}|\\p{N})*)(:)",
+            "match": "\\b(\\p{L}(?:\\p{L}|\\p{N})*)\\s*(:)",
             "captures": {
                 "1": {
                     "name": "string.member.noa"
