@@ -88,7 +88,7 @@ public static class ContextService
             };
 
         // Expressions
-        var isExpresssion = isAfterPotentialFlowControlStatement || leftToken
+        var isExpression = isAfterPotentialFlowControlStatement || leftToken
             // {|}
             is {
                 Kind: TokenKind.OpenBrace,
@@ -179,7 +179,7 @@ public static class ContextService
             isTrailingExpression =
                 statementIndex == block.Statements.Count - 1 &&
                 block.TrailingExpression is null;
-            isExpresssion |= isTrailingExpression;
+            isExpression |= isTrailingExpression;
         }
 
         // After an expression
@@ -299,7 +299,7 @@ public static class ContextService
         var isInLoop = leftToken is not null && IsInLoop(ast, leftToken);
         
         var kind = SyntaxContextKind.None;        
-        if (isExpresssion) kind |= SyntaxContextKind.Expression;
+        if (isExpression) kind |= SyntaxContextKind.Expression;
         if (isPostExpression) kind |= SyntaxContextKind.PostExpression;
         if (isStatement) kind |= SyntaxContextKind.Statement;
         if (isParameterOrVariable) kind |= SyntaxContextKind.ParameterOrVariable;
