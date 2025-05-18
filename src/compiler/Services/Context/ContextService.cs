@@ -376,13 +376,27 @@ public static class ContextService
         {
             // { | a; }
             // { a; | b; }
-            var statement = ast.GetAstNode(rightToken!.ParentNode)
-                .AncestorsAndSelf()
-                .OfType<Statement>()
-                .FirstOrDefault()
+            var statement = GetClosestAncestorStatementLikeNode(ast.GetAstNode(rightToken!.ParentNode))
                 ?? throw new InvalidOperationException(
                     "Could not find a statement ancestor AST node.");
             return statement.Scope.Value.AccessibleAt(LookupLocation.AtNode(statement)).Memoize();
         }
+    }
+
+    /// <summary>
+    /// Fetches the closest ancestor node which is either the root node, a statement, or a trailing expressions.
+    /// </summary>
+    private static Node? GetClosestAncestorStatementLikeNode(Node child)
+    {
+        foreach (var node in child.AncestorsAndSelf())
+        {
+            if (node is
+                Root or
+                Statement or
+                Expression { Parent.Value: LambdaExpression or FunctionDeclaration or Block })
+                return node;
+        }
+
+        return null;
     }
 }
