@@ -56,9 +56,34 @@ public class ContextServiceTests
     }
 
     [Fact]
+    public void EndOfFilePostExpression() => Test(
+        "{let x = 0; x |}",
+        SyntaxContextKind.PostExpression,
+        [
+            s => s is VariableSymbol { Name: "x" }
+        ]);
+
+    [Fact]
     public void StatementOrExpressionAfterOpenBrace() => Test(
         "{|}",
         SyntaxContextKind.Statement | SyntaxContextKind.Expression);
+
+    [Fact]
+    public void StatementOrPostExpressionAfterCloseBraceBeforeStatement() => Test(
+        "{} | let x = 0;",
+        SyntaxContextKind.Statement | SyntaxContextKind.PostExpression);
+
+    [Fact]
+    public void StatementOrExpressionOrPostExpressionAfterCloseBrace() => Test(
+        "{} |",
+        SyntaxContextKind.Statement | SyntaxContextKind.Expression | SyntaxContextKind.PostExpression);
+
+    [Fact]
+    public void VariableAvailableAfterCloseBrace() => Test(
+        "let x = 0; {} | 0",
+        [
+            s => s is VariableSymbol { Name: "x" }
+        ]);
 
     [Fact]
     public void StatementAfterOpenBraceBeforeStatement() => Test(
