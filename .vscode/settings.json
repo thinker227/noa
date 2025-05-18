@@ -1,7 +1,13 @@
 {
     "files.exclude": {
-        "src/**/bin": true,
-        "src/**/obj": true,
-        "src/**/target": true
+        "src/**/bin/": true,
+        "src/**/obj/": true,
+        "**/target/": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "package.json": "package-lock.json",
+        "Cargo.toml": "Cargo.lock",
+        "*.noa": "${capture}.ark"
     }
 }

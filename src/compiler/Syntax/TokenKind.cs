@@ -46,6 +46,9 @@ public enum TokenKind
     Continue,
     True,
     False,
+    Not,
+    Or,
+    And,
 
     // Strings
     BeginString,

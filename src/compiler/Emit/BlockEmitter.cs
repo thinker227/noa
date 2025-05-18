@@ -20,15 +20,12 @@ internal class BlockEmitter(
         Code.Pop();
     }
 
-    protected override void VisitBlockExpression(BlockExpression node)
+    protected override void VisitBlock(Block node)
     {
-        Visit(node.Block.Statements);
+        Visit(node.Statements);
 
-        if (node.Block.TrailingExpression is not null) Visit(node.Block.TrailingExpression);
-        else
-        {
-            Code.PushNil();
-        }
+        if (node.TrailingExpression is not null) Visit(node.TrailingExpression);
+        else Code.PushNil();
     }
 
     protected override void VisitAssignmentStatement(AssignmentStatement node)
@@ -97,6 +94,19 @@ internal class BlockEmitter(
 
     protected override void VisitBinaryExpression(BinaryExpression node)
     {
+        // Special short-circuiting operators
+        switch (node.Kind)
+        {
+        case BinaryKind.Or:
+            EmitBinaryOr(node);
+            return;
+        
+        case BinaryKind.And:
+            EmitBinaryAnd(node);
+            return;
+        }
+
+        // Normal operators
         Visit(node.Left);
         Visit(node.Right);
         
@@ -138,7 +148,6 @@ internal class BlockEmitter(
         case BinaryKind.LessThanOrEqual:
             Code.GreaterThan();
             Code.Not();
-            
             break;
         
         case BinaryKind.GreaterThanOrEqual:
@@ -150,6 +159,33 @@ internal class BlockEmitter(
         }
     }
 
+    private void EmitBinaryOr(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
+    }
+
+    private void EmitBinaryAnd(BinaryExpression node)
+    {
+        Visit(node.Left);
+        Code.Dup();
+        Code.Not();
+
+        var hole = Code.JumpIf();
+
+        Code.Pop();
+        Visit(node.Right);
+
+        hole.SetAddress(Code.AddressOffset);
+    }
+
     protected override void VisitNumberExpression(NumberExpression node) => Code.PushFloat(node.Value);
 
     protected override void VisitBoolExpression(BoolExpression node) => Code.PushBool(node.Value);
@@ -157,6 +193,14 @@ internal class BlockEmitter(
     protected override void VisitStringExpression(StringExpression node)
     {
         var first = true;
+
+        if (node.Parts is [])
+        {
+            var empty = strings.GetOrAdd("");
+            Code.PushString(empty);
+            
+            return;
+        }
 
         foreach (var part in node.Parts)
         {

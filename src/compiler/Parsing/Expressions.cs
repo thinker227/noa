@@ -89,6 +89,15 @@ internal sealed partial class Parser
         };
     }
 
+    private readonly ExpressionParser notExpressionParser = PrefixUnaryParser(
+        TokenKind.Not);
+
+    private readonly ExpressionParser orExpressionParser = LeftBinaryParser(
+        TokenKind.Or);
+
+    private readonly ExpressionParser andExpressionParser = LeftBinaryParser(
+        TokenKind.And);
+
     private readonly ExpressionParser equalityExpressionParser = LeftBinaryParser(
         TokenKind.EqualsEquals,
         TokenKind.BangEquals);
@@ -318,13 +327,16 @@ internal sealed partial class Parser
     
     internal ExpressionSyntax ParseExpressionOrError(int precedence) => precedence switch
     {
-        0 => equalityExpressionParser(this, precedence),
-        1 => relationalExpressionParser(this, precedence),
-        2 => termExpressionParser(this, precedence),
-        3 => factorExpressionParser(this, precedence),
-        4 => unaryExpressionParser(this, precedence),
-        5 => ParseCallExpression(precedence),
-        6 => ParsePrimaryExpression(),
+        0 => notExpressionParser(this, precedence),
+        1 => orExpressionParser(this, precedence),
+        2 => andExpressionParser(this, precedence),
+        3 => equalityExpressionParser(this, precedence),
+        4 => relationalExpressionParser(this, precedence),
+        5 => termExpressionParser(this, precedence),
+        6 => factorExpressionParser(this, precedence),
+        7 => unaryExpressionParser(this, precedence),
+        8 => ParseCallExpression(precedence),
+        9 => ParsePrimaryExpression(),
         _ => throw new UnreachableException()
     };
 

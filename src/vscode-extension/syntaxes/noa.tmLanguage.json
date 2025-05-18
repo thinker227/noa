@@ -51,6 +51,10 @@
                     "match": "\\b(if|else|loop|return|break|continue)\\b"
                 },
                 {
+                    "name": "keyword.operator.expression.noa",
+                    "match": "\\b(not|or|and)\\b"
+                },
+                {
                     "name": "constant.language.boolean.noa",
                     "match": "\\b(true|false)\\b"
                 },

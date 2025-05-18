@@ -7,7 +7,7 @@ Blank spaces indicate that the coercion is invalid.
 |          | Number                        | Bool       | Function   | String                                        |
 |----------|-------------------------------|------------|------------|-----------------------------------------------|
 | Number   | same value                    | `true`     |            | formatted using `.` for the decimal separator |
-| Bool     | `true` => `1`, `false` => `0` | same value |            | `true` => `"true"`, `false` => `"false"`       |
+| Bool     | `true` => `1`, `false` => `0` | same value |            | `true` => `"true"`, `false` => `"false"`      |
 | Function |                               | `true`     | same value | name of the function                          |
 | String   |                               | `true`     |            | same value                                    |
 | Nil      | `0`                           | `false`    |            | `"()"`                                        |

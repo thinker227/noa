@@ -183,6 +183,9 @@ internal sealed partial class Lexer
         "continue" => TokenKind.Continue,
         "true" => TokenKind.True,
         "false" => TokenKind.False,
+        "not" => TokenKind.Not,
+        "or" => TokenKind.Or,
+        "and" => TokenKind.And,
         _ => null
     };
 

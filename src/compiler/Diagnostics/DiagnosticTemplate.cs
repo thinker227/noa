@@ -17,35 +17,21 @@ public interface IDiagnosticTemplate
 }
 
 /// <summary>
-/// A simple template for a diagnostic.
+/// Provides static factory methods for creating diagnostic templates.
 /// </summary>
-/// <param name="WriteMessage">
-/// A function the diagnostic message onto an <see cref="IDiagnosticPage"/>.
-/// </param>
-/// <param name="Severity">The severity of the diagnostic.</param>
-public sealed record DiagnosticTemplate(
-    DiagnosticId Id,
-    Action<IDiagnosticPage> WriteMessage,
-    Severity Severity)
-    : IDiagnosticTemplate
+public static class DiagnosticTemplate
 {
-    /// <summary>
-    /// Formats the template into a diagnostic.
-    /// </summary>
-    /// <param name="location">The location of the diagnostic.</param>
-    public IDiagnostic Format(Location location) =>
-        Diagnostic.Create(this, location);
-
-    public override string ToString() => Id.ToString();
-    
     /// <summary>
     /// Creates a simple diagnostic template.
     /// </summary>
     /// <param name="id">The ID of the diagnostic.</param>
     /// <param name="message">The message of the diagnostic.</param>
     /// <param name="severity">The severity of the diagnostic.</param>
-    public static DiagnosticTemplate Create(DiagnosticId id, string message, Severity severity) =>
-        new(id, page => page.Raw(message), severity);
+    public static DiagnosticTemplate<Unit> Create(
+        DiagnosticId id,
+        string message,
+        Severity severity) =>
+        new(id, (_, page) => page.Raw(message), severity);
 
     /// <summary>
     /// Creates a simple diagnostic template.
@@ -55,11 +41,11 @@ public sealed record DiagnosticTemplate(
     /// A function the diagnostic message onto an <see cref="IDiagnosticPage"/>.
     /// </param>
     /// <param name="severity">The severity of the diagnostic.</param>
-    public static DiagnosticTemplate Create(
+    public static DiagnosticTemplate<Unit> Create(
         DiagnosticId id,
         Action<IDiagnosticPage> writeMessage,
         Severity severity) =>
-        new(id, writeMessage, severity);
+        new(id, (_, page) => writeMessage(page), severity);
 
     /// <summary>
     /// Creates a diagnostic template with an argument used to format its message.
@@ -74,6 +60,14 @@ public sealed record DiagnosticTemplate(
         Action<TArg, IDiagnosticPage> writeMessage,
         Severity severity) =>
         new(id, writeMessage, severity);
+    
+    /// <summary>
+    /// Formats the template into a diagnostic.
+    /// </summary>
+    /// <param name="template">The template to format.</param>
+    /// <param name="location">The location of the diagnostic.</param>
+    public static IDiagnostic Format(this DiagnosticTemplate<Unit> template, Location location) =>
+        template.Format(new Unit(), location);
 }
 
 /// <summary>

@@ -49,6 +49,9 @@ internal static class TokenKindExtensions
         TokenKind.Continue => "continue",
         TokenKind.True => "true",
         TokenKind.False => "false",
+        TokenKind.Not => "not",
+        TokenKind.Or => "or",
+        TokenKind.And => "and",
 
         TokenKind.BeginString => "\"",
         TokenKind.EndString => "\"",
@@ -94,7 +97,7 @@ internal static class TokenKindExtensions
     {
         TokenKind.Plus => UnaryKind.Identity,
         TokenKind.Dash => UnaryKind.Negate,
-        TokenKind.Bang => UnaryKind.Not,
+        TokenKind.Not => UnaryKind.Not,
         _ => null
     };
 
@@ -115,6 +118,8 @@ internal static class TokenKindExtensions
         TokenKind.GreaterThan => BinaryKind.GreaterThan,
         TokenKind.LessThanEquals => BinaryKind.LessThanOrEqual,
         TokenKind.GreaterThanEquals => BinaryKind.GreaterThanOrEqual,
+        TokenKind.Or => BinaryKind.Or,
+        TokenKind.And => BinaryKind.And,
         _ => null
     };
 

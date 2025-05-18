@@ -158,6 +158,7 @@ use crate::opcode;
 use crate::value::{Closure, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
+use super::debugger::DebugInspection;
 use super::{Vm, Result};
 
 enum InterpretControlFlow {
@@ -274,12 +275,12 @@ impl Vm {
             .ok_or_else(|| self.exception(Exception::StackUnderflow))?
             .to_vec();
 
-        let ret = self.get_return_address();
+        let ret_address = self.get_return_address();
 
         let frame = Frame {
             function: id,
             stack_start,
-            ret,
+            ret: ret_address,
             kind: FrameKind::NativeFunction,
         };
 
@@ -291,18 +292,15 @@ impl Vm {
             // Actually call the function.
             // The function might call `call_run` and enter recursion within the vm,
             // which is why we need an exclusive reference to the vm.
-            let ret = function(self, args)
-                .map_err(|e| self.exception(e))?;
+            let ret = function(self, args)?;
 
             self.call_stack.pop();
 
             ret
         };
 
-        // If nothing has gone wrong then this shouldn't even be needed
-        // since native functions shouldn't be able to push stuff onto the stack by themselves,
-        // but doing this just in case.
-        self.stack.shrink(stack_start);
+        let stack_backtrack_index = self.get_stack_backtrack_index(stack_start);
+        self.stack.shrink(stack_backtrack_index);
 
         // Finally, push the return value onto the stack.
         self.stack.push(ret)
@@ -342,25 +340,7 @@ impl Vm {
         );
 
         let stack_start = frame.stack_start;
-
-        // When calling a function from a user function, the stack will approximately look like this:
-        // 
-        // [ ..., closure, arg1, arg2, arg3, ... ]
-        //                   ^
-        //       this is the current frame's
-        //       (the one we just popped's)
-        //           stack start index
-        // 
-        // This way, if we shrink the stack back to the frame's stack start index - 1,
-        // we get rid of the closure since that has been "consumed" by calling the function.
-        // However, if the function was called from a native function or the execution root,
-        // there won't be a closure there, so we don't want to shrink by the additional index backwards.
-        
-        let stack_backtrack_index = match self.get_top_non_temp_frame() {
-            Some(Frame { kind: FrameKind::NativeFunction, .. }) | None => stack_start,
-            _ => stack_start - 1
-        };
-
+        let stack_backtrack_index = self.get_stack_backtrack_index(stack_start);
         self.stack.shrink(stack_backtrack_index);
 
         // If the frame has no assigned return address
@@ -375,6 +355,28 @@ impl Vm {
         }
 
         Ok(ret)
+    }
+
+    /// Gets the index on the stack to backtrack to when returning from a function.
+    fn get_stack_backtrack_index(&self, stack_start: usize) -> usize {
+
+        // When calling a function from a user function, the stack will approximately look like this:
+        // 
+        // [ ..., closure, arg1, arg2, arg3, ... ]
+        //                   ^
+        //       this is the current frame's
+        //       (the one we just popped's)
+        //           stack start index
+        // 
+        // This way, if we shrink the stack back to the frame's stack start index - 1,
+        // we get rid of the closure since that has been "consumed" by calling the function.
+        // However, if the function was called from a native function or the execution root,
+        // there won't be a closure there, so we don't want to shrink by the additional index backwards.
+        
+        match self.get_top_non_temp_frame() {
+            Some(Frame { kind: FrameKind::NativeFunction, .. }) | None => stack_start,
+            _ => stack_start - 1
+        }
     }
 
     /// Gets the top-most stack frame off of the call stack which is not a temporary frame.
@@ -467,6 +469,21 @@ impl Vm {
         while !self.call_stack.is_empty() {
             self.trace_ip = self.ip;
 
+            // Todo: only do this when a breakpoint is reached.
+            if let Some(debugger) = &mut self.debugger {
+                // Break for the debugger and allow it to inspect the VM's state.
+
+                let inspection = DebugInspection {
+                    consts: &self.consts,
+                    stack: &self.stack,
+                    heap: &self.heap,
+                    call_stack: &self.call_stack,
+                    ip: self.ip
+                };
+
+                debugger.debug_break(inspection);
+            }
+
             let ctrl_flw = self.interpret_instruction()?;
 
             match ctrl_flw {
@@ -481,10 +498,11 @@ impl Vm {
                     
                     if depth <= 0 {
                         return Ok(ret);
-                    } else {
-                        depth -= 1;
-                        self.push(ret)?;
                     }
+
+                    self.push(ret)?;
+                    
+                    depth -= 1;
                 },
             }
         }
@@ -746,7 +764,14 @@ impl Vm {
                 )?;
             },
 
-            opcode::EQUAL => todo!(),
+            opcode::EQUAL => {
+                let a = self.pop()?;
+                let b = self.pop()?;
+
+                let val = self.equal(a, b)?;
+
+                self.push(Value::Bool(val))?;
+            },
 
             opcode::LESS_THAN => {
                 self.binary_op(
