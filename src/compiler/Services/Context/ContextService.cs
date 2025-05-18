@@ -205,12 +205,14 @@ public static class ContextService
             // () |
             // (x) |
             // (a, b) |
+            // f() |
             or {
                 Kind: TokenKind.CloseParen,
                 ParentNode:
                     NilExpressionSyntax or
                     ParenthesizedExpressionSyntax or
-                    TupleExpressionSyntax
+                    TupleExpressionSyntax or
+                    CallExpressionSyntax
             }
             // let x = {} |
             // let x = if y {} else {} |
