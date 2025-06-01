@@ -23,7 +23,7 @@ public class ContextServiceTests
         if (position == -1)
             throw new InvalidOperationException($"Test source does not contain a position marker.");
 
-        var actualSource = $"{testSource[..position]}{testSource[(position + 1)..]}";
+        var actualSource = testSource[..position] + testSource[(position + 1)..];
         var ast = Ast.Create(new Source(actualSource, "test-source"));
 
         var ctx = ContextService.GetSyntaxContext(ast, position);
@@ -59,9 +59,7 @@ public class ContextServiceTests
     public void EndOfFilePostExpression() => Test(
         "{let x = 0; x |}",
         SyntaxContextKind.PostExpression,
-        [
-            s => s is VariableSymbol { Name: "x" }
-        ]);
+        [s => s is VariableSymbol { Name: "x" }]);
 
     [Fact]
     public void StatementOrExpressionAfterOpenBrace() => Test(
@@ -81,9 +79,7 @@ public class ContextServiceTests
     [Fact]
     public void VariableAvailableAfterCloseBrace() => Test(
         "let x = 0; {} | 0",
-        [
-            s => s is VariableSymbol { Name: "x" }
-        ]);
+        [s => s is VariableSymbol { Name: "x" }]);
 
     [Fact]
     public void StatementAfterOpenBraceBeforeStatement() => Test(
