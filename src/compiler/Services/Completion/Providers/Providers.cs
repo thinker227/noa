@@ -82,7 +82,7 @@ public sealed class LoopExpressionStatementKeywordProvider : BaseKeywordProvider
 {
     public override IEnumerable<TokenKind> Keywords => [
         TokenKind.Break,
-        TokenKind.Continue
+        TokenKind.Continue,
     ];
 
     public override bool IsApplicable(SyntaxContext ctx) =>
@@ -99,6 +99,7 @@ public sealed class ExpressionKeywordProvider : BaseKeywordProvider
     public override IEnumerable<TokenKind> Keywords => [
         TokenKind.True,
         TokenKind.False,
+        TokenKind.Dyn,
     ];
 
     public override bool IsApplicable(SyntaxContext ctx) =>
