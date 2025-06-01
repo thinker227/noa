@@ -30,7 +30,7 @@ public sealed class MutKeywordProvider : BaseKeywordProvider
     public override IEnumerable<TokenKind> Keywords => [TokenKind.Mut];
 
     public override bool IsApplicable(SyntaxContext ctx) =>
-        ctx.Kind.HasFlag(SyntaxContextKind.ParameterOrVariable);
+        ctx.Kind.HasFlag(SyntaxContextKind.ParameterOrVariableOrField);
 }
 
 /// <summary>
