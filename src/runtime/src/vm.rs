@@ -4,8 +4,9 @@ use stack::Stack;
 
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
-use crate::native::NativeFunction;
+use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
+use crate::value::Value;
 
 pub mod frame;
 pub mod stack;
@@ -66,7 +67,7 @@ impl Vm {
         Self {
             consts: VmConsts {
                 functions,
-                native_functions: vec![],
+                native_functions: functions::get_functions(),
                 strings,
                 code
             },
@@ -80,13 +81,18 @@ impl Vm {
         }
     }
 
+    /// Gets the heap.
+    pub fn heap(&mut self) -> &mut Heap {
+        &mut self.heap
+    }
+    
     /// Gets the debugger interface.
     pub fn debugger(&mut self) -> &mut Option<Box<dyn Debugger>> {
         &mut self.debugger
     }
 
     /// Gets a value at a specified address on the heap.
-    fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
+    pub fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
         self.heap.get(address)
             .map_err(|e| {
                 let ex = match e {
@@ -97,8 +103,20 @@ impl Vm {
             })
     }
 
+    /// Allocates a value on the heap.
+    pub fn alloc_heap_value(&mut self, value: HeapValue) -> Result<HeapAddress> {
+        self.heap.alloc(value)
+            .map_err(|_| self.exception(Exception::OutOfMemory))
+    }
+
+    /// Allocates a string on the heap and returns a [Value::Object] containing the address to the string.
+    pub fn alloc_string(&mut self, str: String) -> Result<Value> {
+        let address = self.alloc_heap_value(HeapValue::String(str))?;
+        Ok(Value::Object(address))
+    }
+
     /// Formats an [`Exception`] into a [`FormattedException`].
-    fn exception(&self, exception: Exception) -> FormattedException {
+    pub fn exception(&self, exception: Exception) -> FormattedException {
         let stack_trace = self.construct_stack_trace();
 
         FormattedException {

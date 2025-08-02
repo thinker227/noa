@@ -491,7 +491,11 @@ impl Vm {
                 InterpretControlFlow::Call { closure, arg_count } => {
                     self.call(closure, arg_count)?;
 
-                    depth += 1;
+                    // Only increase the depth if we're calling a user function.
+                    // Otherwise, the depth would end up increasing without ever decreasing from a return.
+                    if !closure.function.is_native() {
+                        depth += 1;
+                    }
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
@@ -500,9 +504,8 @@ impl Vm {
                         return Ok(ret);
                     }
 
-                    self.push(ret)?;
-                    
                     depth -= 1;
+                    self.push(ret)?;
                 },
             }
         }
