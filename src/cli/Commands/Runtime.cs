@@ -53,8 +53,13 @@ public sealed class Runtime(
             console: !silent ? console : null,
             runtimeOverride);
 
-        return runtime is not null
-            ? 0
-            : 1;
+        if (runtime is null) return 1;
+
+        if (!silent)
+        {
+            console.MarkupLine($"[green]Runtime located at [white]{runtime.FullName}[/].[/]");
+        }
+
+        return 0;
     }
 }
