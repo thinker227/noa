@@ -50,9 +50,7 @@ internal sealed partial class Parser
                 lockedIn = true;
             }
 
-            if (!lockedIn &&
-                Current.Kind is not TokenKind.Name &&
-                SyntaxFacts.CanBeginExpression.Contains(Current.Kind))
+            if (!lockedIn && !SyntaxFacts.CanBeginLambdaParameter.Contains(Current.Kind))
             {
                 // We found something which can begin an expression and is not a name.
                 // Return to switch to parsing a parenthesized expression.
