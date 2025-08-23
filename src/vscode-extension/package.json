@@ -89,6 +89,12 @@
                 "title": "Restart language server",
                 "command": "noa-lang.restartLangServer"
             }
+        ],
+        "jsonValidation": [
+            {
+                "fileMatch": ".noa/config.json",
+                "url": "./json/configSchema.json"
+            }
         ]
     },
     "scripts": {
