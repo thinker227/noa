@@ -33,6 +33,7 @@ To compile and install Noa from source, you need the [.NET 9 SDK and runtime](ht
 2. `cd` into the root of the project (the folder which contains this readme file).
 3. Run `./build.sh <dir>`, replacing `<dir>` with the path to the folder you want Noa to be installed to. This will compile the compiler and runtime put both executables into `<dir>` (along with some other artifacts).
 4. Optionally, run the command the build script prints out at the end if you want to set up your `$PATH` so that `noa` will be available from the command-line. You may have to restart your terminal afterwards for it to be available.
+5. Once finished, you can run `noa runtime` to check everything is set up properly.
 
 </details>
 
@@ -50,7 +51,18 @@ To compile and install the VSCode extension from source, you need [Node.js](http
 
 </details>
 
-## 
+## Configuration
+
+The Noa CLI accepts various configuration options. You can specify these by creating a `.noa` folder with a `config.json` inside it. When running a command like `noa build`, the CLI will look for a `.noa/config.json` file in the folder the command is ran in or any parent parent folders. If you wish to have a global configuration, you can put this in your home folder, for example.
+
+Here is an example configuration:
+
+```json
+{
+  // Set the CLI to use a custom runtime.
+  "runtimePath": "~/.noa/custom_runtime"
+}
+```
 
 ## Project status
 
