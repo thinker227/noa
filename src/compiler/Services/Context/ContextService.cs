@@ -120,7 +120,8 @@ public static class ContextService
                     ParenthesizedExpressionSyntax or
                     NilExpressionSyntax or
                     TupleExpressionSyntax or
-                    CallExpressionSyntax
+                    CallExpressionSyntax or
+                    ExpressionFieldNameSyntax
             }
             // (x) => |
             // func f() => |
@@ -132,6 +133,11 @@ public static class ContextService
             or {
                 Kind: TokenKind.Comma,
                 ParentNode: SeparatedSyntaxList<ExpressionSyntax>
+            }
+            // { a: | }
+            or {
+                Kind: TokenKind.Colon,
+                ParentNode: FieldSyntax
             }
             // if |
             or {
@@ -215,6 +221,7 @@ public static class ContextService
                     CallExpressionSyntax
             }
             // let x = {} |
+            // let x = { 0 } |
             // let x = if y {} else {} |
             // let x = loop {} |
             // 
@@ -238,7 +245,8 @@ public static class ContextService
                             IfExpressionSyntax or
                             BlockBodySyntax
                         )
-                    }
+                    } or
+                    ObjectExpressionSyntax
             };
         
         // At the very start of a block
@@ -262,8 +270,8 @@ public static class ContextService
         // Statements
         var isStatement = isAfterPotentialFlowControlStatement || isStrictlyAfterStatement || isAtStartOfBlock;
         
-        // Parameters or variables
-        var isParameterOrVariable = leftToken
+        // Parameters, variables, or fields
+        var isParameterOrVariableOrField = leftToken
             // let |
             is {
                 Kind: TokenKind.Let,
@@ -281,9 +289,17 @@ public static class ContextService
                     ParameterListSyntax
             }
             // (a, |)
+            // { a: x, | }
             or {
                 Kind: TokenKind.Comma,
-                ParentNode: SeparatedSyntaxList<ParameterSyntax>
+                ParentNode:
+                    SeparatedSyntaxList<ParameterSyntax> or
+                    SeparatedSyntaxList<FieldSyntax>
+            }
+            // { | }
+            or {
+                Kind: TokenKind.OpenBrace,
+                ParentNode: ObjectExpressionSyntax
             };
         
         // After an if body without an else clause
@@ -304,7 +320,7 @@ public static class ContextService
         if (isExpression) kind |= SyntaxContextKind.Expression;
         if (isPostExpression) kind |= SyntaxContextKind.PostExpression;
         if (isStatement) kind |= SyntaxContextKind.Statement;
-        if (isParameterOrVariable) kind |= SyntaxContextKind.ParameterOrVariable;
+        if (isParameterOrVariableOrField) kind |= SyntaxContextKind.ParameterOrVariableOrField;
         if (isPostIfBodyWithoutElse) kind |= SyntaxContextKind.PostIfBodyWithoutElse;
         if (isInLoop) kind |= SyntaxContextKind.InLoop;
 

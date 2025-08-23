@@ -137,22 +137,22 @@ public class ContextServiceTests
     [Fact]
     public void ParameterOrVariableAfterLet() => Test(
         "let |",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void ParameterOrVariableOrExpressionAfterOpenParen() => Test(
         "(|",
-        SyntaxContextKind.ParameterOrVariable | SyntaxContextKind.Expression);
+        SyntaxContextKind.ParameterOrVariableOrField | SyntaxContextKind.Expression);
 
     [Fact]
     public void ParameterOrVariableAfterOpenParenInFunction() => Test(
         "func f(|) {}",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void ParameterOrVariableAfterCommaInParameterList() => Test(
         "(x, |) => x;",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void InLoop() => Test(
