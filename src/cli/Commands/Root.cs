@@ -128,7 +128,9 @@ public sealed class Root(
 
     private int Execute()
     {
-        if (FindRuntime.Search(console, runtimeOverride) is not {} runtime) return 1;
+        var config = Config.TryGetEnvironmentConfig();
+
+        if (FindRuntime.Search(console, config, runtimeOverride) is not {} runtime) return 1;
 
         Ast ast;
         try

@@ -49,8 +49,11 @@ public sealed class Runtime(
 
     private int Execute()
     {
+        var config = Config.TryGetEnvironmentConfig();
+
         var runtime = FindRuntime.Search(
             console: !silent ? console : null,
+            config,
             runtimeOverride);
 
         if (runtime is null) return 1;
