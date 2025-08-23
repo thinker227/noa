@@ -79,6 +79,15 @@ internal static class SyntaxFacts
     }.ToFrozenSet();
 
     /// <summary>
+    /// The set of tokens which can begin a lambda parameter.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanBeginLambdaParameter { get; } = new[]
+    {
+        TokenKind.Mut,
+        TokenKind.Name
+    }.ToFrozenSet();
+
+    /// <summary>
     /// The set of tokens which can be used as an assignment operator.
     /// </summary>
     public static FrozenSet<TokenKind> AssignmentOperator { get; } = new[]
