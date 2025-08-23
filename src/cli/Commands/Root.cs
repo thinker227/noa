@@ -94,6 +94,8 @@ public sealed class Root(
 
         var langServerCommand = LangServer.CreateCommand(console);
 
+        var runtimeCommand = Runtime.CreateCommand(console);
+
         command.Add(inputFileArgument);
         command.Add(argsArgument);
         command.Add(outputFileOption);
@@ -105,6 +107,7 @@ public sealed class Root(
         command.Add(versionOption);
         command.Add(buildCommand);
         command.Add(langServerCommand);
+        command.Add(runtimeCommand);
 
         command.SetAction((ctx, ct) =>
             Task.FromResult(
