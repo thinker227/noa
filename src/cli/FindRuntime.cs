@@ -9,37 +9,46 @@ public static class FindRuntime
     {
         if (runtimeOverride is not null) return runtimeOverride;
 
+        var (envProvidedRuntime, envVarIsSet) = TryFindEnv();
+        if (envProvidedRuntime is not null) return envProvidedRuntime;
+
+        var siblingRuntime = FindSibling();
+        if (siblingRuntime.Exists) return siblingRuntime;
+
+        if (console is not null)
+        {
+            PrintErrorMessage(console, envVarIsSet, siblingRuntime.FullName);
+        }
+        
+        return null;
+    }
+
+    private static (FileInfo? envProvidedRuntime, bool isSet) TryFindEnv()
+    {
         const string runtimePathEnvVar = "NOA_RUNTIME";
         var envRuntimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
-        var envVarIsSet = false;
+        var isSet = false;
+
         if (envRuntimePath is not null)
         {
-            envVarIsSet = true;
-
+            isSet = true;
             var envProvidedRuntime = new FileInfo(envRuntimePath);
 
-            if (envProvidedRuntime.Exists) return envProvidedRuntime;
+            if (envProvidedRuntime.Exists) return (envProvidedRuntime, isSet);
         }
 
+        return (null, isSet);
+    }
+
+    private static FileInfo FindSibling()
+    {
         var siblingRuntimeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? "noa_runtime.exe"
             : "noa_runtime";
         var processPath = Environment.ProcessPath!;
         var processDirectory = Path.GetDirectoryName(processPath)!;
         var siblingRuntimePath = Path.Combine(processDirectory, siblingRuntimeName);
-        var siblingRuntime = new FileInfo(siblingRuntimePath);
-
-        if (!siblingRuntime.Exists)
-        {
-            if (console is not null)
-            {
-                PrintErrorMessage(console, envVarIsSet, siblingRuntimePath);
-            }
-            
-            return null;
-        }
-
-        return siblingRuntime;
+        return new FileInfo(siblingRuntimePath);
     }
 
     private static void PrintErrorMessage(IAnsiConsole console, bool envVarIsSet, string siblingRuntimePath)
