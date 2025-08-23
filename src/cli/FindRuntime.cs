@@ -78,11 +78,11 @@ public static class FindRuntime
             [/]
             [aqua]Tips:
             By default, the runtime should be located at [white]{siblingRuntimePath}[/].
-            The path can be set via a configuration file, located at [white]{relativeConfigPath}[/] within the current or any parent directory, for example [white]{exampleConfigPath}[/]. Read more about configuration files within the project repo's readme.
+            The path can be set via a configuration file, located at [white]{relativeConfigPath}[/] within the current or any parent directory, for example [white]{exampleConfigPath}[/]. Read more about configuration files within the project repo's readme - [purple]https://www.github.com/thinker227/noa#configuration[/].
             You can also specify the path manually using the [white]--runtime|-r[/] CLI option or by setting the [white]{RuntimePathEnvVar}[/] environment variable, for instance if running in a development environment.
             The runtime can also be invoked manually, although this is not recommended.
 
-            If you do not have the Noa runtime installed, you can find instructions on how to download/compile it within the project repo's readme - [purple]https://www.github.com/thinker227/noa[/].
+            If you do not have the Noa runtime installed, you can find instructions on how to download/compile it within the project repo's readme - [purple]https://www.github.com/thinker227/noa#installation[/].
             [/]
             There's probably a runtime somewhere around here...
 
