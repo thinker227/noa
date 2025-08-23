@@ -31,15 +31,10 @@ To compile and install Noa from source, you need the [.NET 9 SDK and runtime](ht
 
 1. Clone the repo using `git clone https://github.com/thinker227/noa.git`.
 2. `cd` into the root of the project (the folder which contains this readme file).
-3. Run the `update-tool.sh` script (or the commands therein, they're all just .NET commands) which will compile and install the complier as a .NET tool. Worry not, you can easily uninstall it using `dotnet tool uninstall noa --global`.
-4. Run `cargo build -r` which will compile the runtime.
-5. Locate the produced executable (which should be in `target/release` named `noa_runtime_cli` or `noa_runtime_cli.exe` on Windows).
-6. Create an environment variable named `NOA_RUNTIME` containing the file path to the runtime executable. Alternatively you can specify the `--runtime <path>` command-line option when running `noa run` to manually specify the path to the runtime executable, however it's much simpler to use an environment variable.
-7. You'll usually have to restart your terminal and/or pc for the environment variable and .NET tool to be available.
+3. Run `./build.sh <dir>`, replacing `<dir>` with the path to the folder you want Noa to be installed to. This will compile the compiler and runtime put both executables into `<dir>` (along with some other artifacts).
+4. Optionally, run the command the build script prints out at the end if you want to set up your `$PATH` so that `noa` will be available from the command-line. You may have to restart your terminal afterwards for it to be available.
 
 </details>
-
-After everything has been installed, you can invoke the Noa CLI using the `noa` command from your terminal!
 
 ### VSCode extension
 
@@ -54,6 +49,8 @@ To compile and install the VSCode extension from source, you need [Node.js](http
 3. Run `code --install-extension <path>`, replacing `<path>` with the file path to the `.vsix` file which `vsce` generated.
 
 </details>
+
+## 
 
 ## Project status
 
