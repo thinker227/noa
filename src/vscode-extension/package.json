@@ -61,7 +61,7 @@
                 "noa-lang.runtimeExecutable": {
                     "type": "string",
                     "default": null,
-                    "description": "A path to the executable for the Noa runtime. If not specified, uses the `NOA_RUNTIME` environment variable."
+                    "description": "Overrides the default path to the Noa runtime executable."
                 },
                 "noa-lang.serverLogPath": {
                     "type": "string",
