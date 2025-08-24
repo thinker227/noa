@@ -5,7 +5,7 @@ namespace Noa.Cli.Commands;
 
 public sealed class Runtime(
     IAnsiConsole console,
-    bool silent,
+    bool plain,
     FileInfo? runtimeOverride)
 {
     public static Command CreateCommand(IAnsiConsole console)
@@ -15,12 +15,9 @@ public sealed class Runtime(
             Description = "Searches for the currently configured default Noa runtime."
         };
 
-        var silentOption = new Option<bool>("--silent")
+        var plainOption = new Option<bool>("--plain")
         {
-            Description = """
-                Does not print any info to the console.
-                Only the exit code will indicate success (0 for success and 1 for failure).
-                """
+            Description = "Disables fancy formatting and just prints the found runtime path."
         };
 
         var runtimeOption = new ExtraHelpOption<FileInfo>("--runtime", "-r")
@@ -34,13 +31,13 @@ public sealed class Runtime(
         runtimeOption.AcceptLegalFilePathsOnly();
         runtimeOption.AcceptExistingOnly();
 
-        command.Add(silentOption);
+        command.Add(plainOption);
         command.Add(runtimeOption);
 
         command.SetAction((ctx, ct) =>
             Task.FromResult(new Runtime(
                     console,
-                    ctx.GetValue(silentOption),
+                    ctx.GetValue(plainOption),
                     ctx.GetValue(runtimeOption))
                 .Execute()));
         
@@ -52,13 +49,17 @@ public sealed class Runtime(
         var config = Config.TryGetEnvironmentConfig();
 
         var runtime = FindRuntime.Search(
-            console: !silent ? console : null,
+            console: !plain ? console : null,
             config,
             runtimeOverride);
 
         if (runtime is null) return 1;
 
-        if (!silent)
+        if (plain)
+        {
+            console.Write(runtime.FullName);
+        }
+        else
         {
             console.MarkupLine($"[green]Runtime located at [white]{runtime.FullName}[/].[/]");
         }
