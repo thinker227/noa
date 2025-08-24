@@ -1,7 +1,8 @@
-import { Terminal, TextDocument, ThemeIcon, Uri, window,  } from "vscode";
+import { Terminal, TextDocument, ThemeIcon, window,  } from "vscode";
 import { checkForCli } from "./command_line";
-import { getCliCommand, getRuntimePath, updateRuntimePathInteractively } from "./config";
-import { getNoaRuntimeVariable } from "./variables";
+import { getCliCommand } from "./config";
+import { getRuntime } from "./runtime";
+import path = require("path");
 
 let terminal: Terminal | undefined = undefined;
 
@@ -17,48 +18,13 @@ function getOrCreateTerminal(): Terminal {
     return terminal;
 }
 
-async function userUpdateRuntimePath(): Promise<string | undefined> {
-    async function showError(): Promise<void> {
-        await window.showErrorMessage("No runtime executable has been configured.");
-    }
-
-    let response = await window.showWarningMessage(
-        "The environment `NOA_RUNTIME` is not set. Do you want to manually set the path to the Noa runtime executable?",
-        {
-            title: "Yes",
-            value: true
-        },
-        {
-            title: "No",
-            value: false
-        }
-    );
-
-    if (response === undefined || !response.value) {
-        await showError();
-        return undefined;
-    }
-
-    let configured = await updateRuntimePathInteractively();
-
-    if (!configured) {
-        await showError();
-        return undefined;
-    }
-
-    return configured;
-}
-
-function constructRunCommand(document: TextDocument, runtimePath: string | undefined): string {
+function constructRunCommand(document: TextDocument, runtimePath: string): string {
     let args = [
-        "run",
         document.uri.fsPath,
-        "--print-ret"
+        "--print-ret",
+        "--runtime",
+        runtimePath
     ];
-    
-    if (runtimePath !== undefined) {
-        args.push(`--runtime ${runtimePath}`);
-    }
 
     let command = getCliCommand();
 
@@ -73,27 +39,18 @@ function constructRunCommand(document: TextDocument, runtimePath: string | undef
 export async function runDocument(document: TextDocument): Promise<boolean> {
     if (!await checkForCli()) {
         let command = getCliCommand();
-        await window.showErrorMessage(
-            `Cannot find the Noa CLI (${command})`
-        );
+        await window.showErrorMessage(`Cannot find the Noa CLI (${command})`);
 
         return false;
     }
 
-    let runtimePath: string | undefined;
+    let cwd = path.resolve(document.uri.fsPath, "..");
+    let runtimePath = await getRuntime(cwd);
 
-    if (getNoaRuntimeVariable() !== undefined) {
-        runtimePath = undefined;
-    } else {
-        runtimePath = getRuntimePath();
+    if (!runtimePath) {
+        await window.showErrorMessage("Cannot find the Noa runtime.");
 
-        if (!runtimePath) {
-            runtimePath = await userUpdateRuntimePath();
-
-            if (!runtimePath) {
-                return false;
-            }
-        }
+        return false;
     }
 
     let runCommand = constructRunCommand(document, runtimePath);
