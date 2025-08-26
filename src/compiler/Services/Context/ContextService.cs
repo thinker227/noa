@@ -42,7 +42,8 @@ public static class ContextService
                                     Parent: not FlowControlStatementSyntax
                                 }
                             }
-                    }
+                    } or
+                    ObjectExpressionSyntax { Fields: [] }
             };           
 
         // After *strictly* a statement and not a potential flow control statement.
@@ -92,7 +93,9 @@ public static class ContextService
             // {|}
             is {
                 Kind: TokenKind.OpenBrace,
-                ParentNode: BlockExpressionSyntax { Block.Statements: [] }
+                ParentNode:
+                    BlockExpressionSyntax { Block.Statements: [] } or
+                    ObjectExpressionSyntax { Fields: [] }
             }
             // let x = |
             or {
@@ -221,6 +224,10 @@ public static class ContextService
                     CallExpressionSyntax
             }
             // let x = {} |
+            or {
+                Kind: TokenKind.CloseBrace,
+                ParentNode: ObjectExpressionSyntax { Fields: [] }
+            }
             // let x = { 0 } |
             // let x = if y {} else {} |
             // let x = loop {} |
@@ -253,14 +260,18 @@ public static class ContextService
         var isAtStartOfBlock = leftToken
             is {
                 Kind: TokenKind.OpenBrace,
-                ParentNode: BlockExpressionSyntax
+                ParentNode:
+                    BlockExpressionSyntax or
+                    ObjectExpressionSyntax { Fields: [] }
             }
             or null;
         
         var isAtEndOfBlock = rightToken
             is {
                 Kind: TokenKind.CloseBrace,
-                ParentNode: BlockExpressionSyntax
+                ParentNode:
+                    BlockExpressionSyntax or
+                    ObjectExpressionSyntax { Fields: [] }
             }
             or {
                 Kind: TokenKind.EndOfFile,
@@ -296,10 +307,22 @@ public static class ContextService
                     SeparatedSyntaxList<ParameterSyntax> or
                     SeparatedSyntaxList<FieldSyntax>
             }
-            // { | }
+            // { | a: x }
             or {
                 Kind: TokenKind.OpenBrace,
                 ParentNode: ObjectExpressionSyntax
+            }
+            // { | }
+            //
+            // Specifically not when the block is the direct child of a block-owning node.
+            or {
+                Kind: TokenKind.OpenBrace,
+                ParentNode: BlockExpressionSyntax {
+                    // Not checking TrailingExpression here because { | 1 } might
+                    // mean the user wants to write a field with the expression 1.
+                    Block.Statements: [],
+                    Parent: not (IfExpressionSyntax or ElseClauseSyntax or LoopExpressionSyntax)
+                },
             };
         
         // After an if body without an else clause
@@ -378,9 +401,17 @@ public static class ContextService
 
         if (isAtEndOfBlock)
         {
-            // { | }
+            var rightParent = ast.GetAstNode(rightToken!.ParentNode);
+
+            // { | } where this is an object
+            if (rightParent is ObjectExpression { Fields: [] } obj)
+            {
+                return obj.Scope.Value.AccessibleAt(LookupLocation.AtNode(obj)).Memoize();
+            }
+
+            // { | } where this is a block
             // { a; | }
-            var block = ast.GetAstNode(rightToken!.ParentNode) switch
+            var block = rightParent switch
             {
                 BlockExpression b => b.Block,
                 Root r => r.Block,
