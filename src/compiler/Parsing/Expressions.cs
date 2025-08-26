@@ -379,6 +379,10 @@ internal sealed partial class Parser
         switch (Current.Kind)
         {
         case TokenKind.OpenBrace:
+            // Object expressions are not flow control expressions, but we have to make sure we don't blindly parse a block
+            // since object expression can look like blocks and begin being parsed as such but then choke on colon tokens.
+            if (ParseObjectExpressionOrNull() is {} objectExpression) return objectExpression;
+            
             return ParseBlockExpression();
 
         case TokenKind.If:
