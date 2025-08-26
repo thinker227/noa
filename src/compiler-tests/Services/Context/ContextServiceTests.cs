@@ -62,13 +62,13 @@ public class ContextServiceTests
         [s => s is VariableSymbol { Name: "x" }]);
 
     [Fact]
-    public void StatementOrExpressionAfterOpenBrace() => Test(
+    public void StatementOrExpressionOrFieldAfterOpenBrace() => Test(
         "{|}",
-        SyntaxContextKind.Statement | SyntaxContextKind.Expression);
+        SyntaxContextKind.Statement | SyntaxContextKind.Expression | SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void StatementOrPostExpressionAfterCloseBraceBeforeStatement() => Test(
-        "{} | let x = 0;",
+        "{ break; } | let x = 0;",
         SyntaxContextKind.Statement | SyntaxContextKind.PostExpression);
 
     [Fact]
@@ -158,4 +158,14 @@ public class ContextServiceTests
     public void InLoop() => Test(
         "loop {|}",
         SyntaxContextKind.InLoop | SyntaxContextKind.Expression | SyntaxContextKind.Statement);
+    
+    [Fact]
+    public void ExpressionAfterColonInObject() => Test(
+        "{ x:| }",
+        SyntaxContextKind.Expression);
+    
+    [Fact]
+    public void ExpressionAfterColonWithoutNameInObject() => Test(
+        "{ :| }",
+        SyntaxContextKind.Expression);
 }
