@@ -125,4 +125,16 @@ internal static class ParseDiagnostics
                 .Emphasized("specify a name")
                 .Raw(" because the name cannot be inferred."),
             Severity.Error);
+    
+    public static DiagnosticTemplate<Unit> MutInDynamicObject { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-011",
+            page => page
+                .Keyword("Fields")
+                .Raw(" cannot be declared as ")
+                .Keyword("mutable")
+                .Raw(" inside ")
+                .Keyword("dynamic objects")
+                .Raw("."),
+            Severity.Error);
 }

@@ -314,6 +314,11 @@ internal sealed partial class Parser
             {
                 mutToken = Advance();
                 lockedIn = true;
+
+                if (dynToken is not null)
+                {
+                    ReportDiagnostic(ParseDiagnostics.MutInDynamicObject, mutToken);
+                }
             }
 
             var name = ParseFieldNameOrNull();
