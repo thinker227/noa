@@ -701,6 +701,10 @@ impl Vm {
                 self.push(Value::InternedString(index))?;
             },
 
+            opcode::PUSH_OBJECT => {
+                todo!()
+            },
+
             opcode::POP => {
                 self.pop()?;
             },
@@ -831,6 +835,14 @@ impl Vm {
                     .map_err(|_| self.exception(Exception::OutOfMemory))?;
 
                 self.push(Value::Object(adr))?;
+            },
+
+            opcode::WRITE_FIELD => {
+                todo!()
+            },
+
+            opcode::READ_FIELD => {
+                todo!()
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
