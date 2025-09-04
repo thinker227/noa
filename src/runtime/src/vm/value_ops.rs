@@ -19,7 +19,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(Type::String),
                 HeapValue::List(_) => Ok(Type::List),
-                HeapValue::Object(_) => Ok(Type::Object),
+                HeapValue::Object { .. } => Ok(Type::Object),
             },
             Value::Nil => Ok(Type::Nil),
         }
@@ -44,7 +44,7 @@ impl Vm {
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
-                (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
+                (HeapValue::Object { fields: a, .. }, HeapValue::Object { fields: b, .. }) => self.object_equal(a, b),
                 _ => Ok(false)
             },
 
@@ -129,13 +129,16 @@ impl Vm {
 
                 HeapValue::List(_) => todo!("not yet specified"),
 
-                HeapValue::Object(obj) => {
+                HeapValue::Object { fields, dynamic } => {
                     let mut str = String::new();
                     
+                    if *dynamic {
+                        str.push_str("dyn ");
+                    }
                     str.push_str("{");
 
                     let mut i = 0;
-                    for (field, value) in obj {
+                    for (field, value) in fields {
                         if i >= 1 {
                             str.push_str(",");
                         }
@@ -185,7 +188,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(true),
                 HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object(_) => Ok(true),
+                HeapValue::Object { .. } => Ok(true),
             },
             Value::Nil => Ok(false),
         }
@@ -205,10 +208,10 @@ impl Vm {
     }
 
     /// Tries to coerce a value into an object.
-    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
+    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, bool, HeapAddress)> {
         match val {
             Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::Object(x) => Ok((x, adr)),
+                HeapValue::Object { fields, dynamic } => Ok((fields, *dynamic, adr)),
                 _ => Err(self.coercion_error(val, Type::Object))
             },
             _ => Err(self.coercion_error(val, Type::Object))
@@ -225,7 +228,7 @@ impl Vm {
             Value::Object(heap_address) => match self.heap.get(heap_address) {
                 Ok(HeapValue::String(_)) => "a string",
                 Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object(_)) => "an object",
+                Ok(HeapValue::Object { .. }) => "an object",
                 Err(_) => "an invalid heap address",
             },
             Value::Nil => "()",

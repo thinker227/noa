@@ -132,7 +132,7 @@ impl MainWidget<'_, '_, '_> {
                         
                         HeapValue::List(_) => "list".into(),
 
-                        HeapValue::Object(_) => "object".into(),
+                        HeapValue::Object { .. } => "object".into(),
                     }
                 } else {
                     format!("bad obj {}", adr.0).red().into()

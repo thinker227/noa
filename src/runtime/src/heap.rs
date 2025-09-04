@@ -55,7 +55,10 @@ struct HeapData {
 pub enum HeapValue {
     String(String),
     List(Vec<Value>),
-    Object(HashMap<String, Value>),
+    Object {
+        fields: HashMap<String, Value>,
+        dynamic: bool,
+    },
 }
 
 /// A memory heap for managing heap-allocated data and garbage collection of that data.
@@ -194,9 +197,9 @@ impl Heap {
                     );
                     to_visit.extend(addresses);
                 },
-                HeapValue::Object(map) => {
+                HeapValue::Object { fields, .. } => {
                     let addresses = Self::extract_references(
-                        map.values().copied()
+                        fields.values().copied()
                     );
                     to_visit.extend(addresses);
                 },
