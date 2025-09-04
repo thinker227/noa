@@ -30,6 +30,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
 | 0x18 | `PushString <string index: u32>` | Pushes the string with the string index `string index` onto the stack. | Pushes 1 value. |
+| 0x19 | `PushObject` | Pushes an empty object onto the stack. | Pushes 1 value. |
 
 ## Miscellaneous stack operations (0x32-0x45)
 
@@ -62,6 +63,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x6D | `GreaterThan` | Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
 | 0x6E | `Concat` |  Pops the two topmost values on from the stack, concatenates them as strings, and pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x6F | `ToString` | Pops the topmost value from the stack, coerces it into a string, then pushes the result onto the stack. | Cumulative: none. |
+| 0x70 | `WriteField` | Pops the three topmost values from the stack, coerces the second into a string and the third into an object, then writes the first value as a field with the coerced string as the name into the coerced object. | Cumulative: pops 3 values. |
+| 0x71 | `ReadField` | Pops the two topmost values from the stack, coerces the first into a string and the second into an object, reads a field with the coerced string as the name from the coerced object, then pushes the read value of the field onto the stack. | Cumulative: pops 1 value. |
 
 ## Operational instructions (0xF0-0xFF)
 
