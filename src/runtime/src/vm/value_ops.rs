@@ -19,7 +19,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(Type::String),
                 HeapValue::List(_) => Ok(Type::List),
-                HeapValue::Object(_) => todo!(),
+                HeapValue::Object(_) => Ok(Type::Object),
             },
             Value::Nil => Ok(Type::Nil),
         }
@@ -44,7 +44,7 @@ impl Vm {
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
-                (HeapValue::Object(_), HeapValue::Object(_)) => todo!("not yet specified"),
+                (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
                 _ => Ok(false)
             },
 
@@ -52,6 +52,27 @@ impl Vm {
 
             _ => Ok(false)
         }
+    }
+
+    fn object_equal(&self, a: &HashMap<String, Value>, b: &HashMap<String, Value>) -> Result<bool> {
+        if a.len() != b.len() {
+            return Ok(false);
+        }
+
+        // Todo: this doesn't account for recursive objects.
+
+        for (k, v1) in a.iter() {
+            let v2 = match b.get(k) {
+                Some(x) => x,
+                None => return Ok(false)
+            };
+
+            if !self.equal(*v1, *v2)? {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
     }
 
     /// Tries to get a string from a value without performing any coercion.
@@ -105,8 +126,35 @@ impl Vm {
 
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(str) => Ok(str.clone()),
+
                 HeapValue::List(_) => todo!("not yet specified"),
-                HeapValue::Object(_) => todo!("not yet specified"),
+
+                HeapValue::Object(obj) => {
+                    let mut str = String::new();
+                    
+                    str.push_str("{");
+
+                    let mut i = 0;
+                    for (field, value) in obj {
+                        if i >= 1 {
+                            str.push_str(",");
+                        }
+
+                        // Todo: this doesn't account for recursive objects.
+                        
+                        let value_str = self.to_string(*value)?;
+                        str.push_str(format!(" \"{}\": {}", field, value_str).as_str());
+
+                        i += 1;
+                    }
+
+                    if i >= 1 {
+                        str.push(' ');
+                    }
+                    str.push('}');
+                    
+                    Ok(str)
+                },
             },
 
             Value::Nil => Ok("()".to_string()),
@@ -120,7 +168,6 @@ impl Vm {
             Value::Bool(x) => Ok(if x { 1. } else { 0. }),
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object(_) => todo!("not specified yet"),
                 _ => Err(self.coercion_error(val, Type::Number)),
             },
             Value::Nil => Ok(0.),
@@ -138,7 +185,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(true),
                 HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object(_) => todo!("not specified yet"),
+                HeapValue::Object(_) => Ok(true),
             },
             Value::Nil => Ok(false),
         }
@@ -158,8 +205,14 @@ impl Vm {
     }
 
     /// Tries to coerce a value into an object.
-    pub fn coerce_to_object(&self, _: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
-        todo!("not specified yet")
+    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
+        match val {
+            Value::Object(adr) => match self.get_heap_value(adr)? {
+                HeapValue::Object(x) => Ok((x, adr)),
+                _ => Err(self.coercion_error(val, Type::Object))
+            },
+            _ => Err(self.coercion_error(val, Type::Object))
+        }
     }
 
     // Constructs a formatted coercion error exception.
@@ -172,7 +225,7 @@ impl Vm {
             Value::Object(heap_address) => match self.heap.get(heap_address) {
                 Ok(HeapValue::String(_)) => "a string",
                 Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object(_)) => "a object",
+                Ok(HeapValue::Object(_)) => "an object",
                 Err(_) => "an invalid heap address",
             },
             Value::Nil => "()",
@@ -184,6 +237,7 @@ impl Vm {
             Type::Function => "a function",
             Type::String => "a string",
             Type::List => "a list",
+            Type::Object => "an object",
             Type::Nil => "()",
         };
 

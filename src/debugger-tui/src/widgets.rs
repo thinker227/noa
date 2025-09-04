@@ -107,7 +107,8 @@ impl MainWidget<'_, '_, '_> {
             Type::Function => "function".green(),
             Type::String => "string".yellow(),
             Type::List => "list".white(),
-            Type::Nil => "object".white(),
+            Type::Object => "object".magenta(),
+            Type::Nil => "()".white(),
         }
     }
 

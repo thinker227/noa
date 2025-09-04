@@ -9,6 +9,7 @@ pub enum Type {
     Function,
     String,
     List,
+    Object,
     Nil
 }
 
