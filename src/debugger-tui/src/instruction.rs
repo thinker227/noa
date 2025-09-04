@@ -143,7 +143,9 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
             ),
             opcode::PUSH_OBJECT => (
                 "PushObject",
-                vec![],
+                vec![
+                    make_operand::<bool>(inspection, "dynamic")
+                ],
                 vec![]
             ),
             opcode::POP => (
