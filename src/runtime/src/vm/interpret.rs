@@ -819,8 +819,7 @@ impl Vm {
                 str.push_str(other.as_str());
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
             },
@@ -831,8 +830,7 @@ impl Vm {
                 let str = self.to_string(val)?;
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
             },

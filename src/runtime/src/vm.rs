@@ -97,6 +97,12 @@ impl Vm {
             })
     }
 
+    /// Allocates a value on the heap.
+    fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
+        self.heap.alloc(value)
+            .map_err(|_| self.exception(Exception::OutOfMemory))
+    }
+
     /// Formats an [`Exception`] into a [`FormattedException`].
     fn exception(&self, exception: Exception) -> FormattedException {
         let stack_trace = self.construct_stack_trace();
