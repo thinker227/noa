@@ -16,6 +16,8 @@ internal static class TokenKindExtensions
         
         TokenKind.OpenParen => "(",
         TokenKind.CloseParen => ")",
+        TokenKind.OpenBracket => "[",
+        TokenKind.CloseBracket => "]",
         TokenKind.OpenBrace => "{",
         TokenKind.CloseBrace => "}",
         TokenKind.Comma => ",",
