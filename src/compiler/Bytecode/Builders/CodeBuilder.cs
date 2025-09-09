@@ -127,6 +127,12 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         BinaryPrimitives.WriteUInt32BigEndian(bytes, index.Index);
         Add(Opcode.PushString, bytes);
     }
+
+    public void PushObject(bool dyn)
+    {
+        var b = dyn ? (byte)1 : (byte)0;
+        Add(Opcode.PushObject, [b]);
+    }
     
     public void Pop() => Add(Opcode.Pop);
 
@@ -171,6 +177,16 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Concat() => Add(Opcode.Concat);
 
     public new void ToString() => Add(Opcode.ToString);
+
+    public void AddField(bool mutable)
+    {
+        var b = mutable ? (byte)1 : (byte)0;
+        Add(Opcode.AddField, [b]);
+    }
+
+    public void WriteField() => Add(Opcode.WriteField);
+
+    public void ReadField() => Add(Opcode.ReadField);
 }
 
 /// <summary>
