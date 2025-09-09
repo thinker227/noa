@@ -211,6 +211,123 @@ String literals also support interpolation, which allows you to embed expression
 
 `()`, pronounced "nil" or "unit", is Noa's equivalent to `null` in most other languages. It is a *unit type*, which means there is only one possible value of it. It is generally a useless value because it doesn't support any operations and doesn't represent anything special, but it can be useful to signify failure. In most cases, attempting to do anything at all with `()` (for instance calling or performing arithmetic on it) will result in a runtime exception.
 
+### Objects
+
+Objects take their shape mainly from objects/dictionaries/tables in other dynamic languages Javascript or Lua. Objects in Noa, however, come in two flavors: *static* and *dynamic* objects.
+
+*Static* objects (or just *objects* since these are the standard kind) act much like objects in other dynamic languages and are akin to dictionaries/maps - they bind values to names (keys). They are declared using curly braces (`{}`) containing a list of *fields*, each of which consists of a name followed by `:` and then the value bound to the name.
+
+```js
+// A simple object representing a person
+let person = {
+    name: "Voz",
+    age: 29
+};
+```
+
+To retrieve a value from an object, you use the familiar `.` operator followed by the name of the key.
+
+```js
+print(person.name); // Voz
+```
+
+Static objects have a couple differences from most other languages, however, in line with Noa's adoption of immutability; fields are *immutable* by default, meaning that they cannot be reassigned.
+
+```js
+let obj = { x: 1 };
+obj.x = 2; // error: cannot write to immutable field "x"
+```
+
+If you want a field to be mutable, just write `mut` before the name.
+
+```js
+let obj = { mut x: 1 };
+obj.x = 2; // fine
+```
+
+So what happens if you try to access a field which doesn't exist?
+
+```js
+let obj = {}; // empty object
+print(obj.x); // error: field "x" does not exist
+```
+
+Well, you get a runtime error. But what happens if you try to *assign* to a field which doesn't exist?
+
+```js
+let obj = {}; // empty object
+obj.x = "uwu"; // error: field "x" does not exist
+```
+
+You still get an error. This is contrary to what most other dynamic languages let you do with these kinds of objects. In Noa, static objects can only ever contain the fields you declare them with, you cannot add new fields after the fact.
+
+[*Or can you?*](https://youtube.com/watch?v=TN25ghkfgQA) This is where *dynamic* objects come in useful. If you want an object which can dynamically grow in its amount of fields, you can use dynamic objects.
+
+Dynamic objects are declared similarly to static objects, except for the addition of the `dyn` keyword before the opening curly brace.
+
+```js
+let dynObj = dyn {};
+
+dynObj.a = 1;
+dynObj.b = "owo";
+dynObj.c = false;
+
+print(dynObj); // { "a": 1, "b": "owo", "c": false }
+```
+
+Fields in dynamic objects are additionally always mutable, so the `mut` keyword cannot be used.
+
+It is also worth noting that fields in objects will be always iterated and printed in the order that they are declared/added; they are *well-ordered*.
+
+#### Syntax sugar
+
+Finally, declaring and accessing fields in objects have a couple handy shorthands and sets of syntax sugar.
+
+When declaring the name of or accessing a field, you can use either a simple name (like `x`), a string (like `"a string"`), or an expression surrounded by parentheses (like `(true)`). The keys in objects are actually just strings, so any name you give to a field is just converted into a string, including expressions.
+
+```js
+let obj = {
+    x: 1,
+    "a string": "another string",
+    (true): false
+};
+
+print(obj.x); // 1
+print(obj."a string"); // "another string"
+print(obj.(true)); // false
+
+print(obj."x"); // 1
+print(obj."true"); // false
+```
+
+The string literals used for field names also support string interpolation.
+
+```js
+let str = "a";
+let obj = {
+    \"{str} b": "c"
+};
+
+print(obj); // { "a b": "c" }
+
+print(obj.\"{str} b"); // "c"
+```
+
+If you want to assign a field in an object to the value of a variable and also name the field the same as the variable, you can simply omit the name of the field.
+
+```js
+let a = 1;
+let b = "owo";
+let obj = {
+    :a,
+    :b
+};
+
+print(obj); // { "a": 1, "b": "owo" }
+```
+
+This also works with a handful of other expressions; variables (`:x`), access expressions (`:a.b`), nested access expressions (`:a.b.c`), and block expressions if the trailing expression also shares this property (`:{ let x = 0; x }`).
+
 ### Blocks
 
 Unlike a lot of other C-like languages, blocks in Noa are expressions. Blocks can contain zero or more statements, and optionally end with a trailing expression which will be yielded as the value of the expression.
@@ -233,6 +350,21 @@ let x = {
 
 print(x); // ()
 ```
+
+A block can also be used as a stand-alone statement. This is mainly useful to control variable scope.
+
+```js
+let x = 1;
+
+{
+    let a = 2;
+    print(x); // 2
+}
+
+print(x); // 1
+```
+
+However, an *empty* block may not be used as a stand-alone statement.
 
 Note that the block which makes up a [function](#functions) body is a normal block expression, so you may return a value from a function by simply writing the return value at the very end of the block:
 

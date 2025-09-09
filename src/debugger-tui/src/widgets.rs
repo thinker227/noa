@@ -1,6 +1,6 @@
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
-use noa_runtime::value::{Type, Value};
+use noa_runtime::value::{Object, Type, Value};
 use noa_runtime::vm::frame::{Frame, FrameKind};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::prelude::*;
@@ -107,7 +107,8 @@ impl MainWidget<'_, '_, '_> {
             Type::Function => "function".green(),
             Type::String => "string".yellow(),
             Type::List => "list".white(),
-            Type::Nil => "object".white(),
+            Type::Object => "object".magenta(),
+            Type::Nil => "()".white(),
         }
     }
 
@@ -131,7 +132,7 @@ impl MainWidget<'_, '_, '_> {
                         
                         HeapValue::List(_) => "list".into(),
 
-                        HeapValue::Object(_) => "object".into(),
+                        HeapValue::Object(object) => self.show_object(object),
                     }
                 } else {
                     format!("bad obj {}", adr.0).red().into()
@@ -140,6 +141,47 @@ impl MainWidget<'_, '_, '_> {
 
             Value::Nil => "()".into(),
         }
+    }
+
+    fn show_object(&self, object: &Object) -> Line<'static> {
+        let mut spans = Vec::new();
+
+        if object.dynamic {
+            spans.push("dyn ".into());
+        }
+
+        spans.push("{".into());
+
+        let mut fields = object.fields.iter().collect::<Vec<_>>();
+        fields.sort_by_key(|(_, field)| field.index);
+
+        let mut i = 0;
+        for (field_name, field) in fields {
+            if i >= 1 {
+                spans.push(",".into());
+            }
+
+            spans.push(" ".into());
+
+            if field.mutable {
+                spans.push("mut ".into());
+            }
+
+            let value_spans = self.show_value(field.val).spans;
+            spans.push(format!("f\"{}\"", field_name).yellow());
+            spans.push(": ".into());
+            spans.extend_from_slice(&value_spans);
+
+            i += 1;
+        }
+
+        if i >= 1 {
+            spans.push(" ".into());
+        }
+
+        spans.push("}".into());
+
+        spans.into()
     }
 
     fn show_istr(&self, index: usize) -> Line<'static> {

@@ -62,13 +62,13 @@ public class ContextServiceTests
         [s => s is VariableSymbol { Name: "x" }]);
 
     [Fact]
-    public void StatementOrExpressionAfterOpenBrace() => Test(
+    public void StatementOrExpressionOrFieldAfterOpenBrace() => Test(
         "{|}",
-        SyntaxContextKind.Statement | SyntaxContextKind.Expression);
+        SyntaxContextKind.Statement | SyntaxContextKind.Expression | SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void StatementOrPostExpressionAfterCloseBraceBeforeStatement() => Test(
-        "{} | let x = 0;",
+        "{ break; } | let x = 0;",
         SyntaxContextKind.Statement | SyntaxContextKind.PostExpression);
 
     [Fact]
@@ -137,25 +137,35 @@ public class ContextServiceTests
     [Fact]
     public void ParameterOrVariableAfterLet() => Test(
         "let |",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void ParameterOrVariableOrExpressionAfterOpenParen() => Test(
         "(|",
-        SyntaxContextKind.ParameterOrVariable | SyntaxContextKind.Expression);
+        SyntaxContextKind.ParameterOrVariableOrField | SyntaxContextKind.Expression);
 
     [Fact]
     public void ParameterOrVariableAfterOpenParenInFunction() => Test(
         "func f(|) {}",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void ParameterOrVariableAfterCommaInParameterList() => Test(
         "(x, |) => x;",
-        SyntaxContextKind.ParameterOrVariable);
+        SyntaxContextKind.ParameterOrVariableOrField);
 
     [Fact]
     public void InLoop() => Test(
         "loop {|}",
         SyntaxContextKind.InLoop | SyntaxContextKind.Expression | SyntaxContextKind.Statement);
+    
+    [Fact]
+    public void ExpressionAfterColonInObject() => Test(
+        "{ x:| }",
+        SyntaxContextKind.Expression);
+    
+    [Fact]
+    public void ExpressionAfterColonWithoutNameInObject() => Test(
+        "{ :| }",
+        SyntaxContextKind.Expression);
 }

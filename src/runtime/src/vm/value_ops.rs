@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use polonius_the_crab::{polonius, polonius_return};
 
-use crate::value::{Closure, Type, Value};
+use crate::value::{Closure, Object, Type, Value};
 use crate::heap::{HeapAddress, HeapValue};
 use crate::exception::{Exception, FormattedException};
 
@@ -19,7 +19,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(Type::String),
                 HeapValue::List(_) => Ok(Type::List),
-                HeapValue::Object(_) => todo!(),
+                HeapValue::Object { .. } => Ok(Type::Object),
             },
             Value::Nil => Ok(Type::Nil),
         }
@@ -44,7 +44,7 @@ impl Vm {
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
-                (HeapValue::Object(_), HeapValue::Object(_)) => todo!("not yet specified"),
+                (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
                 _ => Ok(false)
             },
 
@@ -52,6 +52,30 @@ impl Vm {
 
             _ => Ok(false)
         }
+    }
+
+    fn object_equal(&self, a: &Object, b: &Object) -> Result<bool> {
+        let a = &a.fields;
+        let b = &b.fields;
+
+        if a.len() != b.len() {
+            return Ok(false);
+        }
+
+        // Todo: this doesn't account for recursive objects.
+
+        for (name, field_a) in a.iter() {
+            let field_b = match b.get(name) {
+                Some(x) => x,
+                None => return Ok(false)
+            };
+
+            if !self.equal(field_a.val, field_b.val)? {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
     }
 
     /// Tries to get a string from a value without performing any coercion.
@@ -105,8 +129,42 @@ impl Vm {
 
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(str) => Ok(str.clone()),
+
                 HeapValue::List(_) => todo!("not yet specified"),
-                HeapValue::Object(_) => todo!("not yet specified"),
+
+                HeapValue::Object(Object { fields, dynamic }) => {
+                    let mut str = String::new();
+                    
+                    if *dynamic {
+                        str.push_str("dyn ");
+                    }
+                    str.push_str("{");
+
+                    let mut fields = fields.iter().collect::<Vec<_>>();
+                    fields.sort_by_key(|(_, field)| field.index);
+
+                    let mut i = 0;
+                    for (field_name, field) in fields {
+
+                        if i >= 1 {
+                            str.push_str(",");
+                        }
+
+                        // Todo: this doesn't account for recursive objects.
+                        
+                        let value_str = self.to_string(field.val)?;
+                        str.push_str(format!(" \"{}\": {}", field_name, value_str).as_str());
+
+                        i += 1;
+                    }
+
+                    if i >= 1 {
+                        str.push(' ');
+                    }
+                    str.push('}');
+                    
+                    Ok(str)
+                },
             },
 
             Value::Nil => Ok("()".to_string()),
@@ -120,7 +178,6 @@ impl Vm {
             Value::Bool(x) => Ok(if x { 1. } else { 0. }),
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object(_) => todo!("not specified yet"),
                 _ => Err(self.coercion_error(val, Type::Number)),
             },
             Value::Nil => Ok(0.),
@@ -138,7 +195,7 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(_) => Ok(true),
                 HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object(_) => todo!("not specified yet"),
+                HeapValue::Object { .. } => Ok(true),
             },
             Value::Nil => Ok(false),
         }
@@ -158,8 +215,39 @@ impl Vm {
     }
 
     /// Tries to coerce a value into an object.
-    pub fn coerce_to_object(&self, _: Value) -> Result<(&HashMap<String, Value>, HeapAddress)> {
-        todo!("not specified yet")
+    pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
+        match val {
+            Value::Object(adr) => match self.get_heap_value(adr)? {
+                HeapValue::Object(obj) => return Ok((obj, adr)),
+                _ => {}
+            },
+            _ => {}
+        };
+
+        Err(self.coercion_error(val, Type::Object))
+    }
+
+    /// Tries to coerce a value into an object mutably.
+    pub fn coerce_to_object_mut(&mut self, val: Value) -> Result<(&mut Object, HeapAddress)> {
+        // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
+
+        let mut this = self;
+
+        polonius!(|this| -> Result<(&'polonius mut Object, HeapAddress)> {
+            match val {
+                // Can't use ? operator here so have to manually match.
+                Value::Object(adr) => match this.get_heap_value_mut(adr) {
+                    Ok(x) => match x {
+                        HeapValue::Object(obj) => polonius_return!(Ok((obj, adr))),
+                        _ => {}
+                    },
+                    Err(e) => polonius_return!(Err(e)),
+                }
+                _ => {}
+            };
+        });
+
+        Err(this.coercion_error(val, Type::Object))
     }
 
     // Constructs a formatted coercion error exception.
@@ -172,7 +260,7 @@ impl Vm {
             Value::Object(heap_address) => match self.heap.get(heap_address) {
                 Ok(HeapValue::String(_)) => "a string",
                 Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object(_)) => "a object",
+                Ok(HeapValue::Object { .. }) => "an object",
                 Err(_) => "an invalid heap address",
             },
             Value::Nil => "()",
@@ -184,6 +272,7 @@ impl Vm {
             Type::Function => "a function",
             Type::String => "a string",
             Type::List => "a list",
+            Type::Object => "an object",
             Type::Nil => "()",
         };
 

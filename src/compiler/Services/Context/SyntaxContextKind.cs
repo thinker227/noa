@@ -25,10 +25,10 @@ public enum SyntaxContextKind
     /// </summary>
     Statement = 1 << 3,
     /// <summary>
-    /// A parameter or variable.
-    /// <c>let |</c>, <c>func f(|</c>, <c>(|</c>, ...
+    /// A parameter, variable, or field.
+    /// <c>let |</c>, <c>func f(|</c>, <c>(|</c>, <c>{ |</c> ...
     /// </summary>
-    ParameterOrVariable = 1 << 4,
+    ParameterOrVariableOrField = 1 << 4,
     /// <summary>
     /// Immediately following the end of the body of an if-statement without an else clause.
     /// <c>if x {} |</c>

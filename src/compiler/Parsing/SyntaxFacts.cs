@@ -100,6 +100,24 @@ internal static class SyntaxFacts
     }.ToFrozenSet();
 
     /// <summary>
+    /// The set of tokens which can begin a field name.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanBeginFieldName { get; } = new[]
+    {
+        TokenKind.Name,
+        TokenKind.OpenParen,
+        TokenKind.BeginString
+    }.ToFrozenSet();
+
+    /// <summary>
+    /// The set of tokens which can begin a field.
+    /// </summary>
+    public static FrozenSet<TokenKind> CanBeginField { get; } =
+        CanBeginFieldName
+            .Append(TokenKind.Colon)
+            .ToFrozenSet();
+
+    /// <summary>
     /// The set of tokens which are binary expression operators.
     /// </summary>
     public static FrozenSet<TokenKind> BinaryExpressionOperator { get; } = new[]
@@ -197,9 +215,33 @@ internal static class SyntaxFacts
         is not IfExpressionSyntax { Else: null };
 
     /// <summary>
+    /// Returns whether the name of a field can be inferred from an expression.
+    /// </summary>
+    /// <param name="expression">The expression to check.</param>
+    public static bool CanInferFieldName(this ExpressionSyntax expression) =>
+        expression.InferFieldName() is not null;
+    
+    /// <summary>
+    /// Returns the inferred field name of an expression.
+    /// </summary>
+    /// <param name="expression">The expression to infer the field name from.</param>
+    public static string? InferFieldName(this ExpressionSyntax expression) => expression switch
+    {
+        IdentifierExpressionSyntax ident => ident.Identifier.Text,
+        AccessExpressionSyntax { Name: ErrorFieldNameSyntax } => "",
+        AccessExpressionSyntax { Name: SimpleFieldNameSyntax fieldName } => fieldName.NameToken.Text,
+        AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.InferFieldName(),
+        ParenthesizedExpressionSyntax parenthesized => parenthesized.Expression.InferFieldName(),
+        BlockExpressionSyntax block => block.Block.TrailingExpression?.InferFieldName(),
+        ErrorExpressionSyntax => "",
+        _ => null
+    };
+
+    /// <summary>
     /// Returns whether an expression is a valid l-value.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
     public static bool IsValidLValue(this ExpressionSyntax expression) => expression
-        is IdentifierExpressionSyntax;
+        is IdentifierExpressionSyntax
+        or AccessExpressionSyntax;
 }

@@ -150,12 +150,13 @@
 //! if the vm tries to execute it.
 
 use std::assert_matches::assert_matches;
+use std::collections::HashMap;
 
 use crate::ark::FuncId;
 use crate::exception::Exception;
 use crate::heap::HeapValue;
 use crate::opcode;
-use crate::value::{Closure, Value};
+use crate::value::{Closure, Field, Object, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
 use super::debugger::DebugInspection;
@@ -566,6 +567,16 @@ impl Vm {
         coerce(self, val)
     }
 
+    fn pop_val_as_mut<'a, T>(
+        &'a mut self,
+        coerce: impl FnOnce(&'a mut Self, Value) -> Result<T>
+    ) -> Result<T> {
+        let val = self.stack.pop()
+            .map_err(|_| self.exception(Exception::StackUnderflow))?;
+
+        coerce(self, val)
+    }
+
     /// Pushes a value onto the stack.
     fn push(&mut self, val: Value) -> Result<()> {
         self.stack.push(val)
@@ -673,9 +684,7 @@ impl Vm {
             },
 
             opcode::PUSH_BOOL => {
-                let val = self.read_u8()?;
-
-                let bool = val != 0;
+                let bool = self.read_u8()? != 0;
 
                 self.push(Value::Bool(bool))?;
             },
@@ -699,6 +708,18 @@ impl Vm {
                 let index = self.read_u32()? as usize;
                 
                 self.push(Value::InternedString(index))?;
+            },
+
+            opcode::PUSH_OBJECT => {
+                let dynamic = self.read_u8()? != 0;
+
+                let object = Object {
+                    fields: HashMap::new(),
+                    dynamic
+                };
+                let adr = self.heap_alloc(HeapValue::Object(object))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::POP => {
@@ -815,8 +836,7 @@ impl Vm {
                 str.push_str(other.as_str());
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
             },
@@ -827,10 +847,72 @@ impl Vm {
                 let str = self.to_string(val)?;
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
+            },
+
+            opcode::ADD_FIELD => {
+                let mutable = self.read_u8()? != 0;
+
+                let val = self.pop()?;
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as_mut(Self::coerce_to_object_mut)?;
+
+                let field_count = obj.fields.len() as u32;
+                obj.fields.insert(name, Field {
+                    val,
+                    mutable,
+                    index: field_count
+                });
+            },
+
+            opcode::WRITE_FIELD => {
+                let val = self.pop()?;
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as_mut(Self::coerce_to_object_mut)?;
+
+                let dynamic = obj.dynamic;
+                
+                match obj.fields.get_mut(&name) {
+                    Some(field) => {
+                        if field.mutable {
+                            // Override value.
+                            field.val = val;
+                        } else {
+                            // Cannot write to immutable field.
+                            return Err(self.exception(Exception::WriteToImmutableField(name)));
+                        }
+                    },
+                    None => {
+                        if dynamic {
+                            // Writing to a dynamic object, insert a mutable field.
+                            let field_count = obj.fields.len() as u32;
+                            obj.fields.insert(name, Field {
+                                val,
+                                mutable: true,
+                                index: field_count
+                            });
+                        } else {
+                            // Missing field.
+                            return Err(self.exception(Exception::MissingField(name)));
+                        }
+                    }
+                };
+            },
+
+            opcode::READ_FIELD => {
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as(Self::coerce_to_object)?;
+
+                match obj.fields.get(&name).copied() {
+                    Some(field) => {
+                        self.push(field.val)?;
+                    },
+                    None => {
+                        return Err(self.exception(Exception::MissingField(name)));
+                    },
+                };
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),

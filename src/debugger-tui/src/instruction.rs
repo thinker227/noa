@@ -141,6 +141,13 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
+            opcode::PUSH_OBJECT => (
+                "PushObject",
+                vec![
+                    make_operand::<bool>(inspection, "dynamic")
+                ],
+                vec![]
+            ),
             opcode::POP => (
                 "Pop",
                 vec![],
@@ -262,6 +269,34 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![],
                 vec![
                     make_arg(&inspection, 0, "val", None)
+                ]
+            ),
+            opcode::ADD_FIELD => (
+                "AddField",
+                vec![
+                    make_operand::<bool>(&inspection, "mutable")
+                ],
+                vec![
+                    make_arg(&inspection, 2, "object", Some(Type::Object)),
+                    make_arg(&inspection, 1, "field", Some(Type::String)),
+                    make_arg(&inspection, 0, "value", None)
+                ]
+            ),
+            opcode::WRITE_FIELD => (
+                "WriteField",
+                vec![],
+                vec![
+                    make_arg(&inspection, 2, "object", Some(Type::Object)),
+                    make_arg(&inspection, 1, "field", Some(Type::String)),
+                    make_arg(&inspection, 0, "value", None)
+                ]
+            ),
+            opcode::READ_FIELD => (
+                "ReadField",
+                vec![],
+                vec![
+                    make_arg(&inspection, 1, "object", Some(Type::Object)),
+                    make_arg(&inspection, 0, "field", Some(Type::String))
                 ]
             ),
             opcode::BOUNDARY => (

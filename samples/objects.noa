@@ -1,0 +1,8 @@
+let person = {
+    name: "Voz",
+    mut age: 29
+};
+
+person.age += 1;
+
+return person;
