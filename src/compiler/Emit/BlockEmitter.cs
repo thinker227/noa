@@ -40,6 +40,10 @@ internal class BlockEmitter(
             EmitAccessAssignment(access, node.Kind, node.Value);
             break;
         
+        case IndexExpression index:
+            EmitIndexAssignment(index, node.Kind, node.Value);
+            break;
+        
         default:
             throw new UnreachableException();
         }
@@ -93,6 +97,11 @@ internal class BlockEmitter(
         }
 
         Code.WriteField();
+    }
+
+    private void EmitIndexAssignment(IndexExpression target, AssignmentKind kind, Expression operand)
+    {
+        throw new NotImplementedException();
     }
 
     private void EmitCompoundAssignmentKind(AssignmentKind kind)
@@ -373,6 +382,11 @@ internal class BlockEmitter(
         }
     }
 
+    protected override void VisitListExpression(ListExpression node)
+    {
+        throw new NotImplementedException();
+    }
+
     protected override void VisitAccessExpression(AccessExpression node)
     {
         // Object
@@ -400,6 +414,11 @@ internal class BlockEmitter(
     {
         var index = strings.GetOrAdd(node.Name);
         Code.PushString(index);
+    }
+
+    protected override void VisitIndexExpression(IndexExpression node)
+    {
+        throw new NotImplementedException();
     }
 
     protected override void VisitIdentifierExpression(IdentifierExpression node)
