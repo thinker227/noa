@@ -195,7 +195,7 @@ impl Heap {
                 },
                 HeapValue::Object(Object { fields, .. }) => {
                     let addresses = Self::extract_references(
-                        fields.values().copied()
+                        fields.values().map(|f| &f.val).copied()
                     );
                     to_visit.extend(addresses);
                 },

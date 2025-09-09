@@ -49,8 +49,14 @@ pub struct List(pub Vec<Value>);
 /// An object.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Object {
-    pub fields: HashMap<String, Value>,
+    pub fields: HashMap<String, Field>,
     pub dynamic: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Field {
+    pub val: Value,
+    pub mutable: bool,
 }
 
 /// A runtime value.

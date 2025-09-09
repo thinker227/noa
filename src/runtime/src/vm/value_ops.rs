@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use polonius_the_crab::{polonius, polonius_return};
 
 use crate::value::{Closure, Object, Type, Value};
@@ -46,7 +44,7 @@ impl Vm {
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
-                (HeapValue::Object(Object { fields: a, .. }), HeapValue::Object(Object { fields: b, .. })) => self.object_equal(a, b),
+                (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
                 _ => Ok(false)
             },
 
@@ -56,20 +54,23 @@ impl Vm {
         }
     }
 
-    fn object_equal(&self, a: &HashMap<String, Value>, b: &HashMap<String, Value>) -> Result<bool> {
+    fn object_equal(&self, a: &Object, b: &Object) -> Result<bool> {
+        let a = &a.fields;
+        let b = &b.fields;
+
         if a.len() != b.len() {
             return Ok(false);
         }
 
         // Todo: this doesn't account for recursive objects.
 
-        for (k, v1) in a.iter() {
-            let v2 = match b.get(k) {
+        for (name, field_a) in a.iter() {
+            let field_b = match b.get(name) {
                 Some(x) => x,
                 None => return Ok(false)
             };
 
-            if !self.equal(*v1, *v2)? {
+            if !self.equal(field_a.val, field_b.val)? {
                 return Ok(false);
             }
         }
@@ -140,15 +141,16 @@ impl Vm {
                     str.push_str("{");
 
                     let mut i = 0;
-                    for (field, value) in fields {
+                    for (field_name, field) in fields {
+
                         if i >= 1 {
                             str.push_str(",");
                         }
 
                         // Todo: this doesn't account for recursive objects.
                         
-                        let value_str = self.to_string(*value)?;
-                        str.push_str(format!(" \"{}\": {}", field, value_str).as_str());
+                        let value_str = self.to_string(field.val)?;
+                        str.push_str(format!(" \"{}\": {}", field_name, value_str).as_str());
 
                         i += 1;
                     }

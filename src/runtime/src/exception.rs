@@ -44,6 +44,12 @@ pub enum Exception {
 
     #[error("out of memory")]
     OutOfMemory,
+
+    #[error("field `{0}` does not exist")]
+    MissingField(String),
+
+    #[error("cannot write to immutable field `{0}`")]
+    WriteToImmutableField(String),
 }
 
 /// An [`Exception`] formatted with a stack trace.
