@@ -235,7 +235,7 @@ Static objects have a couple differences from most other languages, however, in 
 
 ```js
 let obj = { x: 1 };
-obj.x = 2; // error: field x is immutable
+obj.x = 2; // error: cannot write to immutable field "x"
 ```
 
 If you want a field to be mutable, just write `mut` before the name.
@@ -249,19 +249,19 @@ So what happens if you try to access a field which doesn't exist?
 
 ```js
 let obj = {}; // empty object
-print(obj.x); // error: field x doesn't exist
+print(obj.x); // error: field "x" does not exist
 ```
 
 Well, you get a runtime error. But what happens if you try to *assign* to a field which doesn't exist?
 
 ```js
 let obj = {}; // empty object
-obj.x = "uwu"; // error: field x doesn't exist
+obj.x = "uwu"; // error: field "x" does not exist
 ```
 
 You still get an error. This is contrary to what most other dynamic languages let you do with these kinds of objects. In Noa, static objects can only ever contain the fields you declare them with, you cannot add new fields after the fact.
 
-[*Or can you?*](https://youtu.be/TN25ghkfgQA?si=S3Uq9PpTi3Zj18pV) This is where *dynamic* objects come in useful. If you want an object which can dynamically grow in its amount of fields, you can use dynamic objects.
+[*Or can you?*](https://youtube.com/watch?v=TN25ghkfgQA) This is where *dynamic* objects come in useful. If you want an object which can dynamically grow in its amount of fields, you can use dynamic objects.
 
 Dynamic objects are declared similarly to static objects, except for the addition of the `dyn` keyword before the opening curly brace.
 
@@ -272,10 +272,14 @@ dynObj.a = 1;
 dynObj.b = "owo";
 dynObj.c = false;
 
-print(dynObj); // { a: 1, b: "owo", c: false }
+print(dynObj); // { "a": 1, "b": "owo", "c": false }
 ```
 
 Fields in dynamic objects are additionally always mutable, so the `mut` keyword cannot be used.
+
+It is also worth noting that fields in objects will be always iterated and printed in the order that they are declared/added; they are *well-ordered*.
+
+#### Syntax sugar
 
 Finally, declaring and accessing fields in objects have a couple handy shorthands and sets of syntax sugar.
 
@@ -319,7 +323,7 @@ let obj = {
     :b
 };
 
-print(obj); // { a: 1, b: "owo" }
+print(obj); // { "a": 1, "b": "owo" }
 ```
 
 This also works with a handful of other expressions; variables (`:x`), access expressions (`:a.b`), nested access expressions (`:a.b.c`), and block expressions if the trailing expression also shares this property (`:{ let x = 0; x }`).
