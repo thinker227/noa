@@ -120,22 +120,45 @@ internal sealed partial class Parser
         TokenKind.Plus,
         TokenKind.Dash);
     
-    internal ExpressionSyntax ParseAccessExpression(int precedence)
+    internal ExpressionSyntax ParseAccessOrIndexExpression(int precedence)
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
-        while (!AtEnd && Current.Kind is TokenKind.Dot)
+        while (!AtEnd && Current.Kind is TokenKind.Dot or TokenKind.OpenBracket)
         {
-            var dotToken = Advance();
-
-            var name = ParseFieldNameOrError();
-
-            expression = new AccessExpressionSyntax()
+            if (Current.Kind is TokenKind.Dot)
             {
-                Target = expression,
-                DotToken = dotToken,
-                Name = name
-            };
+                // Access expression
+
+                var dotToken = Advance();
+
+                var name = ParseFieldNameOrError();
+
+                expression = new AccessExpressionSyntax()
+                {
+                    Target = expression,
+                    DotToken = dotToken,
+                    Name = name
+                };
+            }
+            else
+            {
+                // Index expression
+
+                var openBracket = Advance();
+
+                var index = ParseExpressionOrError();
+
+                var closeBracket = Advance();
+
+                expression = new IndexExpressionSyntax()
+                {
+                    Target = expression,
+                    OpenBracket = openBracket,
+                    Index = index,
+                    CloseBracket = closeBracket
+                };
+            }
         }
 
         return expression;
@@ -488,7 +511,7 @@ internal sealed partial class Parser
         5 => termExpressionParser(this, precedence),
         6 => factorExpressionParser(this, precedence),
         7 => unaryExpressionParser(this, precedence),
-        8 => ParseAccessExpression(precedence),
+        8 => ParseAccessOrIndexExpression(precedence),
         9 => ParseCallExpression(precedence),
         10 => ParsePrimaryExpression(),
         _ => throw new UnreachableException()
