@@ -45,6 +45,7 @@ internal static class SyntaxFacts
     public static FrozenSet<TokenKind> CanBeginPrimaryExpression { get; } = new[]
     {
         TokenKind.OpenParen,
+        TokenKind.OpenBracket,
         TokenKind.OpenBrace,
         TokenKind.If,
         TokenKind.Loop,

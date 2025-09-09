@@ -181,6 +181,9 @@ internal sealed partial class Parser
         {
         case TokenKind.OpenParen:
             return ParseParenthesizedOrLambdaExpression();
+        
+        case TokenKind.OpenBracket:
+            return ParseListExpression();
 
         case TokenKind.Return:
             {
@@ -256,6 +259,28 @@ internal sealed partial class Parser
         }
     }
     
+    internal ListExpressionSyntax ParseListExpression()
+    {
+        var openBracket = Expect(TokenKind.OpenBracket);
+
+        var elements = ParseSeparatedList(
+            TokenKind.Comma,
+            allowTrailingSeparator: true,
+            ParseExpressionOrError,
+            TokenKind.CloseBracket,
+            TokenKind.CloseBrace,
+            TokenKind.Semicolon);
+
+        var closeBracket = Expect(TokenKind.CloseBracket);
+
+        return new()
+        {
+            OpenBracket = openBracket,
+            Elements = elements,
+            CloseBracket = closeBracket
+        };
+    }
+
     internal BlockExpressionSyntax ParseBlockExpression()
     {
         var openBrace = Expect(TokenKind.OpenBrace);
