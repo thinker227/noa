@@ -31,5 +31,4 @@ pub const TO_STRING: u8 = 0x6F;
 pub const ADD_FIELD: u8 = 0x70;
 pub const WRITE_FIELD: u8 = 0x71;
 pub const READ_FIELD: u8 = 0x72;
-pub const FINALIZE_OBJECT: u8 = 0x73;
 pub const BOUNDARY: u8 = 0xFF;

@@ -66,7 +66,6 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x70 | `AddField <mutable: bool>` | Same as `WriteField` writes a fields **without override/mutability checks** and sets the field's mutability to `mutable`. | Cumulative: pops 3 values. |
 | 0x71 | `WriteField` | Pops the three topmost values from the stack, coerces the second into a string and the third into an object, then writes the first value as a field with the coerced string as the name into the coerced object. | Cumulative: pops 3 values. |
 | 0x72 | `ReadField` | Pops the two topmost values from the stack, coerces the first into a string and the second into an object, reads a field with the coerced string as the name from the coerced object, then pushes the read value of the field onto the stack. | Cumulative: pops 1 value. |
-| 0x73 | `FinalizeObject` | Pops the topmost value from the stack, ensures that is it an object without coercion, sets the object to be finalized, then pushes the object back onto the stack. | Cumulative: none. |
 
 ## Operational instructions (0xF0-0xFF)
 

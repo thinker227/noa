@@ -46,7 +46,6 @@ internal enum Opcode : byte
     AddField = 0x70,
     WriteField = 0x71,
     ReadField = 0x72,
-    FinalizeObject = 0x73,
     
     // Operations instructions
     Boundary = 0xFF,
