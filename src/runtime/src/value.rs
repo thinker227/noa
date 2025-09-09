@@ -57,6 +57,7 @@ pub struct Object {
 pub struct Field {
     pub val: Value,
     pub mutable: bool,
+    pub index: u32,
 }
 
 /// A runtime value.

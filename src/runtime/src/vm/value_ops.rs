@@ -140,6 +140,9 @@ impl Vm {
                     }
                     str.push_str("{");
 
+                    let mut fields = fields.iter().collect::<Vec<_>>();
+                    fields.sort_by_key(|(_, field)| field.index);
+
                     let mut i = 0;
                     for (field_name, field) in fields {
 

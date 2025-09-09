@@ -859,9 +859,11 @@ impl Vm {
                 let name = self.pop_val_as(Self::to_string)?;
                 let (obj, _) = self.pop_val_as_mut(Self::coerce_to_object_mut)?;
 
+                let field_count = obj.fields.len() as u32;
                 obj.fields.insert(name, Field {
                     val,
-                    mutable
+                    mutable,
+                    index: field_count
                 });
             },
 
@@ -885,9 +887,11 @@ impl Vm {
                     None => {
                         if dynamic {
                             // Writing to a dynamic object, insert a mutable field.
+                            let field_count = obj.fields.len() as u32;
                             obj.fields.insert(name, Field {
                                 val,
-                                mutable: true
+                                mutable: true,
+                                index: field_count
                             });
                         } else {
                             // Missing field.
