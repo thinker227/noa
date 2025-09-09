@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::heap::HeapAddress;
 use crate::ark::FuncId;
 
@@ -38,6 +40,17 @@ pub enum StringLocation {
     Interned(usize),
     /// A string allocated on the heap with an address on the heap.
     Allocated(HeapAddress),
+}
+
+/// A list.
+#[derive(Debug, Clone, PartialEq)]
+pub struct List(pub Vec<Value>);
+
+/// An object.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Object {
+    pub fields: HashMap<String, Value>,
+    pub dynamic: bool,
 }
 
 /// A runtime value.

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::value::{Closure, Type, Value};
+use crate::value::{Closure, Object, Type, Value};
 use crate::heap::{HeapAddress, HeapValue};
 use crate::exception::{Exception, FormattedException};
 
@@ -44,7 +44,7 @@ impl Vm {
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
-                (HeapValue::Object { fields: a, .. }, HeapValue::Object { fields: b, .. }) => self.object_equal(a, b),
+                (HeapValue::Object(Object { fields: a, .. }), HeapValue::Object(Object { fields: b, .. })) => self.object_equal(a, b),
                 _ => Ok(false)
             },
 
@@ -129,7 +129,7 @@ impl Vm {
 
                 HeapValue::List(_) => todo!("not yet specified"),
 
-                HeapValue::Object { fields, dynamic, finalized } => {
+                HeapValue::Object(Object { fields, dynamic }) => {
                     let mut str = String::new();
                     
                     if *dynamic {
@@ -208,10 +208,10 @@ impl Vm {
     }
 
     /// Tries to coerce a value into an object.
-    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, bool, bool, HeapAddress)> {
+    pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
         match val {
             Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::Object { fields, dynamic, finalized } => Ok((fields, *dynamic, *finalized, adr)),
+                HeapValue::Object(obj) => Ok((obj, adr)),
                 _ => Err(self.coercion_error(val, Type::Object))
             },
             _ => Err(self.coercion_error(val, Type::Object))
