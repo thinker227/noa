@@ -58,6 +58,7 @@ pub enum HeapValue {
     Object {
         fields: HashMap<String, Value>,
         dynamic: bool,
+        finalized: bool,
     },
 }
 

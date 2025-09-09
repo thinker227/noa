@@ -288,6 +288,13 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     make_arg(&inspection, 0, "field", Some(Type::String))
                 ]
             ),
+            opcode::FINALIZE_OBJECT => (
+                "FinalizeObject",
+                vec![],
+                vec![
+                    make_arg(&inspection, 0, "object", Some(Type::Object))
+                ]
+            ),
             opcode::BOUNDARY => (
                 "Boundary",
                 vec![],

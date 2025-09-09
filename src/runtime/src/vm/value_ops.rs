@@ -129,7 +129,7 @@ impl Vm {
 
                 HeapValue::List(_) => todo!("not yet specified"),
 
-                HeapValue::Object { fields, dynamic } => {
+                HeapValue::Object { fields, dynamic, finalized } => {
                     let mut str = String::new();
                     
                     if *dynamic {
@@ -208,10 +208,10 @@ impl Vm {
     }
 
     /// Tries to coerce a value into an object.
-    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, bool, HeapAddress)> {
+    pub fn coerce_to_object(&self, val: Value) -> Result<(&HashMap<String, Value>, bool, bool, HeapAddress)> {
         match val {
             Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::Object { fields, dynamic } => Ok((fields, *dynamic, adr)),
+                HeapValue::Object { fields, dynamic, finalized } => Ok((fields, *dynamic, *finalized, adr)),
                 _ => Err(self.coercion_error(val, Type::Object))
             },
             _ => Err(self.coercion_error(val, Type::Object))

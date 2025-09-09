@@ -30,4 +30,5 @@ pub const CONCAT: u8 = 0x6E;
 pub const TO_STRING: u8 = 0x6F;
 pub const WRITE_FIELD: u8 = 0x70;
 pub const READ_FIELD: u8 = 0x71;
+pub const FINALIZE_OBJECT: u8 = 0x72;
 pub const BOUNDARY: u8 = 0xFF;
