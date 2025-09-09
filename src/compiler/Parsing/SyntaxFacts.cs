@@ -244,5 +244,6 @@ internal static class SyntaxFacts
     /// <param name="expression">The expression to check.</param>
     public static bool IsValidLValue(this ExpressionSyntax expression) => expression
         is IdentifierExpressionSyntax
-        or AccessExpressionSyntax;
+        or AccessExpressionSyntax
+        or IndexExpressionSyntax;
 }

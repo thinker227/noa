@@ -36,7 +36,7 @@ parameterList = (parameter (',' parameter)*)? ;
 
 assignmentStatement = lValue assignmentOperator expression ';' ;
 
-lValue = identifierExpression | accessExpression ;
+lValue = identifierExpression | accessExpression | indexExpression ;
 
 
 
