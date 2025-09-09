@@ -43,9 +43,10 @@ internal enum Opcode : byte
     GreaterThan = 0x6D,
     Concat = 0x6E,
     ToString = 0x6F,
-    WriteField = 0x70,
-    ReadField = 0x71,
-    FinalizeObject = 0x72,
+    AddField = 0x70,
+    WriteField = 0x71,
+    ReadField = 0x72,
+    FinalizeObject = 0x73,
     
     // Operations instructions
     Boundary = 0xFF,

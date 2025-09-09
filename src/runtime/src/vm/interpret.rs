@@ -837,6 +837,10 @@ impl Vm {
                 self.push(Value::Object(adr))?;
             },
 
+            opcode::ADD_FIELD => {
+                todo!()
+            },
+
             opcode::WRITE_FIELD => {
                 todo!()
             },
