@@ -184,6 +184,13 @@ public sealed partial class ErrorFieldName(Ast ast, Syntax.SyntaxNode syntax) : 
     public override IEnumerable<Node> Children => [];
 }
 
+public sealed partial class ListExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
+{
+    public required ImmutableArray<Expression> Elements { get; init; }
+
+    public override IEnumerable<Node> Children => [..Elements];
+}
+
 public sealed partial class IfExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
 {
     public required Expression Condition { get; init; }
@@ -255,6 +262,15 @@ public sealed partial class AccessExpression(Ast ast, Syntax.SyntaxNode syntax) 
     public required FieldName Name { get; init; }
 
     public override IEnumerable<Node> Children => [Target, Name];
+}
+
+public sealed partial class IndexExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
+{
+    public required Expression Target { get; init; }
+
+    public required Expression Index { get; init; }
+
+    public override IEnumerable<Node> Children => [Target, Index];
 }
 
 public sealed partial class IdentifierExpression(Ast ast, Syntax.SyntaxNode syntax) : Expression(ast, syntax)
