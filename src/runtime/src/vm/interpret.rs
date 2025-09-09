@@ -722,6 +722,10 @@ impl Vm {
                 self.push(Value::Object(adr))?;
             },
 
+            opcode::PUSH_LIST => {
+                todo!();
+            },
+
             opcode::POP => {
                 self.pop()?;
             },
@@ -913,6 +917,18 @@ impl Vm {
                         return Err(self.exception(Exception::MissingField(name)));
                     },
                 };
+            },
+
+            opcode::APPEND_ELEMENT => {
+                todo!();
+            },
+
+            opcode::WRITE_ELEMENT => {
+                todo!();
+            },
+
+            opcode::READ_ELEMENT => {
+                todo!();
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
