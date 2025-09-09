@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use polonius_the_crab::{polonius, polonius_return};
+
 use crate::value::{Closure, Object, Type, Value};
 use crate::heap::{HeapAddress, HeapValue};
 use crate::exception::{Exception, FormattedException};
@@ -211,11 +213,36 @@ impl Vm {
     pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
         match val {
             Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::Object(obj) => Ok((obj, adr)),
-                _ => Err(self.coercion_error(val, Type::Object))
+                HeapValue::Object(obj) => return Ok((obj, adr)),
+                _ => {}
             },
-            _ => Err(self.coercion_error(val, Type::Object))
-        }
+            _ => {}
+        };
+
+        Err(self.coercion_error(val, Type::Object))
+    }
+
+    /// Tries to coerce a value into an object mutably.
+    pub fn coerce_to_object_mut(&mut self, val: Value) -> Result<(&mut Object, HeapAddress)> {
+        // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
+
+        let mut this = self;
+
+        polonius!(|this| -> Result<(&'polonius mut Object, HeapAddress)> {
+            match val {
+                // Can't use ? operator here so have to manually match.
+                Value::Object(adr) => match this.get_heap_value_mut(adr) {
+                    Ok(x) => match x {
+                        HeapValue::Object(obj) => polonius_return!(Ok((obj, adr))),
+                        _ => {}
+                    },
+                    Err(e) => polonius_return!(Err(e)),
+                }
+                _ => {}
+            };
+        });
+
+        Err(this.coercion_error(val, Type::Object))
     }
 
     // Constructs a formatted coercion error exception.
