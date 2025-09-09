@@ -328,6 +328,37 @@ print(obj); // { "a": 1, "b": "owo" }
 
 This also works with a handful of other expressions; variables (`:x`), access expressions (`:a.b`), nested access expressions (`:a.b.c`), and block expressions if the trailing expression also shares this property (`:{ let x = 0; x }`).
 
+### Lists
+
+Lists in Noa are dynamic sequences of values. Just like arrays/lists/vectors in other languages, they can be constructed with a set of elements and indexed by element.
+
+Lists are declared using square brackets (`[]`) containing a comma-separated sequence of values.
+
+```js
+let xs = ["a", "b", "c"];
+```
+
+Indexing lists is done by putting square brackets after an expression with the index between the brackets.
+
+```js
+print(xs[1]); // "b"
+```
+
+Lists are dynamic and mutable, meaning that they can have elements added/remove to/from them, and elements can be mutated whenever.
+
+```js
+xs[2] = "d";
+
+print(xs[2]); // "d"
+```
+
+However, elements cannot be added outside the bounds of a list.
+
+```js
+print(xs[3]); // error: index 3 is outside the bounds of the list
+print(xs[-1]); // error: index -1 is outside the bounds of the list
+```
+
 ### Blocks
 
 Unlike a lot of other C-like languages, blocks in Noa are expressions. Blocks can contain zero or more statements, and optionally end with a trailing expression which will be yielded as the value of the expression.
