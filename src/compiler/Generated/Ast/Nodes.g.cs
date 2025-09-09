@@ -140,11 +140,11 @@ public sealed partial class Field(Ast ast, Syntax.SyntaxNode syntax) : Node(ast,
 {
     public required bool IsMutable { get; init; }
 
-    public required FieldName? Name { get; init; }
+    public required FieldName Name { get; init; }
 
     public required Expression Value { get; init; }
 
-    public override IEnumerable<Node> Children => [..EmptyIfNull(Name), Value];
+    public override IEnumerable<Node> Children => [Name, Value];
 }
 
 public abstract partial class FieldName(Ast ast, Syntax.SyntaxNode syntax) : Node(ast, syntax)
@@ -154,6 +154,13 @@ public abstract partial class FieldName(Ast ast, Syntax.SyntaxNode syntax) : Nod
 public sealed partial class SimpleFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
 {
     public required string Name { get; init; }
+
+    public override IEnumerable<Node> Children => [];
+}
+
+public sealed partial class InferredFieldName(Ast ast, Syntax.SyntaxNode syntax) : FieldName(ast, syntax)
+{
+    public required String Name { get; init; }
 
     public override IEnumerable<Node> Children => [];
 }

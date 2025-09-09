@@ -218,7 +218,7 @@ public abstract partial class Visitor
 
     protected virtual void VisitField(Field node)
     {
-        if (node.Name is not null) Visit(node.Name);
+        Visit(node.Name);
         Visit(node.Value);
     }
 
@@ -228,6 +228,9 @@ public abstract partial class Visitor
         {
         case SimpleFieldName x:
             VisitSimpleFieldName(x);
+            break;
+        case InferredFieldName x:
+            VisitInferredFieldName(x);
             break;
         case StringFieldName x:
             VisitStringFieldName(x);
@@ -244,6 +247,8 @@ public abstract partial class Visitor
     }
 
     protected virtual void VisitSimpleFieldName(SimpleFieldName node) {}
+
+    protected virtual void VisitInferredFieldName(InferredFieldName node) {}
 
     protected virtual void VisitStringFieldName(StringFieldName node)
     {

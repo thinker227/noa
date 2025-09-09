@@ -213,20 +213,28 @@ internal static class SyntaxFacts
     /// <param name="expression">The expression to check.</param>
     public static bool IsAllowedAsTrailingExpression(this ExpressionSyntax expression) => expression
         is not IfExpressionSyntax { Else: null };
-    
+
     /// <summary>
     /// Returns whether the name of a field can be inferred from an expression.
     /// </summary>
     /// <param name="expression">The expression to check.</param>
-    public static bool CanInferFieldNameFrom(this ExpressionSyntax expression) => expression switch
+    public static bool CanInferFieldName(this ExpressionSyntax expression) =>
+        expression.InferFieldName() is not null;
+    
+    /// <summary>
+    /// Returns the inferred field name of an expression.
+    /// </summary>
+    /// <param name="expression">The expression to infer the field name from.</param>
+    public static string? InferFieldName(this ExpressionSyntax expression) => expression switch
     {
-        IdentifierExpressionSyntax => true,
-        AccessExpressionSyntax { Name: SimpleFieldNameSyntax or ErrorFieldNameSyntax } => true,
-        AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.CanInferFieldNameFrom(),
-        ParenthesizedExpressionSyntax parenthesized => parenthesized.Expression.CanInferFieldNameFrom(),
-        BlockExpressionSyntax block => block.Block.TrailingExpression?.CanInferFieldNameFrom() ?? false,
-        ErrorExpressionSyntax => true,
-        _ => false
+        IdentifierExpressionSyntax ident => ident.Identifier.Text,
+        AccessExpressionSyntax { Name: ErrorFieldNameSyntax } => "",
+        AccessExpressionSyntax { Name: SimpleFieldNameSyntax fieldName } => fieldName.NameToken.Text,
+        AccessExpressionSyntax { Name: ExpressionFieldNameSyntax expressionName } => expressionName.Expression.InferFieldName(),
+        ParenthesizedExpressionSyntax parenthesized => parenthesized.Expression.InferFieldName(),
+        BlockExpressionSyntax block => block.Block.TrailingExpression?.InferFieldName(),
+        ErrorExpressionSyntax => "",
+        _ => null
     };
 
     /// <summary>

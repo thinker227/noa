@@ -160,7 +160,7 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitField(Field node)
     {
-        if (node.Name is not null) Visit(node.Name);
+        Visit(node.Name);
         Visit(node.Value);
 
         return GetDefault(node);
@@ -169,6 +169,7 @@ public abstract partial class Visitor<T>
     protected virtual T VisitFieldName(FieldName node) => node switch
     {
         SimpleFieldName x => VisitSimpleFieldName(x),
+        InferredFieldName x => VisitInferredFieldName(x),
         StringFieldName x => VisitStringFieldName(x),
         ExpressionFieldName x => VisitExpressionFieldName(x),
         ErrorFieldName x => VisitErrorFieldName(x),
@@ -176,6 +177,8 @@ public abstract partial class Visitor<T>
     };
 
     protected virtual T VisitSimpleFieldName(SimpleFieldName node) => GetDefault(node);
+
+    protected virtual T VisitInferredFieldName(InferredFieldName node) => GetDefault(node);
 
     protected virtual T VisitStringFieldName(StringFieldName node)
     {

@@ -178,7 +178,11 @@ internal sealed class IntoAst(Ast ast)
         IsMutable = syntax.MutToken is not null,
         Name = syntax.Name is not null
             ? FromFieldName(syntax.Name)
-            : null,
+            : new InferredFieldName(ast, syntax.Value)
+            {
+                // This is somewhat ugly, but InferFieldName is only available on the green node.
+                Name = ((Syntax.Green.ExpressionSyntax)syntax.Value.Green).InferFieldName() ?? ""
+            },
         Value = FromExpression(syntax.Value)
     };
 

@@ -338,7 +338,7 @@ internal sealed partial class Parser
 
             var value = ParseExpressionOrError();
 
-            if (name is null && !value.CanInferFieldNameFrom())
+            if (name is null && !value.CanInferFieldName())
             {
                 ReportDiagnostic(ParseDiagnostics.CannotInferFieldName, colonToken);
             }
