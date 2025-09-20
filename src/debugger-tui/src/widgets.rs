@@ -1,6 +1,6 @@
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
-use noa_runtime::value::{self, List, Object, Type, Value};
+use noa_runtime::value::{List, Object, Type, Value};
 use noa_runtime::vm::frame::{Frame, FrameKind};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::prelude::*;
