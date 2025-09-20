@@ -156,7 +156,7 @@ use crate::ark::FuncId;
 use crate::exception::Exception;
 use crate::heap::HeapValue;
 use crate::opcode;
-use crate::value::{Closure, Field, Object, Value};
+use crate::value::{Closure, Field, List, Object, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
 use super::debugger::DebugInspection;
@@ -723,7 +723,10 @@ impl Vm {
             },
 
             opcode::PUSH_LIST => {
-                todo!();
+                let list = List(Vec::new());
+                let adr = self.heap_alloc(HeapValue::List(list))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::POP => {
@@ -920,15 +923,56 @@ impl Vm {
             },
 
             opcode::APPEND_ELEMENT => {
-                todo!();
+                let value = self.pop()?;
+                let (list, _) = self.pop_val_as_mut(Self::coerce_to_list_mut)?;
+
+                list.0.push(value);
             },
 
             opcode::WRITE_ELEMENT => {
-                todo!();
+                let value = self.pop()?;
+
+                let raw_index = self.pop_val_as(Self::coerce_to_number)?;
+                let index = self.to_integer(raw_index)?;
+
+                let (list, _) = self.pop_val_as_mut(Self::coerce_to_list_mut)?;
+
+                let length = list.0.len();
+
+                if index < 0 {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let index = index as usize;
+
+                if index >= length {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let element = list.0.get_mut(index).expect("index should be valid");
+                *element = value;
             },
 
             opcode::READ_ELEMENT => {
-                todo!();
+                let raw_index = self.pop_val_as(Self::coerce_to_number)?;
+                let index = self.to_integer(raw_index)?;
+
+                let (list, _) = self.pop_val_as(Self::coerce_to_list)?;
+
+                let length = list.0.len();
+
+                if index < 0 {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let index = index as usize;
+
+                if index >= length {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let element = *list.0.get(index).expect("index should be valid");
+                self.push(element)?;
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
