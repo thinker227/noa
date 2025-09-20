@@ -12,6 +12,8 @@ public enum TokenKind
     // Symbols
     OpenParen,
     CloseParen,
+    OpenBracket,
+    CloseBracket,
     OpenBrace,
     CloseBrace,
     Comma,

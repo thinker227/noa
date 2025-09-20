@@ -138,6 +138,12 @@
     <Token Name="CloseParen"/>
   </Node>
 
+  <Node Name="ListExpressionSyntax" Parent="ExpressionSyntax">
+    <Token Name="OpenBracket"/>
+    <SeparatedList Name="Elements" Type="ExpressionSyntax"/>
+    <Token Name="CloseBracket"/>
+  </Node>
+
   <Node Name="IfExpressionSyntax" Parent="ExpressionSyntax">
     <Token Name="If"/>
     <Value Name="Condition" Type="ExpressionSyntax"/>
@@ -184,6 +190,13 @@
     <Value Name="Target" Type="ExpressionSyntax"/>
     <Token Name="DotToken"/>
     <Value Name="Name" Type="FieldNameSyntax"/>
+  </Node>
+
+  <Node Name="IndexExpressionSyntax" Parent="ExpressionSyntax">
+    <Value Name="Target" Type="ExpressionSyntax"/>
+    <Token Name="OpenBracket"/>
+    <Value Name="Index" Type="ExpressionSyntax"/>
+    <Token Name="CloseBracket"/>
   </Node>
 
   <Node Name="IdentifierExpressionSyntax" Parent="ExpressionSyntax">

@@ -36,7 +36,7 @@ parameterList = (parameter (',' parameter)*)? ;
 
 assignmentStatement = lValue assignmentOperator expression ';' ;
 
-lValue = identifierExpression | accessExpression ;
+lValue = identifierExpression | accessExpression | indexExpression ;
 
 
 
@@ -45,6 +45,7 @@ expression = blockExpression
            | lambdaExpression
            | tupleExpression
            | objectExpression
+           | listExpression
            | parenthesizedExpression
            | ifExpression
            | loopExpression
@@ -54,6 +55,7 @@ expression = blockExpression
            | unaryExpression
            | binaryExpression
            | accessExpression
+           | indexExpression
            | identifierExpression
            | stringExpression
            | boolExpression
@@ -70,6 +72,8 @@ lambdaExpression = '(' parameterList ')' '=>' expression ;
 tupleExpression = '(' expression ',' expression (',' expression)* ')' ;
 
 objectExpression = 'dyn'? '{' (field (',' field)* ','?)? '}' ;
+
+listExpression = '[' (expression (',' expression)* ','?)? ']' ;
 
 parenthesizedExpression = '(' expression ')' ;
 
@@ -88,6 +92,8 @@ unaryExpression = unaryOperator expression ;
 binaryExpression = expression binaryOperator expression ;
 
 accessExpression = expression '.' fieldName ;
+
+indexExpression = expression '[' expression ']' ;
 
 identifierExpression = NAME ;
 

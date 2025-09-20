@@ -100,6 +100,10 @@
 
   <Node Name="ErrorFieldName" Parent="FieldName"/>
 
+  <Node Name="ListExpression" Parent="Expression">
+    <List Name="Elements" Type="Expression"/>
+  </Node>
+
   <Node Name="IfExpression" Parent="Expression">
     <Value Name="Condition" Type="Expression"/>
     <Value Name="IfTrue" Type="BlockExpression"/>
@@ -138,6 +142,11 @@
   <Node Name="AccessExpression" Parent="Expression">
     <Value Name="Target" Type="Expression"/>
     <Value Name="Name" Type="FieldName"/>
+  </Node>
+
+  <Node Name="IndexExpression" Parent="Expression">
+    <Value Name="Target" Type="Expression"/>
+    <Value Name="Index" Type="Expression"/>
   </Node>
 
   <Node Name="IdentifierExpression" Parent="Expression">

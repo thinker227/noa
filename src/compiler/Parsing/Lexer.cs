@@ -137,6 +137,8 @@ internal sealed partial class Lexer
         {
             "(" => TokenKind.OpenParen,
             ")" => TokenKind.CloseParen,
+            "[" => TokenKind.OpenBracket,
+            "]" => TokenKind.CloseBracket,
             "{" => TokenKind.OpenBrace,
             "}" => TokenKind.CloseBrace,
             "," => TokenKind.Comma,

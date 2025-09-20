@@ -133,6 +133,8 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         var b = dyn ? (byte)1 : (byte)0;
         Add(Opcode.PushObject, [b]);
     }
+
+    public void PushList() => Add(Opcode.PushList);
     
     public void Pop() => Add(Opcode.Pop);
 
@@ -187,6 +189,12 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void WriteField() => Add(Opcode.WriteField);
 
     public void ReadField() => Add(Opcode.ReadField);
+
+    public void AppendElement() => Add(Opcode.AppendElement);
+
+    public void WriteElement() => Add(Opcode.WriteElement);
+
+    public void ReadElement() => Add(Opcode.ReadElement);
 }
 
 /// <summary>

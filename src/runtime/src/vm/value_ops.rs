@@ -1,6 +1,6 @@
 use polonius_the_crab::{polonius, polonius_return};
 
-use crate::value::{Closure, Object, Type, Value};
+use crate::value::{Closure, List, Object, Type, Value};
 use crate::heap::{HeapAddress, HeapValue};
 use crate::exception::{Exception, FormattedException};
 
@@ -43,7 +43,7 @@ impl Vm {
 
             (Value::Object(a), Value::Object(b)) => match (self.get_heap_value(a)?, self.get_heap_value(b)?) {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
-                (HeapValue::List(_), HeapValue::List(_)) => todo!("not yet specified"),
+                (HeapValue::List(a), HeapValue::List(b)) => self.list_equal(a, b),
                 (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
                 _ => Ok(false)
             },
@@ -54,6 +54,27 @@ impl Vm {
         }
     }
 
+    /// Checks whether two lists are equal.
+    fn list_equal(&self, a: &List, b: &List) -> Result<bool> {
+        let a = &a.0;
+        let b = &b.0;
+
+        if a.len() != b.len() {
+            return Ok(false);
+        }
+
+        // Todo: this doesn't account for recursive lists.
+
+        for (a, b) in a.iter().zip(b.iter()) {
+            if !self.equal(*a, *b)? {
+                return Ok(false);
+            }
+        }
+
+        return Ok(true)
+    }
+
+    /// Checks whether two objects are equal.
     fn object_equal(&self, a: &Object, b: &Object) -> Result<bool> {
         let a = &a.fields;
         let b = &b.fields;
@@ -130,7 +151,27 @@ impl Vm {
             Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
                 HeapValue::String(str) => Ok(str.clone()),
 
-                HeapValue::List(_) => todo!("not yet specified"),
+                HeapValue::List(list) => {
+                    let mut str = String::new();
+
+                    str.push('[');
+
+                    let mut first = true;
+                    for element in &list.0 {
+                        if !first {
+                            str.push_str(", ");
+                        } else {
+                            first = false;
+                        }
+
+                        let element_str = self.to_string(*element)?;
+                        str.push_str(&element_str);
+                    }
+
+                    str.push(']');
+
+                    Ok(str)
+                },
 
                 HeapValue::Object(Object { fields, dynamic }) => {
                     let mut str = String::new();
@@ -171,15 +212,20 @@ impl Vm {
         }
     }
 
+    /// Turns a floating-point number into an integer used to index a list.
+    pub fn to_integer(&self, val: f64) -> Result<i64> {
+        if val.is_infinite() || val.is_nan() || val > usize::MAX as f64 {
+            return Err(self.exception(Exception::InvalidIndex(val)));
+        } else {
+            Ok(val.trunc() as i64)
+        }
+    }
+
     /// Tries to coerce a value into a number.
     pub fn coerce_to_number(&self, val: Value) -> Result<f64> {
         match val {
             Value::Number(x) => Ok(x),
             Value::Bool(x) => Ok(if x { 1. } else { 0. }),
-            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
-                HeapValue::List(_) => todo!("not specified yet"),
-                _ => Err(self.coercion_error(val, Type::Number)),
-            },
             Value::Nil => Ok(0.),
             _ => Err(self.coercion_error(val, Type::Number)),
         }
@@ -188,16 +234,9 @@ impl Vm {
     /// Tries to coerce a value into a boolean.
     pub fn coerce_to_bool(&self, val: Value) -> Result<bool> {
         match val {
-            Value::Number(_) => Ok(true),
             Value::Bool(x) => Ok(x),
-            Value::InternedString(_) => Ok(true),
-            Value::Function(_) => Ok(true),
-            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
-                HeapValue::String(_) => Ok(true),
-                HeapValue::List(_) => todo!("not specified yet"),
-                HeapValue::Object { .. } => Ok(true),
-            },
             Value::Nil => Ok(false),
+            _ => Ok(true),
         }
     }
 
@@ -210,8 +249,38 @@ impl Vm {
     }
 
     /// Tries to coerce a value into a list.
-    pub fn coerce_to_list(&self, _: Value) -> Result<(&Vec<Value>, HeapAddress)> {
-        todo!("not specified yet")
+    pub fn coerce_to_list(&self, val: Value) -> Result<(&List, HeapAddress)> {
+        match val {
+            Value::Object(adr) => match self.get_heap_value(adr)? {
+                HeapValue::List(list) => return Ok((list, adr)),
+                _ => {}
+            },
+            _ => {}
+        };
+
+        Err(self.coercion_error(val, Type::List))
+    }
+
+    /// Tries to coerce a value into a list mutably.
+    pub fn coerce_to_list_mut(&mut self, val: Value) -> Result<(&mut List, HeapAddress)> {
+        // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
+
+        let mut this = self;
+
+        polonius!(|this| -> Result<(&'polonius mut List, HeapAddress)> {
+            match val {
+                Value::Object(adr) => match this.get_heap_value_mut(adr) {
+                    Ok(x) => match x {
+                        HeapValue::List(list) => polonius_return!(Ok((list, adr))),
+                        _ => {}
+                    },
+                    Err(e) => polonius_return!(Err(e)),
+                },
+                _ => {}
+            }
+        });
+
+        Err(this.coercion_error(val, Type::List))
     }
 
     /// Tries to coerce a value into an object.

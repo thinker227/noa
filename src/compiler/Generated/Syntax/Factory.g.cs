@@ -272,6 +272,18 @@ public static partial class SyntaxFactory
         return (ParenthesizedExpressionSyntax)green.ToRed(0, null!);
     }
 
+    public static ListExpressionSyntax ListExpression(Token @openBracket, SeparatedSyntaxList<ExpressionSyntax> @elements, Token @closeBracket)
+    {
+        var green = new Green.ListExpressionSyntax()
+        {
+            OpenBracket = (Green.Token)@openBracket.Green,
+            Elements = (Green.SeparatedSyntaxList<Green.ExpressionSyntax>)@elements.Green,
+            CloseBracket = (Green.Token)@closeBracket.Green
+        };
+
+        return (ListExpressionSyntax)green.ToRed(0, null!);
+    }
+
     public static IfExpressionSyntax IfExpression(Token @if, ExpressionSyntax @condition, BlockExpressionSyntax @body, ElseClauseSyntax? @else)
     {
         var green = new Green.IfExpressionSyntax()
@@ -372,6 +384,19 @@ public static partial class SyntaxFactory
         };
 
         return (AccessExpressionSyntax)green.ToRed(0, null!);
+    }
+
+    public static IndexExpressionSyntax IndexExpression(ExpressionSyntax @target, Token @openBracket, ExpressionSyntax @index, Token @closeBracket)
+    {
+        var green = new Green.IndexExpressionSyntax()
+        {
+            Target = (Green.ExpressionSyntax)@target.Green,
+            OpenBracket = (Green.Token)@openBracket.Green,
+            Index = (Green.ExpressionSyntax)@index.Green,
+            CloseBracket = (Green.Token)@closeBracket.Green
+        };
+
+        return (IndexExpressionSyntax)green.ToRed(0, null!);
     }
 
     public static IdentifierExpressionSyntax IdentifierExpression(Token @identifier)

@@ -664,6 +664,35 @@ internal sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         new Syntax.ParenthesizedExpressionSyntax(this, position, parent);
 }
 
+internal sealed class ListExpressionSyntax : ExpressionSyntax
+{
+    private int? width;
+
+    public required Token OpenBracket { get; init; }
+
+    public required SeparatedSyntaxList<ExpressionSyntax> Elements { get; init; }
+
+    public required Token CloseBracket { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenBracket;
+            if (Elements is not []) yield return Elements;
+            yield return CloseBracket;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + OpenBracket.GetFullWidth() + Elements.GetFullWidth() + CloseBracket.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.ListExpressionSyntax(this, position, parent);
+}
+
 internal sealed class IfExpressionSyntax : ExpressionSyntax
 {
     private int? width;
@@ -905,6 +934,38 @@ internal sealed class AccessExpressionSyntax : ExpressionSyntax
 
     public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
         new Syntax.AccessExpressionSyntax(this, position, parent);
+}
+
+internal sealed class IndexExpressionSyntax : ExpressionSyntax
+{
+    private int? width;
+
+    public required ExpressionSyntax Target { get; init; }
+
+    public required Token OpenBracket { get; init; }
+
+    public required ExpressionSyntax Index { get; init; }
+
+    public required Token CloseBracket { get; init; }
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return OpenBracket;
+            yield return Index;
+            yield return CloseBracket;
+            yield break;
+        }
+    }
+
+    public override int GetFullWidth() => width ??= ComputeWidth();
+
+    private int ComputeWidth() => 0 + Target.GetFullWidth() + OpenBracket.GetFullWidth() + Index.GetFullWidth() + CloseBracket.GetFullWidth();
+
+    public override Syntax.SyntaxNode ToRed(int position, Syntax.SyntaxNode parent) =>
+        new Syntax.IndexExpressionSyntax(this, position, parent);
 }
 
 internal sealed class IdentifierExpressionSyntax : ExpressionSyntax

@@ -103,6 +103,7 @@ public abstract partial class Visitor<T>
         LambdaExpression x => VisitLambdaExpression(x),
         TupleExpression x => VisitTupleExpression(x),
         ObjectExpression x => VisitObjectExpression(x),
+        ListExpression x => VisitListExpression(x),
         IfExpression x => VisitIfExpression(x),
         LoopExpression x => VisitLoopExpression(x),
         ReturnExpression x => VisitReturnExpression(x),
@@ -111,6 +112,7 @@ public abstract partial class Visitor<T>
         UnaryExpression x => VisitUnaryExpression(x),
         BinaryExpression x => VisitBinaryExpression(x),
         AccessExpression x => VisitAccessExpression(x),
+        IndexExpression x => VisitIndexExpression(x),
         IdentifierExpression x => VisitIdentifierExpression(x),
         StringExpression x => VisitStringExpression(x),
         BoolExpression x => VisitBoolExpression(x),
@@ -196,6 +198,13 @@ public abstract partial class Visitor<T>
 
     protected virtual T VisitErrorFieldName(ErrorFieldName node) => GetDefault(node);
 
+    protected virtual T VisitListExpression(ListExpression node)
+    {
+        Visit(node.Elements);
+
+        return GetDefault(node);
+    }
+
     protected virtual T VisitIfExpression(IfExpression node)
     {
         Visit(node.Condition);
@@ -254,6 +263,14 @@ public abstract partial class Visitor<T>
     {
         Visit(node.Target);
         Visit(node.Name);
+
+        return GetDefault(node);
+    }
+
+    protected virtual T VisitIndexExpression(IndexExpression node)
+    {
+        Visit(node.Target);
+        Visit(node.Index);
 
         return GetDefault(node);
     }

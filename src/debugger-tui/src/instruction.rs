@@ -148,6 +148,11 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
+            opcode::PUSH_LIST => (
+                "PushList",
+                vec![],
+                vec![]
+            ),
             opcode::POP => (
                 "Pop",
                 vec![],
@@ -297,6 +302,31 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![
                     make_arg(&inspection, 1, "object", Some(Type::Object)),
                     make_arg(&inspection, 0, "field", Some(Type::String))
+                ]
+            ),
+            opcode::APPEND_ELEMENT => (
+                "AppendElement",
+                vec![],
+                vec![
+                    make_arg(&inspection, 1, "list", Some(Type::List)),
+                    make_arg(&inspection, 0, "value", None)
+                ]
+            ),
+            opcode::WRITE_ELEMENT => (
+                "WriteElement",
+                vec![],
+                vec![
+                    make_arg(&inspection, 2, "list", Some(Type::List)),
+                    make_arg(&inspection, 1, "index", Some(Type::Number)),
+                    make_arg(&inspection, 0, "value", None)
+                ]
+            ),
+            opcode::READ_ELEMENT => (
+                "ReadElement",
+                vec![],
+                vec![
+                    make_arg(&inspection, 1, "list", Some(Type::List)),
+                    make_arg(&inspection, 0, "index", Some(Type::Number))
                 ]
             ),
             opcode::BOUNDARY => (

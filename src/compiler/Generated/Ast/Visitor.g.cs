@@ -143,6 +143,9 @@ public abstract partial class Visitor
         case ObjectExpression x:
             VisitObjectExpression(x);
             break;
+        case ListExpression x:
+            VisitListExpression(x);
+            break;
         case IfExpression x:
             VisitIfExpression(x);
             break;
@@ -166,6 +169,9 @@ public abstract partial class Visitor
             break;
         case AccessExpression x:
             VisitAccessExpression(x);
+            break;
+        case IndexExpression x:
+            VisitIndexExpression(x);
             break;
         case IdentifierExpression x:
             VisitIdentifierExpression(x);
@@ -262,6 +268,11 @@ public abstract partial class Visitor
 
     protected virtual void VisitErrorFieldName(ErrorFieldName node) {}
 
+    protected virtual void VisitListExpression(ListExpression node)
+    {
+        Visit(node.Elements);
+    }
+
     protected virtual void VisitIfExpression(IfExpression node)
     {
         Visit(node.Condition);
@@ -306,6 +317,12 @@ public abstract partial class Visitor
     {
         Visit(node.Target);
         Visit(node.Name);
+    }
+
+    protected virtual void VisitIndexExpression(IndexExpression node)
+    {
+        Visit(node.Target);
+        Visit(node.Index);
     }
 
     protected virtual void VisitIdentifierExpression(IdentifierExpression node) {}

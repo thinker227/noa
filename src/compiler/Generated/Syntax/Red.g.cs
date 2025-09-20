@@ -807,6 +807,41 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         green.GetHashCode();
 }
 
+public sealed class ListExpressionSyntax : ExpressionSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.ListExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public Token OpenBracket => (Token)green.OpenBracket.ToRed(FullPosition, this);
+    
+    public SeparatedSyntaxList<ExpressionSyntax> Elements => (SeparatedSyntaxList<ExpressionSyntax>)green.Elements.ToRed(FullPosition + green.OpenBracket.GetFullWidth(), this);
+    
+    public Token CloseBracket => (Token)green.CloseBracket.ToRed(FullPosition + green.OpenBracket.GetFullWidth() + green.Elements.GetFullWidth(), this);
+    
+    internal ListExpressionSyntax(Green.ListExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return OpenBracket;
+            if (Elements is not []) yield return Elements;
+            yield return CloseBracket;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is ListExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
 public sealed class IfExpressionSyntax : ExpressionSyntax
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -1098,6 +1133,44 @@ public sealed class AccessExpressionSyntax : ExpressionSyntax
 
     public override bool Equals(object? obj) =>
         obj is AccessExpressionSyntax other &&
+        other.green.Equals(green);
+    
+    public override int GetHashCode() =>
+        green.GetHashCode();
+}
+
+public sealed class IndexExpressionSyntax : ExpressionSyntax
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly Green.IndexExpressionSyntax green;
+
+    internal override Green.SyntaxNode Green => green;
+
+    public ExpressionSyntax Target => (ExpressionSyntax)green.Target.ToRed(FullPosition, this);
+    
+    public Token OpenBracket => (Token)green.OpenBracket.ToRed(FullPosition + green.Target.GetFullWidth(), this);
+    
+    public ExpressionSyntax Index => (ExpressionSyntax)green.Index.ToRed(FullPosition + green.Target.GetFullWidth() + green.OpenBracket.GetFullWidth(), this);
+    
+    public Token CloseBracket => (Token)green.CloseBracket.ToRed(FullPosition + green.Target.GetFullWidth() + green.OpenBracket.GetFullWidth() + green.Index.GetFullWidth(), this);
+    
+    internal IndexExpressionSyntax(Green.IndexExpressionSyntax green, int fullPosition, SyntaxNode parent) : base(fullPosition, parent) =>
+        this.green = green;
+    
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return Target;
+            yield return OpenBracket;
+            yield return Index;
+            yield return CloseBracket;
+            yield break;
+        }
+    }
+
+    public override bool Equals(object? obj) =>
+        obj is IndexExpressionSyntax other &&
         other.green.Equals(green);
     
     public override int GetHashCode() =>

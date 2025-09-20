@@ -97,6 +97,11 @@ public static class ContextService
                     BlockExpressionSyntax { Block.Statements: [] } or
                     ObjectExpressionSyntax { Fields: [] }
             }
+            // [|]
+            or {
+                Kind: TokenKind.OpenBracket,
+                ParentNode: ListExpressionSyntax
+            }
             // let x = |
             or {
                 Kind: TokenKind.Equals,
@@ -133,6 +138,7 @@ public static class ContextService
                 ParentNode: LambdaExpressionSyntax or ExpressionBodySyntax
             }
             // (x, |)
+            // [x, |]
             or {
                 Kind: TokenKind.Comma,
                 ParentNode: SeparatedSyntaxList<ExpressionSyntax>
@@ -227,6 +233,11 @@ public static class ContextService
             or {
                 Kind: TokenKind.CloseBrace,
                 ParentNode: ObjectExpressionSyntax { Fields: [] }
+            }
+            // [] |
+            or {
+                Kind: TokenKind.CloseBracket,
+                ParentNode: ListExpressionSyntax
             }
             // let x = { 0 } |
             // let x = if y {} else {} |

@@ -168,4 +168,19 @@ public class ContextServiceTests
     public void ExpressionAfterColonWithoutNameInObject() => Test(
         "{ :| }",
         SyntaxContextKind.Expression);
+    
+    [Fact]
+    public void ExpressionAfterOpeningBracketInList() => Test(
+        "[|]",
+        SyntaxContextKind.Expression);
+    
+    [Fact]
+    public void ExpressionAfterCommaInList() => Test(
+        "[x, | ]",
+        SyntaxContextKind.Expression);
+    
+    [Fact]
+    public void PostExpressionAfterClosingBracketInList() => Test(
+        "[] |",
+        SyntaxContextKind.PostExpression);
 }
