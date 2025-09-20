@@ -2,6 +2,7 @@ bin/
 obj/
 target/
 package/
+build/
 .vs/
 .idea/
 *.sln.DotSettings.user
