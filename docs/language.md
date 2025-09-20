@@ -352,12 +352,22 @@ xs[2] = "d";
 print(xs[2]); // "d"
 ```
 
-However, elements cannot be added outside the bounds of a list.
+However, elements cannot be added outside the bounds of a list. Unlike some languages, negative indices always cause an error.
 
 ```js
 print(xs[3]); // error: index 3 is outside the bounds of the list
 print(xs[-1]); // error: index -1 is outside the bounds of the list
 ```
+
+When indexing lists, the index is rounded *towards 0*.
+
+```js
+print(xs[0.5]); // "a"
+print(xs[1.9]); // "b"
+print(xs[2.1]); // "d"
+```
+
+Indexing a list using NaN or positive or negative infinity causes en error.
 
 ### Blocks
 
