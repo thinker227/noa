@@ -120,7 +120,7 @@ internal static class Compile
         var text = $"[white]{diagnostic.Id}[/] at " +
                    $"[aqua]{start.Line.LineNumber + 1}:{start.Offset + 1}[/] to " +
                    $"[aqua]{end.Line.LineNumber + 1}:{end.Offset + 1}[/] " +
-                   $"in [aqua]{location.SourceName}[/]\n" +
+                   $"in [aqua]{location.SourceName.EscapeMarkup()}[/]\n" +
                    $"[{color.ToMarkup()}]{message}[/]";
             
         return new Markup(text, Color.Grey);
