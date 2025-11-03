@@ -22,6 +22,10 @@ Strings are equal if their UTF-8 binary representation is the same. This unfortu
 
 Objects are equal if they share the same fields and each field shares the same value in both objects. Field names are compared using the same rules as strings, and values are compared using the same equality rules as otherwise.
 
+## Lists
+
+Lists are equal if they are the same size and each element in the first list is equal to the element at the same index in the second list.
+
 ## Nil
 
 Nil (`()`) is always equal to iself.

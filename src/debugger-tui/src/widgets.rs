@@ -1,6 +1,6 @@
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
-use noa_runtime::value::{Object, Type, Value};
+use noa_runtime::value::{List, Object, Type, Value};
 use noa_runtime::vm::frame::{Frame, FrameKind};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::prelude::*;
@@ -106,7 +106,7 @@ impl MainWidget<'_, '_, '_> {
             Type::Bool => "bool".blue(),
             Type::Function => "function".green(),
             Type::String => "string".yellow(),
-            Type::List => "list".white(),
+            Type::List => "list".magenta(),
             Type::Object => "object".magenta(),
             Type::Nil => "()".white(),
         }
@@ -130,7 +130,7 @@ impl MainWidget<'_, '_, '_> {
                         HeapValue::String(s) =>
                             format!("\"{}\"", s.clone()).light_yellow().into(),
                         
-                        HeapValue::List(_) => "list".into(),
+                        HeapValue::List(list) => self.show_list(list),
 
                         HeapValue::Object(object) => self.show_object(object),
                     }
@@ -141,6 +141,28 @@ impl MainWidget<'_, '_, '_> {
 
             Value::Nil => "()".into(),
         }
+    }
+
+    fn show_list(&self, list: &List) -> Line<'static> {
+        let mut spans = Vec::new();
+
+        spans.push("[".into());
+
+        let mut first = true;
+        for element in &list.0 {
+            if !first {
+                spans.push(", ".into());
+            } else {
+                first = false;
+            }
+
+            let value_spans = self.show_value(*element).spans;
+            spans.extend_from_slice(&value_spans);
+        }
+
+        spans.push("]".into());
+
+        spans.into()
     }
 
     fn show_object(&self, object: &Object) -> Line<'static> {

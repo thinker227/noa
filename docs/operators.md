@@ -57,5 +57,5 @@ The following is a list of operators and their precedence in order from lowest t
 6. `a + b`, `a - b`
 7. `a * b`, `a / b`
 8. `+x`, `-x`
-9. `obj.x`
+9. `obj.x`, `list[i]`
 10. `f(x)`

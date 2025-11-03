@@ -99,6 +99,10 @@ internal sealed class IntoAst(Ast ast)
             IsDynamic = obj.DynToken is not null,
             Fields = obj.Fields.Nodes().Select(FromField).ToImmutableArray()
         },
+        ListExpressionSyntax list => new ListExpression(ast, syntax)
+        {
+            Elements = list.Elements.Nodes().Select(FromExpression).ToImmutableArray()
+        },
         ParenthesizedExpressionSyntax parens => FromExpression(parens.Expression),
         IfExpressionSyntax @if => new IfExpression(ast, syntax)
         {
@@ -145,6 +149,11 @@ internal sealed class IntoAst(Ast ast)
         {
             Target = FromExpression(access.Target),
             Name = FromFieldName(access.Name)
+        },
+        IndexExpressionSyntax index => new IndexExpression(ast, syntax)
+        {
+            Target = FromExpression(index.Target),
+            Index = FromExpression(index.Index)
         },
         IdentifierExpressionSyntax identifier => new IdentifierExpression(ast, syntax)
         {

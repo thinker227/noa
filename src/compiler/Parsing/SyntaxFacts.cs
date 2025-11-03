@@ -45,6 +45,7 @@ internal static class SyntaxFacts
     public static FrozenSet<TokenKind> CanBeginPrimaryExpression { get; } = new[]
     {
         TokenKind.OpenParen,
+        TokenKind.OpenBracket,
         TokenKind.OpenBrace,
         TokenKind.If,
         TokenKind.Loop,
@@ -243,5 +244,6 @@ internal static class SyntaxFacts
     /// <param name="expression">The expression to check.</param>
     public static bool IsValidLValue(this ExpressionSyntax expression) => expression
         is IdentifierExpressionSyntax
-        or AccessExpressionSyntax;
+        or AccessExpressionSyntax
+        or IndexExpressionSyntax;
 }

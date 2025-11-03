@@ -40,6 +40,10 @@ internal class BlockEmitter(
             EmitAccessAssignment(access, node.Kind, node.Value);
             break;
         
+        case IndexExpression index:
+            EmitIndexAssignment(index, node.Kind, node.Value);
+            break;
+        
         default:
             throw new UnreachableException();
         }
@@ -80,7 +84,7 @@ internal class BlockEmitter(
 
             // Read field and emit the operation.
             Code.ReadField();                 // [.., obj, field]
-            Visit(operand);                     // [.., obj, field, operand]
+            Visit(operand);                   // [.., obj, field, operand]
             EmitCompoundAssignmentKind(kind); // [.., obj, value]
 
             // Setup stack for write.
@@ -93,6 +97,36 @@ internal class BlockEmitter(
         }
 
         Code.WriteField();
+    }
+
+    private void EmitIndexAssignment(IndexExpression target, AssignmentKind kind, Expression operand)
+    {
+        Visit(target.Target); // [.., list]
+        Visit(target.Index); // [.., list, index]
+
+        if (kind is not AssignmentKind.Assign)
+        {
+            // Same logic as field compound assignment.
+
+            using var indexTempVar = Locals.GetTemp();
+            Code.StoreVar(indexTempVar.Variable); // [.., list]
+
+            Code.Dup(); // [.., list, list]
+            Code.LoadVar(indexTempVar.Variable); // [.., list, list, index]
+
+            Code.ReadElement();               // [.., list, element]
+            Visit(operand);                   // [.., list, element, operand]
+            EmitCompoundAssignmentKind(kind); // [.., list, value]
+
+            Code.LoadVar(indexTempVar.Variable); // [.., list, value, index]
+            Code.Swap();                         // [.., list, index, value]
+        }
+        else
+        {
+            Visit(operand);
+        }
+
+        Code.WriteElement();
     }
 
     private void EmitCompoundAssignmentKind(AssignmentKind kind)
@@ -373,6 +407,20 @@ internal class BlockEmitter(
         }
     }
 
+    protected override void VisitListExpression(ListExpression node)
+    {
+        Code.PushList();
+
+        foreach (var element in node.Elements)
+        {
+            Code.Dup();
+
+            Visit(element);
+
+            Code.AppendElement();
+        }
+    }
+
     protected override void VisitAccessExpression(AccessExpression node)
     {
         // Object
@@ -400,6 +448,15 @@ internal class BlockEmitter(
     {
         var index = strings.GetOrAdd(node.Name);
         Code.PushString(index);
+    }
+
+    protected override void VisitIndexExpression(IndexExpression node)
+    {
+        Visit(node.Target);
+
+        Visit(node.Index);
+
+        Code.ReadElement();
     }
 
     protected override void VisitIdentifierExpression(IdentifierExpression node)

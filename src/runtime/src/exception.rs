@@ -50,6 +50,12 @@ pub enum Exception {
 
     #[error("cannot write to immutable field \"{0}\"")]
     WriteToImmutableField(String),
+
+    #[error("cannot index into list using index `{0}`")]
+    InvalidIndex(f64),
+
+    #[error("index `{0}` is out of bounds of the list, which has a length of `{1}`")]
+    OutOfBoundsIndex(f64, usize),
 }
 
 /// An [`Exception`] formatted with a stack trace.
