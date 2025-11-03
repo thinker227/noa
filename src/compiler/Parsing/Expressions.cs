@@ -350,6 +350,8 @@ internal sealed partial class Parser
 
         while (!AtEnd && Current.Kind is not (TokenKind.CloseBrace or TokenKind.Semicolon))
         {
+            var previousToken = Current;
+
             if (Current.Kind is TokenKind.Comma)
             {
                 // A comma here is invalid, but since a comma isn't valid as a statement
@@ -414,6 +416,14 @@ internal sealed partial class Parser
 
             comma = Expect(TokenKind.Comma);
             separators.Add(comma);
+
+            if (Current == previousToken)
+            {
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
+
+                Advance();
+            }
         }
 
         var closeBraceToken = Expect(TokenKind.CloseBrace);
