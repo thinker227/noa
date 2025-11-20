@@ -12,5 +12,6 @@
     },
     "[csharp]": {
         "editor.formatOnType": false
-    }
+    },
+    "rust-analyzer.check.command": "clippy"
 }
