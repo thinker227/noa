@@ -112,10 +112,22 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         Add(Opcode.PushBool, [b]);
     }
     
-    public void PushFunc(FunctionId id)
+    public void PushFunc(FunctionId id, IReadOnlyList<VariableIndex> captureIndices)
     {
-        var bytes = new byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(bytes, id.Id);
+        var captureCount = captureIndices.Count;
+
+        var captureIndicesBytes = 4 * captureCount;
+        var bytes = new byte[4 + 4 + captureIndicesBytes];
+        
+        BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(..4), id.Id);
+        BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(4..8), (uint)captureCount);
+        
+        for (var i = 0; i < captureCount; i++)
+        {
+            var index = 8 + 4 * i;
+            BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(index, 4), captureIndices[i].Index);
+        }
+
         Add(Opcode.PushFunc, bytes);
     }
 

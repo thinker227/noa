@@ -392,7 +392,11 @@ internal class BlockEmitter(
 
         var lambdaFunctionId = functionBuilders[function].Id;
         
-        Code.PushFunc(lambdaFunctionId);
+        var captureIndices = function.Captures
+            .Select(Locals.GetOrCreateVariable)
+            .ToList();
+
+        Code.PushFunc(lambdaFunctionId, captureIndices);
     }
 
     protected override void VisitObjectExpression(ObjectExpression node)
@@ -473,7 +477,7 @@ internal class BlockEmitter(
         case NomialFunction func:
             var funcId = functionBuilders[func].Id;
             
-            Code.PushFunc(funcId);
+            Code.PushFunc(funcId, []);
             
             break;
 
