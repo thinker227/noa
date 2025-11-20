@@ -71,7 +71,7 @@ impl Vm {
             }
         }
 
-        return Ok(true)
+        Ok(true)
     }
 
     /// Checks whether two objects are equal.
@@ -106,7 +106,7 @@ impl Vm {
                 self.consts.strings.get(index)
                     .cloned()
                     .ok_or_else(|| self.exception(Exception::InvalidString(index)))
-                    .map(|x| Some(x)),
+                    .map(Some),
             
             Value::Object(heap_addresss) => match self.get_heap_value(heap_addresss)? {
                 HeapValue::String(str) => Ok(Some(str.clone())),
@@ -179,7 +179,7 @@ impl Vm {
                     if *dynamic {
                         str.push_str("dyn ");
                     }
-                    str.push_str("{");
+                    str.push('{');
 
                     let mut fields = fields.iter().collect::<Vec<_>>();
                     fields.sort_by_key(|(_, field)| field.index);
@@ -188,7 +188,7 @@ impl Vm {
                     for (field_name, field) in fields {
 
                         if i >= 1 {
-                            str.push_str(",");
+                            str.push(',');
                         }
 
                         // Todo: this doesn't account for recursive objects.
@@ -215,7 +215,7 @@ impl Vm {
     /// Turns a floating-point number into an integer used to index a list.
     pub fn to_integer(&self, val: f64) -> Result<i64> {
         if val.is_infinite() || val.is_nan() || val > usize::MAX as f64 {
-            return Err(self.exception(Exception::InvalidIndex(val)));
+            Err(self.exception(Exception::InvalidIndex(val)))
         } else {
             Ok(val.trunc() as i64)
         }
@@ -250,12 +250,10 @@ impl Vm {
 
     /// Tries to coerce a value into a list.
     pub fn coerce_to_list(&self, val: Value) -> Result<(&List, HeapAddress)> {
-        match val {
-            Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::List(list) => return Ok((list, adr)),
-                _ => {}
-            },
-            _ => {}
+        if let Value::Object(adr) = val {
+            if let HeapValue::List(list) = self.get_heap_value(adr)? {
+                return Ok((list, adr))
+            }
         };
 
         Err(self.coercion_error(val, Type::List))
@@ -268,15 +266,11 @@ impl Vm {
         let mut this = self;
 
         polonius!(|this| -> Result<(&'polonius mut List, HeapAddress)> {
-            match val {
-                Value::Object(adr) => match this.get_heap_value_mut(adr) {
-                    Ok(x) => match x {
-                        HeapValue::List(list) => polonius_return!(Ok((list, adr))),
-                        _ => {}
-                    },
+            if let Value::Object(adr) = val {
+                match this.get_heap_value_mut(adr) {
+                    Ok(x) => if let HeapValue::List(list) = x { polonius_return!(Ok((list, adr))) },
                     Err(e) => polonius_return!(Err(e)),
-                },
-                _ => {}
+                }
             }
         });
 
@@ -285,12 +279,10 @@ impl Vm {
 
     /// Tries to coerce a value into an object.
     pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
-        match val {
-            Value::Object(adr) => match self.get_heap_value(adr)? {
-                HeapValue::Object(obj) => return Ok((obj, adr)),
-                _ => {}
-            },
-            _ => {}
+        if let Value::Object(adr) = val {
+            if let HeapValue::Object(obj) = self.get_heap_value(adr)? {
+                return Ok((obj, adr))
+            }
         };
 
         Err(self.coercion_error(val, Type::Object))
@@ -303,16 +295,13 @@ impl Vm {
         let mut this = self;
 
         polonius!(|this| -> Result<(&'polonius mut Object, HeapAddress)> {
-            match val {
-                // Can't use ? operator here so have to manually match.
-                Value::Object(adr) => match this.get_heap_value_mut(adr) {
-                    Ok(x) => match x {
-                        HeapValue::Object(obj) => polonius_return!(Ok((obj, adr))),
-                        _ => {}
+            if let Value::Object(adr) = val {
+                match this.get_heap_value_mut(adr) {
+                    Ok(x) => if let HeapValue::Object(obj) = x {
+                        polonius_return!(Ok((obj, adr)))
                     },
                     Err(e) => polonius_return!(Err(e)),
                 }
-                _ => {}
             };
         });
 

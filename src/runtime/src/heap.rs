@@ -433,7 +433,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0)),
             Value::Object(HeapAddress(2))
         ].iter().copied());
@@ -467,7 +467,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 2);
         alloc(&mut heap, HeapValue::String("owo".into()), 3);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0))
         ].iter().copied());
 
@@ -502,7 +502,7 @@ mod tests {
             Value::Object(HeapAddress(0))
         ])), 1);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0))
         ].iter().copied());
 
@@ -550,7 +550,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 0);
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(1))
         ].iter().copied());
 
@@ -579,7 +579,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(1))
         ].iter().copied());
 
