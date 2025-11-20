@@ -32,9 +32,8 @@ internal static class Emitter
         {
             var name = function!.GetFullName();
             var arity = (uint)function!.Parameters.Count;
-            var captures = function is LambdaFunction lambda
-                ? (uint)lambda.Captures.Count
-                : 0;
+            var captures = (function as LambdaFunction)?.Captures
+                ?? ImmutableHashSet<IVariableSymbol>.Empty;
 
             var builder = functionsBuilder.CreateFunction(strings.GetOrAdd(name), arity, captures);
             functionBuilders.Add(function, builder);

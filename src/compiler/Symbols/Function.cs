@@ -166,7 +166,7 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     /// <summary>
     /// The variables captured by the lambda.
     /// </summary>
-    public IReadOnlyCollection<IVariableSymbol> Captures => captures ?? [];
+    public IReadOnlySet<IVariableSymbol> Captures => captures ?? [];
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {

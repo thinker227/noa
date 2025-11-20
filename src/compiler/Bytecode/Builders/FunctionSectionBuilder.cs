@@ -1,3 +1,5 @@
+using Noa.Compiler.Symbols;
+
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
@@ -30,7 +32,7 @@ internal sealed class FunctionSectionBuilder : IWritable
     public static (FunctionSectionBuilder builder, FunctionBuilder main) Create(StringIndex mainNameIndex)
     {
         var builder = new FunctionSectionBuilder();
-        var main = builder.CreateFunction(mainNameIndex, 0, 0);
+        var main = builder.CreateFunction(mainNameIndex, 0, ImmutableHashSet<IVariableSymbol>.Empty);
         builder.Main = main;
 
         return (builder, main);
@@ -42,7 +44,7 @@ internal sealed class FunctionSectionBuilder : IWritable
     /// <param name="nameIndex">The string index of the name of the function.</param>
     /// <param name="arity">The arity of the function.</param>
     /// <returns>A builder for the created function.</returns>
-    public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity, uint captures)
+    public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity, IReadOnlySet<IVariableSymbol> captures)
     {
         var previous = functions.Count > 0
             ? functions[^1].Code

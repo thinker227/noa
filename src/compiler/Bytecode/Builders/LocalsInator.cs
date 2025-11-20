@@ -6,10 +6,11 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// Creates and manages variables in a function.
 /// </summary>
 /// <param name="parameterCount">The amount of variable indices to reserve for parameters.</param>
-internal sealed class LocalsInator(uint parameterCount, uint capturesCount)
+internal sealed class LocalsInator(uint parameterCount, IReadOnlySet<IVariableSymbol> captures)
 {
     private readonly uint parameterCount = parameterCount;
-    private readonly uint capturesCount = capturesCount;
+    private readonly uint capturesCount = (uint)captures.Count;
+    private readonly IReadOnlySet<IVariableSymbol> captures = captures;
     private readonly Stack<uint> temporaries = [];
     private readonly Dictionary<IVariableSymbol, VariableIndex> indices = [];
     private uint capturesOffset = 0;
@@ -63,7 +64,7 @@ internal sealed class LocalsInator(uint parameterCount, uint capturesCount)
     /// <param name="variable">The variable to get the index for.</param>
     public VariableIndex GetOrCreateVariable(IVariableSymbol variable)
     {
-        if (variable.Capture.IsCaptured)
+        if (captures.Contains(variable))
         {
             if (indices.TryGetValue(variable, out var captureIndex)) return captureIndex;
 

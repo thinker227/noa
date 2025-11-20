@@ -1,3 +1,5 @@
+using Noa.Compiler.Symbols;
+
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
@@ -10,7 +12,7 @@ internal sealed class FunctionBuilder(
     FunctionId id,
     StringIndex nameIndex,
     uint arity,
-    uint captures) : IWritable
+    IReadOnlySet<IVariableSymbol> captures) : IWritable
 {
     /// <summary>
     /// The ID of the function.
