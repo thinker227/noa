@@ -122,38 +122,13 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
-            opcode::PUSH_FUNC => {
-                let function_id_operand = make_nth_operand::<u32>(inspection, "func id", 0);
-
-                let capture_count = read_nth_operand::<u32>(4, inspection);
-                let capture_count_operand = operand_from::<u32>(capture_count, "capture count");
-
-                let captures = if let Some(capture_count) = capture_count {
-                    let mut captures = Vec::new();
-                    let mut i = 0;
-                    captures.resize_with(capture_count as usize, || {
-                        let capture_operand = make_nth_operand::<u32>(
-                            inspection,
-                            format!("capture {i}"),
-                            8 + (4 * i)
-                        );
-                        i += 1;
-                        capture_operand
-                    });
-                    captures
-                } else {
-                    vec![]
-                };
-
-                let mut operands = vec![function_id_operand, capture_count_operand];
-                operands.extend(captures);
-
-                (
-                    "PushFunc",
-                    operands,
-                    vec![]
-                )
-            },
+            opcode::PUSH_FUNC => (
+                "PushFunc",
+                vec![
+                    make_operand::<u32>(inspection, "func id")
+                ],
+                vec![]
+            ),
             opcode::PUSH_NIL => (
                 "PushNil",
                 vec![],
