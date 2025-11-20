@@ -27,7 +27,7 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 |------|-----------|-------------|--------------|
 | 0x14 | `PushFloat <val: f64>` | Pushes the 64-bit float `val` onto the stack. | Pushes 1 value. |
 | 0x15 | `PushBool <val: bool>` | Pushes the boolean `val` onto the stack. | Pushes 1 value. |
-| 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
+| 0x16 | `PushFunc <func id: u32> <capture count: u32> [<captures: u32...>]` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). If `capture count` is greater than 0, `captures` is treated as a variable-length array of variable indices from the current function which will be captured into the new function. If `capture count` is 0, `captures` is omitted. | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
 | 0x18 | `PushString <string index: u32>` | Pushes the string with the string index `string index` onto the stack. | Pushes 1 value. |
 | 0x19 | `PushObject <dynamic: bool>` | Pushes an empty object onto the stack with `dynamic` determining whether the object is dynamic. | Pushes 1 value. |
