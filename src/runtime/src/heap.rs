@@ -55,6 +55,7 @@ pub enum HeapValue {
     String(String),
     List(List),
     Object(Object),
+    Box(Value),
 }
 
 /// A memory heap for managing heap-allocated data and garbage collection of that data.
@@ -197,6 +198,11 @@ impl Heap {
                     let addresses = Self::extract_references(
                         fields.values().map(|f| &f.val).copied()
                     );
+                    to_visit.extend(addresses);
+                },
+                HeapValue::Box(x) => {
+                    let x = *x;
+                    let addresses = Self::extract_references([x].into_iter());
                     to_visit.extend(addresses);
                 },
             }

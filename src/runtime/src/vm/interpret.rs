@@ -976,11 +976,18 @@ impl Vm {
             },
 
             opcode::BOX => {
-                todo!();
+                let val = self.pop()?;
+                // Important that we unbox the value so we don't get a boxed box.
+                let unboxed = self.unbox(val)?;
+
+                let boxed = self.heap_alloc(HeapValue::Box(unboxed))?;
+                self.push(Value::Object(boxed))?;
             },
 
             opcode::UNBOX => {
-                todo!();
+                let val = self.pop()?;
+                let unboxed = self.unbox(val)?;
+                self.push(unboxed)?;
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),

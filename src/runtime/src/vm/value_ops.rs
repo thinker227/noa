@@ -7,6 +7,20 @@ use crate::exception::{Exception, FormattedException};
 use super::{Vm, Result};
 
 impl Vm {
+    /// Unboxes a value if it's a boxed value, and does nothing if it's not.
+    /// 
+    /// Guarantees that the value is not an object of a [`HeapAddress::Box`].
+    pub fn unbox(&self, val: Value) -> Result<Value> {
+        match val {
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                // Just in case the value is for some reason a boxed box, try to recursively unbox it.
+                HeapValue::Box(x) => self.unbox(*x),
+                _ => Ok(val)
+            },
+            _ => Ok(val)
+        }
+    }
+
     /// Gets the type of a value.
     /// 
     /// Might return an exception in case the value is an object which points to invalid heap memory.
@@ -20,6 +34,7 @@ impl Vm {
                 HeapValue::String(_) => Ok(Type::String),
                 HeapValue::List(_) => Ok(Type::List),
                 HeapValue::Object { .. } => Ok(Type::Object),
+                HeapValue::Box(x) => self.get_type(*x),
             },
             Value::Nil => Ok(Type::Nil),
         }
@@ -27,6 +42,9 @@ impl Vm {
 
     /// Checks whether two values are equal.
     pub fn equal(&self, a: Value, b: Value) -> Result<bool> {
+        let a = self.unbox(a)?;
+        let b = self.unbox(b)?;
+
         // Try checking whether both values are string-like first.
         if let (Some(a), Some(b)) = (self.try_get_string(a)?, self.try_get_string(b)?) {
             return Ok(a == b);
@@ -45,6 +63,7 @@ impl Vm {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(a), HeapValue::List(b)) => self.list_equal(a, b),
                 (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
+                (HeapValue::Box(_), _) | (_, HeapValue::Box(_)) => unreachable!(),
                 _ => Ok(false)
             },
 
@@ -110,6 +129,7 @@ impl Vm {
             
             Value::Object(heap_addresss) => match self.get_heap_value(heap_addresss)? {
                 HeapValue::String(str) => Ok(Some(str.clone())),
+                HeapValue::Box(x) => self.try_get_string(*x),
                 _ => Ok(None)
             },
 
@@ -206,6 +226,8 @@ impl Vm {
                     
                     Ok(str)
                 },
+
+                HeapValue::Box(x) => self.to_string(*x),
             },
 
             Value::Nil => Ok("()".to_string()),
@@ -223,6 +245,8 @@ impl Vm {
 
     /// Tries to coerce a value into a number.
     pub fn coerce_to_number(&self, val: Value) -> Result<f64> {
+        let val = self.unbox(val)?;
+
         match val {
             Value::Number(x) => Ok(x),
             Value::Bool(x) => Ok(if x { 1. } else { 0. }),
@@ -233,6 +257,8 @@ impl Vm {
 
     /// Tries to coerce a value into a boolean.
     pub fn coerce_to_bool(&self, val: Value) -> Result<bool> {
+        let val = self.unbox(val)?;
+
         match val {
             Value::Bool(x) => Ok(x),
             Value::Nil => Ok(false),
@@ -242,6 +268,8 @@ impl Vm {
 
     /// Tries to coerce a value into a closure.
     pub fn coerce_to_function(&self, val: Value) -> Result<Closure> {
+        let val = self.unbox(val)?;
+
         match val {
             Value::Function(x) => Ok(x),
             _ => Err(self.coercion_error(val, Type::Function)),
@@ -250,6 +278,8 @@ impl Vm {
 
     /// Tries to coerce a value into a list.
     pub fn coerce_to_list(&self, val: Value) -> Result<(&List, HeapAddress)> {
+        let val = self.unbox(val)?;
+
         if let Value::Object(adr) = val {
             if let HeapValue::List(list) = self.get_heap_value(adr)? {
                 return Ok((list, adr))
@@ -261,6 +291,8 @@ impl Vm {
 
     /// Tries to coerce a value into a list mutably.
     pub fn coerce_to_list_mut(&mut self, val: Value) -> Result<(&mut List, HeapAddress)> {
+        let val = self.unbox(val)?;
+
         // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
 
         let mut this = self;
@@ -279,6 +311,8 @@ impl Vm {
 
     /// Tries to coerce a value into an object.
     pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
+        let val = self.unbox(val)?;
+
         if let Value::Object(adr) = val {
             if let HeapValue::Object(obj) = self.get_heap_value(adr)? {
                 return Ok((obj, adr))
@@ -290,6 +324,8 @@ impl Vm {
 
     /// Tries to coerce a value into an object mutably.
     pub fn coerce_to_object_mut(&mut self, val: Value) -> Result<(&mut Object, HeapAddress)> {
+        let val = self.unbox(val)?;
+
         // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
 
         let mut this = self;
@@ -310,19 +346,7 @@ impl Vm {
 
     // Constructs a formatted coercion error exception.
     fn coercion_error(&self, val: Value, ty: Type) -> FormattedException {
-        let val = match val {
-            Value::Number(_) => "a number",
-            Value::Bool(_) => "a boolean",
-            Value::InternedString(_) => "a string",
-            Value::Function(_) => "a function",
-            Value::Object(heap_address) => match self.heap.get(heap_address) {
-                Ok(HeapValue::String(_)) => "a string",
-                Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object { .. }) => "an object",
-                Err(_) => "an invalid heap address",
-            },
-            Value::Nil => "()",
-        };
+        let val = self.get_value_type_string(val);
 
         let ty = match ty {
             Type::Number => "a number",
@@ -335,5 +359,23 @@ impl Vm {
         };
 
         self.exception(Exception::CoercionError(val.into(), ty.into()))
+    }
+
+    /// Gets a formatted string for a value's type.
+    fn get_value_type_string(&self, val: Value) -> &'static str {
+        match val {
+            Value::Number(_) => "a number",
+            Value::Bool(_) => "a boolean",
+            Value::InternedString(_) => "a string",
+            Value::Function(_) => "a function",
+            Value::Object(heap_address) => match self.heap.get(heap_address) {
+                Ok(HeapValue::String(_)) => "a string",
+                Ok(HeapValue::List(_)) => "a list",
+                Ok(HeapValue::Object { .. }) => "an object",
+                Ok(HeapValue::Box(x)) => self.get_value_type_string(*x),
+                Err(_) => "an invalid heap address",
+            },
+            Value::Nil => "()",
+        }
     }
 }
