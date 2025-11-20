@@ -273,7 +273,11 @@ internal sealed class AddressOffsetData(CodeBuilder builder, uint offset) : IWri
 /// A variable index in a function.
 /// </summary>
 /// <param name="Index">The numeric index.</param>
-internal readonly record struct VariableIndex(uint Index)
+internal readonly record struct VariableIndex(uint Index) : IWritable
 {
     public override string ToString() => $"var <{Index}>";
+
+    uint IWritable.Length => 4;
+
+    void IWritable.Write(Carpenter writer) => writer.UInt(Index);
 }

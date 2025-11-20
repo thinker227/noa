@@ -32,10 +32,30 @@ internal static class Emitter
         {
             var name = function!.GetFullName();
             var arity = (uint)function!.Parameters.Count;
-            var captures = (function as LambdaFunction)?.Captures
-                ?? ImmutableHashSet<IVariableSymbol>.Empty;
 
-            var builder = functionsBuilder.CreateFunction(strings.GetOrAdd(name), arity, captures);
+            IReadOnlyList<IVariableSymbol> captures;
+            Func<IVariableSymbol, VariableIndex> containingFunctionVariableLookup;
+            if (function is LambdaFunction lambda)
+            {
+                captures = lambda.Captures;
+
+                var containingFunctionBuilder = functionBuilders[lambda.ContainingFunction];
+                containingFunctionVariableLookup = variable =>
+                    containingFunctionBuilder.Locals.GetOrCreateVariable(variable);
+            }   
+            else
+            {
+                captures = [];
+                containingFunctionVariableLookup = _ => throw new InvalidOperationException(
+                    "Cannot look up variable in containing function when the current function is not a lambda function.");
+            }
+
+            var builder = functionsBuilder.CreateFunction(
+                strings.GetOrAdd(name),
+                arity,
+                captures,
+                containingFunctionVariableLookup);
+
             functionBuilders.Add(function, builder);
         }
 

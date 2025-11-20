@@ -12,7 +12,8 @@ internal sealed class FunctionBuilder(
     FunctionId id,
     StringIndex nameIndex,
     uint arity,
-    IReadOnlySet<IVariableSymbol> captures) : IWritable
+    IReadOnlyList<IVariableSymbol> captures,
+    Func<IVariableSymbol, VariableIndex> containingFunctionVariableLookup) : IWritable
 {
     /// <summary>
     /// The ID of the function.
@@ -31,7 +32,7 @@ internal sealed class FunctionBuilder(
 
     public LocalsInator Locals { get; } = new(arity, captures);
     
-    public uint Length => 4 + 4 + 4 + 4 + 4;
+    public uint Length => 4 + 4 + 4 + 4 + 4 + 4 + Locals.Captures * 4;
 
     public void Write(Carpenter writer)
     {
@@ -39,7 +40,14 @@ internal sealed class FunctionBuilder(
         writer.Write(nameIndex);
         writer.UInt(Locals.Parameters);
         writer.UInt(Locals.Variables);
+        writer.UInt(Locals.Captures);
         writer.UInt(Address.Value);
+        
+        foreach (var capture in captures)
+        {
+            var index = containingFunctionVariableLookup(capture);
+            writer.Write(index);
+        }
     }
 
     /// <summary>
