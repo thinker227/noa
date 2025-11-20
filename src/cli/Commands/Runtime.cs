@@ -17,7 +17,7 @@ public sealed class Runtime(
 
         var plainOption = new Option<bool>("--plain")
         {
-            Description = "Disables fancy formatting and just prints the found runtime path."
+            Description = "Disables fancy formatting and just prints the found runtime path without a newline."
         };
 
         var runtimeOption = new ExtraHelpOption<FileInfo>("--runtime", "-r")
