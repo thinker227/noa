@@ -64,7 +64,7 @@ impl MainWidget<'_, '_, '_> {
             .title_top(title)
             .render(area, buf);
 
-        let var_indices = utils::get_stack_variable_indices(&self.inspection);
+        let var_indices = utils::get_stack_variable_indices(self.inspection);
 
         let mut separator = String::new();
         for _ in 0..(area.width - 4) {
@@ -72,8 +72,7 @@ impl MainWidget<'_, '_, '_> {
         }
 
         let mut values = Vec::new();
-        let mut i = 0;
-        for val in self.inspection.stack.iter() {
+        for (i, val) in self.inspection.stack.iter().enumerate() {
             let mut line = self.show_value(*val);
             
             if let Some((start, end)) = var_indices {
@@ -91,8 +90,6 @@ impl MainWidget<'_, '_, '_> {
             }
 
             values.push(line);
-
-            i += 1;
         }
 
         Paragraph::new(values)
@@ -119,10 +116,10 @@ impl MainWidget<'_, '_, '_> {
             Value::Bool(x) => x.to_string().blue().into(),
 
             Value::InternedString(index) =>
-                self.show_istr(index).into(),
+                self.show_istr(index),
             
             Value::Function(closure) =>
-                self.show_func(closure.function).into(),
+                self.show_func(closure.function),
 
             Value::Object(adr) => {
                 if let Ok(obj) = self.inspection.heap.get(adr) {
@@ -223,15 +220,13 @@ impl MainWidget<'_, '_, '_> {
             } else {
                 format!("bad nfunc {id}").red().into()
             }
+        } else if let Some(function) = self.inspection.consts.functions.get(id) {
+            let mut spans = Vec::new();
+            spans.push(format!("func {id} ").green());
+            spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
+            Line::from(spans)
         } else {
-            if let Some(function) = self.inspection.consts.functions.get(id) {
-                let mut spans = Vec::new();
-                spans.push(format!("func {id} ").green());
-                spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
-                Line::from(spans)
-            } else {
-                format!("bad func {id}").red().into()
-            }
+            format!("bad func {id}").red().into()
         }
     }
 
@@ -274,7 +269,7 @@ impl MainWidget<'_, '_, '_> {
             .split_with_spacers(area);
 
         Paragraph::new(vec![
-                Line::from(opcodes)
+                opcodes
             ])
             .render(layout[0], buf);
 

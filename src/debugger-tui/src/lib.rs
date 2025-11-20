@@ -143,14 +143,8 @@ enum EventHandleResult {
 }
 
 fn handle_event(event: Event, _state: &mut State) -> EventHandleResult {
-    match event {
-        Event::Key(key_event) => match key_event {
-            KeyEvent { code: KeyCode::Char(' '), .. } => {
-                return EventHandleResult::Exit;
-            },
-            _ => {}
-        },
-        _ => {}
+    if let Event::Key(key_event) = event && let KeyEvent { code: KeyCode::Char(' '), .. } = key_event {
+        return EventHandleResult::Exit;
     }
 
     EventHandleResult::Continue

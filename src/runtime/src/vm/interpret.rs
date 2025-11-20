@@ -497,7 +497,7 @@ impl Vm {
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
                     
-                    if depth <= 0 {
+                    if depth == 0 {
                         return Ok(ret);
                     }
 
