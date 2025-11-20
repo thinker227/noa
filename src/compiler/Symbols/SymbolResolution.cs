@@ -284,15 +284,24 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
         // The symbol is still *referenced* even if it's not accessible.
         node.ReferencedSymbol = new(symbol);
 
-        if (accessibility is SymbolAccessibility.Accessible &&
-            symbol is IVariableSymbol variable &&
-            !variable.ContainingFunction.Equals(functionStack.Peek()))
-        {
-            Diagnostics.Add(MiscellaneousDiagnostics.ClosuresUnsupported.Format(variable, node.Location));
-        }
-
         switch (accessibility)
         {
+        case SymbolAccessibility.Accessible:
+            {
+                var containingFunction = functionStack.Peek();
+
+                if (symbol is IVariableSymbol variable &&
+                    containingFunction is LambdaFunction lambda &&
+                    !variable.ContainingFunction.Equals(containingFunction))
+                {
+                    // We are inside a lambda function and the referenced variable is captured from an outer function.
+                    // Add the lambda to the variable's list of referants and the variable to the lambda's list of captures.
+                    variable.Capture.CaptureInto(lambda);
+                    lambda.AddCapture(variable);
+                }
+
+                break;
+            }
         case SymbolAccessibility.Blocked:
             Diagnostics.Add(SymbolDiagnostics.BlockedByFunction.Format(symbol, node.Location));
             break;

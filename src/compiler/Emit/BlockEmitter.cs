@@ -383,7 +383,14 @@ internal class BlockEmitter(
 
     protected override void VisitLambdaExpression(LambdaExpression node)
     {
-        var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
+        var function = node.Function.Value;
+        
+        if (function.Captures.Count > 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        var lambdaFunctionId = functionBuilders[function].Id;
         
         Code.PushFunc(lambdaFunctionId);
     }

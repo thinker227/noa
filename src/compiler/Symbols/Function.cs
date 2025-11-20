@@ -128,8 +128,8 @@ public sealed class NomialFunction : IDeclaredFunction, IDeclaredSymbol
 public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
+    private HashSet<IVariableSymbol>? captures = null;
     private IReadOnlyCollection<VariableSymbol>? locals = null;
-    private IReadOnlyCollection<IVariableSymbol>? captures = null;
     
     /// <summary>
     /// The declaration of the function.
@@ -163,6 +163,11 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     /// </summary>
     public required IFunction ContainingFunction { get; init; }
 
+    /// <summary>
+    /// The variables captured by the lambda.
+    /// </summary>
+    public IReadOnlyCollection<IVariableSymbol> Captures => captures ?? [];
+
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
         locals = FunctionUtility.GetLocals(Body);
@@ -170,28 +175,13 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     }
 
     /// <summary>
-    /// Gets all variables and parameters captured by the lambda.
+    /// Adds a capture variable to the lambda.
     /// </summary>
-    public IReadOnlyCollection<IVariableSymbol> GetCaptures()
+    /// <param name="variable">The variable to capture.</param>
+    internal void AddCapture(IVariableSymbol variable)
     {
-        if (captures is not null) return captures;
-        
-        var identifierExpressions = Body
-            .DescendantNodesAndSelfInFunction()
-            .OfType<IdentifierExpression>();
-        
-        var referencedSymbols = identifierExpressions
-            .Select(x => x.ReferencedSymbol.Value);
-
-        // Logically, referenced symbols which are not from the current lambda function
-        // have to have been declared in some containing function, meaning it's been captured.
-        captures = referencedSymbols
-            .OfType<IVariableSymbol>()
-            .Where(x => !x.ContainingFunction.Equals(this))
-            .Distinct()
-            .ToList();
-
-        return captures;
+        captures ??= [];
+        captures.Add(variable);
     }
 }
 
