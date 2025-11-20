@@ -30,7 +30,7 @@ internal static class SymbolResolution
 file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellationToken) : Visitor
 {
     private IScope currentScope = globalScope;
-    private readonly Stack<IFunction> functionStack = [];
+    private readonly Stack<IDeclaredFunction> functionStack = [];
 
     public List<IDiagnostic> Diagnostics { get; } = [];
 

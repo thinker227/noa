@@ -128,7 +128,7 @@ public sealed class NomialFunction : IDeclaredFunction, IDeclaredSymbol
 public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
-    private HashSet<IVariableSymbol>? captures = null;
+    private List<IVariableSymbol>? captures = null;
     private IReadOnlyCollection<VariableSymbol>? locals = null;
     
     /// <summary>
@@ -161,12 +161,14 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     /// <summary>
     /// The function which contains the lambda.
     /// </summary>
-    public required IFunction ContainingFunction { get; init; }
+    public required IDeclaredFunction ContainingFunction { get; init; }
+
+    IFunction IFunctionNested.ContainingFunction => ContainingFunction;
 
     /// <summary>
     /// The variables captured by the lambda.
     /// </summary>
-    public IReadOnlySet<IVariableSymbol> Captures => captures ?? [];
+    public IReadOnlyList<IVariableSymbol> Captures => captures ?? [];
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
@@ -181,7 +183,8 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     internal void AddCapture(IVariableSymbol variable)
     {
         captures ??= [];
-        captures.Add(variable);
+
+        if (!captures.Contains(variable)) captures.Add(variable);
     }
 }
 
