@@ -523,35 +523,29 @@ let printX = () => {
 printX(); // 1
 ```
 
-Important to note is that variables captured by lambdas are *copied into the lambda* when the lambda is created. This means that changing a variable captured by a lambda after the lambda has been created will *not* change the value of the variable inside the lambda.
+Variables captured by lambdas can still be mutated externally and the change will be observed inside the lambda as well.
 
-```js
+```rs
 let mut x = 1;
 
 let printX = () => {
-  print(x);
+    print(x);
 };
 
-x = 2;
+x = 42;
 
-printX(); // 1
+printX(); // 42
 ```
 
-Lambdas may change their own captured variables just fine, though.
+... and same for mutating a variable from inside a lambda.
 
-```js
-func createCounter() {
-    let mut val = 0;
+```rs
+let mut x = 4;
 
-    return () => {
-        val += 1;
-        return val;
-    };
-}
+let addToX = (val) => {
+    x = x + val;
+};
 
-let counter = createCounter();
-
-print(counter()); // 1
-print(counter()); // 2
-print(counter()); // 3
+addToX(8);
+print(x); // 12
 ```
