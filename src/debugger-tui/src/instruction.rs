@@ -122,13 +122,38 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
-            opcode::PUSH_FUNC => (
-                "PushFunc",
-                vec![
-                    make_operand::<u32>(inspection, "func id")
-                ],
-                vec![]
-            ),
+            opcode::PUSH_FUNC => {
+                let function_id_operand = make_nth_operand::<u32>(inspection, "func id", 0);
+
+                let capture_count = read_nth_operand::<u32>(4, inspection);
+                let capture_count_operand = operand_from::<u32>(capture_count, "capture count");
+
+                let captures = if let Some(capture_count) = capture_count {
+                    let mut captures = Vec::new();
+                    let mut i = 0;
+                    captures.resize_with(capture_count as usize, || {
+                        let capture_operand = make_nth_operand::<u32>(
+                            inspection,
+                            format!("capture {i}"),
+                            8 + (4 * i)
+                        );
+                        i += 1;
+                        capture_operand
+                    });
+                    captures
+                } else {
+                    vec![]
+                };
+
+                let mut operands = vec![function_id_operand, capture_count_operand];
+                operands.extend(captures);
+
+                (
+                    "PushFunc",
+                    operands,
+                    vec![]
+                )
+            },
             opcode::PUSH_NIL => (
                 "PushNil",
                 vec![],
@@ -355,11 +380,20 @@ fn make_operand<'insp, 'vm, T: IntoOperand>(
     name: impl ToString
 ) -> Operand
 {
+    make_nth_operand::<T>(inspection, name, 0)
+}
+
+fn make_nth_operand<'insp, 'vm, T: IntoOperand>(
+    inspection: &'insp DebugInspection<'vm>,
+    name: impl ToString,
+    operand_byte_offset: usize
+) -> Operand
+{
     Operand {
         name: name.to_string(),
         length: T::length(),
         typ: T::typ(),
-        value: read_operand::<T>(inspection)
+        value: read_nth_operand::<T>(operand_byte_offset, inspection)
             .map(|x| x.show())
     }
 }
@@ -381,8 +415,16 @@ fn read_operand<'insp, 'vm, T: IntoOperand>(
     inspection: &'insp DebugInspection<'vm>
 ) -> Option<T>
 {
+    read_nth_operand::<T>(0, inspection)
+}
+
+fn read_nth_operand<'insp, 'vm, T: IntoOperand>(
+    operand_byte_offset: usize,
+    inspection: &'insp DebugInspection<'vm>
+) -> Option<T>
+{
     let ip = inspection.ip;
-    let remaining_bytes = &inspection.consts.code[(ip + 1)..];
+    let remaining_bytes = &inspection.consts.code[(ip + 1 + operand_byte_offset)..];
     let length = T::length();
     
     if remaining_bytes.len() >= length {
