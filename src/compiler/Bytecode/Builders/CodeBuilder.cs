@@ -207,6 +207,10 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void WriteElement() => Add(Opcode.WriteElement);
 
     public void ReadElement() => Add(Opcode.ReadElement);
+
+    public void Box() => Add(Opcode.Box);
+
+    public void Unbox() => Add(Opcode.Unbox);
 }
 
 /// <summary>

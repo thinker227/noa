@@ -70,6 +70,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x73 | `AppendElement` | Pops two values from the stack, coerces the second into a list, and appends the first to the end of the list. | Pops 2 values. |
 | 0x74 | `WriteElement` | Pops three values from the stack, coerces the second into a number and the third into a list, then writes the first value into the list at the index specified by the coerced number. The coerced number is rounded towards zero to produce an integer index. | Pops 3 values. |
 | 0x75 | `ReadElement` | Pops two values from the stack, coerces the first into a number and the second into a list, then pushes the element at the index in the list specified by the coerced number onto the stack. The coerced number is rounded towards zero to produce an integer index. | Cumulative: pops 1 value. |
+| 0x76 | `Box` | Pops the topmost value from the stack, boxes it, then pushes the newly boxed value back onto the stack. Does nothing if the value is already boxed. | Cumulative: none. |
+| 0x77 | `Unbox` | Pops the topmost value from the stack, attempts to unbox it, then pushes the result back onto the stack. Does nothing if the value isn't boxed. | Cumulative: none. |
 
 ## Operational instructions (0xF0-0xFF)
 

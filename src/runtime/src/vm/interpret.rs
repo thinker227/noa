@@ -975,6 +975,14 @@ impl Vm {
                 self.push(element)?;
             },
 
+            opcode::BOX => {
+                todo!();
+            },
+
+            opcode::UNBOX => {
+                todo!();
+            },
+
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
 
             _ => return Err(self.exception(Exception::UnknownOpcode(*opcode)))
