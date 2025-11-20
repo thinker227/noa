@@ -291,13 +291,22 @@ file sealed class SymbolVisitor(IScope globalScope, CancellationToken cancellati
                 var containingFunction = functionStack.Peek();
 
                 if (symbol is IVariableSymbol variable &&
-                    containingFunction is LambdaFunction lambda &&
+                    containingFunction is LambdaFunction &&
                     !variable.ContainingFunction.Equals(containingFunction))
                 {
                     // We are inside a lambda function and the referenced variable is captured from an outer function.
-                    // Add the lambda to the variable's list of referants and the variable to the lambda's list of captures.
-                    variable.Capture.CaptureInto(lambda);
-                    lambda.AddCapture(variable);
+                    // Traverse the current function stack and, for all lambdas at the top of the stack,
+                    // add the lambda to the variable's list of referants and the variable to the lambda's list of captures.
+
+                    var lambdas = functionStack
+                        .TakeWhile(x => x is LambdaFunction)
+                        .OfType<LambdaFunction>();
+                        
+                    foreach (var lambda in lambdas)
+                    {
+                        variable.Capture.CaptureInto(lambda);
+                        lambda.AddCapture(variable);
+                    }
                 }
 
                 break;
