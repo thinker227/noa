@@ -24,6 +24,16 @@ internal abstract class FunctionEmitter(
         StringSectionBuilder strings)
     {
         var emitter = new BlockEmitter(function, functionBuilders, strings);
+
+        var capturedParams = function.Parameters.Where(x => x.Capture.IsCaptured);
+        foreach (var parameter in capturedParams)
+        {
+            var paramIndex = emitter.Locals.GetOrCreateVariable(parameter);
+
+            // Make sure that captured parameters are boxed.
+            emitter.Code.LoadVar(paramIndex);
+            emitter.Code.StoreVarBoxed(paramIndex);
+        }
         
         emitter.Visit(function.Body);
         emitter.Code.Ret();
