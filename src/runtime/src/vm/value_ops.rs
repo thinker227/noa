@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use polonius_the_crab::{polonius, polonius_return};
 
 use crate::value::{Closure, List, Object, Type, Value};
@@ -42,9 +44,6 @@ impl Vm {
 
     /// Checks whether two values are equal.
     pub fn equal(&self, a: Value, b: Value) -> Result<bool> {
-        let a = self.unbox(a)?;
-        let b = self.unbox(b)?;
-
         // Try checking whether both values are string-like first.
         if let (Some(a), Some(b)) = (self.try_get_string(a)?, self.try_get_string(b)?) {
             return Ok(a == b);
@@ -245,8 +244,6 @@ impl Vm {
 
     /// Tries to coerce a value into a number.
     pub fn coerce_to_number(&self, val: Value) -> Result<f64> {
-        let val = self.unbox(val)?;
-
         match val {
             Value::Number(x) => Ok(x),
             Value::Bool(x) => Ok(if x { 1. } else { 0. }),
@@ -257,8 +254,6 @@ impl Vm {
 
     /// Tries to coerce a value into a boolean.
     pub fn coerce_to_bool(&self, val: Value) -> Result<bool> {
-        let val = self.unbox(val)?;
-
         match val {
             Value::Bool(x) => Ok(x),
             Value::Nil => Ok(false),
@@ -268,8 +263,6 @@ impl Vm {
 
     /// Tries to coerce a value into a closure.
     pub fn coerce_to_function(&self, val: Value) -> Result<Closure> {
-        let val = self.unbox(val)?;
-
         match val {
             Value::Function(x) => Ok(x),
             _ => Err(self.coercion_error(val, Type::Function)),
@@ -278,8 +271,6 @@ impl Vm {
 
     /// Tries to coerce a value into a list.
     pub fn coerce_to_list(&self, val: Value) -> Result<(&List, HeapAddress)> {
-        let val = self.unbox(val)?;
-
         if let Value::Object(adr) = val {
             if let HeapValue::List(list) = self.get_heap_value(adr)? {
                 return Ok((list, adr))
@@ -291,8 +282,6 @@ impl Vm {
 
     /// Tries to coerce a value into a list mutably.
     pub fn coerce_to_list_mut(&mut self, val: Value) -> Result<(&mut List, HeapAddress)> {
-        let val = self.unbox(val)?;
-
         // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
 
         let mut this = self;
@@ -311,8 +300,6 @@ impl Vm {
 
     /// Tries to coerce a value into an object.
     pub fn coerce_to_object(&self, val: Value) -> Result<(&Object, HeapAddress)> {
-        let val = self.unbox(val)?;
-
         if let Value::Object(adr) = val {
             if let HeapValue::Object(obj) = self.get_heap_value(adr)? {
                 return Ok((obj, adr))
@@ -324,8 +311,6 @@ impl Vm {
 
     /// Tries to coerce a value into an object mutably.
     pub fn coerce_to_object_mut(&mut self, val: Value) -> Result<(&mut Object, HeapAddress)> {
-        let val = self.unbox(val)?;
-
         // See Vm::get_heap_value_mut for the reasoning behind using Polonius here.
 
         let mut this = self;
