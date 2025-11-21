@@ -155,6 +155,13 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         BinaryPrimitives.WriteUInt32BigEndian(bytes, varIndex.Index);
         Add(Opcode.LoadVar, bytes);
     }
+
+    public void StoreVarBoxed(VariableIndex varIndex)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, varIndex.Index);
+        Add(Opcode.StoreVarBoxed, bytes);
+    }
     
     public void Add() => Add(Opcode.Add);
     

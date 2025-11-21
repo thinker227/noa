@@ -800,6 +800,10 @@ impl Vm {
                 self.push(value)?;
             },
 
+            opcode::STORE_VAR_BOXED => {
+                todo!()
+            },
+
             opcode::ADD => {
                 self.binary_op(
                     Self::coerce_to_number,

@@ -173,7 +173,9 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![
                     make_operand::<u32>(inspection, "var index")
                 ],
-                vec![]
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
             ),
             opcode::LOAD_VAR => (
                 "LoadVar",
@@ -181,6 +183,15 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     make_operand::<u32>(inspection, "var index")
                 ],
                 vec![]
+            ),
+            opcode::STORE_VAR_BOXED => (
+                "StoreVarBoxed",
+                vec![
+                    make_operand::<u32>(inspection, "var index")
+                ],
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
             ),
             opcode::ADD => (
                 "Add",
