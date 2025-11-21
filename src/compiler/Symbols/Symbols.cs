@@ -66,6 +66,31 @@ public interface IVariableSymbol : ISymbol, IFunctionNested
 }
 
 /// <summary>
+/// Information about the capture of a variable.
+/// </summary>
+public sealed class CaptureInfo
+{
+    private readonly HashSet<LambdaFunction> referants = [];
+
+    /// <summary>
+    /// Whether the variable is at all captured.
+    /// </summary>
+    public bool IsCaptured => Referants.Count > 0;
+
+    /// <summary>
+    /// The lambda functions which capture the variable.
+    /// </summary>
+    public IReadOnlyCollection<LambdaFunction> Referants => referants;
+
+    /// <summary>
+    /// Add a referant to the capture info.
+    /// </summary>
+    /// <param name="lambda">The lambda which captures the variable.</param>
+    internal void CaptureInto(LambdaFunction lambda) =>
+        referants.Add(lambda);
+}
+
+/// <summary>
 /// Represents a variable declared by a let declaration.
 /// </summary>
 public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
@@ -147,28 +172,24 @@ public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
 }
 
 /// <summary>
-/// Information about the capture of a variable.
+/// Represents a parameter declared by a <see cref="NativeFunction"/>.
 /// </summary>
-public sealed class CaptureInfo
+public sealed class NativeParameterSymbol : IParameterSymbol
 {
-    private readonly HashSet<LambdaFunction> referants = [];
+    public required string Name { get; init;  }
+    
+    // Mutability for externally defined parameters doesn't actually matter.
+    bool IVariableSymbol.IsMutable => false;
+    
+    public required NativeFunction Function { get; init; }
 
-    /// <summary>
-    /// Whether the variable is at all captured.
-    /// </summary>
-    public bool IsCaptured => Referants.Count > 0;
+    IFunction IParameterSymbol.Function => Function;
+    
+    public required int ParameterIndex { get; init; }
 
-    /// <summary>
-    /// The lambda functions which capture the variable.
-    /// </summary>
-    public IReadOnlyCollection<LambdaFunction> Referants => referants;
+    IFunction IFunctionNested.ContainingFunction => Function;
 
-    /// <summary>
-    /// Add a referant to the capture info.
-    /// </summary>
-    /// <param name="lambda">The lambda which captures the variable.</param>
-    internal void CaptureInto(LambdaFunction lambda) =>
-        referants.Add(lambda);
+    CaptureInfo IVariableSymbol.Capture { get; } = new();
 }
 
 /// <summary>

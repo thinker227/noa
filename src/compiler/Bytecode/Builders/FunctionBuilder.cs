@@ -65,6 +65,9 @@ internal readonly record struct FunctionId(uint Id) : IWritable
 {
     public uint Length => 4;
 
+    public static FunctionId Native(uint id) =>
+        new(id | (uint.RotateRight(1, 1)));
+
     public void Write(Carpenter writer) => writer.UInt(Id);
 
     public override string ToString() => $"func <{Id}>";

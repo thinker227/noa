@@ -15,4 +15,4 @@ counter.add(2);
 counter.add(3);
 counter.add(4);
 
-return counter.get();
+print(counter.get());

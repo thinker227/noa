@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use debugger::Debugger;
 use frame::{Frame, FrameKind};
 use polonius_the_crab::{polonius, polonius_return};
@@ -5,8 +7,9 @@ use stack::Stack;
 
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
-use crate::native::NativeFunction;
+use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
+use crate::value::{Field, List, Object, Value};
 
 pub mod frame;
 pub mod stack;
@@ -22,7 +25,7 @@ pub struct VmConsts {
     /// User functions.
     pub functions: Vec<Function>,
     /// Native functions.
-    pub native_functions: Vec<NativeFunction>,
+    pub native_functions: HashMap<u32, NativeFunction>,
     /// Constant strings.
     pub strings: Vec<String>,
     /// Bytecode instructions.
@@ -67,7 +70,7 @@ impl Vm {
         Self {
             consts: VmConsts {
                 functions,
-                native_functions: vec![],
+                native_functions: functions::get_functions(),
                 strings,
                 code
             },
@@ -81,13 +84,18 @@ impl Vm {
         }
     }
 
+    /// Gets the heap.
+    pub fn heap(&mut self) -> &mut Heap {
+        &mut self.heap
+    }
+    
     /// Gets the debugger interface.
     pub fn debugger(&mut self) -> &mut Option<Box<dyn Debugger>> {
         &mut self.debugger
     }
 
     /// Gets a value at a specified address on the heap.
-    fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
+    pub fn get_heap_value(&self, address: HeapAddress) -> Result<&HeapValue> {
         self.heap.get(address)
             .map_err(|e| {
                 let ex = match e {
@@ -123,13 +131,38 @@ impl Vm {
     }
 
     /// Allocates a value on the heap.
-    fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
+    pub fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
         self.heap.alloc(value)
             .map_err(|_| self.exception(Exception::OutOfMemory))
     }
 
+    /// Allocates a string on the heap.
+    pub fn alloc_string(&mut self, string: String) -> Result<Value> {
+        self.heap_alloc(HeapValue::String(string))
+            .map(Value::Object)
+    }
+    
+    /// Allocates a list on the heap.
+    pub fn alloc_list(&mut self, values: impl IntoIterator<Item = Value>) -> Result<Value> {
+        let values = values.into_iter().collect();
+
+        self.heap_alloc(HeapValue::List(List(values)))
+            .map(Value::Object)
+    }
+
+    /// Allocates an object on the heap.
+    pub fn alloc_object(&mut self, fields: impl IntoIterator<Item = (String, Field)>, dynamic: bool) -> Result<Value> {
+        let object = Object {
+            fields: fields.into_iter().collect(),
+            dynamic
+        };
+
+        self.heap_alloc(HeapValue::Object(object))
+            .map(Value::Object)
+    }
+
     /// Formats an [`Exception`] into a [`FormattedException`].
-    fn exception(&self, exception: Exception) -> FormattedException {
+    pub fn exception(&self, exception: Exception) -> FormattedException {
         let stack_trace = self.construct_stack_trace();
 
         FormattedException {
