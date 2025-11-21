@@ -30,6 +30,7 @@ internal enum Opcode : byte
     // Locals operations
     StoreVar = 0x46,
     LoadVar = 0x47,
+    StoreVarBoxed = 0x48,
 
     // Value operations
     Add = 0x64,

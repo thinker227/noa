@@ -6,27 +6,39 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// Creates and manages variables in a function.
 /// </summary>
 /// <param name="parameterCount">The amount of variable indices to reserve for parameters.</param>
-internal sealed class LocalsInator(uint parameterCount)
+internal sealed class LocalsInator(uint parameterCount, IReadOnlyCollection<IVariableSymbol> captures)
 {
     private readonly uint parameterCount = parameterCount;
+    private readonly uint capturesCount = (uint)captures.Count;
     private readonly Stack<uint> temporaries = [];
     private readonly Dictionary<IVariableSymbol, VariableIndex> indices = [];
-    private uint currentIndex = parameterCount;
+    private uint capturesOffset = 0;
+    private uint variableOffset = 0;
+
+    /// <summary>
+    /// The amount of "static" locals, i.e. parameters and captures.
+    /// </summary>
+    public uint StaticLocals => parameterCount + capturesCount;
 
     /// <summary>
     /// The amount of total locals.
     /// </summary>
-    public uint Locals => currentIndex;
+    public uint Locals => StaticLocals + variableOffset;
 
     /// <summary>
     /// The amount of variables created.
     /// </summary>
-    public uint Variables => currentIndex - parameterCount;
+    public uint Variables => variableOffset;
 
     /// <summary>
     /// The amount of parameters reserved.
     /// </summary>
     public uint Parameters => parameterCount;
+
+    /// <summary>
+    /// The amount of captures reserved.
+    /// </summary>
+    public uint Captures => capturesCount;
     
     /// <summary>
     /// Gets a temporary variable.
@@ -35,12 +47,12 @@ internal sealed class LocalsInator(uint parameterCount)
     {
         var index = temporaries.TryPop(out var x)
             ? x
-            : currentIndex++;
+            : StaticLocals + variableOffset++;
         
         return new(new(index), () => temporaries.Push(index));
     }
 
-    private VariableIndex CreateVariable() => new(currentIndex++);
+    private VariableIndex CreateVariable() => new(StaticLocals + variableOffset++);
 
     /// <summary>
     /// Gets or creates a new variable index for a variable.
@@ -51,6 +63,17 @@ internal sealed class LocalsInator(uint parameterCount)
     /// <param name="variable">The variable to get the index for.</param>
     public VariableIndex GetOrCreateVariable(IVariableSymbol variable)
     {
+        if (captures.Contains(variable))
+        {
+            if (indices.TryGetValue(variable, out var captureIndex)) return captureIndex;
+
+            if (capturesOffset >= capturesCount) throw new InvalidOperationException("Too many captures.");
+
+            captureIndex = new(parameterCount + capturesOffset++);
+            indices.Add(variable, captureIndex);
+            return captureIndex;
+        }
+
         if (variable is ParameterSymbol parameter) return new((uint)parameter.ParameterIndex);
 
         if (variable is not VariableSymbol) throw new UnreachableException();

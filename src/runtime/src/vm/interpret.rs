@@ -154,7 +154,7 @@ use std::collections::HashMap;
 
 use crate::ark::FuncId;
 use crate::exception::Exception;
-use crate::heap::HeapValue;
+use crate::heap::{HeapGetError, HeapValue};
 use crate::opcode;
 use crate::value::{Closure, Field, List, Object, Value};
 use crate::vm::frame::{Frame, FrameKind};
@@ -199,12 +199,6 @@ impl Vm {
 
     /// Calls a user function as a closure.
     fn call_user(&mut self, closure: Closure, arg_count: u32) -> Result<()> {
-        // todo: figure out how to support captured variables
-        // they should probably just be some variety of function arguments
-        if closure.captures.is_some() {
-            todo!("figure out how to support captured variables")
-        }
-
         // Get the function from the decoded function ID.
         let user_index = closure.function.decode();
         let function = self.consts.functions.get(user_index as usize)
@@ -234,10 +228,34 @@ impl Vm {
 
         // Fun hack!
         // The function arguments occupy the very bottom of the stack space for the function,
-        // meaning that, since the arguments are already on the stack in the correct order,
+        // meaning that, since the arguments and captures are already on the stack in the correct order,
         // we can just set the frame's stack start index to the current stack head
         // minus the function's arity.
         let stack_start = self.stack.head() - arity as usize;
+
+        // Push captures onto the stack as additional "arguments".
+        if let Some(heap_address) = closure.captures {
+            // Cannot use `self.get_heap_value` here because then the borrow checker thinks
+            // we're borrowing self while we actually just intend to borrow `self.heap`.
+            let heap_value = self.heap.get(heap_address)
+                .map_err(|e| {
+                    let ex = match e {
+                        HeapGetError::OutOfBounds => Exception::OutOfBoundsHeapAddress,
+                        HeapGetError::SlotFreed => Exception::FreedHeapAddress,
+                    };
+                    self.exception(ex)
+                })?;
+            
+            let list = match heap_value {
+                HeapValue::List(list) => list,
+                _ => panic!("expected closure captures to be a list")
+            };
+            
+            for value in &list.0 {
+                self.stack.push(*value)
+                    .map_err(|e| self.exception(e))?;
+            }
+        };
 
         // Push values onto the stack as placeholders for the function's locals.
         // These will later be overridden once the locals are assigned.
@@ -690,11 +708,29 @@ impl Vm {
             },
 
             opcode::PUSH_FUNC => {
-                let val = self.read_u32()?;
+                let index = self.read_u32()?;
+                
+                let function = self.consts.functions.get(index as usize)
+                    .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
+                
+                // Save captured variables as a list.
+                let captures = if !function.captures.is_empty() {
+                    let mut captures = Vec::with_capacity(function.captures.len());
+                    for capture_index in &function.captures {
+                        let val = self.read_variable(*capture_index as usize)?;
+                        captures.push(val);
+                    }
+
+                    let address = self.heap_alloc(HeapValue::List(List(captures)))?;
+
+                    Some(address)
+                } else {
+                    None
+                };
 
                 let closure = Closure {
-                    function: FuncId(val),
-                    captures: None
+                    function: FuncId(index),
+                    captures
                 };
 
                 self.push(Value::Function(closure))?;
@@ -760,8 +796,28 @@ impl Vm {
                 let var_index = self.read_u32()?;
 
                 let value = self.read_variable(var_index as usize)?;
+                let value = self.unbox(value)?;
 
                 self.push(value)?;
+            },
+
+            opcode::STORE_VAR_BOXED => {
+                let var_index = self.read_u32()?;
+
+                let value = self.pop()?;
+
+                let var = self.read_variable(var_index as usize)?;
+
+                if let Value::Object(heap_address) = var &&
+                    let HeapValue::Box(boxed) = self.get_heap_value_mut(heap_address)?
+                {
+                    // If the value in the variable is boxed then write into the box.
+                    *boxed = value;
+                } else {
+                    // Otherwise, box the value and write to the variable as normal.
+                    let boxed = self.heap_alloc(HeapValue::Box(value))?;
+                    self.write_variable(var_index as usize, Value::Object(boxed))?;
+                }
             },
 
             opcode::ADD => {

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use polonius_the_crab::{polonius, polonius_return};
 
 use crate::value::{Closure, List, Object, Type, Value};
@@ -7,6 +9,20 @@ use crate::exception::{Exception, FormattedException};
 use super::{Vm, Result};
 
 impl Vm {
+    /// Unboxes a value if it's a boxed value, and does nothing if it's not.
+    /// 
+    /// Guarantees that the value is not an object of a [`HeapAddress::Box`].
+    pub fn unbox(&self, val: Value) -> Result<Value> {
+        match val {
+            Value::Object(heap_address) => match self.get_heap_value(heap_address)? {
+                // Just in case the value is for some reason a boxed box, try to recursively unbox it.
+                HeapValue::Box(x) => self.unbox(*x),
+                _ => Ok(val)
+            },
+            _ => Ok(val)
+        }
+    }
+
     /// Gets the type of a value.
     /// 
     /// Might return an exception in case the value is an object which points to invalid heap memory.
@@ -20,6 +36,7 @@ impl Vm {
                 HeapValue::String(_) => Ok(Type::String),
                 HeapValue::List(_) => Ok(Type::List),
                 HeapValue::Object { .. } => Ok(Type::Object),
+                HeapValue::Box(x) => self.get_type(*x),
             },
             Value::Nil => Ok(Type::Nil),
         }
@@ -45,6 +62,7 @@ impl Vm {
                 (HeapValue::String(_), HeapValue::String(_)) => unreachable!(),
                 (HeapValue::List(a), HeapValue::List(b)) => self.list_equal(a, b),
                 (HeapValue::Object(a), HeapValue::Object(b)) => self.object_equal(a, b),
+                (HeapValue::Box(_), _) | (_, HeapValue::Box(_)) => unreachable!(),
                 _ => Ok(false)
             },
 
@@ -110,6 +128,7 @@ impl Vm {
             
             Value::Object(heap_addresss) => match self.get_heap_value(heap_addresss)? {
                 HeapValue::String(str) => Ok(Some(str.clone())),
+                HeapValue::Box(x) => self.try_get_string(*x),
                 _ => Ok(None)
             },
 
@@ -206,6 +225,8 @@ impl Vm {
                     
                     Ok(str)
                 },
+
+                HeapValue::Box(x) => self.to_string(*x),
             },
 
             Value::Nil => Ok("()".to_string()),
@@ -310,19 +331,7 @@ impl Vm {
 
     // Constructs a formatted coercion error exception.
     fn coercion_error(&self, val: Value, ty: Type) -> FormattedException {
-        let val = match val {
-            Value::Number(_) => "a number",
-            Value::Bool(_) => "a boolean",
-            Value::InternedString(_) => "a string",
-            Value::Function(_) => "a function",
-            Value::Object(heap_address) => match self.heap.get(heap_address) {
-                Ok(HeapValue::String(_)) => "a string",
-                Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object { .. }) => "an object",
-                Err(_) => "an invalid heap address",
-            },
-            Value::Nil => "()",
-        };
+        let val = self.get_value_type_string(val);
 
         let ty = match ty {
             Type::Number => "a number",
@@ -335,5 +344,26 @@ impl Vm {
         };
 
         self.exception(Exception::CoercionError(val.into(), ty.into()))
+    }
+
+    /// Gets a formatted string for a value's type.
+    fn get_value_type_string(&self, val: Value) -> Cow<'static, str> {
+        match val {
+            Value::Number(_) => Cow::Borrowed("a number"),
+            Value::Bool(_) => Cow::Borrowed("a boolean"),
+            Value::InternedString(_) => Cow::Borrowed("a string"),
+            Value::Function(_) => Cow::Borrowed("a function"),
+            Value::Object(heap_address) => match self.heap.get(heap_address) {
+                Ok(HeapValue::String(_)) => Cow::Borrowed("a string"),
+                Ok(HeapValue::List(_)) => Cow::Borrowed("a list"),
+                Ok(HeapValue::Object { .. }) => Cow::Borrowed("an object"),
+                Ok(HeapValue::Box(x)) => {
+                    let val = self.get_value_type_string(*x);
+                    Cow::Owned(format!("{val} (boxed)"))
+                },
+                Err(_) => Cow::Borrowed("an invalid heap address"),
+            },
+            Value::Nil => Cow::Borrowed("()"),
+        }
     }
 }

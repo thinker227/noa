@@ -173,7 +173,9 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![
                     make_operand::<u32>(inspection, "var index")
                 ],
-                vec![]
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
             ),
             opcode::LOAD_VAR => (
                 "LoadVar",
@@ -181,6 +183,15 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     make_operand::<u32>(inspection, "var index")
                 ],
                 vec![]
+            ),
+            opcode::STORE_VAR_BOXED => (
+                "StoreVarBoxed",
+                vec![
+                    make_operand::<u32>(inspection, "var index")
+                ],
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
             ),
             opcode::ADD => (
                 "Add",
@@ -355,11 +366,20 @@ fn make_operand<'insp, 'vm, T: IntoOperand>(
     name: impl ToString
 ) -> Operand
 {
+    make_nth_operand::<T>(inspection, name, 0)
+}
+
+fn make_nth_operand<'insp, 'vm, T: IntoOperand>(
+    inspection: &'insp DebugInspection<'vm>,
+    name: impl ToString,
+    operand_byte_offset: usize
+) -> Operand
+{
     Operand {
         name: name.to_string(),
         length: T::length(),
         typ: T::typ(),
-        value: read_operand::<T>(inspection)
+        value: read_nth_operand::<T>(operand_byte_offset, inspection)
             .map(|x| x.show())
     }
 }
@@ -381,8 +401,16 @@ fn read_operand<'insp, 'vm, T: IntoOperand>(
     inspection: &'insp DebugInspection<'vm>
 ) -> Option<T>
 {
+    read_nth_operand::<T>(0, inspection)
+}
+
+fn read_nth_operand<'insp, 'vm, T: IntoOperand>(
+    operand_byte_offset: usize,
+    inspection: &'insp DebugInspection<'vm>
+) -> Option<T>
+{
     let ip = inspection.ip;
-    let remaining_bytes = &inspection.consts.code[(ip + 1)..];
+    let remaining_bytes = &inspection.consts.code[(ip + 1 + operand_byte_offset)..];
     let length = T::length();
     
     if remaining_bytes.len() >= length {

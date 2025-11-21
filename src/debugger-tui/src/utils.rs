@@ -14,7 +14,7 @@ pub fn get_stack_variable_indices(inspection: &DebugInspection) -> Option<(usize
     let function = inspection.consts.functions.get(id.decode() as usize)?;
 
     let start = inspection.stack.head() - frame.stack_start;
-    let size = (function.arity + function.locals_count) as usize;
+    let size = (function.arity + function.captures_count + function.locals_count) as usize;
 
     Some((start - size, start))
 }

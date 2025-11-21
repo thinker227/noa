@@ -128,8 +128,8 @@ public sealed class NomialFunction : IDeclaredFunction, IDeclaredSymbol
 public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
 {
     internal readonly List<ParameterSymbol> parameters = [];
+    private List<IVariableSymbol>? captures = null;
     private IReadOnlyCollection<VariableSymbol>? locals = null;
-    private IReadOnlyCollection<IVariableSymbol>? captures = null;
     
     /// <summary>
     /// The declaration of the function.
@@ -161,7 +161,14 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     /// <summary>
     /// The function which contains the lambda.
     /// </summary>
-    public required IFunction ContainingFunction { get; init; }
+    public required IDeclaredFunction ContainingFunction { get; init; }
+
+    IFunction IFunctionNested.ContainingFunction => ContainingFunction;
+
+    /// <summary>
+    /// The variables captured by the lambda.
+    /// </summary>
+    public IReadOnlyList<IVariableSymbol> Captures => captures ?? [];
 
     public IReadOnlyCollection<VariableSymbol> GetLocals()
     {
@@ -170,28 +177,14 @@ public sealed class LambdaFunction : IDeclaredFunction, IFunctionNested
     }
 
     /// <summary>
-    /// Gets all variables and parameters captured by the lambda.
+    /// Adds a capture variable to the lambda.
     /// </summary>
-    public IReadOnlyCollection<IVariableSymbol> GetCaptures()
+    /// <param name="variable">The variable to capture.</param>
+    internal void AddCapture(IVariableSymbol variable)
     {
-        if (captures is not null) return captures;
-        
-        var identifierExpressions = Body
-            .DescendantNodesAndSelfInFunction()
-            .OfType<IdentifierExpression>();
-        
-        var referencedSymbols = identifierExpressions
-            .Select(x => x.ReferencedSymbol.Value);
+        captures ??= [];
 
-        // Logically, referenced symbols which are not from the current lambda function
-        // have to have been declared in some containing function, meaning it's been captured.
-        captures = referencedSymbols
-            .OfType<IVariableSymbol>()
-            .Where(x => !x.ContainingFunction.Equals(this))
-            .Distinct()
-            .ToList();
-
-        return captures;
+        if (!captures.Contains(variable)) captures.Add(variable);
     }
 }
 

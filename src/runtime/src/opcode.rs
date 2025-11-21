@@ -17,6 +17,7 @@ pub const DUP: u8 = 0x33;
 pub const SWAP: u8 = 0x34;
 pub const STORE_VAR: u8 = 0x46;
 pub const LOAD_VAR: u8 = 0x47;
+pub const STORE_VAR_BOXED: u8 = 0x48;
 pub const ADD: u8 = 0x64;
 pub const SUB: u8 = 0x65;
 pub const MULT: u8 = 0x66;

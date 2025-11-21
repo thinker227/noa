@@ -10,6 +10,27 @@ internal class BlockEmitter(
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {
+    private void LoadVar(IVariableSymbol var)
+    {
+        var index = Locals.GetOrCreateVariable(var);
+
+        Code.LoadVar(index);
+    }
+
+    private void StoreVar(IVariableSymbol var)
+    {
+        var index = Locals.GetOrCreateVariable(var);
+
+        if (var.Capture.IsCaptured && var.IsMutable)
+        {
+            Code.StoreVarBoxed(index);
+        }
+        else
+        {
+            Code.StoreVar(index);
+        }
+    }
+
     protected override void VisitFunctionDeclaration(FunctionDeclaration node) {}
 
     protected override void VisitExpressionStatement(ExpressionStatement node)
@@ -51,11 +72,11 @@ internal class BlockEmitter(
 
     private void EmitIdentifierAssignment(IdentifierExpression target, AssignmentKind kind, Expression operand)
     {
-        var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
+        var var = (IVariableSymbol)target.ReferencedSymbol.Value;
 
         if (kind is not AssignmentKind.Assign)
         {
-            Code.LoadVar(varIndex);
+            LoadVar(var);
             Visit(operand);
             EmitCompoundAssignmentKind(kind);
         }
@@ -64,7 +85,7 @@ internal class BlockEmitter(
             Visit(operand);
         }
 
-        Code.StoreVar(varIndex);
+        StoreVar(var);
     }
 
     private void EmitAccessAssignment(AccessExpression target, AssignmentKind kind, Expression operand)
@@ -383,9 +404,9 @@ internal class BlockEmitter(
 
     protected override void VisitLambdaExpression(LambdaExpression node)
     {
-        var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
+        var function = node.Function.Value;
         
-        Code.PushFunc(lambdaFunctionId);
+        Code.PushFunc(functionBuilders[function].Id);
     }
 
     protected override void VisitObjectExpression(ObjectExpression node)
@@ -471,9 +492,7 @@ internal class BlockEmitter(
             break;
 
         case IVariableSymbol var:
-            var varIndex = Locals.GetOrCreateVariable(var);
-            
-            Code.LoadVar(varIndex);
+            LoadVar(var);
             
             break;
         
@@ -496,8 +515,6 @@ internal class BlockEmitter(
     {
         Visit(node.Expression);
 
-        var var = Locals.GetOrCreateVariable(node.Symbol.Value);
-        
-        Code.StoreVar(var);
+        StoreVar(node.Symbol.Value);
     }
 }

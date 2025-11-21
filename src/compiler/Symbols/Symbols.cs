@@ -58,6 +58,11 @@ public interface IVariableSymbol : ISymbol, IFunctionNested
     /// Whether the variable is declared as mutable.
     /// </summary>
     bool IsMutable { get; }
+
+    /// <summary>
+    /// Information about whether the variable is captured by any lambdas.
+    /// </summary>
+    CaptureInfo Capture { get; }
 }
 
 /// <summary>
@@ -78,6 +83,8 @@ public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
     public required LetDeclaration Declaration { get; init; }
     
     public required IFunction ContainingFunction { get; init; }
+
+    public CaptureInfo Capture { get; } = new();
     
     Node IDeclared.Declaration => Declaration;
 
@@ -117,6 +124,8 @@ public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
     public required IDeclaredFunction Function { get; init; }
 
     IFunction IParameterSymbol.Function => Function;
+
+    public CaptureInfo Capture { get; } = new();
     
     /// <summary>
     /// The index of the parameter in its function.
@@ -135,6 +144,31 @@ public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
     Node IDeclared.Declaration => Declaration;
     
     public override string ToString() => $"Parameter {Name} declared at {Declaration.Location}";
+}
+
+/// <summary>
+/// Information about the capture of a variable.
+/// </summary>
+public sealed class CaptureInfo
+{
+    private readonly HashSet<LambdaFunction> referants = [];
+
+    /// <summary>
+    /// Whether the variable is at all captured.
+    /// </summary>
+    public bool IsCaptured => Referants.Count > 0;
+
+    /// <summary>
+    /// The lambda functions which capture the variable.
+    /// </summary>
+    public IReadOnlyCollection<LambdaFunction> Referants => referants;
+
+    /// <summary>
+    /// Add a referant to the capture info.
+    /// </summary>
+    /// <param name="lambda">The lambda which captures the variable.</param>
+    internal void CaptureInto(LambdaFunction lambda) =>
+        referants.Add(lambda);
 }
 
 /// <summary>

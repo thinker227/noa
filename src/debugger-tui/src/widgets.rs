@@ -130,6 +130,16 @@ impl MainWidget<'_, '_, '_> {
                         HeapValue::List(list) => self.show_list(list),
 
                         HeapValue::Object(object) => self.show_object(object),
+
+                        HeapValue::Box(x) => {
+                            let inner = self.show_value(*x);
+                            let mut spans = inner.spans;
+
+                            spans.insert(0, "Box(".light_green());
+                            spans.push(")".light_green());
+                            
+                            spans.into()
+                        },
                     }
                 } else {
                     format!("bad obj {}", adr.0).red().into()

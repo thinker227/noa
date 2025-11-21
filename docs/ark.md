@@ -35,13 +35,17 @@ The function section specifies the functions of the program.
 
 A function specifies an executable function.
 
+The amount of static locals (parameters and captures) of a function is calculated as `arity + captures_count`.
+
 | Byte offset | Bytes | Name | Description |
 |-------------|-------|------|-------------|
 | 0 | 4 | `id` | The unique ID of the function, encoded as a [function ID](#function-id). |
 | 4 | 4 | `name_index` | The string index of the name of the function. |
-| 8 | 4 | `arity` | The amount of parameters to the function. |
+| 8 | 4 | `arity` | The amount of parameters to the function, **not including captures**. |
 | 12 | 4 | `locals_count` | The amount of locals allocated to the function. |
-| 16 | 4 | `address` | The bytecode address within the code section where the function starts. |
+| 16 | 4 | `captures_count` | The amount of captures in the function. Specifies the length of the `captures` field. |
+| 20 | 4 | `address` | The bytecode address within the code section where the function starts. |
+| 24 | * | `captures` | A list of 4-byte indices into the currently executing function's locals to pass as additional parameters to the function. |
 
 ## Function ID
 

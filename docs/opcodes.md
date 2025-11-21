@@ -46,7 +46,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
 | 0x46 | `StoreVar <var index: u32>` | Pops the topmost value from the stack and stores it into a local variable with the index `var index`. | Pops 1 value. |
-| 0x47 | `LoadVar <var index: u32>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. | Pushes 1 value. |
+| 0x47 | `LoadVar <var index: u32>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. Always tries to unbox the value after pushing it. | Pushes 1 value. |
+| 0x48 | `StoreVarBoxed <var index: u32>` | Pops the topmost value from the stack, then loads the value of a local variable with the index `var index` and checks whether it is boxed or not. If the loaded value is boxed, the popped value is written into the box, otherwise boxed the popped value and stores it into the variable. | Pops 1 value. |
 
 ## Value operations (0x64-0xEF)
 
