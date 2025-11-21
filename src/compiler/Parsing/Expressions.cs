@@ -120,73 +120,78 @@ internal sealed partial class Parser
         TokenKind.Plus,
         TokenKind.Dash);
     
-    internal ExpressionSyntax ParseAccessOrIndexExpression(int precedence)
+    internal ExpressionSyntax ParseAccessOrIndexOrCallExpressionChain(int precedence)
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
-        while (!AtEnd && Current.Kind is TokenKind.Dot or TokenKind.OpenBracket)
+        while (!AtEnd && Current.Kind is TokenKind.Dot or TokenKind.OpenBracket or TokenKind.OpenParen)
         {
-            if (Current.Kind is TokenKind.Dot)
+            switch (Current.Kind)
             {
-                // Access expression
-
-                var dotToken = Advance();
-
-                var name = ParseFieldNameOrError();
-
-                expression = new AccessExpressionSyntax()
+            case TokenKind.Dot:
                 {
-                    Target = expression,
-                    DotToken = dotToken,
-                    Name = name
-                };
-            }
-            else
-            {
-                // Index expression
+                    // Access expression
 
-                var openBracket = Advance();
+                    var dotToken = Advance();
 
-                var index = ParseExpressionOrError();
+                    var name = ParseFieldNameOrError();
 
-                var closeBracket = Advance();
+                    expression = new AccessExpressionSyntax()
+                    {
+                        Target = expression,
+                        DotToken = dotToken,
+                        Name = name
+                    };
 
-                expression = new IndexExpressionSyntax()
+                    break;
+                }
+            
+            case TokenKind.OpenBracket:
                 {
-                    Target = expression,
-                    OpenBracket = openBracket,
-                    Index = index,
-                    CloseBracket = closeBracket
-                };
+                    // Index expression
+
+                    var openBracket = Advance();
+
+                    var index = ParseExpressionOrError();
+
+                    var closeBracket = Advance();
+
+                    expression = new IndexExpressionSyntax()
+                    {
+                        Target = expression,
+                        OpenBracket = openBracket,
+                        Index = index,
+                        CloseBracket = closeBracket
+                    };
+
+                    break;
+                }
+            
+            case TokenKind.OpenParen:
+                {
+                    // Call expression
+
+                    var openParen = Advance();
+
+                    var arguments = ParseSeparatedList(
+                        TokenKind.Comma,
+                        true,
+                        ParseExpressionOrError,
+                        TokenKind.CloseParen);
+                    
+                    var closeParen = Expect(TokenKind.CloseParen);
+
+                    expression = new CallExpressionSyntax()
+                    {
+                        Target = expression,
+                        OpenParen = openParen,
+                        Arguments = arguments,
+                        CloseParen = closeParen
+                    };
+
+                    break;
+                }
             }
-        }
-
-        return expression;
-    }
-
-    internal ExpressionSyntax ParseCallExpression(int precedence)
-    {
-        var expression = ParseExpressionOrError(precedence + 1);
-
-        while (Current.Kind is TokenKind.OpenParen)
-        {
-            var openParen = Advance();
-            
-            var arguments = ParseSeparatedList(
-                TokenKind.Comma,
-                true,
-                ParseExpressionOrError,
-                TokenKind.CloseParen);
-
-            var closeParen = Expect(TokenKind.CloseParen);
-            
-            expression = new CallExpressionSyntax()
-            {
-                Target = expression,
-                OpenParen = openParen,
-                Arguments = arguments,
-                CloseParen = closeParen
-            };
         }
 
         return expression;
@@ -521,9 +526,8 @@ internal sealed partial class Parser
         5 => termExpressionParser(this, precedence),
         6 => factorExpressionParser(this, precedence),
         7 => unaryExpressionParser(this, precedence),
-        8 => ParseAccessOrIndexExpression(precedence),
-        9 => ParseCallExpression(precedence),
-        10 => ParsePrimaryExpression(),
+        8 => ParseAccessOrIndexOrCallExpressionChain(precedence),
+        9 => ParsePrimaryExpression(),
         _ => throw new UnreachableException()
     };
 
