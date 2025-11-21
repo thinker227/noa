@@ -32,7 +32,7 @@ internal static class NativeImports
         Declare(0x185, "map", ["source", "transform"]);
         Declare(0x186, "flatMap", ["source", "transform"]);
         Declare(0x187, "filter", ["source", "predicate"]);
-        Declare(0x188, "reduce", ["source", "function", "seed"]);
+        Declare(0x188, "reduce", ["source", "seed", "function"]);
         Declare(0x189, "reverse", ["source"]);
         Declare(0x18A, "any", ["source", "predicate"]);
         Declare(0x18B, "all", ["source", "predicate"]);
