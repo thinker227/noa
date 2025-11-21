@@ -25,7 +25,8 @@ internal abstract class FunctionEmitter(
     {
         var emitter = new BlockEmitter(function, functionBuilders, strings);
 
-        var capturedParams = function.Parameters.Where(x => x.Capture.IsCaptured);
+        var capturedParams = function.Parameters
+            .Where(x => x.Capture.IsCaptured && x.IsMutable);
         foreach (var parameter in capturedParams)
         {
             var paramIndex = emitter.Locals.GetOrCreateVariable(parameter);

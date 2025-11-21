@@ -21,7 +21,7 @@ internal class BlockEmitter(
     {
         var index = Locals.GetOrCreateVariable(var);
 
-        if (var.Capture.IsCaptured)
+        if (var.Capture.IsCaptured && var.IsMutable)
         {
             Code.StoreVarBoxed(index);
         }
