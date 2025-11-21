@@ -708,7 +708,8 @@ impl Vm {
             },
 
             opcode::PUSH_FUNC => {
-                let index = self.read_u32()?;
+                let id = FuncId(self.read_u32()?);
+                let index = id.decode();
                 
                 let function = self.consts.functions.get(index as usize)
                     .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
@@ -729,7 +730,7 @@ impl Vm {
                 };
 
                 let closure = Closure {
-                    function: FuncId(index),
+                    function: id,
                     captures
                 };
 
