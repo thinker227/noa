@@ -45,6 +45,18 @@ pub enum Exception {
     #[error("out of memory")]
     OutOfMemory,
 
+    #[error("field \"{0}\" does not exist")]
+    MissingField(String),
+
+    #[error("cannot write to immutable field \"{0}\"")]
+    WriteToImmutableField(String),
+
+    #[error("cannot index into list using index `{0}`")]
+    InvalidIndex(f64),
+
+    #[error("index `{0}` is out of bounds of the list, which has a length of `{1}`")]
+    OutOfBoundsIndex(f64, usize),
+
     #[error("expected {}{} arguments but got {}", expected, if *or_more { " or more" } else { "" }, actual)]
     BadArity {
         expected: u32,

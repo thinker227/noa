@@ -9,5 +9,9 @@
         "package.json": "package-lock.json",
         "Cargo.toml": "Cargo.lock",
         "*.noa": "${capture}.ark"
-    }
+    },
+    "[csharp]": {
+        "editor.formatOnType": false
+    },
+    "rust-analyzer.check.command": "clippy"
 }

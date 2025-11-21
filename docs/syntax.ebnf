@@ -36,7 +36,7 @@ parameterList = (parameter (',' parameter)*)? ;
 
 assignmentStatement = lValue assignmentOperator expression ';' ;
 
-lValue = identifierExpression ;
+lValue = identifierExpression | accessExpression | indexExpression ;
 
 
 
@@ -44,6 +44,8 @@ expression = blockExpression
            | callExpression
            | lambdaExpression
            | tupleExpression
+           | objectExpression
+           | listExpression
            | parenthesizedExpression
            | ifExpression
            | loopExpression
@@ -52,6 +54,8 @@ expression = blockExpression
            | continueExpression
            | unaryExpression
            | binaryExpression
+           | accessExpression
+           | indexExpression
            | identifierExpression
            | stringExpression
            | boolExpression
@@ -66,6 +70,10 @@ callExpression = expression '(' (expression (',' expression)*)? ')' ;
 lambdaExpression = '(' parameterList ')' '=>' expression ;
 
 tupleExpression = '(' expression ',' expression (',' expression)* ')' ;
+
+objectExpression = 'dyn'? '{' (field (',' field)* ','?)? '}' ;
+
+listExpression = '[' (expression (',' expression)* ','?)? ']' ;
 
 parenthesizedExpression = '(' expression ')' ;
 
@@ -83,6 +91,10 @@ unaryExpression = unaryOperator expression ;
 
 binaryExpression = expression binaryOperator expression ;
 
+accessExpression = expression '.' fieldName ;
+
+indexExpression = expression '[' expression ']' ;
+
 identifierExpression = NAME ;
 
 stringExpression = normalString | interpolatedString ;
@@ -92,6 +104,15 @@ boolExpression = 'true' | 'false' ;
 numberExpression = NUMBER_LITERAL ;
 
 nilExpression = '(' ')' ;
+
+
+
+field = 'mut'? fieldName? ':' expression ;
+
+fieldName = NAME
+          | stringExpression
+          | '(' expression ')'
+          ;
 
 
 

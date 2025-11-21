@@ -119,30 +119,79 @@ internal sealed partial class Parser
     private readonly ExpressionParser unaryExpressionParser = PrefixUnaryParser(
         TokenKind.Plus,
         TokenKind.Dash);
-
-    internal ExpressionSyntax ParseCallExpression(int precedence)
+    
+    internal ExpressionSyntax ParseAccessOrIndexOrCallExpressionChain(int precedence)
     {
         var expression = ParseExpressionOrError(precedence + 1);
 
-        while (Current.Kind is TokenKind.OpenParen)
+        while (!AtEnd && Current.Kind is TokenKind.Dot or TokenKind.OpenBracket or TokenKind.OpenParen)
         {
-            var openParen = Advance();
-            
-            var arguments = ParseSeparatedList(
-                TokenKind.Comma,
-                true,
-                ParseExpressionOrError,
-                TokenKind.CloseParen);
-
-            var closeParen = Expect(TokenKind.CloseParen);
-            
-            expression = new CallExpressionSyntax()
+            switch (Current.Kind)
             {
-                Target = expression,
-                OpenParen = openParen,
-                Arguments = arguments,
-                CloseParen = closeParen
-            };
+            case TokenKind.Dot:
+                {
+                    // Access expression
+
+                    var dotToken = Advance();
+
+                    var name = ParseFieldNameOrError();
+
+                    expression = new AccessExpressionSyntax()
+                    {
+                        Target = expression,
+                        DotToken = dotToken,
+                        Name = name
+                    };
+
+                    break;
+                }
+            
+            case TokenKind.OpenBracket:
+                {
+                    // Index expression
+
+                    var openBracket = Advance();
+
+                    var index = ParseExpressionOrError();
+
+                    var closeBracket = Advance();
+
+                    expression = new IndexExpressionSyntax()
+                    {
+                        Target = expression,
+                        OpenBracket = openBracket,
+                        Index = index,
+                        CloseBracket = closeBracket
+                    };
+
+                    break;
+                }
+            
+            case TokenKind.OpenParen:
+                {
+                    // Call expression
+
+                    var openParen = Advance();
+
+                    var arguments = ParseSeparatedList(
+                        TokenKind.Comma,
+                        true,
+                        ParseExpressionOrError,
+                        TokenKind.CloseParen);
+                    
+                    var closeParen = Expect(TokenKind.CloseParen);
+
+                    expression = new CallExpressionSyntax()
+                    {
+                        Target = expression,
+                        OpenParen = openParen,
+                        Arguments = arguments,
+                        CloseParen = closeParen
+                    };
+
+                    break;
+                }
+            }
         }
 
         return expression;
@@ -150,6 +199,9 @@ internal sealed partial class Parser
 
     internal ExpressionSyntax ParsePrimaryExpression()
     {
+        if (ParseObjectExpressionOrNull() is { } objectExpression)
+            return objectExpression;
+
         if (ParseFlowControlExpressionOrNull(FlowControlExpressionContext.Expression) is { } flowControlExpression)
             return flowControlExpression;
         
@@ -157,6 +209,9 @@ internal sealed partial class Parser
         {
         case TokenKind.OpenParen:
             return ParseParenthesizedOrLambdaExpression();
+        
+        case TokenKind.OpenBracket:
+            return ParseListExpression();
 
         case TokenKind.Return:
             {
@@ -232,6 +287,28 @@ internal sealed partial class Parser
         }
     }
     
+    internal ListExpressionSyntax ParseListExpression()
+    {
+        var openBracket = Expect(TokenKind.OpenBracket);
+
+        var elements = ParseSeparatedList(
+            TokenKind.Comma,
+            allowTrailingSeparator: true,
+            ParseExpressionOrError,
+            TokenKind.CloseBracket,
+            TokenKind.CloseBrace,
+            TokenKind.Semicolon);
+
+        var closeBracket = Expect(TokenKind.CloseBracket);
+
+        return new()
+        {
+            OpenBracket = openBracket,
+            Elements = elements,
+            CloseBracket = closeBracket
+        };
+    }
+
     internal BlockExpressionSyntax ParseBlockExpression()
     {
         var openBrace = Expect(TokenKind.OpenBrace);
@@ -255,11 +332,125 @@ internal sealed partial class Parser
         };
     }
 
+    internal ObjectExpressionSyntax? ParseObjectExpressionOrNull()
+    {
+        var backtrackState = state.Branch();
+
+        var dynToken = Current.Kind is TokenKind.Dyn
+            ? Advance()
+            : null;
+        
+        var lockedIn = dynToken is not null;
+
+        Token openBraceToken;
+        if (lockedIn) openBraceToken = Expect(TokenKind.OpenBrace);
+        else
+        {
+            if (Current.Kind is TokenKind.OpenBrace) openBraceToken = Advance();
+            else return null;
+        }
+
+        var fields = ImmutableArray.CreateBuilder<FieldSyntax>();
+        var separators = ImmutableArray.CreateBuilder<Token>();
+
+        while (!AtEnd && Current.Kind is not (TokenKind.CloseBrace or TokenKind.Semicolon))
+        {
+            var previousToken = Current;
+
+            if (Current.Kind is TokenKind.Comma)
+            {
+                // A comma here is invalid, but since a comma isn't valid as a statement
+                // we assume the user is gonna write an object expression.
+                lockedIn = true;
+            }
+
+            var mutToken = null as Token;
+            if (Current.Kind is TokenKind.Mut)
+            {
+                mutToken = Advance();
+                lockedIn = true;
+
+                if (dynToken is not null)
+                {
+                    ReportDiagnostic(ParseDiagnostics.MutInDynamicObject, mutToken);
+                }
+            }
+
+            var name = ParseFieldNameOrNull();
+
+            Token colonToken;
+            if (lockedIn) colonToken = Expect(TokenKind.Colon);
+            else
+            {
+                if (Current.Kind is TokenKind.Colon) colonToken = Advance();
+                else
+                {
+                    state = backtrackState;
+                    return null;
+                }
+            }
+            lockedIn = true;
+
+            var value = ParseExpressionOrError();
+
+            if (name is null && !value.CanInferFieldName())
+            {
+                ReportDiagnostic(ParseDiagnostics.CannotInferFieldName, colonToken);
+            }
+
+            fields.Add(new FieldSyntax()
+            {
+                MutToken = mutToken,
+                Name = name,
+                ColonToken = colonToken,
+                Value = value
+            });
+
+            Token comma;
+            
+            if (Current.Kind is TokenKind.CloseBrace or TokenKind.Semicolon)
+            {
+                if (Current.Kind is TokenKind.Comma)
+                {
+                    comma = Advance();
+                    separators.Add(comma);
+                }
+
+                break;
+            }
+
+            comma = Expect(TokenKind.Comma);
+            separators.Add(comma);
+
+            if (Current == previousToken)
+            {
+                ReportDiagnostic(ParseDiagnostics.UnexpectedToken, Current);
+                ConsumeUnexpected();
+
+                Advance();
+            }
+        }
+
+        var closeBraceToken = Expect(TokenKind.CloseBrace);
+
+        return new()
+        {
+            DynToken = dynToken,
+            OpenBraceToken = openBraceToken,
+            Fields = SeparatedSyntaxList<FieldSyntax>.Create(fields, separators),
+            CloseBraceToken = closeBraceToken
+        };
+    }
+
     internal ExpressionSyntax? ParseFlowControlExpressionOrNull(FlowControlExpressionContext ctx)
     {
         switch (Current.Kind)
         {
         case TokenKind.OpenBrace:
+            // Object expressions are not flow control expressions, but we have to make sure we don't blindly parse a block
+            // since object expression can look like blocks and begin being parsed as such but then choke on colon tokens.
+            if (ParseObjectExpressionOrNull() is {} objectExpression) return objectExpression;
+            
             return ParseBlockExpression();
 
         case TokenKind.If:
@@ -335,7 +526,7 @@ internal sealed partial class Parser
         5 => termExpressionParser(this, precedence),
         6 => factorExpressionParser(this, precedence),
         7 => unaryExpressionParser(this, precedence),
-        8 => ParseCallExpression(precedence),
+        8 => ParseAccessOrIndexOrCallExpressionChain(precedence),
         9 => ParsePrimaryExpression(),
         _ => throw new UnreachableException()
     };

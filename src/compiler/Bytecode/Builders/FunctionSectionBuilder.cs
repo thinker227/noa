@@ -1,3 +1,5 @@
+using Noa.Compiler.Symbols;
+
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
@@ -30,7 +32,12 @@ internal sealed class FunctionSectionBuilder : IWritable
     public static (FunctionSectionBuilder builder, FunctionBuilder main) Create(StringIndex mainNameIndex)
     {
         var builder = new FunctionSectionBuilder();
-        var main = builder.CreateFunction(mainNameIndex, 0);
+        var main = builder.CreateFunction(
+            mainNameIndex,
+            0,
+            [],
+            _ => throw new InvalidOperationException(
+                "Cannot look up variable in containing function of top-level function."));
         builder.Main = main;
 
         return (builder, main);
@@ -42,7 +49,11 @@ internal sealed class FunctionSectionBuilder : IWritable
     /// <param name="nameIndex">The string index of the name of the function.</param>
     /// <param name="arity">The arity of the function.</param>
     /// <returns>A builder for the created function.</returns>
-    public FunctionBuilder CreateFunction(StringIndex nameIndex, uint arity)
+    public FunctionBuilder CreateFunction(
+        StringIndex nameIndex,
+        uint arity,
+        IReadOnlyList<IVariableSymbol> captures,
+        Func<IVariableSymbol, VariableIndex> containingFunctionVariableLookup)
     {
         var previous = functions.Count > 0
             ? functions[^1].Code
@@ -51,7 +62,13 @@ internal sealed class FunctionSectionBuilder : IWritable
 
         var functionId = new FunctionId(currentId);
         
-        var builder = new FunctionBuilder(code, functionId, nameIndex, arity);
+        var builder = new FunctionBuilder(
+            code,
+            functionId,
+            nameIndex,
+            arity,
+            captures,
+            containingFunctionVariableLookup);
         currentId++;
             
         functions.Add(builder);

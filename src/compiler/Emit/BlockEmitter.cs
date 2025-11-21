@@ -10,6 +10,27 @@ internal class BlockEmitter(
     StringSectionBuilder strings)
     : FunctionEmitter(function, functionBuilders, strings)
 {
+    private void LoadVar(IVariableSymbol var)
+    {
+        var index = Locals.GetOrCreateVariable(var);
+
+        Code.LoadVar(index);
+    }
+
+    private void StoreVar(IVariableSymbol var)
+    {
+        var index = Locals.GetOrCreateVariable(var);
+
+        if (var.Capture.IsCaptured && var.IsMutable)
+        {
+            Code.StoreVarBoxed(index);
+        }
+        else
+        {
+            Code.StoreVar(index);
+        }
+    }
+
     protected override void VisitFunctionDeclaration(FunctionDeclaration node) {}
 
     protected override void VisitExpressionStatement(ExpressionStatement node)
@@ -30,42 +51,131 @@ internal class BlockEmitter(
 
     protected override void VisitAssignmentStatement(AssignmentStatement node)
     {
-        // TODO: refactor this to allow targets other than identifiers
-        var target = (IdentifierExpression)node.Target;
-
-        var varIndex = Locals.GetOrCreateVariable((IVariableSymbol)target.ReferencedSymbol.Value);
-
-        if (node.Kind is not AssignmentKind.Assign)
+        switch (node.Target)
         {
-            Code.LoadVar(varIndex);
+        case IdentifierExpression ident:
+            EmitIdentifierAssignment(ident, node.Kind, node.Value);
+            break;
+        
+        case AccessExpression access:
+            EmitAccessAssignment(access, node.Kind, node.Value);
+            break;
+        
+        case IndexExpression index:
+            EmitIndexAssignment(index, node.Kind, node.Value);
+            break;
+        
+        default:
+            throw new UnreachableException();
+        }
+    }
 
-            Visit(node.Value);
+    private void EmitIdentifierAssignment(IdentifierExpression target, AssignmentKind kind, Expression operand)
+    {
+        var var = (IVariableSymbol)target.ReferencedSymbol.Value;
 
-            switch (node.Kind)
-            {
-            case AssignmentKind.Plus:
-                Code.Add();
-                break;
-            
-            case AssignmentKind.Minus:
-                Code.Sub();
-                break;
-            
-            case AssignmentKind.Mult:
-                Code.Mult();
-                break;
-            
-            case AssignmentKind.Div:
-                Code.Div();
-                break;
-            }
+        if (kind is not AssignmentKind.Assign)
+        {
+            LoadVar(var);
+            Visit(operand);
+            EmitCompoundAssignmentKind(kind);
         }
         else
         {
-            Visit(node.Value);
+            Visit(operand);
         }
+
+        StoreVar(var);
+    }
+
+    private void EmitAccessAssignment(AccessExpression target, AssignmentKind kind, Expression operand)
+    {
+        Visit(target.Target); // [.., obj]
+        Visit(target.Name); // [.., obj, name]
+
+        if (kind is not AssignmentKind.Assign)
+        {
+            // Store the name into a temporary variable.
+            using var nameTempVar = Locals.GetTemp();
+            Code.StoreVar(nameTempVar.Variable);  // [.., obj]
+            
+            // Duplicate the object and load the name.
+            Code.Dup();                         // [.., obj, obj]
+            Code.LoadVar(nameTempVar.Variable); // [.., obj, obj, name]
+
+            // Read field and emit the operation.
+            Code.ReadField();                 // [.., obj, field]
+            Visit(operand);                   // [.., obj, field, operand]
+            EmitCompoundAssignmentKind(kind); // [.., obj, value]
+
+            // Setup stack for write.
+            Code.LoadVar(nameTempVar.Variable); // [.., obj, value, name]
+            Code.Swap();                        // [.., obj, name, value]
+        }
+        else
+        {
+            Visit(operand); // [.., obj, name, value]
+        }
+
+        Code.WriteField();
+    }
+
+    private void EmitIndexAssignment(IndexExpression target, AssignmentKind kind, Expression operand)
+    {
+        Visit(target.Target); // [.., list]
+        Visit(target.Index); // [.., list, index]
+
+        if (kind is not AssignmentKind.Assign)
+        {
+            // Same logic as field compound assignment.
+
+            using var indexTempVar = Locals.GetTemp();
+            Code.StoreVar(indexTempVar.Variable); // [.., list]
+
+            Code.Dup(); // [.., list, list]
+            Code.LoadVar(indexTempVar.Variable); // [.., list, list, index]
+
+            Code.ReadElement();               // [.., list, element]
+            Visit(operand);                   // [.., list, element, operand]
+            EmitCompoundAssignmentKind(kind); // [.., list, value]
+
+            Code.LoadVar(indexTempVar.Variable); // [.., list, value, index]
+            Code.Swap();                         // [.., list, index, value]
+        }
+        else
+        {
+            Visit(operand);
+        }
+
+        Code.WriteElement();
+    }
+
+    private void EmitCompoundAssignmentKind(AssignmentKind kind)
+    {
+        switch (kind)
+        {
+        case AssignmentKind.Assign:
+            throw new InvalidOperationException();
         
-        Code.StoreVar(varIndex);
+        case AssignmentKind.Plus:
+            Code.Add();
+            break;
+        
+        case AssignmentKind.Minus:
+            Code.Sub();
+            break;
+        
+        case AssignmentKind.Mult:
+            Code.Mult();
+            break;
+        
+        case AssignmentKind.Div:
+            Code.Div();
+            break;
+        
+        default:
+            throw new UnreachableException();
+        }
     }
 
     protected override void VisitUnaryExpression(UnaryExpression node)
@@ -294,9 +404,80 @@ internal class BlockEmitter(
 
     protected override void VisitLambdaExpression(LambdaExpression node)
     {
-        var lambdaFunctionId = functionBuilders[node.Function.Value].Id;
+        var function = node.Function.Value;
         
-        Code.PushFunc(lambdaFunctionId);
+        Code.PushFunc(functionBuilders[function].Id);
+    }
+
+    protected override void VisitObjectExpression(ObjectExpression node)
+    {
+        Code.PushObject(node.IsDynamic);
+
+        foreach (var field in node.Fields)
+        {
+            // Object
+            Code.Dup();
+            
+            // Name
+            Visit(field.Name);
+
+            // Value
+            Visit(field.Value);
+
+            Code.AddField(field.IsMutable);
+        }
+    }
+
+    protected override void VisitListExpression(ListExpression node)
+    {
+        Code.PushList();
+
+        foreach (var element in node.Elements)
+        {
+            Code.Dup();
+
+            Visit(element);
+
+            Code.AppendElement();
+        }
+    }
+
+    protected override void VisitAccessExpression(AccessExpression node)
+    {
+        // Object
+        Visit(node.Target);
+
+        // Name
+        Visit(node.Name);
+
+        Code.ReadField();
+    }
+
+    protected override void VisitSimpleFieldName(SimpleFieldName node)
+    {
+        var index = strings.GetOrAdd(node.Name);
+        Code.PushString(index);
+    }
+
+    protected override void VisitExpressionFieldName(ExpressionFieldName node)
+    {
+        Visit(node.Expression);
+        Code.ToString();
+    }
+
+    protected override void VisitInferredFieldName(InferredFieldName node)
+    {
+        var index = strings.GetOrAdd(node.Name);
+        Code.PushString(index);
+    }
+
+    protected override void VisitIndexExpression(IndexExpression node)
+    {
+        Visit(node.Target);
+
+        Visit(node.Index);
+
+        Code.ReadElement();
     }
 
     protected override void VisitIdentifierExpression(IdentifierExpression node)
@@ -322,9 +503,7 @@ internal class BlockEmitter(
             }
 
         case IVariableSymbol var:
-            var varIndex = Locals.GetOrCreateVariable(var);
-            
-            Code.LoadVar(varIndex);
+            LoadVar(var);
             
             break;
         
@@ -347,8 +526,6 @@ internal class BlockEmitter(
     {
         Visit(node.Expression);
 
-        var var = Locals.GetOrCreateVariable(node.Symbol.Value);
-        
-        Code.StoreVar(var);
+        StoreVar(node.Symbol.Value);
     }
 }

@@ -39,18 +39,18 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
             opcode::JUMP => (
                 "Jump",
                 vec![
-                    make_operand::<u32>(&inspection, "address")
+                    make_operand::<u32>(inspection, "address")
                 ],
                 vec![]
             ),
             opcode::JUMP_IF => (
                 "JumpIf",
                 vec![
-                    make_operand::<u32>(&inspection, "address")
+                    make_operand::<u32>(inspection, "address")
                 ],
                 vec![
                     make_arg(
-                        &inspection,
+                        inspection,
                         0,
                         "condition",
                         Some(Type::Bool)
@@ -65,7 +65,7 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     let mut i = 0;
                     args.resize_with(arg_count as usize, || {
                         let arg = make_arg(
-                            &inspection,
+                            inspection,
                             arg_count as usize - i - 1,
                             format!("arg {i}"),
                             None
@@ -91,7 +91,7 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![],
                 vec![
                     make_arg(
-                        &inspection,
+                        inspection,
                         0,
                         "val",
                         None
@@ -141,6 +141,18 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
+            opcode::PUSH_OBJECT => (
+                "PushObject",
+                vec![
+                    make_operand::<bool>(inspection, "dynamic")
+                ],
+                vec![]
+            ),
+            opcode::PUSH_LIST => (
+                "PushList",
+                vec![],
+                vec![]
+            ),
             opcode::POP => (
                 "Pop",
                 vec![],
@@ -161,7 +173,9 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 vec![
                     make_operand::<u32>(inspection, "var index")
                 ],
-                vec![]
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
             ),
             opcode::LOAD_VAR => (
                 "LoadVar",
@@ -170,98 +184,160 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                 ],
                 vec![]
             ),
+            opcode::STORE_VAR_BOXED => (
+                "StoreVarBoxed",
+                vec![
+                    make_operand::<u32>(inspection, "var index")
+                ],
+                vec![
+                    make_arg(inspection, 0, "value", None)
+                ]
+            ),
             opcode::ADD => (
                 "Add",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::SUB => (
                 "Sub",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::MULT => (
                 "Mult",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::DIV => (
                 "Div",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::EQUAL => (
                 "Equal",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Bool)),
-                    make_arg(&inspection, 0, "right", Some(Type::Bool))
+                    make_arg(inspection, 1, "left", Some(Type::Bool)),
+                    make_arg(inspection, 0, "right", Some(Type::Bool))
                 ]
             ),
             opcode::LESS_THAN => (
                 "LessThan",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::NOT => (
                 "Not",
                 vec![],
                 vec![
-                    make_arg(&inspection, 0, "val", Some(Type::Bool))
+                    make_arg(inspection, 0, "val", Some(Type::Bool))
                 ]
             ),
             opcode::AND => (
                 "And",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Bool)),
-                    make_arg(&inspection, 0, "right", Some(Type::Bool))
+                    make_arg(inspection, 1, "left", Some(Type::Bool)),
+                    make_arg(inspection, 0, "right", Some(Type::Bool))
                 ]
             ),
             opcode::OR => (
                 "Or",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Bool)),
-                    make_arg(&inspection, 0, "right", Some(Type::Bool))
+                    make_arg(inspection, 1, "left", Some(Type::Bool)),
+                    make_arg(inspection, 0, "right", Some(Type::Bool))
                 ]
             ),
             opcode::GREATER_THAN => (
                 "GreaterThan",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::Number)),
-                    make_arg(&inspection, 0, "right", Some(Type::Number))
+                    make_arg(inspection, 1, "left", Some(Type::Number)),
+                    make_arg(inspection, 0, "right", Some(Type::Number))
                 ]
             ),
             opcode::CONCAT => (
                 "Concat",
                 vec![],
                 vec![
-                    make_arg(&inspection, 1, "left", Some(Type::String)),
-                    make_arg(&inspection, 0, "right", Some(Type::String))
+                    make_arg(inspection, 1, "left", Some(Type::String)),
+                    make_arg(inspection, 0, "right", Some(Type::String))
                 ]
             ),
             opcode::TO_STRING => (
                 "ToString",
                 vec![],
                 vec![
-                    make_arg(&inspection, 0, "val", None)
+                    make_arg(inspection, 0, "val", None)
+                ]
+            ),
+            opcode::ADD_FIELD => (
+                "AddField",
+                vec![
+                    make_operand::<bool>(inspection, "mutable")
+                ],
+                vec![
+                    make_arg(inspection, 2, "object", Some(Type::Object)),
+                    make_arg(inspection, 1, "field", Some(Type::String)),
+                    make_arg(inspection, 0, "value", None)
+                ]
+            ),
+            opcode::WRITE_FIELD => (
+                "WriteField",
+                vec![],
+                vec![
+                    make_arg(inspection, 2, "object", Some(Type::Object)),
+                    make_arg(inspection, 1, "field", Some(Type::String)),
+                    make_arg(inspection, 0, "value", None)
+                ]
+            ),
+            opcode::READ_FIELD => (
+                "ReadField",
+                vec![],
+                vec![
+                    make_arg(inspection, 1, "object", Some(Type::Object)),
+                    make_arg(inspection, 0, "field", Some(Type::String))
+                ]
+            ),
+            opcode::APPEND_ELEMENT => (
+                "AppendElement",
+                vec![],
+                vec![
+                    make_arg(inspection, 1, "list", Some(Type::List)),
+                    make_arg(inspection, 0, "value", None)
+                ]
+            ),
+            opcode::WRITE_ELEMENT => (
+                "WriteElement",
+                vec![],
+                vec![
+                    make_arg(inspection, 2, "list", Some(Type::List)),
+                    make_arg(inspection, 1, "index", Some(Type::Number)),
+                    make_arg(inspection, 0, "value", None)
+                ]
+            ),
+            opcode::READ_ELEMENT => (
+                "ReadElement",
+                vec![],
+                vec![
+                    make_arg(inspection, 1, "list", Some(Type::List)),
+                    make_arg(inspection, 0, "index", Some(Type::Number))
                 ]
             ),
             opcode::BOUNDARY => (
@@ -290,16 +366,25 @@ fn make_operand<'insp, 'vm, T: IntoOperand>(
     name: impl ToString
 ) -> Operand
 {
+    make_nth_operand::<T>(inspection, name, 0)
+}
+
+fn make_nth_operand<'insp, 'vm, T: IntoOperand>(
+    inspection: &'insp DebugInspection<'vm>,
+    name: impl ToString,
+    operand_byte_offset: usize
+) -> Operand
+{
     Operand {
         name: name.to_string(),
         length: T::length(),
         typ: T::typ(),
-        value: read_operand::<T>(inspection)
+        value: read_nth_operand::<T>(operand_byte_offset, inspection)
             .map(|x| x.show())
     }
 }
 
-fn operand_from<'insp, 'vm, T: IntoOperand>(
+fn operand_from<T: IntoOperand>(
     value: Option<impl ToString>,
     name: impl ToString
 ) -> Operand
@@ -316,8 +401,16 @@ fn read_operand<'insp, 'vm, T: IntoOperand>(
     inspection: &'insp DebugInspection<'vm>
 ) -> Option<T>
 {
+    read_nth_operand::<T>(0, inspection)
+}
+
+fn read_nth_operand<'insp, 'vm, T: IntoOperand>(
+    operand_byte_offset: usize,
+    inspection: &'insp DebugInspection<'vm>
+) -> Option<T>
+{
     let ip = inspection.ip;
-    let remaining_bytes = &inspection.consts.code[(ip + 1)..];
+    let remaining_bytes = &inspection.consts.code[(ip + 1 + operand_byte_offset)..];
     let length = T::length();
     
     if remaining_bytes.len() >= length {

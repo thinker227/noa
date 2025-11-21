@@ -1,8 +1,9 @@
 [package]
 name = "noa_runtime"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 binrw = "0.14.1"
+polonius-the-crab = "0.4.2"
 thiserror = "2.0.11"

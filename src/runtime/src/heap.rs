@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use std::ptr;
 
-use crate::value::{Closure, Value};
+use crate::value::{Closure, List, Object, Value};
 
 /// An address to data on a [`Heap`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -54,8 +53,9 @@ struct HeapData {
 #[derive(Debug)]
 pub enum HeapValue {
     String(String),
-    List(Vec<Value>),
-    Object(HashMap<String, Value>),
+    List(List),
+    Object(Object),
+    Box(Value),
 }
 
 /// A memory heap for managing heap-allocated data and garbage collection of that data.
@@ -188,16 +188,21 @@ impl Heap {
             // Add the contained references to the list of addresses to visit.
             match &data.value  {
                 HeapValue::String(_) => {},
-                HeapValue::List(xs) => {
+                HeapValue::List(List(xs)) => {
                     let addresses = Self::extract_references(
                         xs.iter().copied()
                     );
                     to_visit.extend(addresses);
                 },
-                HeapValue::Object(map) => {
+                HeapValue::Object(Object { fields, .. }) => {
                     let addresses = Self::extract_references(
-                        map.values().copied()
+                        fields.values().map(|f| &f.val).copied()
                     );
+                    to_visit.extend(addresses);
+                },
+                HeapValue::Box(x) => {
+                    let x = *x;
+                    let addresses = Self::extract_references([x].into_iter());
                     to_visit.extend(addresses);
                 },
             }
@@ -434,7 +439,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0)),
             Value::Object(HeapAddress(2))
         ].iter().copied());
@@ -459,16 +464,16 @@ mod tests {
     fn collect_marks_references_through_objects() {
         let mut heap = Heap::new(4);
         
-        alloc(&mut heap, HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(1))
-        ]), 0);
-        alloc(&mut heap, HeapValue::List(vec![
+        ])), 0);
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(3))
-        ]), 1);
+        ])), 1);
         alloc(&mut heap, HeapValue::String("uwu".into()), 2);
         alloc(&mut heap, HeapValue::String("owo".into()), 3);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0))
         ].iter().copied());
 
@@ -496,14 +501,14 @@ mod tests {
     fn collect_handles_cyclic_references() {
         let mut heap = Heap::new(2);
 
-        alloc(&mut heap, HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(1))
-        ]), 0);
-        alloc(&mut heap, HeapValue::List(vec![
+        ])), 0);
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(0))
-        ]), 1);
+        ])), 1);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(0))
         ].iter().copied());
 
@@ -526,12 +531,12 @@ mod tests {
     fn collect_collects_unreferenced_cyclic_references() {
         let mut heap = Heap::new(2);
 
-        alloc(&mut heap, HeapValue::List(vec![
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(1))
-        ]), 0);
-        alloc(&mut heap, HeapValue::List(vec![
+        ])), 0);
+        alloc(&mut heap, HeapValue::List(List(vec![
             Value::Object(HeapAddress(0))
-        ]), 1);
+        ])), 1);
 
         heap.collect(iter::empty());
 
@@ -551,7 +556,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("uwu".into()), 0);
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(1))
         ].iter().copied());
 
@@ -580,7 +585,7 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
 
-        heap.collect(vec![
+        heap.collect([
             Value::Object(HeapAddress(1))
         ].iter().copied());
 

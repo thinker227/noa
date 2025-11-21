@@ -30,6 +30,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x16 | `PushFunc <func id: u32>` | Pushes the function with the ID `id` onto the stack, encoded as a [function ID](./ark.md#function-id). | Pushes 1 value. |
 | 0x17 | `PushNil` | Pushes nil onto the stack. | Pushes 1 value. |
 | 0x18 | `PushString <string index: u32>` | Pushes the string with the string index `string index` onto the stack. | Pushes 1 value. |
+| 0x19 | `PushObject <dynamic: bool>` | Pushes an empty object onto the stack with `dynamic` determining whether the object is dynamic. | Pushes 1 value. |
+| 0x20 | `PushList` | Pushes an empty list onto the stack. | Pushes 1 value |
 
 ## Miscellaneous stack operations (0x32-0x45)
 
@@ -44,7 +46,8 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | Byte | Signature | Description | Stack effect |
 |------|-----------|-------------|--------------|
 | 0x46 | `StoreVar <var index: u32>` | Pops the topmost value from the stack and stores it into a local variable with the index `var index`. | Pops 1 value. |
-| 0x47 | `LoadVar <var index: u32>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. | Pushes 1 value. |
+| 0x47 | `LoadVar <var index: u32>` | Loads the value of a local variable with the index `var index` and pushes it onto the stack. Always tries to unbox the value after pushing it. | Pushes 1 value. |
+| 0x48 | `StoreVarBoxed <var index: u32>` | Pops the topmost value from the stack, then loads the value of a local variable with the index `var index` and checks whether it is boxed or not. If the loaded value is boxed, the popped value is written into the box, otherwise boxed the popped value and stores it into the variable. | Pops 1 value. |
 
 ## Value operations (0x64-0xEF)
 
@@ -62,6 +65,12 @@ Each table specifies the byte representing the opcode, the "signature" (i.e. the
 | 0x6D | `GreaterThan` | Pops the two topmost values on from the stack, checks whether the second value is greater than the first, then pushes the result onto the stack as a bool value. | Cumulative: pops 1 value. |
 | 0x6E | `Concat` |  Pops the two topmost values on from the stack, concatenates them as strings, and pushes the result onto the stack. | Cumulative: pops 1 value. |
 | 0x6F | `ToString` | Pops the topmost value from the stack, coerces it into a string, then pushes the result onto the stack. | Cumulative: none. |
+| 0x70 | `AddField <mutable: bool>` | Same as `WriteField` writes a fields **without override/mutability checks** and sets the field's mutability to `mutable`. | Cumulative: pops 3 values. |
+| 0x71 | `WriteField` | Pops the three topmost values from the stack, coerces the second into a string and the third into an object, then writes the first value as a field with the coerced string as the name into the coerced object. | Cumulative: pops 3 values. |
+| 0x72 | `ReadField` | Pops the two topmost values from the stack, coerces the first into a string and the second into an object, reads a field with the coerced string as the name from the coerced object, then pushes the read value of the field onto the stack. | Cumulative: pops 1 value. |
+| 0x73 | `AppendElement` | Pops two values from the stack, coerces the second into a list, and appends the first to the end of the list. | Pops 2 values. |
+| 0x74 | `WriteElement` | Pops three values from the stack, coerces the second into a number and the third into a list, then writes the first value into the list at the index specified by the coerced number. The coerced number is rounded towards zero to produce an integer index. | Pops 3 values. |
+| 0x75 | `ReadElement` | Pops two values from the stack, coerces the first into a number and the second into a list, then pushes the element at the index in the list specified by the coerced number onto the stack. The coerced number is rounded towards zero to produce an integer index. | Cumulative: pops 1 value. |
 
 ## Operational instructions (0xF0-0xFF)
 

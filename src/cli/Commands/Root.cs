@@ -94,6 +94,8 @@ public sealed class Root(
 
         var langServerCommand = LangServer.CreateCommand(console);
 
+        var runtimeCommand = Runtime.CreateCommand(console);
+
         command.Add(inputFileArgument);
         command.Add(argsArgument);
         command.Add(outputFileOption);
@@ -105,6 +107,7 @@ public sealed class Root(
         command.Add(versionOption);
         command.Add(buildCommand);
         command.Add(langServerCommand);
+        command.Add(runtimeCommand);
 
         command.SetAction((ctx, ct) =>
             Task.FromResult(
@@ -125,7 +128,9 @@ public sealed class Root(
 
     private int Execute()
     {
-        if (FindRuntime() is not {} runtime) return 1;
+        var config = Config.TryGetEnvironmentConfig();
+
+        if (FindRuntime.Search(console, config, runtimeOverride) is not {} runtime) return 1;
 
         Ast ast;
         try
@@ -169,54 +174,6 @@ public sealed class Root(
         }
 
         return exitCode;
-    }
-
-    private FileInfo? FindRuntime()
-    {
-        if (runtimeOverride is not null) return runtimeOverride;
-
-        const string runtimePathEnvVar = "NOA_RUNTIME";
-        var envRuntimePath = Environment.GetEnvironmentVariable(runtimePathEnvVar);
-        var envVarIsSet = false;
-        if (envRuntimePath is not null)
-        {
-            envVarIsSet = true;
-
-            var envProvidedRuntime = new FileInfo(envRuntimePath);
-
-            if (envProvidedRuntime.Exists) return envProvidedRuntime;
-        }
-
-        var siblingRuntimeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? "noa_runtime.exe"
-            : "noa_runtime";
-        var processPath = Environment.ProcessPath!;
-        var processDirectory = Path.GetDirectoryName(processPath)!;
-        var siblingRuntimePath = Path.Combine(processDirectory, siblingRuntimeName);
-        var siblingRuntime = new FileInfo(siblingRuntimePath);
-
-        if (!siblingRuntime.Exists)
-        {
-            var envVarMessage = envVarIsSet
-                ? ", [yellow]which was set but did not refer to a valid file.[/]"
-                : ".";
-
-            console.MarkupLine($"""
-                [red]Cannot find the Noa runtime. Tried to find the runtime in the following places (in this order):
-                  - A path provided by the [white]--runtime|-r[/] CLI option.
-                  - A path provided by the [white]NOA_RUNTIME[/] environment variable{envVarMessage}
-                  - [white]{siblingRuntimePath}[/].
-                
-                By default, the runtime should be located at [white]{siblingRuntimePath}[/].
-                If running in a development environment, specify the path manually or set the environment variable.
-                There's probably a runtime somewhere around here...
-                [/]
-                """);
-            
-            return null;
-        }
-
-        return siblingRuntime;
     }
 
     private (TimeSpan, int)? ExecuteArk(FileInfo runtime, FileInfo arkFile, bool printReturnValue, bool debug)

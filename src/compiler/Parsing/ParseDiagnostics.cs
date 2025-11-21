@@ -80,6 +80,8 @@ internal static class ParseDiagnostics
             page => page
                 .Raw("Only ")
                 .Keyword("identifier expressions")
+                .Raw(" and ")
+                .Keyword("object access expressions")
                 .Raw(" can be used on the ")
                 .Emphasized("left-hand side of an assignment statement")
                 .Raw("."),
@@ -111,6 +113,28 @@ internal static class ParseDiagnostics
             (seq, page) => page
                 .Raw("Unknown escape sequence ")
                 .Source(seq)
+                .Raw("."),
+            Severity.Error);
+    
+    public static DiagnosticTemplate<Unit> CannotInferFieldName { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-010",
+            page => page
+                .Keyword("Field")
+                .Raw(" has to ")
+                .Emphasized("specify a name")
+                .Raw(" because the name cannot be inferred."),
+            Severity.Error);
+    
+    public static DiagnosticTemplate<Unit> MutInDynamicObject { get; } =
+        DiagnosticTemplate.Create(
+            "NOA-SYN-011",
+            page => page
+                .Keyword("Fields")
+                .Raw(" cannot be declared as ")
+                .Keyword("mutable")
+                .Raw(" inside ")
+                .Keyword("dynamic objects")
                 .Raw("."),
             Severity.Error);
 }

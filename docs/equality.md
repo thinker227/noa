@@ -12,11 +12,19 @@ Not sure whether booleans need an explaination for equality, but regardless, `tr
 
 ## Functions
 
-Functions are only ever equal if **a\)** they refer to the same function or lambda, and **b\)** they share the same closure. This means that a comparison such as `print == print` is always true, and that a lambda which captures a variable will be equal to itself, but never any other "instance" of said lambda.
+Functions are only ever equal if **a\)** they refer to the same function or lambda, and **b\)** they share the same closure (by reference). This means that a comparison such as `print == print` is always true, and that a lambda which captures a variable will be equal to itself, but never any other "instance" of said lambda.
 
 ## Strings
 
 Strings are equal if their UTF-8 binary representation is the same. This unfortunately runs into issues where two strings may look the same but have different representations. For instance, the strings `ö` and `ö` aren't equal, because the first is the character `ö` (U+00F6), and the second is the characters `o` (U+006F) and `◌̈` (U+0308).
+
+## Objects
+
+Objects are equal if they share the same fields and each field shares the same value in both objects. Field names are compared using the same rules as strings, and values are compared using the same equality rules as otherwise.
+
+## Lists
+
+Lists are equal if they are the same size and each element in the first list is equal to the element at the same index in the second list.
 
 ## Nil
 

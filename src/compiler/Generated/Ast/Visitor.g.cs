@@ -28,6 +28,12 @@ public abstract partial class Visitor
         case Expression x:
             VisitExpression(x);
             break;
+        case Field x:
+            VisitField(x);
+            break;
+        case FieldName x:
+            VisitFieldName(x);
+            break;
         case ElseClause x:
             VisitElseClause(x);
             break;
@@ -134,6 +140,12 @@ public abstract partial class Visitor
         case TupleExpression x:
             VisitTupleExpression(x);
             break;
+        case ObjectExpression x:
+            VisitObjectExpression(x);
+            break;
+        case ListExpression x:
+            VisitListExpression(x);
+            break;
         case IfExpression x:
             VisitIfExpression(x);
             break;
@@ -154,6 +166,12 @@ public abstract partial class Visitor
             break;
         case BinaryExpression x:
             VisitBinaryExpression(x);
+            break;
+        case AccessExpression x:
+            VisitAccessExpression(x);
+            break;
+        case IndexExpression x:
+            VisitIndexExpression(x);
             break;
         case IdentifierExpression x:
             VisitIdentifierExpression(x);
@@ -199,6 +217,62 @@ public abstract partial class Visitor
         Visit(node.Expressions);
     }
 
+    protected virtual void VisitObjectExpression(ObjectExpression node)
+    {
+        Visit(node.Fields);
+    }
+
+    protected virtual void VisitField(Field node)
+    {
+        Visit(node.Name);
+        Visit(node.Value);
+    }
+
+    protected virtual void VisitFieldName(FieldName node)
+    {
+        switch (node)
+        {
+        case SimpleFieldName x:
+            VisitSimpleFieldName(x);
+            break;
+        case InferredFieldName x:
+            VisitInferredFieldName(x);
+            break;
+        case StringFieldName x:
+            VisitStringFieldName(x);
+            break;
+        case ExpressionFieldName x:
+            VisitExpressionFieldName(x);
+            break;
+        case ErrorFieldName x:
+            VisitErrorFieldName(x);
+            break;
+        default:
+            throw new UnreachableException();
+        }
+    }
+
+    protected virtual void VisitSimpleFieldName(SimpleFieldName node) {}
+
+    protected virtual void VisitInferredFieldName(InferredFieldName node) {}
+
+    protected virtual void VisitStringFieldName(StringFieldName node)
+    {
+        Visit(node.String);
+    }
+
+    protected virtual void VisitExpressionFieldName(ExpressionFieldName node)
+    {
+        Visit(node.Expression);
+    }
+
+    protected virtual void VisitErrorFieldName(ErrorFieldName node) {}
+
+    protected virtual void VisitListExpression(ListExpression node)
+    {
+        Visit(node.Elements);
+    }
+
     protected virtual void VisitIfExpression(IfExpression node)
     {
         Visit(node.Condition);
@@ -237,6 +311,18 @@ public abstract partial class Visitor
     {
         Visit(node.Left);
         Visit(node.Right);
+    }
+
+    protected virtual void VisitAccessExpression(AccessExpression node)
+    {
+        Visit(node.Target);
+        Visit(node.Name);
+    }
+
+    protected virtual void VisitIndexExpression(IndexExpression node)
+    {
+        Visit(node.Target);
+        Visit(node.Index);
     }
 
     protected virtual void VisitIdentifierExpression(IdentifierExpression node) {}

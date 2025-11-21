@@ -49,7 +49,10 @@ pub struct Function {
     pub name_index: u32,
     pub arity: u32,
     pub locals_count: u32,
+    pub captures_count: u32,
     pub address: u32,
+    #[br(count = captures_count)]
+    pub captures: Vec<u32>,
 }
 
 #[derive(Debug)]

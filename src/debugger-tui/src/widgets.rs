@@ -1,6 +1,6 @@
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
-use noa_runtime::value::{Type, Value};
+use noa_runtime::value::{List, Object, Type, Value};
 use noa_runtime::vm::frame::{Frame, FrameKind};
 use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use ratatui::prelude::*;
@@ -64,7 +64,7 @@ impl MainWidget<'_, '_, '_> {
             .title_top(title)
             .render(area, buf);
 
-        let var_indices = utils::get_stack_variable_indices(&self.inspection);
+        let var_indices = utils::get_stack_variable_indices(self.inspection);
 
         let mut separator = String::new();
         for _ in 0..(area.width - 4) {
@@ -72,8 +72,7 @@ impl MainWidget<'_, '_, '_> {
         }
 
         let mut values = Vec::new();
-        let mut i = 0;
-        for val in self.inspection.stack.iter() {
+        for (i, val) in self.inspection.stack.iter().enumerate() {
             let mut line = self.show_value(*val);
             
             if let Some((start, end)) = var_indices {
@@ -91,8 +90,6 @@ impl MainWidget<'_, '_, '_> {
             }
 
             values.push(line);
-
-            i += 1;
         }
 
         Paragraph::new(values)
@@ -106,8 +103,9 @@ impl MainWidget<'_, '_, '_> {
             Type::Bool => "bool".blue(),
             Type::Function => "function".green(),
             Type::String => "string".yellow(),
-            Type::List => "list".white(),
-            Type::Nil => "object".white(),
+            Type::List => "list".magenta(),
+            Type::Object => "object".magenta(),
+            Type::Nil => "()".white(),
         }
     }
 
@@ -118,10 +116,10 @@ impl MainWidget<'_, '_, '_> {
             Value::Bool(x) => x.to_string().blue().into(),
 
             Value::InternedString(index) =>
-                self.show_istr(index).into(),
+                self.show_istr(index),
             
             Value::Function(closure) =>
-                self.show_func(closure.function).into(),
+                self.show_func(closure.function),
 
             Value::Object(adr) => {
                 if let Ok(obj) = self.inspection.heap.get(adr) {
@@ -129,9 +127,19 @@ impl MainWidget<'_, '_, '_> {
                         HeapValue::String(s) =>
                             format!("\"{}\"", s.clone()).light_yellow().into(),
                         
-                        HeapValue::List(_) => "list".into(),
+                        HeapValue::List(list) => self.show_list(list),
 
-                        HeapValue::Object(_) => "object".into(),
+                        HeapValue::Object(object) => self.show_object(object),
+
+                        HeapValue::Box(x) => {
+                            let inner = self.show_value(*x);
+                            let mut spans = inner.spans;
+
+                            spans.insert(0, "Box(".light_green());
+                            spans.push(")".light_green());
+                            
+                            spans.into()
+                        },
                     }
                 } else {
                     format!("bad obj {}", adr.0).red().into()
@@ -140,6 +148,69 @@ impl MainWidget<'_, '_, '_> {
 
             Value::Nil => "()".into(),
         }
+    }
+
+    fn show_list(&self, list: &List) -> Line<'static> {
+        let mut spans = Vec::new();
+
+        spans.push("[".into());
+
+        let mut first = true;
+        for element in &list.0 {
+            if !first {
+                spans.push(", ".into());
+            } else {
+                first = false;
+            }
+
+            let value_spans = self.show_value(*element).spans;
+            spans.extend_from_slice(&value_spans);
+        }
+
+        spans.push("]".into());
+
+        spans.into()
+    }
+
+    fn show_object(&self, object: &Object) -> Line<'static> {
+        let mut spans = Vec::new();
+
+        if object.dynamic {
+            spans.push("dyn ".into());
+        }
+
+        spans.push("{".into());
+
+        let mut fields = object.fields.iter().collect::<Vec<_>>();
+        fields.sort_by_key(|(_, field)| field.index);
+
+        let mut i = 0;
+        for (field_name, field) in fields {
+            if i >= 1 {
+                spans.push(",".into());
+            }
+
+            spans.push(" ".into());
+
+            if field.mutable {
+                spans.push("mut ".into());
+            }
+
+            let value_spans = self.show_value(field.val).spans;
+            spans.push(format!("f\"{}\"", field_name).yellow());
+            spans.push(": ".into());
+            spans.extend_from_slice(&value_spans);
+
+            i += 1;
+        }
+
+        if i >= 1 {
+            spans.push(" ".into());
+        }
+
+        spans.push("}".into());
+
+        spans.into()
     }
 
     fn show_istr(&self, index: usize) -> Line<'static> {
@@ -159,15 +230,13 @@ impl MainWidget<'_, '_, '_> {
             } else {
                 format!("bad nfunc {id}").red().into()
             }
+        } else if let Some(function) = self.inspection.consts.functions.get(id) {
+            let mut spans = Vec::new();
+            spans.push(format!("func {id} ").green());
+            spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
+            Line::from(spans)
         } else {
-            if let Some(function) = self.inspection.consts.functions.get(id) {
-                let mut spans = Vec::new();
-                spans.push(format!("func {id} ").green());
-                spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
-                Line::from(spans)
-            } else {
-                format!("bad func {id}").red().into()
-            }
+            format!("bad func {id}").red().into()
         }
     }
 
@@ -210,7 +279,7 @@ impl MainWidget<'_, '_, '_> {
             .split_with_spacers(area);
 
         Paragraph::new(vec![
-                Line::from(opcodes)
+                opcodes
             ])
             .render(layout[0], buf);
 

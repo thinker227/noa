@@ -32,6 +32,7 @@ Operator | Left    | Right   | Result                                           
 `>=`     | Number  | Number  | Whether left is greater than or equal to right                         |
 `or`     | Boolean | Boolean | The logical disjunction of left and right                              |
 `and`    | Boolean | Boolean | The logical conjunction of left and right                              |
+`.`      | Object  | Field   | The value of the field in the object left with the field right         |
 
 ### Short-circuiting
 
@@ -42,9 +43,9 @@ Some operators, namely `or` and `and`, only evaluate their right-side operand if
 
 ## Operator precedence
 
-Operator precedence specifies in what order multiple chained operators parse. For instance, `1 + 2 * 3` is equivalent to `1 + (2 * 3)` because `*` has a *higher* precedence than `+`. If two operators with the same precedence are chained, then the operators are evaluated from left to right (all operators in Noa are left-associative).
+Operator precedence specifies in what order multiple chained operators parse. For instance, `1 + 2 * 3` is equivalent to `1 + (2 * 3)` because `*` has a *higher* precedence than `+`. If two operators with the same precedence are chained, then the operators are evaluated from left to right (all operators in Noa are left-associative). For instance, member access and function invocation have the same precedence and can therefore be chained like `obj.f()`.
 
-Notably, `not x` has the highest precedence out of any operator. This is different from most other languages where `!` has the same precedence as the other unary operators `+x` and `-x`. This is because Noa uses keywords for these operators instead of symbols, so that `not a or b` works consistently with the way most people will mentally parse the phrase "not a or b" as "not a or not b".
+Notably, `not x` has the lowest precedence out of any operator. This is different from most other languages where `!` has the same precedence as the other unary operators `+x` and `-x`. This is because Noa uses keywords for these operators instead of symbols, so that `not a or b` works consistently with the way most people will mentally parse the phrase "not a or b" as "not a or not b".
 
 The following is a list of operators and their precedence in order from lowest to highest:
 
@@ -56,3 +57,4 @@ The following is a list of operators and their precedence in order from lowest t
 6. `a + b`, `a - b`
 7. `a * b`, `a / b`
 8. `+x`, `-x`
+9. `obj.x`, `list[i]`, `f(x)`

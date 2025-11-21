@@ -127,6 +127,14 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         BinaryPrimitives.WriteUInt32BigEndian(bytes, index.Index);
         Add(Opcode.PushString, bytes);
     }
+
+    public void PushObject(bool dyn)
+    {
+        var b = dyn ? (byte)1 : (byte)0;
+        Add(Opcode.PushObject, [b]);
+    }
+
+    public void PushList() => Add(Opcode.PushList);
     
     public void Pop() => Add(Opcode.Pop);
 
@@ -146,6 +154,13 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
         var bytes = new byte[4];
         BinaryPrimitives.WriteUInt32BigEndian(bytes, varIndex.Index);
         Add(Opcode.LoadVar, bytes);
+    }
+
+    public void StoreVarBoxed(VariableIndex varIndex)
+    {
+        var bytes = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(bytes, varIndex.Index);
+        Add(Opcode.StoreVarBoxed, bytes);
     }
     
     public void Add() => Add(Opcode.Add);
@@ -171,6 +186,22 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Concat() => Add(Opcode.Concat);
 
     public new void ToString() => Add(Opcode.ToString);
+
+    public void AddField(bool mutable)
+    {
+        var b = mutable ? (byte)1 : (byte)0;
+        Add(Opcode.AddField, [b]);
+    }
+
+    public void WriteField() => Add(Opcode.WriteField);
+
+    public void ReadField() => Add(Opcode.ReadField);
+
+    public void AppendElement() => Add(Opcode.AppendElement);
+
+    public void WriteElement() => Add(Opcode.WriteElement);
+
+    public void ReadElement() => Add(Opcode.ReadElement);
 }
 
 /// <summary>
@@ -233,7 +264,11 @@ internal sealed class AddressOffsetData(CodeBuilder builder, uint offset) : IWri
 /// A variable index in a function.
 /// </summary>
 /// <param name="Index">The numeric index.</param>
-internal readonly record struct VariableIndex(uint Index)
+internal readonly record struct VariableIndex(uint Index) : IWritable
 {
     public override string ToString() => $"var <{Index}>";
+
+    uint IWritable.Length => 4;
+
+    void IWritable.Write(Carpenter writer) => writer.UInt(Index);
 }

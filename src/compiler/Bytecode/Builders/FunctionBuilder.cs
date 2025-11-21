@@ -1,3 +1,5 @@
+using Noa.Compiler.Symbols;
+
 namespace Noa.Compiler.Bytecode.Builders;
 
 /// <summary>
@@ -5,7 +7,13 @@ namespace Noa.Compiler.Bytecode.Builders;
 /// </summary>
 /// <param name="id">The ID of the function.</param>
 /// <param name="nameIndex">The string index of the name of the function.</param>
-internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringIndex nameIndex, uint arity) : IWritable
+internal sealed class FunctionBuilder(
+    CodeBuilder code,
+    FunctionId id,
+    StringIndex nameIndex,
+    uint arity,
+    IReadOnlyList<IVariableSymbol> captures,
+    Func<IVariableSymbol, VariableIndex> containingFunctionVariableLookup) : IWritable
 {
     /// <summary>
     /// The ID of the function.
@@ -22,9 +30,9 @@ internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringInd
     /// </summary>
     public CodeBuilder Code { get; } = code;
 
-    public LocalsInator Locals { get; } = new(arity);
+    public LocalsInator Locals { get; } = new(arity, captures);
     
-    public uint Length => 4 + 4 + 4 + 4 + 4;
+    public uint Length => 4 + 4 + 4 + 4 + 4 + 4 + Locals.Captures * 4;
 
     public void Write(Carpenter writer)
     {
@@ -32,7 +40,14 @@ internal sealed class FunctionBuilder(CodeBuilder code, FunctionId id, StringInd
         writer.Write(nameIndex);
         writer.UInt(Locals.Parameters);
         writer.UInt(Locals.Variables);
+        writer.UInt(Locals.Captures);
         writer.UInt(Address.Value);
+        
+        foreach (var capture in captures)
+        {
+            var index = containingFunctionVariableLookup(capture);
+            writer.Write(index);
+        }
     }
 
     /// <summary>

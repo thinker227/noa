@@ -1,5 +1,6 @@
 use debugger::Debugger;
 use frame::{Frame, FrameKind};
+use polonius_the_crab::{polonius, polonius_return};
 use stack::Stack;
 
 use crate::ark::Function;
@@ -103,16 +104,34 @@ impl Vm {
             })
     }
 
-    /// Allocates a value on the heap.
-    pub fn alloc_heap_value(&mut self, value: HeapValue) -> Result<HeapAddress> {
-        self.heap.alloc(value)
-            .map_err(|_| self.exception(Exception::OutOfMemory))
+    /// Gets a value at a specified address on the heap.
+    fn get_heap_value_mut(&mut self, address: HeapAddress) -> Result<&mut HeapValue> {
+        // This single function requires an entire crate just to get around borrow checker issues.
+        // The flow of this function is to get the value on the heap mutably and return it as Ok
+        // and otherwise match on the error and construct an exception using it.
+        // However, the current borrow checker isn't smart enough to know that the borrow of self from self.heap
+        // is not longer relevant after the match, so we need to use Polonius which emulates the behavior
+        // of the newer Polonius borrow checker to get around this issue.
+
+        let mut this = self;
+        
+        let ex = polonius!(|this| -> Result<&'polonius mut HeapValue> {
+            match this.heap.get_mut(address) {
+                Ok(val) => polonius_return!(Ok(val)),
+                Err(e) => match e {
+                    HeapGetError::OutOfBounds => Exception::OutOfBoundsHeapAddress,
+                    HeapGetError::SlotFreed => Exception::FreedHeapAddress,
+                }
+            }
+        });
+
+        Err(this.exception(ex))
     }
 
-    /// Allocates a string on the heap and returns a [Value::Object] containing the address to the string.
-    pub fn alloc_string(&mut self, str: String) -> Result<Value> {
-        let address = self.alloc_heap_value(HeapValue::String(str))?;
-        Ok(Value::Object(address))
+    /// Allocates a value on the heap.
+    fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
+        self.heap.alloc(value)
+            .map_err(|_| self.exception(Exception::OutOfMemory))
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].

@@ -21,6 +21,8 @@ internal enum Opcode : byte
     PushFunc = 0x16,
     PushNil = 0x17,
     PushString = 0x18,
+    PushObject = 0x19,
+    PushList = 0x20,
     Pop = 0x32,
     Dup = 0x33,
     Swap = 0x34,
@@ -28,6 +30,7 @@ internal enum Opcode : byte
     // Locals operations
     StoreVar = 0x46,
     LoadVar = 0x47,
+    StoreVarBoxed = 0x48,
 
     // Value operations
     Add = 0x64,
@@ -42,6 +45,12 @@ internal enum Opcode : byte
     GreaterThan = 0x6D,
     Concat = 0x6E,
     ToString = 0x6F,
+    AddField = 0x70,
+    WriteField = 0x71,
+    ReadField = 0x72,
+    AppendElement = 0x73,
+    WriteElement = 0x74,
+    ReadElement = 0x75,
     
     // Operations instructions
     Boundary = 0xFF,

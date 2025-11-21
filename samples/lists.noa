@@ -1,0 +1,5 @@
+let xs = ["a", "b", "c"];
+
+xs[1] = "d";
+
+return xs;

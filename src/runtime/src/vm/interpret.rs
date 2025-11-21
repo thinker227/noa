@@ -150,12 +150,13 @@
 //! if the vm tries to execute it.
 
 use std::assert_matches::assert_matches;
+use std::collections::HashMap;
 
 use crate::ark::FuncId;
 use crate::exception::Exception;
-use crate::heap::HeapValue;
+use crate::heap::{HeapGetError, HeapValue};
 use crate::opcode;
-use crate::value::{Closure, Value};
+use crate::value::{Closure, Field, List, Object, Value};
 use crate::vm::frame::{Frame, FrameKind};
 
 use super::debugger::DebugInspection;
@@ -198,12 +199,6 @@ impl Vm {
 
     /// Calls a user function as a closure.
     fn call_user(&mut self, closure: Closure, arg_count: u32) -> Result<()> {
-        // todo: figure out how to support captured variables
-        // they should probably just be some variety of function arguments
-        if closure.captures.is_some() {
-            todo!("figure out how to support captured variables")
-        }
-
         // Get the function from the decoded function ID.
         let user_index = closure.function.decode();
         let function = self.consts.functions.get(user_index as usize)
@@ -233,10 +228,34 @@ impl Vm {
 
         // Fun hack!
         // The function arguments occupy the very bottom of the stack space for the function,
-        // meaning that, since the arguments are already on the stack in the correct order,
+        // meaning that, since the arguments and captures are already on the stack in the correct order,
         // we can just set the frame's stack start index to the current stack head
         // minus the function's arity.
         let stack_start = self.stack.head() - arity as usize;
+
+        // Push captures onto the stack as additional "arguments".
+        if let Some(heap_address) = closure.captures {
+            // Cannot use `self.get_heap_value` here because then the borrow checker thinks
+            // we're borrowing self while we actually just intend to borrow `self.heap`.
+            let heap_value = self.heap.get(heap_address)
+                .map_err(|e| {
+                    let ex = match e {
+                        HeapGetError::OutOfBounds => Exception::OutOfBoundsHeapAddress,
+                        HeapGetError::SlotFreed => Exception::FreedHeapAddress,
+                    };
+                    self.exception(ex)
+                })?;
+            
+            let list = match heap_value {
+                HeapValue::List(list) => list,
+                _ => panic!("expected closure captures to be a list")
+            };
+            
+            for value in &list.0 {
+                self.stack.push(*value)
+                    .map_err(|e| self.exception(e))?;
+            }
+        };
 
         // Push values onto the stack as placeholders for the function's locals.
         // These will later be overridden once the locals are assigned.
@@ -500,7 +519,7 @@ impl Vm {
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
                     
-                    if depth <= 0 {
+                    if depth == 0 {
                         return Ok(ret);
                     }
 
@@ -562,6 +581,16 @@ impl Vm {
     fn pop_val_as<'a, T>(
         &'a mut self,
         coerce: impl FnOnce(&'a Self, Value) -> Result<T>
+    ) -> Result<T> {
+        let val = self.stack.pop()
+            .map_err(|_| self.exception(Exception::StackUnderflow))?;
+
+        coerce(self, val)
+    }
+
+    fn pop_val_as_mut<'a, T>(
+        &'a mut self,
+        coerce: impl FnOnce(&'a mut Self, Value) -> Result<T>
     ) -> Result<T> {
         let val = self.stack.pop()
             .map_err(|_| self.exception(Exception::StackUnderflow))?;
@@ -676,19 +705,35 @@ impl Vm {
             },
 
             opcode::PUSH_BOOL => {
-                let val = self.read_u8()?;
-
-                let bool = val != 0;
+                let bool = self.read_u8()? != 0;
 
                 self.push(Value::Bool(bool))?;
             },
 
             opcode::PUSH_FUNC => {
-                let val = self.read_u32()?;
+                let index = self.read_u32()?;
+                
+                let function = self.consts.functions.get(index as usize)
+                    .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
+                
+                // Save captured variables as a list.
+                let captures = if !function.captures.is_empty() {
+                    let mut captures = Vec::with_capacity(function.captures.len());
+                    for capture_index in &function.captures {
+                        let val = self.read_variable(*capture_index as usize)?;
+                        captures.push(val);
+                    }
+
+                    let address = self.heap_alloc(HeapValue::List(List(captures)))?;
+
+                    Some(address)
+                } else {
+                    None
+                };
 
                 let closure = Closure {
-                    function: FuncId(val),
-                    captures: None
+                    function: FuncId(index),
+                    captures
                 };
 
                 self.push(Value::Function(closure))?;
@@ -702,6 +747,25 @@ impl Vm {
                 let index = self.read_u32()? as usize;
                 
                 self.push(Value::InternedString(index))?;
+            },
+
+            opcode::PUSH_OBJECT => {
+                let dynamic = self.read_u8()? != 0;
+
+                let object = Object {
+                    fields: HashMap::new(),
+                    dynamic
+                };
+                let adr = self.heap_alloc(HeapValue::Object(object))?;
+
+                self.push(Value::Object(adr))?;
+            },
+
+            opcode::PUSH_LIST => {
+                let list = List(Vec::new());
+                let adr = self.heap_alloc(HeapValue::List(list))?;
+
+                self.push(Value::Object(adr))?;
             },
 
             opcode::POP => {
@@ -735,8 +799,28 @@ impl Vm {
                 let var_index = self.read_u32()?;
 
                 let value = self.read_variable(var_index as usize)?;
+                let value = self.unbox(value)?;
 
                 self.push(value)?;
+            },
+
+            opcode::STORE_VAR_BOXED => {
+                let var_index = self.read_u32()?;
+
+                let value = self.pop()?;
+
+                let var = self.read_variable(var_index as usize)?;
+
+                if let Value::Object(heap_address) = var &&
+                    let HeapValue::Box(boxed) = self.get_heap_value_mut(heap_address)?
+                {
+                    // If the value in the variable is boxed then write into the box.
+                    *boxed = value;
+                } else {
+                    // Otherwise, box the value and write to the variable as normal.
+                    let boxed = self.heap_alloc(HeapValue::Box(value))?;
+                    self.write_variable(var_index as usize, Value::Object(boxed))?;
+                }
             },
 
             opcode::ADD => {
@@ -818,8 +902,7 @@ impl Vm {
                 str.push_str(other.as_str());
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
             },
@@ -830,10 +913,125 @@ impl Vm {
                 let str = self.to_string(val)?;
 
                 // Todo: garbage collection is never actually run, so this leaks memory currently.
-                let adr = self.heap.alloc(HeapValue::String(str))
-                    .map_err(|_| self.exception(Exception::OutOfMemory))?;
+                let adr = self.heap_alloc(HeapValue::String(str))?;
 
                 self.push(Value::Object(adr))?;
+            },
+
+            opcode::ADD_FIELD => {
+                let mutable = self.read_u8()? != 0;
+
+                let val = self.pop()?;
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as_mut(Self::coerce_to_object_mut)?;
+
+                let field_count = obj.fields.len() as u32;
+                obj.fields.insert(name, Field {
+                    val,
+                    mutable,
+                    index: field_count
+                });
+            },
+
+            opcode::WRITE_FIELD => {
+                let val = self.pop()?;
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as_mut(Self::coerce_to_object_mut)?;
+
+                let dynamic = obj.dynamic;
+                
+                match obj.fields.get_mut(&name) {
+                    Some(field) => {
+                        if field.mutable {
+                            // Override value.
+                            field.val = val;
+                        } else {
+                            // Cannot write to immutable field.
+                            return Err(self.exception(Exception::WriteToImmutableField(name)));
+                        }
+                    },
+                    None => {
+                        if dynamic {
+                            // Writing to a dynamic object, insert a mutable field.
+                            let field_count = obj.fields.len() as u32;
+                            obj.fields.insert(name, Field {
+                                val,
+                                mutable: true,
+                                index: field_count
+                            });
+                        } else {
+                            // Missing field.
+                            return Err(self.exception(Exception::MissingField(name)));
+                        }
+                    }
+                };
+            },
+
+            opcode::READ_FIELD => {
+                let name = self.pop_val_as(Self::to_string)?;
+                let (obj, _) = self.pop_val_as(Self::coerce_to_object)?;
+
+                match obj.fields.get(&name).copied() {
+                    Some(field) => {
+                        self.push(field.val)?;
+                    },
+                    None => {
+                        return Err(self.exception(Exception::MissingField(name)));
+                    },
+                };
+            },
+
+            opcode::APPEND_ELEMENT => {
+                let value = self.pop()?;
+                let (list, _) = self.pop_val_as_mut(Self::coerce_to_list_mut)?;
+
+                list.0.push(value);
+            },
+
+            opcode::WRITE_ELEMENT => {
+                let value = self.pop()?;
+
+                let raw_index = self.pop_val_as(Self::coerce_to_number)?;
+                let index = self.to_integer(raw_index)?;
+
+                let (list, _) = self.pop_val_as_mut(Self::coerce_to_list_mut)?;
+
+                let length = list.0.len();
+
+                if index < 0 {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let index = index as usize;
+
+                if index >= length {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let element = list.0.get_mut(index).expect("index should be valid");
+                *element = value;
+            },
+
+            opcode::READ_ELEMENT => {
+                let raw_index = self.pop_val_as(Self::coerce_to_number)?;
+                let index = self.to_integer(raw_index)?;
+
+                let (list, _) = self.pop_val_as(Self::coerce_to_list)?;
+
+                let length = list.0.len();
+
+                if index < 0 {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let index = index as usize;
+
+                if index >= length {
+                    return Err(self.exception(Exception::OutOfBoundsIndex(raw_index, length)));
+                }
+
+                let element = *list.0.get(index).expect("index should be valid");
+                self.push(element)?;
             },
 
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
