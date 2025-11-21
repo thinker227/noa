@@ -188,6 +188,8 @@ public sealed class NativeParameterSymbol : IParameterSymbol
     public required int ParameterIndex { get; init; }
 
     IFunction IFunctionNested.ContainingFunction => Function;
+
+    CaptureInfo IVariableSymbol.Capture { get; } = new();
 }
 
 /// <summary>

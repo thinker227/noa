@@ -7,7 +7,7 @@ use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::native::{functions, NativeFunction};
 use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
-use crate::value::Value;
+use crate::value::{Field, List, Object, Value};
 
 pub mod frame;
 pub mod stack;
@@ -129,9 +129,34 @@ impl Vm {
     }
 
     /// Allocates a value on the heap.
-    fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
+    pub fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
         self.heap.alloc(value)
             .map_err(|_| self.exception(Exception::OutOfMemory))
+    }
+
+    /// Allocates a string on the heap.
+    pub fn alloc_string(&mut self, string: String) -> Result<Value> {
+        self.heap_alloc(HeapValue::String(string))
+            .map(Value::Object)
+    }
+    
+    /// Allocates a list on the heap.
+    pub fn alloc_list(&mut self, values: impl IntoIterator<Item = Value>) -> Result<Value> {
+        let values = values.into_iter().collect();
+
+        self.heap_alloc(HeapValue::List(List(values)))
+            .map(Value::Object)
+    }
+
+    /// Allocates an object on the heap.
+    pub fn alloc_object(&mut self, fields: impl IntoIterator<Item = (String, Field)>, dynamic: bool) -> Result<Value> {
+        let object = Object {
+            fields: fields.into_iter().collect(),
+            dynamic
+        };
+
+        self.heap_alloc(HeapValue::Object(object))
+            .map(Value::Object)
     }
 
     /// Formats an [`Exception`] into a [`FormattedException`].
