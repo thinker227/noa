@@ -340,20 +340,6 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     make_arg(inspection, 0, "index", Some(Type::Number))
                 ]
             ),
-            opcode::BOX => (
-                "Box",
-                vec![],
-                vec![
-                    make_arg(inspection, 0, "value", None)
-                ]
-            ),
-            opcode::UNBOX => (
-                "Unbox",
-                vec![],
-                vec![
-                    make_arg(inspection, 0, "value", None)
-                ]
-            ),
             opcode::BOUNDARY => (
                 "Boundary",
                 vec![],

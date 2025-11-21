@@ -36,6 +36,4 @@ pub const READ_FIELD: u8 = 0x72;
 pub const APPEND_ELEMENT: u8 = 0x73;
 pub const WRITE_ELEMENT: u8 = 0x74;
 pub const READ_ELEMENT: u8 = 0x75;
-pub const BOX: u8 = 0x76;
-pub const UNBOX: u8 = 0x77;
 pub const BOUNDARY: u8 = 0xFF;

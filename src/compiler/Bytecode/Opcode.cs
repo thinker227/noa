@@ -51,8 +51,6 @@ internal enum Opcode : byte
     AppendElement = 0x73,
     WriteElement = 0x74,
     ReadElement = 0x75,
-    Box = 0x76,
-    Unbox = 0x77,
     
     // Operations instructions
     Boundary = 0xFF,
