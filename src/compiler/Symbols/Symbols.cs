@@ -66,6 +66,31 @@ public interface IVariableSymbol : ISymbol, IFunctionNested
 }
 
 /// <summary>
+/// Information about the capture of a variable.
+/// </summary>
+public sealed class CaptureInfo
+{
+    private readonly HashSet<LambdaFunction> referants = [];
+
+    /// <summary>
+    /// Whether the variable is at all captured.
+    /// </summary>
+    public bool IsCaptured => Referants.Count > 0;
+
+    /// <summary>
+    /// The lambda functions which capture the variable.
+    /// </summary>
+    public IReadOnlyCollection<LambdaFunction> Referants => referants;
+
+    /// <summary>
+    /// Add a referant to the capture info.
+    /// </summary>
+    /// <param name="lambda">The lambda which captures the variable.</param>
+    internal void CaptureInto(LambdaFunction lambda) =>
+        referants.Add(lambda);
+}
+
+/// <summary>
 /// Represents a variable declared by a let declaration.
 /// </summary>
 public sealed class VariableSymbol : IVariableSymbol, IDeclaredSymbol
@@ -144,31 +169,6 @@ public sealed class ParameterSymbol : IParameterSymbol, IDeclaredSymbol
     Node IDeclared.Declaration => Declaration;
     
     public override string ToString() => $"Parameter {Name} declared at {Declaration.Location}";
-}
-
-/// <summary>
-/// Information about the capture of a variable.
-/// </summary>
-public sealed class CaptureInfo
-{
-    private readonly HashSet<LambdaFunction> referants = [];
-
-    /// <summary>
-    /// Whether the variable is at all captured.
-    /// </summary>
-    public bool IsCaptured => Referants.Count > 0;
-
-    /// <summary>
-    /// The lambda functions which capture the variable.
-    /// </summary>
-    public IReadOnlyCollection<LambdaFunction> Referants => referants;
-
-    /// <summary>
-    /// Add a referant to the capture info.
-    /// </summary>
-    /// <param name="lambda">The lambda which captures the variable.</param>
-    internal void CaptureInto(LambdaFunction lambda) =>
-        referants.Add(lambda);
 }
 
 /// <summary>
