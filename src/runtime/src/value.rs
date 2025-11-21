@@ -83,6 +83,12 @@ impl From<f64> for Value {
     }
 }
 
+impl From<usize> for Value {
+    fn from(value: usize) -> Self {
+        Self::Number(value as f64)
+    }
+}
+
 impl From<bool> for Value {
     fn from(value: bool) -> Self {
         Self::Bool(value)
