@@ -1,16 +1,18 @@
-func createCounter(start) {
-    let mut x = start;
-    () => {
-        x = x + 1;
-        x
+func createCounter() {
+    let mut x = 0;
+
+    {
+        add: (amount) => {
+            x += amount;
+        },
+        get: () => x
     }
 }
 
-let counter = createCounter(0);
+let counter = createCounter();
 
-print(counter());
-print(counter());
-print(counter());
+counter.add(2);
+counter.add(3);
+counter.add(4);
 
-// stub
-func print() {}
+return counter.get();
