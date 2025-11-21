@@ -343,14 +343,6 @@ impl<'insp, 'vm> From<&'insp DebugInspection<'vm>> for InstructionSummary {
                     make_arg(inspection, 0, "value", None)
                 ]
             ),
-            opcode::WRITE_INTO_BOX => (
-                "WriteIntoBox",
-                vec![],
-                vec![
-                    make_arg(inspection, 1, "box", None),
-                    make_arg(inspection, 0, "value", None)
-                ]
-            ),
             opcode::BOUNDARY => (
                 "Boundary",
                 vec![],

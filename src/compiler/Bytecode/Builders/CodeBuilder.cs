@@ -199,8 +199,6 @@ internal sealed class CodeBuilder(CodeBuilder? previous) : IWritable
     public void Box() => Add(Opcode.Box);
 
     public void Unbox() => Add(Opcode.Unbox);
-
-    public void WriteIntoBox() => Add(Opcode.WriteIntoBox);
 }
 
 /// <summary>

@@ -1026,10 +1026,6 @@ impl Vm {
                 self.push(unboxed)?;
             },
 
-            opcode::WRITE_INTO_BOX => {
-                todo!()
-            },
-
             opcode::BOUNDARY => return Err(self.exception(Exception::Overrun)),
 
             _ => return Err(self.exception(Exception::UnknownOpcode(*opcode)))
