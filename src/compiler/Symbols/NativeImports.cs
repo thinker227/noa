@@ -37,6 +37,7 @@ internal static class NativeImports
         Declare(0x18A, "any", ["source", "predicate"]);
         Declare(0x18B, "all", ["source", "predicate"]);
         Declare(0x18C, "find", ["source", "predicate", "fromEnd"]);
+        Declare(0x18D, "length", ["list"]);
         
         return scope;
 

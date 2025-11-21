@@ -37,6 +37,7 @@ pub fn get_functions() -> HashMap<u32, NativeFunction> {
         (0x18A, any),
         (0x18B, all),
         (0x18C, find),
+        (0x18D, length),
     ];
 
     functions.into_iter().collect()
@@ -471,4 +472,16 @@ fn find(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
 
         Ok(().into())
     }
+}
+
+fn length(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
+    let (List(list), _) = match args[..] {
+        [] => return Err(vm.exception(
+            Exception::BadArity { expected: 1, or_more: false, actual: args.len() as u32 }
+        )),
+
+        [list, ..] => vm.coerce_to_list(list)?,
+    };
+
+    Ok(list.len().into())
 }
