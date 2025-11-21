@@ -15,12 +15,6 @@ internal class BlockEmitter(
         var index = Locals.GetOrCreateVariable(var);
 
         Code.LoadVar(index);
-
-        if (var.Capture.IsCaptured)
-        {
-            // Value needs to be boxed if it's captured in order for the variable to have reference semantics.
-            Code.Unbox();
-        }
     }
 
     private void StoreVar(IVariableSymbol var)
@@ -29,11 +23,12 @@ internal class BlockEmitter(
 
         if (var.Capture.IsCaptured)
         {
-            // Value needs to be boxed if it's captured in order for the variable to have reference semantics.
-            Code.Box();
+            Code.StoreVarBoxed(index);
         }
-
-        Code.StoreVar(index);
+        else
+        {
+            Code.StoreVar(index);
+        }
     }
 
     protected override void VisitFunctionDeclaration(FunctionDeclaration node) {}

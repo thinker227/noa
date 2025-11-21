@@ -796,12 +796,28 @@ impl Vm {
                 let var_index = self.read_u32()?;
 
                 let value = self.read_variable(var_index as usize)?;
+                let value = self.unbox(value)?;
 
                 self.push(value)?;
             },
 
             opcode::STORE_VAR_BOXED => {
-                todo!()
+                let var_index = self.read_u32()?;
+
+                let value = self.pop()?;
+
+                let var = self.read_variable(var_index as usize)?;
+
+                if let Value::Object(heap_address) = var &&
+                    let HeapValue::Box(boxed) = self.get_heap_value_mut(heap_address)?
+                {
+                    // If the value in the variable is boxed then write into the box.
+                    *boxed = value;
+                } else {
+                    // Otherwise, box the value and write to the variable as normal.
+                    let boxed = self.heap_alloc(HeapValue::Box(value))?;
+                    self.write_variable(var_index as usize, Value::Object(boxed))?;
+                }
             },
 
             opcode::ADD => {
