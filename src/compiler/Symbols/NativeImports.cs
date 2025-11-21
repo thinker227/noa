@@ -13,34 +13,34 @@ internal static class NativeImports
         var scope = new ImportScope();
 
         // Console IO
-        Declare("print", ["what", "appendNewline"], 0x0);
-        Declare("getInput", [], 0x1);
+        Declare(0x0, "print", ["what", "appendNewline"]);
+        Declare(0x1, "getInput", []);
         
         // File IO
-        Declare("readFile", ["path"], 0x2);
-        Declare("writeFile", ["path", "content"], 0x3);
+        Declare(0x2, "readFile", ["path"]);
+        Declare(0x3, "writeFile", ["path", "content"]);
 
         // Strings
-        Declare("toString", ["x"], 0x4);
+        Declare(0x4, "toString", ["x"]);
         
         // Lists
-        Declare("push", ["list", "value"], 0x5);
-        Declare("pop", ["list"], 0x6);
-        Declare("append", ["source", "value"], 0x7);
-        Declare("concat", ["source", "values"], 0x8);
-        Declare("slice", ["source", "start", "end"], 0x9);
-        Declare("map", ["source", "transform"], 0xA);
-        Declare("flatMap", ["source", "transform"], 0xB);
-        Declare("filter", ["source", "predicate"], 0xC);
-        Declare("reduce", ["source", "function", "seed"], 0xD);
-        Declare("reverse", ["source"], 0xE);
-        Declare("any", ["source", "predicate"], 0xF);
-        Declare("all", ["source", "predicate"], 0x10);
-        Declare("find", ["source", "predicate", "fromEnd"], 0x11);
+        Declare(0x5, "push", ["list", "value"]);
+        Declare(0x6, "pop", ["list"]);
+        Declare(0x7, "append", ["source", "value"]);
+        Declare(0x8, "concat", ["source", "values"]);
+        Declare(0x9, "slice", ["source", "start", "end"]);
+        Declare(0xA, "map", ["source", "transform"]);
+        Declare(0xB, "flatMap", ["source", "transform"]);
+        Declare(0xC, "filter", ["source", "predicate"]);
+        Declare(0xD, "reduce", ["source", "function", "seed"]);
+        Declare(0xE, "reverse", ["source"]);
+        Declare(0xF, "any", ["source", "predicate"]);
+        Declare(0x10, "all", ["source", "predicate"]);
+        Declare(0x11, "find", ["source", "predicate", "fromEnd"]);
         
         return scope;
 
-        void Declare(string name, ReadOnlySpan<string> parameters, uint id)
+        void Declare(uint id, string name, ReadOnlySpan<string> parameters)
         {
             var function = new NativeFunction()
             {
