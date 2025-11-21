@@ -362,20 +362,23 @@ impl Vm {
     }
 
     /// Gets a formatted string for a value's type.
-    fn get_value_type_string(&self, val: Value) -> &'static str {
+    fn get_value_type_string(&self, val: Value) -> Cow<'static, str> {
         match val {
-            Value::Number(_) => "a number",
-            Value::Bool(_) => "a boolean",
-            Value::InternedString(_) => "a string",
-            Value::Function(_) => "a function",
+            Value::Number(_) => Cow::Borrowed("a number"),
+            Value::Bool(_) => Cow::Borrowed("a boolean"),
+            Value::InternedString(_) => Cow::Borrowed("a string"),
+            Value::Function(_) => Cow::Borrowed("a function"),
             Value::Object(heap_address) => match self.heap.get(heap_address) {
-                Ok(HeapValue::String(_)) => "a string",
-                Ok(HeapValue::List(_)) => "a list",
-                Ok(HeapValue::Object { .. }) => "an object",
-                Ok(HeapValue::Box(x)) => self.get_value_type_string(*x),
-                Err(_) => "an invalid heap address",
+                Ok(HeapValue::String(_)) => Cow::Borrowed("a string"),
+                Ok(HeapValue::List(_)) => Cow::Borrowed("a list"),
+                Ok(HeapValue::Object { .. }) => Cow::Borrowed("an object"),
+                Ok(HeapValue::Box(x)) => {
+                    let val = self.get_value_type_string(*x);
+                    Cow::Owned(format!("{val} (boxed)"))
+                },
+                Err(_) => Cow::Borrowed("an invalid heap address"),
             },
-            Value::Nil => "()",
+            Value::Nil => Cow::Borrowed("()"),
         }
     }
 }
