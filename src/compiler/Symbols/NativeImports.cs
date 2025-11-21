@@ -17,26 +17,26 @@ internal static class NativeImports
         Declare(0x1, "getInput", []);
         
         // File IO
-        Declare(0x2, "readFile", ["path"]);
-        Declare(0x3, "writeFile", ["path", "content"]);
+        Declare(0x80, "readFile", ["path"]);
+        Declare(0x81, "writeFile", ["path", "content"]);
 
         // Strings
-        Declare(0x4, "toString", ["x"]);
+        Declare(0x100, "toString", ["x"]);
         
         // Lists
-        Declare(0x5, "push", ["list", "value"]);
-        Declare(0x6, "pop", ["list"]);
-        Declare(0x7, "append", ["source", "value"]);
-        Declare(0x8, "concat", ["source", "values"]);
-        Declare(0x9, "slice", ["source", "start", "end"]);
-        Declare(0xA, "map", ["source", "transform"]);
-        Declare(0xB, "flatMap", ["source", "transform"]);
-        Declare(0xC, "filter", ["source", "predicate"]);
-        Declare(0xD, "reduce", ["source", "function", "seed"]);
-        Declare(0xE, "reverse", ["source"]);
-        Declare(0xF, "any", ["source", "predicate"]);
-        Declare(0x10, "all", ["source", "predicate"]);
-        Declare(0x11, "find", ["source", "predicate", "fromEnd"]);
+        Declare(0x180, "push", ["list", "value"]);
+        Declare(0x181, "pop", ["list"]);
+        Declare(0x182, "append", ["source", "value"]);
+        Declare(0x183, "concat", ["source", "values"]);
+        Declare(0x184, "slice", ["source", "start", "end"]);
+        Declare(0x185, "map", ["source", "transform"]);
+        Declare(0x186, "flatMap", ["source", "transform"]);
+        Declare(0x187, "filter", ["source", "predicate"]);
+        Declare(0x188, "reduce", ["source", "function", "seed"]);
+        Declare(0x189, "reverse", ["source"]);
+        Declare(0x18A, "any", ["source", "predicate"]);
+        Declare(0x18B, "all", ["source", "predicate"]);
+        Declare(0x18C, "find", ["source", "predicate", "fromEnd"]);
         
         return scope;
 

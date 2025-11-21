@@ -285,7 +285,7 @@ impl Vm {
         // Function pointers implement `Copy`, so retrieving the function pointer here
         // doesn't actually require an immutable borrow, which is incredibly nice.
         let native_index = id.decode();
-        let function = *self.consts.native_functions.get(native_index as usize)
+        let function = *self.consts.native_functions.get(&native_index)
             .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(native_index)))?;
 
         let stack_start = self.stack.head() - arg_count as usize;

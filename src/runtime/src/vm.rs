@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use debugger::Debugger;
 use frame::{Frame, FrameKind};
 use polonius_the_crab::{polonius, polonius_return};
@@ -23,7 +25,7 @@ pub struct VmConsts {
     /// User functions.
     pub functions: Vec<Function>,
     /// Native functions.
-    pub native_functions: Vec<NativeFunction>,
+    pub native_functions: HashMap<u32, NativeFunction>,
     /// Constant strings.
     pub strings: Vec<String>,
     /// Bytecode instructions.

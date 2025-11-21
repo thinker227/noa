@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 
@@ -8,14 +9,29 @@ use crate::value::Value;
 use super::NativeFunction;
 
 /// Gets a vector of native functions.
-pub fn get_functions() -> Vec<NativeFunction> {
-    vec![
-        /* 0x0 */ print,
-        /* 0x1 */ get_input,
-        /* 0x2 */ read_file,
-        /* 0x3 */ write_file,
-        /* 0x4 */ to_string
-    ]
+pub fn get_functions() -> HashMap<u32, NativeFunction> {
+    let functions: [(u32, NativeFunction); _] = [
+        (0x0, print),
+        (0x1, get_input),
+        (0x80, read_file),
+        (0x81, write_file),
+        (0x100, to_string),
+        // (0x180, push),
+        // (0x181, pop),
+        // (0x182, append),
+        // (0x183, concat),
+        // (0x184, slice),
+        // (0x185, map),
+        // (0x186, flatMap),
+        // (0x187, filter),
+        // (0x188, reduce),
+        // (0x189, reverse),
+        // (0x18A, any),
+        // (0x18B, all),
+        // (0x18C, find),
+    ];
+
+    functions.into_iter().collect()
 }
 
 fn print(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
