@@ -318,6 +318,10 @@ impl Vm {
             ret
         };
 
+        if let Some(ret_ip) = ret_address {
+            self.ip = ret_ip;
+        }
+
         let stack_backtrack_index = self.get_stack_backtrack_index(stack_start);
         self.stack.shrink(stack_backtrack_index);
 
