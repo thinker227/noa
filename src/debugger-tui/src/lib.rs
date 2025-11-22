@@ -1,6 +1,7 @@
 #![feature(try_blocks)]
+#![allow(clippy::new_without_default)]
 
-use std::io;
+use std::{cell::RefCell, io, rc::Rc};
 
 use crossterm::{
     event::{
@@ -20,11 +21,11 @@ use crossterm::{
 use ratatui::{
     prelude::CrosstermBackend, Frame, Terminal
 };
-use noa_runtime::vm::debugger::{
+use noa_runtime::vm::{Input, Output, debugger::{
     DebugControlFlow,
     DebugInspection,
     Debugger
-};
+}};
 use state::State;
 use widgets::MainWidget;
 
@@ -82,6 +83,7 @@ fn restore_terminal() {
 /// A debugger which provides a terminal user interface.
 pub struct DebuggerTui {
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    output_buf: Rc<RefCell<Vec<u8>>>,
     state: State
 }
 
@@ -92,8 +94,13 @@ impl DebuggerTui {
 
         Ok(Self {
             terminal,
+            output_buf: Rc::new(RefCell::new(Vec::new())),
             state: State::default(),
         })
+    }
+
+    pub fn output_buf(&self) -> Rc<RefCell<Vec<u8>>> {
+        self.output_buf.clone()
     }
 }
 
@@ -157,4 +164,41 @@ fn draw(state: &State, inspection: &DebugInspection, frame: &mut Frame) {
     };
 
     frame.render_widget(main_widget, frame.area());
+}
+
+pub struct DebugInput {
+
+}
+
+impl DebugInput {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Input for DebugInput {
+    fn read(&mut self, buf: &mut Vec<u8>) -> noa_runtime::vm::Result<()> {
+        todo!()
+    }
+}
+
+pub struct DebugOutput {
+    buf: Rc<RefCell<Vec<u8>>>,
+}
+
+impl DebugOutput {
+    pub fn new(buf: Rc<RefCell<Vec<u8>>>) -> Self {
+        Self {
+            buf
+        }
+    }
+}
+
+impl Output for DebugOutput {
+    fn write(&mut self, bytes: &[u8]) -> noa_runtime::vm::Result<()> {
+        let mut borrow = self.buf.borrow_mut();
+        borrow.extend_from_slice(bytes);
+        
+        Ok(())
+    }
 }

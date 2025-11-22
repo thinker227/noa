@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::io::{Read, Write};
 
 use debugger::Debugger;
 use frame::{Frame, FrameKind};
@@ -19,6 +20,14 @@ mod value_ops;
 
 /// The result of a VM operation.
 pub type Result<T> = std::result::Result<T, FormattedException>;
+
+pub trait Input {
+    fn read(&mut self, buf: &mut Vec<u8>) -> Result<()>;
+}
+
+pub trait Output {
+    fn write(&mut self, bytes: &[u8]) -> Result<()>;
+}
 
 /// Constants for a single execution of the virtual machine.
 pub struct VmConsts {
@@ -52,11 +61,16 @@ pub struct Vm {
     /// bytecode instruction which is *currently* being executed, to provide
     /// better traces.
     trace_ip: usize,
+    /// Input stream.
+    input: Box<dyn Input>,
+    /// Output stream.
+    output: Box<dyn Output>,
     /// The debugger interface.
     debugger: Option<Box<dyn Debugger>>,
 }
 
 impl Vm {
+    #[allow(clippy::too_many_arguments)]
     /// Creates a new [`Vm`].
     pub fn new(
         functions: Vec<Function>,
@@ -65,7 +79,9 @@ impl Vm {
         stack_size: usize,
         call_stack_size: usize,
         heap_size: usize,
-        debugger: Option<Box<dyn Debugger + 'static>>
+        input: Box<dyn Input>,
+        output: Box<dyn Output>,
+        debugger: Option<Box<dyn Debugger>>
     ) -> Self {
         Self {
             consts: VmConsts {
@@ -80,6 +96,8 @@ impl Vm {
             // This is just a placeholder, the instruction pointer will be overridden once a function is called.
             ip: 0,
             trace_ip: 0,
+            input,
+            output,
             debugger
         }
     }
@@ -87,6 +105,16 @@ impl Vm {
     /// Gets the heap.
     pub fn heap(&mut self) -> &mut Heap {
         &mut self.heap
+    }
+
+    /// Gets the input stream.
+    pub fn input(&mut self) -> &mut dyn Input  {
+        &mut *self.input 
+    }
+
+    /// Gets the output stream.
+    pub fn output(&mut self) -> &mut dyn Output {
+        &mut *self.output
     }
     
     /// Gets the debugger interface.
