@@ -222,21 +222,22 @@ impl MainWidget<'_, '_, '_> {
     }
 
     fn show_func(&self, function: FuncId) -> Line<'static> {
-        let id = function.decode() as usize;
+        let id = function.decode();
 
         if function.is_native() {
-            if id < self.inspection.consts.native_functions.len() {
-                format!("nfunc {id}").green().into()
+            if self.inspection.consts.native_functions.contains_key(&id) {
+            // if id < self.inspection.consts.native_functions.len() {
+                format!("nfunc 0x{id:X}").green().into()
             } else {
-                format!("bad nfunc {id}").red().into()
+                format!("bad nfunc 0x{id:X}").red().into()
             }
-        } else if let Some(function) = self.inspection.consts.functions.get(id) {
+        } else if let Some(function) = self.inspection.consts.functions.get(id as usize) {
             let mut spans = Vec::new();
-            spans.push(format!("func {id} ").green());
+            spans.push(format!("func 0x{id:X} ").green());
             spans.extend(self.show_istr(function.name_index as usize).iter().cloned());
             Line::from(spans)
         } else {
-            format!("bad func {id}").red().into()
+            format!("bad func 0x{id:X}").red().into()
         }
     }
 
@@ -265,7 +266,7 @@ impl MainWidget<'_, '_, '_> {
         let summary = InstructionSummary::from(self.inspection);
 
         let mut opcodes = self.show_opcodes(ip, &summary);
-        opcodes.spans.insert(0, Span::from(format!(":{ip} | ")));
+        opcodes.spans.insert(0, Span::from(format!(":0x{ip:X} | ")));
 
         let (layout, _) = Layout::default()
             .direction(Direction::Vertical)
