@@ -714,22 +714,26 @@ impl Vm {
                 let id = FuncId(self.read_u32()?);
                 let index = id.decode();
                 
-                let function = self.consts.functions.get(index as usize)
-                    .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
-                
-                // Save captured variables as a list.
-                let captures = if !function.captures.is_empty() {
-                    let mut captures = Vec::with_capacity(function.captures.len());
-                    for capture_index in &function.captures {
-                        let val = self.read_variable(*capture_index as usize)?;
-                        captures.push(val);
-                    }
-
-                    let address = self.heap_alloc(HeapValue::List(List(captures)))?;
-
-                    Some(address)
-                } else {
+                let captures = if id.is_native() {
                     None
+                } else {
+                    let function = self.consts.functions.get(index as usize)
+                        .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
+                    
+                    // Save captured variables as a list.
+                    if !function.captures.is_empty() {
+                        let mut captures = Vec::with_capacity(function.captures.len());
+                        for capture_index in &function.captures {
+                            let val = self.read_variable(*capture_index as usize)?;
+                            captures.push(val);
+                        }
+
+                        let address = self.heap_alloc(HeapValue::List(List(captures)))?;
+
+                        Some(address)
+                    } else {
+                        None
+                    }
                 };
 
                 let closure = Closure {
