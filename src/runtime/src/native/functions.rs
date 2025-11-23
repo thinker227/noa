@@ -158,7 +158,7 @@ fn to_string(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
 }
 
 fn push(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
-    let ((List(list), _), value) = match args[..] {
+    let ((list, _), value) = match args[..] {
         [] | [_] => return Err(vm.exception(
             Exception::BadArity { expected: 2, or_more: false, actual: args.len() as u32 }
         )),
@@ -169,7 +169,7 @@ fn push(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
         )
     };
 
-    list.push(value);
+    list.0.push(value);
 
     Ok(().into())
 }
