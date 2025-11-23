@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use noa_runtime::ark::FuncId;
 use noa_runtime::heap::HeapValue;
 use noa_runtime::value::{List, Object, Type, Value};
@@ -12,6 +15,7 @@ use crate::{utils, State};
 
 pub struct MainWidget<'insp, 'vm, 'state> {
     pub inspection: &'insp DebugInspection<'vm>,
+    pub output_buf: Rc<RefCell<Vec<u8>>>,
     pub _state: &'state State
 }
 
@@ -250,15 +254,31 @@ impl MainWidget<'_, '_, '_> {
             .title_top(title)
             .render(area, buf);
 
-        let subarea = Layout::default()
+        let code_area = if self.should_draw_output() {
+            let layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Fill(3),
+                    Constraint::Fill(2)
+                ])
+                .split(area.inner(Margin::new(0, 1)));
+
+            self.output_widget(layout[1], buf);
+
+            layout[0]
+        } else {
+            area
+        };
+
+        let code_area = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(10)
             ])
-            .split(area.inner(Margin::new(4, 2)))
+            .split(code_area.inner(Margin::new(4, 1)))
             [0];
 
-        self.code_widget(subarea, buf);
+        self.code_widget(code_area, buf);
     }
 
     fn code_widget(&self, area: Rect, buf: &mut Buffer) {
@@ -403,5 +423,32 @@ impl MainWidget<'_, '_, '_> {
             FrameKind::Temp { .. } => Line::from("temp frame".magenta()),
             _ => self.show_func(frame.function)
         }
+    }
+
+    fn should_draw_output(&self) -> bool {
+        !self.output_buf.borrow().is_empty()
+    }
+
+    fn output_widget(&self, area: Rect, buf: &mut Buffer) {
+        let output = &*self.output_buf.borrow();
+        let str = &*String::from_utf8_lossy(output);
+
+        let block = Block::bordered()
+            .borders(Borders::TOP)
+            .title(" Output ")
+            .title_alignment(Alignment::Center);
+
+        let inner = block.inner(area)
+            .inner(Margin::new(1, 0));
+
+        block.render(area, buf);
+
+        let lines = str.lines().count();
+        let scroll = (lines as u16).saturating_sub(inner.height);
+
+        Paragraph::new(str)
+            .wrap(Wrap { trim: false })
+            .scroll((scroll, 0))
+            .render(inner, buf);
     }
 }

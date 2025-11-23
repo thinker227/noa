@@ -117,7 +117,15 @@ impl Debugger for DebuggerTui {
         adjust_state(&inspection, &mut self.state);
 
         loop {
-            self.terminal.draw(|frame| draw(&self.state, &inspection, frame))
+            self.terminal
+                .draw(|frame|
+                    draw(
+                        &self.state,
+                        self.output_buf.clone(),
+                        &inspection,
+                        frame
+                    )
+                )
                 .expect("failed to render");
 
             match event::read() {
@@ -157,9 +165,10 @@ fn handle_event(event: Event, _state: &mut State) -> EventHandleResult {
     EventHandleResult::Continue
 }
 
-fn draw(state: &State, inspection: &DebugInspection, frame: &mut Frame) {
+fn draw(state: &State, output_buf: Rc<RefCell<Vec<u8>>>, inspection: &DebugInspection, frame: &mut Frame) {
     let main_widget = MainWidget {
         inspection,
+        output_buf,
         _state: state
     };
 
