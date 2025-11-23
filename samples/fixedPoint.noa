@@ -1,0 +1,13 @@
+func fix(f) {
+    let mut x = ();
+    x = f(() => x);
+    x
+}
+
+// Returns a lambda which prints and returns itself.
+let thing = fix((self) => () => {
+    print("the fixed point");
+    self()
+});
+
+thing()()()()()()(); // ad infinitum...
