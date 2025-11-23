@@ -55,36 +55,34 @@ fn print(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
         )
     };
 
-    let mut stdout = std::io::stdout();
+    let bytes = value.as_bytes();
 
-    let stdout_exception = |_| {
-        vm.exception(Exception::Custom("failed to write to stdout".into()))
-    };
+    vm.output().write(bytes)
+        .map_err(|e| vm.exception(e))?;
 
-    write!(stdout, "{value}").map_err(stdout_exception)?;
-    
     if append_newline {
-        writeln!(stdout).map_err(stdout_exception)?;
+        vm.output().write(b"\n")
+            .map_err(|e| vm.exception(e))?;
     }
-
-    stdout.flush().map_err(stdout_exception)?;
 
     Ok(().into())
 }
 
 fn get_input(vm: &mut Vm, _: Vec<Value>) -> Result<Value> {
-    let stdin = std::io::stdin();
+    let mut buf = Vec::new();
+    match vm.input().read(&mut buf) {
+        Ok(x) => x,
+        Err(e) => return Err(vm.exception(e))
+    };
 
-    let mut buf = String::new();
-    let _ = stdin.read_line(&mut buf)
-        .map_err(|_| vm.exception(
-            Exception::Custom("failed to read from stdio".into())
-        ))?;
-    
-    // Pop the trailing newline character
-    buf.pop();
+    let str = match String::from_utf8(buf) {
+        Ok(x) => x,
+        Err(e) => return Err(vm.exception(
+            Exception::NonUtf8(e.into_utf8_lossy())
+        ))
+    };
 
-    vm.alloc_string(buf)
+    vm.alloc_string(str)
 }
 
 fn read_file(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {

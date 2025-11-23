@@ -1,4 +1,6 @@
-use noa_runtime::vm::{Input, Output};
+use std::io::{self, Write};
+
+use noa_runtime::{exception::Exception, vm::{Input, Output}};
 
 pub struct StdInput {
 
@@ -11,8 +13,14 @@ impl StdInput {
 }
 
 impl Input for StdInput {
-    fn read(&mut self, buf: &mut Vec<u8>) -> noa_runtime::vm::Result<()> {
-        todo!()
+    fn read(&mut self, buf: &mut Vec<u8>) -> Result<(), Exception> {
+        let mut str = String::new();
+        io::stdin().read_line(&mut str)
+            .map_err(|_| Exception::Custom(
+                String::from("failed to read from stdin")
+            ))?;
+        
+        Ok(())
     }
 }
 
@@ -27,7 +35,10 @@ impl StdOutput {
 }
 
 impl Output for StdOutput {
-    fn write(&mut self, bytes: &[u8]) -> noa_runtime::vm::Result<()> {
-        todo!()
+    fn write(&mut self, bytes: &[u8]) -> Result<(), Exception> {
+        io::stdout().write_all(bytes)
+            .map_err(|_| Exception::Custom(
+                String::from("failed to write to stdout")
+            ))
     }
 }

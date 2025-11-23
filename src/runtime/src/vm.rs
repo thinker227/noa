@@ -22,11 +22,11 @@ mod value_ops;
 pub type Result<T> = std::result::Result<T, FormattedException>;
 
 pub trait Input {
-    fn read(&mut self, buf: &mut Vec<u8>) -> Result<()>;
+    fn read(&mut self, buf: &mut Vec<u8>) -> std::result::Result<(), Exception>;
 }
 
 pub trait Output {
-    fn write(&mut self, bytes: &[u8]) -> Result<()>;
+    fn write(&mut self, bytes: &[u8]) -> std::result::Result<(), Exception>;
 }
 
 /// Constants for a single execution of the virtual machine.

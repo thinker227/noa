@@ -21,11 +21,11 @@ use crossterm::{
 use ratatui::{
     prelude::CrosstermBackend, Frame, Terminal
 };
-use noa_runtime::vm::{Input, Output, debugger::{
+use noa_runtime::{exception::Exception, vm::{Input, Output, debugger::{
     DebugControlFlow,
     DebugInspection,
     Debugger
-}};
+}}};
 use state::State;
 use widgets::MainWidget;
 
@@ -177,7 +177,7 @@ impl DebugInput {
 }
 
 impl Input for DebugInput {
-    fn read(&mut self, buf: &mut Vec<u8>) -> noa_runtime::vm::Result<()> {
+    fn read(&mut self, buf: &mut Vec<u8>) -> Result<(), Exception> {
         todo!()
     }
 }
@@ -195,7 +195,7 @@ impl DebugOutput {
 }
 
 impl Output for DebugOutput {
-    fn write(&mut self, bytes: &[u8]) -> noa_runtime::vm::Result<()> {
+    fn write(&mut self, bytes: &[u8]) -> Result<(), Exception> {
         let mut borrow = self.buf.borrow_mut();
         borrow.extend_from_slice(bytes);
         

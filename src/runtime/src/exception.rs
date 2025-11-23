@@ -57,6 +57,9 @@ pub enum Exception {
     #[error("index `{0}` is out of bounds of the list, which has a length of `{1}`")]
     OutOfBoundsIndex(f64, usize),
 
+    #[error("the string `{0}` is not valid UTF-8")]
+    NonUtf8(String),
+
     #[error("expected {}{} arguments but got {}", expected, if *or_more { " or more" } else { "" }, actual)]
     BadArity {
         expected: u32,
