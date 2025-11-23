@@ -207,6 +207,17 @@ String literals also support interpolation, which allows you to embed expression
 \"abc \{3} def" // abc {3} def
 ```
 
+Strings, much like [lists](#lists), can indexed by character. Note that indexing has to iterate the string from the start to find the character due to the variable byte width of UTF-8 characters, so it's not very efficient.
+
+```js
+let str = "abc";
+print(str[0]); // a
+print(str[1]); // b
+print(str[2]); // c
+```
+
+Strings can additionally be [coerced](./coercion.md) into [lists](#lists), where .
+
 ### Nil
 
 `()`, pronounced "nil" or "unit", is Noa's equivalent to `null` in most other languages. It is a *unit type*, which means there is only one possible value of it. It is generally a useless value because it doesn't support any operations and doesn't represent anything special, but it can be useful to signify failure. In most cases, attempting to do anything at all with `()` (for instance calling or performing arithmetic on it) will result in a runtime exception.

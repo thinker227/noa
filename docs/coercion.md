@@ -9,7 +9,7 @@ Blank spaces indicate that the coercion is invalid.
 | Number | same value | `true` | | formatted using `.` for the decimal separator | | |
 | Bool | `true` => `1`, `false` => `0` | same value | | `true` => `"true"`, `false` => `"false"` | | |
 | Function | | `true` | same value | name of the function | | |
-| String | | `true` | | same value | | |
+| String | | `true` | | same value | | a list containing each character of the string |
 | Object | | `true` | | formatted with all its fields | same value | |
 | List | | `true` | | formatted with all its elements | | same value |
 | Nil | `0` | `false` | | `"()"` | | |
