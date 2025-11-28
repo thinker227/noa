@@ -2,13 +2,11 @@ use std::io::{self, Write};
 
 use noa_runtime::{exception::Exception, vm::{Input, Output}};
 
-pub struct StdInput {
-
-}
+pub struct StdInput;
 
 impl StdInput {
     pub fn new() -> Self {
-        StdInput {}
+        StdInput
     }
 }
 
@@ -28,13 +26,11 @@ impl Input for StdInput {
     }
 }
 
-pub struct StdOutput {
-
-}
+pub struct StdOutput;
 
 impl StdOutput {
     pub fn new() -> Self {
-        Self {}
+        Self
     }
 }
 

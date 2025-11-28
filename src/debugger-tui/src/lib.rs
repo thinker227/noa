@@ -175,13 +175,11 @@ fn draw(state: &State, output_buf: Rc<RefCell<Vec<u8>>>, inspection: &DebugInspe
     frame.render_widget(main_widget, frame.area());
 }
 
-pub struct DebugInput {
-
-}
+pub struct DebugInput;
 
 impl DebugInput {
     pub fn new() -> Self {
-        Self {}
+        Self
     }
 }
 
