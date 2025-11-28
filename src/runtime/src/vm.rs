@@ -161,7 +161,7 @@ impl Vm {
     pub fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
         match self.heap.alloc(value) {
             Ok(x) => Ok(x),
-            Err(HeapAllocError::OutOfNoMemory(value)) => {
+            Err(HeapAllocError::OutOfMemory(value)) => {
                 // We're out of heap memory, so do a run of garbage collection.
                 // This is an extremely naïve approach to garbage collection,
                 // although we don't really need much more since we're not really
