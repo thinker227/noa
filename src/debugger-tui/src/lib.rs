@@ -1,6 +1,7 @@
 #![feature(try_blocks)]
+#![allow(clippy::new_without_default)]
 
-use std::io;
+use std::{cell::RefCell, io, rc::Rc};
 
 use crossterm::{
     event::{
@@ -20,11 +21,11 @@ use crossterm::{
 use ratatui::{
     prelude::CrosstermBackend, Frame, Terminal
 };
-use noa_runtime::vm::debugger::{
+use noa_runtime::{exception::Exception, vm::{Input, Output, debugger::{
     DebugControlFlow,
     DebugInspection,
     Debugger
-};
+}}};
 use state::State;
 use widgets::MainWidget;
 
@@ -82,6 +83,7 @@ fn restore_terminal() {
 /// A debugger which provides a terminal user interface.
 pub struct DebuggerTui {
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    output_buf: Rc<RefCell<Vec<u8>>>,
     state: State
 }
 
@@ -92,8 +94,13 @@ impl DebuggerTui {
 
         Ok(Self {
             terminal,
+            output_buf: Rc::new(RefCell::new(Vec::new())),
             state: State::default(),
         })
+    }
+
+    pub fn output_buf(&self) -> Rc<RefCell<Vec<u8>>> {
+        self.output_buf.clone()
     }
 }
 
@@ -110,7 +117,15 @@ impl Debugger for DebuggerTui {
         adjust_state(&inspection, &mut self.state);
 
         loop {
-            self.terminal.draw(|frame| draw(&self.state, &inspection, frame))
+            self.terminal
+                .draw(|frame|
+                    draw(
+                        &self.state,
+                        self.output_buf.clone(),
+                        &inspection,
+                        frame
+                    )
+                )
                 .expect("failed to render");
 
             match event::read() {
@@ -150,11 +165,49 @@ fn handle_event(event: Event, _state: &mut State) -> EventHandleResult {
     EventHandleResult::Continue
 }
 
-fn draw(state: &State, inspection: &DebugInspection, frame: &mut Frame) {
+fn draw(state: &State, output_buf: Rc<RefCell<Vec<u8>>>, inspection: &DebugInspection, frame: &mut Frame) {
     let main_widget = MainWidget {
         inspection,
+        output_buf,
         _state: state
     };
 
     frame.render_widget(main_widget, frame.area());
+}
+
+pub struct DebugInput;
+
+impl DebugInput {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Input for DebugInput {
+    fn read(&mut self, buf: &mut Vec<u8>) -> Result<(), Exception> {
+        // Todo: Support user input in debugger.
+        buf.extend_from_slice(b"User input is not supported while debugging.");
+        Ok(())
+    }
+}
+
+pub struct DebugOutput {
+    buf: Rc<RefCell<Vec<u8>>>,
+}
+
+impl DebugOutput {
+    pub fn new(buf: Rc<RefCell<Vec<u8>>>) -> Self {
+        Self {
+            buf
+        }
+    }
+}
+
+impl Output for DebugOutput {
+    fn write(&mut self, bytes: &[u8]) -> Result<(), Exception> {
+        let mut borrow = self.buf.borrow_mut();
+        borrow.extend_from_slice(bytes);
+        
+        Ok(())
+    }
 }

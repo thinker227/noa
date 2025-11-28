@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Functions>
+
+  <Function Name="print" Id="0">
+    Prints a value to the standard output.
+
+    <Parameter Name="what">
+      The value to print. Calls `toString` to format the value into a string before printing it.
+    </Parameter>
+
+    <Parameter Name="appendNewline" Default="true">
+      Whether to append a newline character to the end of the string. Defaults to `true`.
+    </Parameter>
+
+    <Returns>
+      `()`
+    </Returns>
+  </Function>
+
+  <Function Name="getInput" Id="1">
+    Reads user input from the standard input.
+
+    <Returns>
+      A string read from the standard input.
+    </Returns>
+  </Function>
+
+  <Function Name="readFile" Id="2">
+    Reads the contents of a file as a string.
+
+    <Parameter Name="path">
+      The path to the file to read.
+    </Parameter>
+
+    <Returns>
+      The contents of the read file, as a string. Alternatively, `()` if the file for some reason could not be read.
+    </Returns>
+  </Function>
+
+  <Function Name="writeFile" Id="3">
+    Write a string to a file.
+
+    <Parameter Name="path">
+      The path to the file to write to.
+    </Parameter>
+
+    <Parameter Name="content">
+      The content to write to the file, as a string.
+    </Parameter>
+
+    <Returns>
+      `true` if the file was successfully written to, otherwise `false`.
+    </Returns>
+  </Function>
+
+  <Function Name="toString" Id="4">
+    Converts a value into a string representation.
+
+    <Parameter Name="x">
+      The value to convert.
+    </Parameter>
+
+    <Returns>
+      A string representation of the value.
+    </Returns>
+  </Function>
+
+  <Function Name="push" Id="5">
+    Pushes a value onto the end of a list, **mutating it in-place**.
+
+    <Parameter Name="list">
+      The list to push to.
+    </Parameter>
+
+    <Parameter Name="value">
+      The value to push.
+    </Parameter>
+
+    <Returns>
+      `()`
+    </Returns>
+  </Function>
+
+  <Function Name="pop" Id="6">
+    Pops a value from the end of a list.
+
+    <Parameter Name="list">
+      The list to pop from.
+    </Parameter>
+
+    <Returns>
+      The value popped from the list, or `()` if the list was empty.
+    </Returns>
+  </Function>
+
+  <Function Name="append" Id="7">
+    Appends a value to the end of a list, **returning a new list** containing the original list with the value appended to the end.
+
+    <Parameter Name="source">
+      The source list to append to.
+    </Parameter>
+
+    <Parameter Name="value">
+      The value to append.
+    </Parameter>
+
+    <Returns>
+      A new list containing the source list with the value appended to the end.
+    </Returns>
+  </Function>
+
+  <Function Name="concat" Id="8">
+    Concatenates two lists together, **returning a new list**.
+
+    <Parameter Name="source">
+      The source list.
+    </Parameter>
+
+    <Parameter Name="values">
+      The list to append to the end of the source list.
+    </Parameter>
+
+    <Returns>
+      A new list containing the second list concatenates to the end of the source list.
+    </Returns>
+  </Function>
+
+  <Function Name="slice" Id="9">
+    Creates a slice out of a list containing values of the list from a start index to an end index.
+
+    <Parameter Name="source">
+      The source list to slice from.
+    </Parameter>
+
+    <Parameter Name="start">
+      The *inclusive* start index to begin the slice from.
+    </Parameter>
+
+    <Parameter Name="end">
+      The *exclusive* end index to end the slice at.
+    </Parameter>
+
+    <Returns>
+      A new list containing the values of the source list from the start index to the end index. Returns an empty list if the start index is greater than the end index, or if the start index is outside the source list.
+    </Returns>
+  </Function>
+
+  <Function Name="map" Id="A">
+    Maps the values of a list to a new set of values using a transform function, **returning a new list**.
+
+    <Parameter Name="source">
+      The source list to transform.
+    </Parameter>
+
+    <Parameter Name="transform">
+      A function to apply to each element of the list, where the value returned from the function will be the value at the same index in the new list.
+    </Parameter>
+
+    <Returns>
+      A new list with the same length as the source list with every element transformed using the transform function.
+    </Returns>
+  </Function>
+
+  <Function Name="flatMap" Id="B">
+    Maps the values of a list to a set of lists using a transform function, then flattens the lists into a list of values.
+
+    <Parameter Name="source">
+      The source list to transform.
+    </Parameter>
+
+    <Parameter Name="transform">
+      A function to apply to each element of the list, where the value returned from the function will be flattened and concatenated into the result list. The function must return a list.
+    </Parameter>
+
+    <Returns>
+      A new list which consists of the values of the source list transformed using the transform function and then concatenates together into a resulting list.
+    </Returns>
+  </Function>
+
+  <Function Name="filter" Id="C">
+    Filters the values of a list based on a predicate function, **returning a new list**.
+
+    <Parameter Name="source">
+      The source list to filter.
+    </Parameter>
+
+    <Parameter Name="predicate">
+      A function to apply to every element of the list where the return value specifies whether to include the value in the resulting list or not. Can return anything, but the value will be coerced into a boolean.
+    </Parameter>
+
+    <Returns>
+      A new list consisting of the values of the source list filtered using the predicate function.
+    </Returns>
+  </Function>
+
+  <Function Name="reduce" Id="D">
+    Performs a reduction (aka. "fold right" or "aggregate") operation on a list.
+    
+    Begins by taking a seed value and applying a function onto it and the first element of the list. The function is then applied again onto the resulting value and the second value of the list, and so forth for every element of the list. If the list is empty, the seed value is returned.
+    
+    For instance, `reduce([1, 2, 3], (r, x) =&gt; r + x)` returns the sum of all the elements in the list, `6`.
+
+    <Parameter Name="source">
+      The source list.
+    </Parameter>
+
+    <Parameter Name="function">
+      The function which reduces two values together into a single value. Should take two parameters where the first value is the current collected value and the second is the current element of the list, and should return a new collected value.
+    </Parameter>
+
+    <Returns>
+      The value collected from repeatedly applying the function onto the collected value and each value of the list.
+    </Returns>
+  </Function>
+
+  <Function Name="reverse" Id="E">
+    Reverses a list, **returning a new list**.
+
+    <Parameter Name="source">
+      The source list to reverse.
+    </Parameter>
+    
+    <Returns>
+      The source list with the order of all elements reversed.
+    </Returns>
+  </Function>
+
+  <Function Name="any" Id="F">
+    Checks whether any value of a list matches a predicate. Starts from the beginning of the list and checks the elements until an element either matches the predicate or the end of the list is reached.
+
+    <Parameter Name="source">
+      he source list to check the elements of.
+    </Parameter>
+
+    <Parameter Name="predicate">
+      A predicate function which will be applied to each element of the list.
+    </Parameter>
+
+    <Returns>
+      `true` if any element of the list matches the predicate function, otherwise `false`. Returns `()` if the list is empty.
+    </Returns>
+  </Function>
+
+  <Function Name="all" Id="10">
+    Checks whether all elements of a list match a predicate. Starts from the beginning of the list and checks the elements until an element either doesn't match or the end of the list is reached.
+
+    <Parameter Name="source">
+      The source list to check the elements of.
+    </Parameter>
+
+    <Parameter Name="predicate">
+      A predicate function which will be applied to each element of the list.
+    </Parameter>
+    
+    <Returns>
+      `true` if all elements of the list match the predicate function, otherwise `false`. Returns `()` if the list is empty.
+    </Returns>
+  </Function>
+
+  <Function Name="find" Id="">
+    Tries to find an element which matches a predicate within a list.
+
+    <Parameter Name="source">
+      The source list to find the element within.
+    </Parameter>
+
+    <Parameter Name="predicate">
+      A predicate function to apply to each element to check whether to return it.
+    </Parameter>
+
+    <Parameter Name="fromEnd">
+      If `true`, the function will search from the end of the list towards the start instead of from the start towards the end.
+    </Parameter>
+
+    <Returns>
+      The first element within the list which matches the predicate.
+    </Returns>
+  </Function>
+
+</Functions>

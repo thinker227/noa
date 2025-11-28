@@ -56,6 +56,27 @@ pub enum Exception {
 
     #[error("index `{0}` is out of bounds of the list, which has a length of `{1}`")]
     OutOfBoundsIndex(f64, usize),
+
+    #[error("the string `{0}` is not valid UTF-8")]
+    NonUtf8(String),
+
+    #[error("expected {}{} arguments but got {}", expected, if *or_more { " or more" } else { "" }, actual)]
+    BadArity {
+        expected: u32,
+        or_more: bool,
+        actual: u32,
+    },
+
+    #[error("expected parameter {param} to function {function} to be of type {expected} but was {actual}")]
+    BadArgumentType {
+        param: String,
+        function: String,
+        expected: String,
+        actual: String,
+    },
+
+    #[error("{0}")]
+    Custom(String),
 }
 
 /// An [`Exception`] formatted with a stack trace.

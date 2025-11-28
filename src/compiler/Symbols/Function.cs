@@ -221,6 +221,38 @@ public sealed class TopLevelFunction : IDeclaredFunction
     }
 }
 
+/// <summary>
+/// Represents a native function.
+/// </summary>
+public sealed class NativeFunction : ISymbol, IFunction
+{
+    internal readonly List<NativeParameterSymbol> parameters = [];
+    
+    public required string Name { get; init; }
+
+    public required uint Id { get; init; }
+
+    public IReadOnlyList<NativeParameterSymbol> Parameters => parameters;
+
+    IReadOnlyList<IParameterSymbol> IFunction.Parameters => Parameters;
+
+    /// <summary>
+    /// Adds a parameter to the function.
+    /// </summary>
+    /// <param name="name">The name of the parameter.</param>
+    internal NativeFunction AddParameter(string name)
+    {
+        parameters.Add(new()
+        {
+            Name = name,
+            Function = this,
+            ParameterIndex = parameters.Count
+        });
+        
+        return this;
+    }
+}
+
 public static class FunctionExtensions
 {
     /// <summary>
@@ -247,6 +279,7 @@ public static class FunctionExtensions
         TopLevelFunction => "<main>",
         NomialFunction nomial => nomial.Name,
         LambdaFunction => "<lambda>",
+        NativeFunction native => native.Name,
         _ => throw new UnreachableException()
     };
 }

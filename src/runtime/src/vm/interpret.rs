@@ -285,8 +285,9 @@ impl Vm {
         // Function pointers implement `Copy`, so retrieving the function pointer here
         // doesn't actually require an immutable borrow, which is incredibly nice.
         let native_index = id.decode();
-        let function = *self.consts.native_functions.get(native_index as usize)
-            .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(native_index)))?;
+        let function = self.consts.native_functions.get(&native_index)
+            .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(native_index)))?
+            .function;
 
         let stack_start = self.stack.head() - arg_count as usize;
 
@@ -317,6 +318,10 @@ impl Vm {
 
             ret
         };
+
+        if let Some(ret_ip) = ret_address {
+            self.ip = ret_ip;
+        }
 
         let stack_backtrack_index = self.get_stack_backtrack_index(stack_start);
         self.stack.shrink(stack_backtrack_index);
@@ -510,7 +515,11 @@ impl Vm {
                 InterpretControlFlow::Call { closure, arg_count } => {
                     self.call(closure, arg_count)?;
 
-                    depth += 1;
+                    // Only increase the depth if we're calling a user function.
+                    // Otherwise, the depth would end up increasing without ever decreasing from a return.
+                    if !closure.function.is_native() {
+                        depth += 1;
+                    }
                 },
                 InterpretControlFlow::Return => {
                     let ret = self.ret_user()?;
@@ -519,9 +528,8 @@ impl Vm {
                         return Ok(ret);
                     }
 
-                    self.push(ret)?;
-                    
                     depth -= 1;
+                    self.push(ret)?;
                 },
             }
         }
@@ -711,22 +719,26 @@ impl Vm {
                 let id = FuncId(self.read_u32()?);
                 let index = id.decode();
                 
-                let function = self.consts.functions.get(index as usize)
-                    .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
-                
-                // Save captured variables as a list.
-                let captures = if !function.captures.is_empty() {
-                    let mut captures = Vec::with_capacity(function.captures.len());
-                    for capture_index in &function.captures {
-                        let val = self.read_variable(*capture_index as usize)?;
-                        captures.push(val);
-                    }
-
-                    let address = self.heap_alloc(HeapValue::List(List(captures)))?;
-
-                    Some(address)
-                } else {
+                let captures = if id.is_native() {
                     None
+                } else {
+                    let function = self.consts.functions.get(index as usize)
+                        .ok_or_else(|| self.exception(Exception::InvalidUserFunction(index)))?;
+                    
+                    // Save captured variables as a list.
+                    if !function.captures.is_empty() {
+                        let mut captures = Vec::with_capacity(function.captures.len());
+                        for capture_index in &function.captures {
+                            let val = self.read_variable(*capture_index as usize)?;
+                            captures.push(val);
+                        }
+
+                        let address = self.heap_alloc(HeapValue::List(List(captures)))?;
+
+                        Some(address)
+                    } else {
+                        None
+                    }
                 };
 
                 let closure = Closure {
