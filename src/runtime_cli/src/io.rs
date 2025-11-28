@@ -20,6 +20,10 @@ impl Input for StdInput {
                 String::from("failed to read from stdin")
             ))?;
         
+        str.pop(); // Push trailing newline character.
+
+        buf.extend_from_slice(str.as_bytes());
+        
         Ok(())
     }
 }
