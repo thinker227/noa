@@ -8,7 +8,7 @@ use stack::Stack;
 use crate::ark::Function;
 use crate::exception::{Exception, FormattedException, TraceFrame};
 use crate::native::{functions, NativeFunction};
-use crate::heap::{Heap, HeapAddress, HeapGetError, HeapValue};
+use crate::heap::{Heap, HeapAddress, HeapAllocError, HeapGetError, HeapValue};
 use crate::value::{Field, List, Object, Value};
 
 pub mod frame;
@@ -159,8 +159,24 @@ impl Vm {
 
     /// Allocates a value on the heap.
     pub fn heap_alloc(&mut self, value: HeapValue) -> Result<HeapAddress> {
-        self.heap.alloc(value)
-            .map_err(|_| self.exception(Exception::OutOfMemory))
+        match self.heap.alloc(value) {
+            Ok(x) => Ok(x),
+            Err(HeapAllocError::OutOfNoMemory(value)) => {
+                // We're out of heap memory, so do a run of garbage collection.
+                // This is an extremely naïve approach to garbage collection,
+                // although we don't really need much more since we're not really
+                // in the business of performance anyway.
+                let roots = self.stack.iter().copied();
+                self.heap.collect(roots);
+                
+                // If we're still out of memory after doing a run of garbage collection,
+                // then we're *truly* out of memory.
+                self.heap.alloc(value)
+                    .map_err(|_| self.exception(Exception::OutOfMemory))
+            },
+        }
+        // self.heap.alloc(value)
+        //     .map_err(|_| self.exception(Exception::OutOfMemory))
     }
 
     /// Allocates a string on the heap.

@@ -79,10 +79,10 @@ pub enum HeapGetError {
 }
 
 /// An error produced by [`Heap::alloc`].
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum HeapAllocError {
     /// The heap is out of available memory.
-    OutOfNoMemory,
+    OutOfNoMemory(HeapValue),
 }
 
 impl Heap {
@@ -134,7 +134,7 @@ impl Heap {
         // First just check whether there even is memory left to allocate at.
         let address = match self.first_free {
             Some(x) => x,
-            None => return Err(HeapAllocError::OutOfNoMemory), // no more memory
+            None => return Err(HeapAllocError::OutOfNoMemory(value)), // no more memory
         };
 
         let slot = &mut self.mem[address];
@@ -308,7 +308,7 @@ mod tests {
     fn alloc(heap: &mut Heap, value: HeapValue, expected_address: usize) -> HeapAddress {
         let address = heap.alloc(value);
 
-        assert_eq!(address, Ok(HeapAddress(expected_address)));
+        assert_matches!(address, Ok(HeapAddress(x)) if x == expected_address);
 
         address.unwrap()
     }
@@ -353,9 +353,9 @@ mod tests {
         alloc(&mut heap, HeapValue::String("owo".into()), 1);
         alloc(&mut heap, HeapValue::String("^w^".into()), 2);
         
-        assert_eq!(
+        assert_matches!(
             heap.alloc(HeapValue::String(";w;".into())),
-            Err(HeapAllocError::OutOfNoMemory)
+            Err(HeapAllocError::OutOfNoMemory(_))
         );
 
         assert_matches!(&heap.mem[..], [
