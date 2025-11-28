@@ -154,7 +154,9 @@ impl Vm {
             Value::Function(closure) => {
                 let id = closure.function.decode();
                 let name = if closure.function.is_native() {
-                    todo!("name of native functions")
+                    self.consts.native_functions.get(&id)
+                        .ok_or_else(|| self.exception(Exception::InvalidNativeFunction(id)))?
+                        .name.clone()
                 } else {
                     let name_index = self.consts.functions.get(id as usize)
                         .ok_or_else(|| self.exception(Exception::InvalidUserFunction(id)))?

@@ -3,6 +3,7 @@ use std::fs;
 use std::iter;
 
 use crate::exception::Exception;
+use crate::native::NativeFn;
 use crate::vm::{Vm, Result};
 use crate::value::{Closure, List, Value};
 
@@ -10,36 +11,44 @@ use super::NativeFunction;
 
 /// Gets a vector of native functions.
 pub fn get_functions() -> HashMap<u32, NativeFunction> {
-    let functions: [(u32, NativeFunction); _] = [
+    let functions: [(u32, &'static str, NativeFn); _] = [
         // Console IO
-        (0x0, print),
-        (0x1, get_input),
+        (0x0, "print", print),
+        (0x1, "getInput", get_input),
 
         // File IO
-        (0x80, read_file),
-        (0x81, write_file),
+        (0x80, "readFile", read_file),
+        (0x81, "writeFile", write_file),
 
         // Strings
-        (0x100, to_string),
+        (0x100, "toString", to_string),
         
         // Lists
-        (0x180, push),
-        (0x181, pop),
-        (0x182, append),
-        (0x183, concat),
-        (0x184, slice),
-        (0x185, map),
-        (0x186, flat_map),
-        (0x187, filter),
-        (0x188, reduce),
-        (0x189, reverse),
-        (0x18A, any),
-        (0x18B, all),
-        (0x18C, find),
-        (0x18D, length),
+        (0x180, "push", push),
+        (0x181, "pop", pop),
+        (0x182, "append", append),
+        (0x183, "concat", concat),
+        (0x184, "slice", slice),
+        (0x185, "map", map),
+        (0x186, "flatMap", flat_map),
+        (0x187, "filter", filter),
+        (0x188, "reduce", reduce),
+        (0x189, "reverse", reverse),
+        (0x18A, "any", any),
+        (0x18B, "all", all),
+        (0x18C, "find", find),
+        (0x18D, "length", length),
     ];
 
-    functions.into_iter().collect()
+    functions.into_iter()
+        .map(|(id, name, function)| (
+            id,
+            NativeFunction {
+                name: name.into(),
+                function
+            }
+        ))
+        .collect()
 }
 
 fn print(vm: &mut Vm, args: Vec<Value>) -> Result<Value> {
