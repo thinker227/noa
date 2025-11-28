@@ -187,7 +187,9 @@ impl DebugInput {
 
 impl Input for DebugInput {
     fn read(&mut self, buf: &mut Vec<u8>) -> Result<(), Exception> {
-        todo!()
+        // Todo: Support user input in debugger.
+        buf.extend_from_slice(b"User input is not supported while debugging.");
+        Ok(())
     }
 }
 
