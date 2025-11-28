@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::{Read, Write};
 
 use debugger::Debugger;
 use frame::{Frame, FrameKind};
